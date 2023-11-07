@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 private readonly ImmutableDictionary<string, HashSet<int>> _pathToIndicesMap;
 
                 /// <summary>
-                /// A set of indeces into <see cref="_metadataReferences"/> that are to be removed.
+                /// A set of indices into <see cref="_metadataReferences"/> that are to be removed.
                 /// </summary>
                 private readonly HashSet<int> _indicesToRemove;
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // First, gather all of the metadata references from the command-line arguments.
                 var resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
                     new WorkspaceMetadataFileReferenceResolver(
-                        metadataService: _workspaceServices.GetRequiredService<IMetadataService>(),
+                        metadataService: _solutionServices.GetRequiredService<IMetadataService>(),
                         pathResolver: new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
 
                 var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);

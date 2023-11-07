@@ -35,3 +35,7 @@ dotnet_diagnostic.RS0057.severity = none
 
 dotnet_public_api_analyzer.skip_namespaces = Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal
 
+[Copilot/**]
+
+dotnet_public_api_analyzer.skip_namespaces = Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal
+

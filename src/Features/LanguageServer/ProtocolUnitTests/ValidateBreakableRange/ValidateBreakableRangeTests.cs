@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {
         }
 
-        [Fact]
-        public async Task SimpleStatement()
+        [Theory, CombinatorialData]
+        public async Task SimpleStatement(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|expected:{|caret:|}M();|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task LineBreakpoint()
+        [Theory, CombinatorialData]
+        public async Task LineBreakpoint(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
 #endif
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -64,8 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task NoBreakpointSpan()
+        [Theory, CombinatorialData]
+        public async Task NoBreakpointSpan(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|caret:|}const int a = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var caret = testLspServer.GetLocations("caret").Single();
 
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task SplitBreakpoint()
+        [Theory, CombinatorialData]
+        public async Task SplitBreakpoint(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:int a = 1; {|expected:Console.WriteLine(""hello"");|}|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact, WorkItem(1501785, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
-        public async Task InvalidExistingBreakpoint1()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
+        public async Task InvalidExistingBreakpoint1(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:int a Console.WriteLine(""hello"");|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact, WorkItem(1501882, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
-        public async Task InvalidExistingBreakpoint2()
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
+        public async Task InvalidExistingBreakpoint2(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
      {|breakpoint:int a = 1;|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task TypingInMultilineBreakpoint()
+        [Theory, CombinatorialData]
+        public async Task TypingInMultilineBreakpoint(bool mutatingLspWorkspace)
         {
             // This simulates the request we get just after the user types the semi-colon on the first line
             var markup =
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|expected:Console.WriteLine(""hello"");|}|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task TypingInMultilineBreakpoint2()
+        [Theory, CombinatorialData]
+        public async Task TypingInMultilineBreakpoint2(bool mutatingLspWorkspace)
         {
             // This simulates the request we get just after the user types the semi-colon on the third line
             var markup =
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             );|}|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -197,8 +197,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task ExpandToMultilineBreakpoint()
+        [Theory, CombinatorialData]
+        public async Task ExpandToMultilineBreakpoint(bool mutatingLspWorkspace)
         {
             // This simulates the request we get just after the user types the equals sign on the first line
             var markup =
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         {|breakpoint:GetSomeValue();|}|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 
@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             AssertJsonEquals(expected, result);
         }
 
-        [Fact]
-        public async Task DontShrinkValidMultilineBreakpoints()
+        [Theory, CombinatorialData]
+        public async Task DoNotShrinkValidMultilineBreakpoints(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
         GetSomeValue();|}|}
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var breakpoint = testLspServer.GetLocations("breakpoint").Single();
 

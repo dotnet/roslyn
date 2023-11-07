@@ -690,7 +690,7 @@ End Class
             Await TestAsync(markup, expected)
         End Function
 
-        <Fact, WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40240")>
         Public Async Function TestAddMissingCasesForNullableEnum As Task
             Dim markup =
 <File>

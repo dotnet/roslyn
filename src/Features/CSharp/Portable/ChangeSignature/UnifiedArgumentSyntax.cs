@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         private UnifiedArgumentSyntax(SyntaxNode argument)
         {
-            Debug.Assert(argument.IsKind(SyntaxKind.Argument) || argument.IsKind(SyntaxKind.AttributeArgument));
+            Debug.Assert(argument.Kind() is SyntaxKind.Argument or SyntaxKind.AttributeArgument);
             _argument = argument;
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public string GetName()
-            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
+            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ValueText;
 
         public IUnifiedArgumentSyntax WithName(string name)
         {

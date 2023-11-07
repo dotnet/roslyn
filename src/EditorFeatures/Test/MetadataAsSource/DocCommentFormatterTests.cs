@@ -102,7 +102,7 @@ $@"{FeaturesResources.Exceptions_colon}
             TestFormat(comment, expected);
         }
 
-        [Fact, WorkItem(530760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530760")]
         public void MultipleExceptionTagsWithSameType()
         {
             var comment =

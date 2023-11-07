@@ -11,21 +11,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class Binder
-    {
 #nullable enable
-
+    internal partial class RefSafetyAnalysis
+    {
         private enum EscapeLevel : uint
         {
-            CallingMethod = Binder.CallingMethodScope,
-            ReturnOnly = Binder.ReturnOnlyScope,
+            CallingMethod = CallingMethodScope,
+            ReturnOnly = ReturnOnlyScope,
         }
 
         /// <summary>
@@ -157,8 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : Argument.ToString();
         }
 
-#nullable disable
-
         /// <summary>
         /// For the purpose of escape verification we operate with the depth of local scopes.
         /// The depth is a uint, with smaller number representing shallower/wider scopes.
@@ -173,10 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   Since sibling scopes do not intersect and a value cannot escape from one to another without 
         ///   escaping to a wider scope, we can use simple depth numbering without ambiguity.
         /// </summary>
-        internal const uint CallingMethodScope = 0;
-        internal const uint ReturnOnlyScope = 1;
-        internal const uint CurrentMethodScope = 2;
+        private const uint CallingMethodScope = 0;
+        private const uint ReturnOnlyScope = 1;
+        private const uint CurrentMethodScope = 2;
+    }
+#nullable disable
 
+    internal partial class Binder
+    {
         // Some value kinds are semantically the same and the only distinction is how errors are reported
         // for those purposes we reserve lowest 2 bits
         private const int ValueKindInsignificantBits = 2;
@@ -357,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
+                    indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     indexerAccess.Indexer,
                     argumentsBuilder.ToImmutableAndFree(),
                     indexerAccess.ArgumentNamesOpt,
@@ -411,6 +411,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
+                    }
+                    break;
+
+                case BoundKind.UnconvertedCollectionExpression:
                     if (valueKind == BindValueKind.RValue)
                     {
                         return expr;
@@ -554,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // constants/literals are strictly RValues
             // void is not even an RValue
-            if ((expr.ConstantValue != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
+            if ((expr.ConstantValueOpt != null) || (expr.Type.GetSpecialTypeSafe() == SpecialType.System_Void))
             {
                 Error(diagnostics, GetStandardLvalueError(valueKind), node);
                 return false;
@@ -690,15 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        var errorCode = GetThisLvalueError(valueKind, isValueType);
-                        if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
-                        {
-                            Error(diagnostics, errorCode, node);
-                        }
-                        else
-                        {
-                            Error(diagnostics, errorCode, node, node);
-                        }
+                        ReportThisLvalueError(node, valueKind, isValueType, isPrimaryConstructorParameter: false, diagnostics);
                         return false;
                     }
 
@@ -735,6 +734,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexer.IndexerOrSliceAccess.Kind);
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)expr;
+
+                        if (elementAccess.IsValue || elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int)
+                        {
+                            // Strict RValue
+                            break;
+                        }
+
+                        var getItemOrSliceHelper = (MethodSymbol)Compilation.GetWellKnownTypeMember(elementAccess.GetItemOrSliceHelper);
+
+                        if (getItemOrSliceHelper is null)
+                        {
+                            return true;
+                        }
+
+                        getItemOrSliceHelper = getItemOrSliceHelper.AsMember(getItemOrSliceHelper.ContainingType.Construct(ImmutableArray.Create(elementAccess.Expression.Type.TryGetInlineArrayElementField().TypeWithAnnotations)));
+
+                        return CheckMethodReturnValueKind(getItemOrSliceHelper, elementAccess.Syntax, node, valueKind, checkingReceiver, diagnostics);
+                    }
+
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     break;
 
@@ -764,6 +785,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
+
+                case BoundKind.ValuePlaceholder:
+                    // Strict RValue
+                    break;
 
                 default:
                     Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
@@ -796,6 +821,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static void ReportThisLvalueError(SyntaxNode node, BindValueKind valueKind, bool isValueType, bool isPrimaryConstructorParameter, BindingDiagnosticBag diagnostics)
+        {
+            var errorCode = GetThisLvalueError(valueKind, isValueType, isPrimaryConstructorParameter);
+            if (errorCode is ErrorCode.ERR_InvalidAddrOp or ErrorCode.ERR_IncrementLvalueExpected or ErrorCode.ERR_RefReturnThis or ErrorCode.ERR_RefLocalOrParamExpected or ErrorCode.ERR_RefLvalueExpected)
+            {
+                Error(diagnostics, errorCode, node);
+            }
+            else
+            {
+                Error(diagnostics, errorCode, node, node);
+            }
+        }
+
         private static bool CheckNotNamespaceOrType(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
             switch (expr.Kind)
@@ -813,6 +851,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckLocalValueKind(SyntaxNode node, BoundLocal local, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
+            }
+
             // Local constants are never variables. Local variables are sometimes
             // not to be treated as variables, if they are fixed, declared in a using, 
             // or declared in a foreach.
@@ -850,20 +893,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
         private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
             // if local symbol can escape to the same or wider/shallower scope then escapeTo
             // then it is all ok, otherwise it is an error.
-            if (localSymbol.RefEscapeScope <= escapeTo)
+            if (GetLocalScopes(localSymbol).RefEscapeScope <= escapeTo)
             {
                 return true;
             }
 
-            var inUnsafeRegion = this.InUnsafeRegion;
-            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
+            var inUnsafeRegion = _inUnsafeRegion;
+            if (escapeTo is CallingMethodScope or ReturnOnlyScope)
             {
                 if (localSymbol.RefKind == RefKind.None)
                 {
@@ -892,14 +938,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, localSymbol);
             return inUnsafeRegion;
         }
+    }
 
+    internal partial class Binder
+    {
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!RequiresAssignableVariable(BindValueKind.AddressOf));
+            if (valueKind == BindValueKind.AddressOf && this.IsInAsyncMethod())
+            {
+                Error(diagnostics, ErrorCode.WRN_AddressOfInAsync, node);
+            }
+
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
             // all parameters can be passed by ref/out or assigned to
-            // except "in" parameters, which are readonly
-            if (parameterSymbol.RefKind == RefKind.In && RequiresAssignableVariable(valueKind))
+            // except "in" and "ref readonly" parameters, which are readonly
+            if (parameterSymbol.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
@@ -908,6 +963,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
                 return false;
+            }
+
+            Debug.Assert(parameterSymbol.RefKind != RefKind.None || !RequiresRefAssignableVariable(valueKind));
+
+            // It is an error to capture 'in', 'ref' or 'out' parameters.
+            // Skipping them to simplify the logic.
+            if (parameterSymbol.RefKind == RefKind.None &&
+                parameterSymbol.ContainingSymbol is SynthesizedPrimaryConstructor primaryConstructor &&
+                primaryConstructor.GetCapturedParameters().TryGetValue(parameterSymbol, out FieldSymbol backingField))
+            {
+                Debug.Assert(backingField.RefKind == RefKind.None);
+                Debug.Assert(!RequiresRefAssignableVariable(valueKind));
+
+                if (backingField.IsReadOnly)
+                {
+                    Debug.Assert(backingField.RefKind == RefKind.None);
+
+                    if (RequiresAssignableVariable(valueKind) &&
+                        !CanModifyReadonlyField(receiverIsThis: true, backingField))
+                    {
+                        reportReadOnlyParameterError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
+                    }
+                }
+
+                if (RequiresAssignableVariable(valueKind) && !backingField.ContainingType.IsReferenceType && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true)
+                {
+                    ReportThisLvalueError(node, valueKind, isValueType: true, isPrimaryConstructorParameter: true, diagnostics);
+                    return false;
+                }
             }
 
             if (this.LockedOrDisposedVariables.Contains(parameterSymbol))
@@ -922,10 +1007,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        static void reportReadOnlyParameterError(ParameterSymbol parameterSymbol, SyntaxNode node, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        {
+            // It's clearer to say that the address can't be taken than to say that the field can't be modified
+            // (even though the latter message gives more explanation of why).
+            Debug.Assert(valueKind != BindValueKind.AddressOf); // If this assert fails, we probably should report ErrorCode.ERR_InvalidAddrOp
+
+            if (checkingReceiver)
+            {
+                ErrorCode errorCode;
+
+                if (valueKind == BindValueKind.RefReturn)
+                {
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter2;
+                }
+                else if (RequiresRefOrOut(valueKind))
+                {
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter2;
+                }
+                else
+                {
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter2;
+                }
+
+                Error(diagnostics, errorCode, node, parameterSymbol);
+            }
+            else
+            {
+                ErrorCode errorCode;
+
+                if (valueKind == BindValueKind.RefReturn)
+                {
+                    errorCode = ErrorCode.ERR_RefReturnReadonlyPrimaryConstructorParameter;
+                }
+                else if (RequiresRefOrOut(valueKind))
+                {
+                    errorCode = ErrorCode.ERR_RefReadonlyPrimaryConstructorParameter;
+                }
+                else
+                {
+                    errorCode = ErrorCode.ERR_AssgReadonlyPrimaryConstructorParameter;
+                }
+
+                Error(diagnostics, errorCode, node);
+            }
+        }
+    }
+
+    internal partial class RefSafetyAnalysis
+    {
         private static EscapeLevel? EscapeLevelFromScope(uint scope) => scope switch
         {
-            Binder.ReturnOnlyScope => EscapeLevel.ReturnOnly,
-            Binder.CallingMethodScope => EscapeLevel.CallingMethod,
+            ReturnOnlyScope => EscapeLevel.ReturnOnly,
+            CallingMethodScope => EscapeLevel.CallingMethod,
             _ => null,
         };
 
@@ -933,9 +1067,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return parameter switch
             {
-                { EffectiveScope: DeclarationScope.ValueScoped } => Binder.CurrentMethodScope,
-                { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => Binder.ReturnOnlyScope,
-                _ => Binder.CallingMethodScope
+                { EffectiveScope: ScopedKind.ScopedValue } => CurrentMethodScope,
+                { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => ReturnOnlyScope,
+                _ => CallingMethodScope
             };
         }
 
@@ -946,11 +1080,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return parameter switch
             {
-                { RefKind: RefKind.None } => Binder.CurrentMethodScope,
-                { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
-                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
-                { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
-                _ => Binder.ReturnOnlyScope
+                { RefKind: RefKind.None } => CurrentMethodScope,
+                { EffectiveScope: ScopedKind.ScopedRef } => CurrentMethodScope,
+                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => ReturnOnlyScope,
+                { HasUnscopedRefAttribute: true, IsThis: false } => CallingMethodScope,
+                _ => ReturnOnlyScope
             };
         }
 
@@ -959,13 +1093,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope);
-            if (UseUpdatedEscapeRules)
+            if (_useUpdatedEscapeRules)
             {
                 if (GetParameterValEscape(parameter) > escapeTo)
                 {
-                    Error(diagnostics, this.InUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, parameter);
-                    return this.InUnsafeRegion;
+                    Error(diagnostics, _inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, parameter);
+                    return _inUnsafeRegion;
                 }
                 return true;
             }
@@ -981,9 +1114,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (refSafeToEscape > escapeTo)
             {
-                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
-                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape == Binder.ReturnOnlyScope);
-                var inUnsafeRegion = this.InUnsafeRegion;
+                var isRefScoped = parameterSymbol.EffectiveScope == ScopedKind.ScopedRef;
+                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape == ReturnOnlyScope);
+                var inUnsafeRegion = _inUnsafeRegion;
 
                 if (parameter is BoundThisReference)
                 {
@@ -996,14 +1129,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter2, parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
-                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  Binder.ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter2,       parameter.Syntax),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  node),
                     (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter,  node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
-                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  Binder.ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        node),
                     (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter,        node)
                 };
@@ -1015,11 +1148,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // can ref-escape to any scope otherwise
             return true;
         }
+    }
 
+    internal partial class Binder
+    {
         private bool CheckFieldValueKind(SyntaxNode node, BoundFieldAccess fieldAccess, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
-            var fieldIsStatic = fieldSymbol.IsStatic;
 
             if (fieldSymbol.IsReadOnly)
             {
@@ -1030,37 +1165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // S has a mutable field x, then c.f.x is not a variable because c.f is not
                 // writable.
 
-                if (fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind))
+                if ((fieldSymbol.RefKind == RefKind.None ? RequiresAssignableVariable(valueKind) : RequiresRefAssignableVariable(valueKind)) &&
+                    !CanModifyReadonlyField(fieldAccess.ReceiverOpt is BoundThisReference, fieldSymbol))
                 {
-                    var canModifyReadonly = false;
-
-                    Symbol containing = this.ContainingMemberOrLambda;
-                    if ((object)containing != null &&
-                        fieldIsStatic == containing.IsStatic &&
-                        (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
-                        (Compilation.FeatureStrictEnabled
-                            ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.ConsiderEverything2)
-                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
-                            : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.ConsiderEverything2)))
-                    {
-                        if (containing.Kind == SymbolKind.Method)
-                        {
-                            MethodSymbol containingMethod = (MethodSymbol)containing;
-                            MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
-                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
-                        }
-                        else if (containing.Kind == SymbolKind.Field)
-                        {
-                            canModifyReadonly = true;
-                        }
-                    }
-
-                    if (!canModifyReadonly)
-                    {
-                        ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
-                        return false;
-                    }
+                    ReportReadOnlyFieldError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                    return false;
                 }
             }
 
@@ -1088,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
-                Debug.Assert(!fieldIsStatic);
+                Debug.Assert(!fieldSymbol.IsStatic);
                 Debug.Assert(valueKind == BindValueKind.RefAssignable);
 
                 switch (fieldSymbol.RefKind)
@@ -1105,19 +1214,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // r/w fields that are static or belong to reference types are writeable and returnable
-            if (fieldIsStatic || fieldSymbol.ContainingType.IsReferenceType)
+            if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
                 return true;
             }
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+        }
 
-            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+        private bool CanModifyReadonlyField(bool receiverIsThis, FieldSymbol fieldSymbol)
+        {
+            // A field is writeable unless 
+            // (1) it is readonly and we are not in a constructor or field initializer
+            // (2) the receiver of the field is of value type and is not a variable or object creation expression.
+            // For example, if you have a class C with readonly field f of type S, and
+            // S has a mutable field x, then c.f.x is not a variable because c.f is not
+            // writable.
+
+            var fieldIsStatic = fieldSymbol.IsStatic;
+            var canModifyReadonly = false;
+
+            Symbol containing = this.ContainingMemberOrLambda;
+            if ((object)containing != null &&
+                fieldIsStatic == containing.IsStatic &&
+                (fieldIsStatic || receiverIsThis) &&
+                (Compilation.FeatureStrictEnabled
+                    ? TypeSymbol.Equals(fieldSymbol.ContainingType, containing.ContainingType, TypeCompareKind.AllIgnoreOptions)
+                    // We duplicate a bug in the native compiler for compatibility in non-strict mode
+                    : TypeSymbol.Equals(fieldSymbol.ContainingType.OriginalDefinition, containing.ContainingType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions)))
+            {
+                if (containing.Kind == SymbolKind.Method)
+                {
+                    MethodSymbol containingMethod = (MethodSymbol)containing;
+                    MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
+                    canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                        isAssignedFromInitOnlySetterOnThis(receiverIsThis);
+                }
+                else if (containing.Kind == SymbolKind.Field)
+                {
+                    canModifyReadonly = true;
+                }
+            }
+
+            return canModifyReadonly;
+
+            bool isAssignedFromInitOnlySetterOnThis(bool receiverIsThis)
             {
                 // bad: other.readonlyField = ...
                 // bad: base.readonlyField = ...
-                if (!(receiver is BoundThisReference))
+                if (!receiverIsThis)
                 {
                     return false;
                 }
@@ -1142,7 +1288,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, GetStandardLvalueError(valueKind), node);
             return false;
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
         private uint GetFieldRefEscape(BoundFieldAccess fieldAccess, uint scopeOfTheContainingExpression)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
@@ -1150,10 +1299,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields that are static or belong to reference types can ref escape anywhere
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
-            if (UseUpdatedEscapeRules)
+            if (_useUpdatedEscapeRules)
             {
                 // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
                 if (fieldSymbol.RefKind != RefKind.None)
@@ -1177,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(fieldAccess.ReceiverOpt is { });
 
-            if (UseUpdatedEscapeRules)
+            if (_useUpdatedEscapeRules)
             {
                 // SPEC: If `F` is a `ref` field its ref-safe-to-escape scope is the safe-to-escape scope of `e`.
                 if (fieldSymbol.RefKind != RefKind.None)
@@ -1203,7 +1352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for other events defer to the receiver.
             return CheckRefEscape(node, eventAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
+    }
 
+    internal partial class Binder
+    {
         private bool CheckEventValueKind(BoundEventAccess boundEvent, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             // Compound assignment (actually "event assignment") is allowed "everywhere", subject to the restrictions of
@@ -1581,13 +1733,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
         internal uint GetInterpolatedStringHandlerConversionEscapeScope(
             BoundExpression expression,
             uint scopeOfTheContainingExpression)
         {
             var data = expression.GetInterpolatedStringHandlerData();
+#if DEBUG
+            // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
+            // since that expression does not introduce locals or placeholders that are needed
+            // by GetValEscape() or CheckValEscape(), so we disable tracking here.
+            var previousVisited = _visited;
+            _visited = null;
+#endif
             uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+#if DEBUG
+            _visited = previousVisited;
+#endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
             GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
@@ -1615,6 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1629,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return GetInvocationEscapeWithUpdatedRules(symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
+                return GetInvocationEscapeWithUpdatedRules(symbol, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, isRefEscape);
             }
 
             // SPEC: (also applies to the CheckInvocationEscape counterpart)
@@ -1651,12 +1817,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //by default it is safe to escape
-            uint escapeScope = Binder.CallingMethodScope;
+            uint escapeScope = CallingMethodScope;
 
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
+                receiverIsSubjectToCloning: ThreeState.Unknown,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1708,6 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private uint GetInvocationEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1716,12 +1884,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRefEscape)
         {
             //by default it is safe to escape
-            uint escapeScope = Binder.CallingMethodScope;
+            uint escapeScope = CallingMethodScope;
 
             var argsAndParamsAll = ArrayBuilder<EscapeValue>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1729,23 +1898,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRefEscape,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
-            foreach (var argAndParam in argsAndParamsAll)
-            {
-                var argument = argAndParam.Argument;
-                uint argEscape = argAndParam.IsRefEscape ?
-                    GetRefEscape(argument, scopeOfTheContainingExpression) :
-                    GetValEscape(argument, scopeOfTheContainingExpression);
 
-                escapeScope = Math.Max(escapeScope, argEscape);
-                if (escapeScope >= scopeOfTheContainingExpression)
+            var returnsRefToRefStruct = ReturnsRefToRefStruct(symbol);
+            foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
+            {
+                // SPEC:
+                // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct. It is an error if there are multiple arguments with different *safe-to-escape* because of *method arguments must match*.
+                // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
+                //
+                if (!returnsRefToRefStruct
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
-                    // can't get any worse
-                    break;
+                    uint argEscape = isArgumentRefEscape ?
+                        GetRefEscape(argument, scopeOfTheContainingExpression) :
+                        GetValEscape(argument, scopeOfTheContainingExpression);
+
+                    escapeScope = Math.Max(escapeScope, argEscape);
+                    if (escapeScope >= scopeOfTheContainingExpression)
+                    {
+                        // can't get any worse
+                        break;
+                    }
                 }
             }
             argsAndParamsAll.Free();
 
             return escapeScope;
+        }
+
+        private static bool ReturnsRefToRefStruct(Symbol symbol)
+        {
+            var method = symbol switch
+            {
+                MethodSymbol m => m,
+                // We are only getting the method in order to handle a special condition where the method returns by-ref.
+                // It is an error for a property to have a setter and return by-ref, so we only bother looking for a getter here.
+                PropertySymbol p => p.GetMethod,
+                _ => null
+            };
+            return method is { RefKind: not RefKind.None, ReturnType.IsRefLikeType: true };
         }
 
         /// <summary>
@@ -1760,6 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1777,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
+                return CheckInvocationEscapeWithUpdatedRules(syntax, symbol, receiver, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, checkingReceiver, escapeFrom, escapeTo, diagnostics, isRefEscape);
             }
 
             // SPEC: 
@@ -1796,6 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
+                receiverIsSubjectToCloning: ThreeState.Unknown,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1823,7 +2016,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!valid)
                     {
-                        ReportInvocationEscapeError(syntax, symbol, parameter, checkingReceiver, diagnostics);
+                        if (symbol is not SignatureOnlyMethodSymbol)
+                        {
+                            ReportInvocationEscapeError(syntax, symbol, parameter, checkingReceiver, diagnostics);
+                        }
+
                         return false;
                     }
                 }
@@ -1846,6 +2043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1862,6 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -1869,24 +2068,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRefEscape,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
-            foreach (var argAndParam in argsAndParamsAll)
-            {
-                var argument = argAndParam.Argument;
-                bool valid = argAndParam.IsRefEscape ?
-                    CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
-                    CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
 
-                if (!valid)
+            var returnsRefToRefStruct = ReturnsRefToRefStruct(symbol);
+            foreach (var (param, argument, _, isArgumentRefEscape) in argsAndParamsAll)
+            {
+                // SPEC:
+                // If `M()` does return ref-to-ref-struct, the *safe-to-escape* is the same as the *safe-to-escape* of all arguments which are ref-to-ref-struct. It is an error if there are multiple arguments with different *safe-to-escape* because of *method arguments must match*.
+                // If `M()` does return ref-to-ref-struct, the *ref-safe-to-escape* is the narrowest *ref-safe-to-escape* contributed by all arguments which are ref-to-ref-struct.
+                //
+                if (!returnsRefToRefStruct
+                    || (param is null or { RefKind: not RefKind.None, Type.IsRefLikeType: true } && isArgumentRefEscape == isRefEscape))
                 {
-                    // For consistency with C#10 implementation, we don't report an additional error
-                    // for the receiver. (In both implementations, the call to Check*Escape() above
-                    // will have reported a specific escape error for the receiver though.)
-                    if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver)
+                    bool valid = isArgumentRefEscape ?
+                        CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
+                        CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
+
+                    if (!valid)
                     {
-                        ReportInvocationEscapeError(syntax, symbol, argAndParam.Parameter, checkingReceiver, diagnostics);
+                        // For consistency with C#10 implementation, we don't report an additional error
+                        // for the receiver. (In both implementations, the call to Check*Escape() above
+                        // will have reported a specific escape error for the receiver though.)
+                        if ((object)((argument as BoundCapturedReceiverPlaceholder)?.Receiver ?? argument) != receiver && symbol is not SignatureOnlyMethodSymbol)
+                        {
+                            ReportInvocationEscapeError(syntax, symbol, param, checkingReceiver, diagnostics);
+                        }
+                        result = false;
+                        break;
                     }
-                    result = false;
-                    break;
                 }
             }
             argsAndParamsAll.Free();
@@ -1896,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the set of arguments to be considered for escape analysis of a method invocation.
-        /// Each argument is returned with the correponding parameter and ref kind. Arguments are not
+        /// Each argument is returned with the corresponding parameter and ref kind. Arguments are not
         /// filtered - all arguments are included exactly once in the array, and the caller is responsible for
         /// determining which arguments affect escape analysis. This method is used for method invocation
         /// analysis, regardless of whether UseUpdatedEscapeRules is set.
@@ -1904,6 +2112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetInvocationArgumentsForEscape(
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -1921,19 +2130,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
-                if (receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type!.IsValueType)
+                Debug.Assert(receiver.Type is { });
+                Debug.Assert(receiverIsSubjectToCloning != ThreeState.Unknown);
+                if (receiverIsSubjectToCloning == ThreeState.True)
                 {
-                    var receiverAddressKind = method.IsEffectivelyReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
-
-                    if (!Binder.HasHome(receiver,
-                                        receiverAddressKind,
-                                        ContainingMemberOrLambda,
-                                        Compilation.IsPeVerifyCompatEnabled,
-                                        stackLocalsOpt: null))
-                    {
-                        // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                        receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, LocalScopeDepth, receiver.Type).MakeCompilerGenerated();
-                    }
+                    Debug.Assert(receiver is not BoundValuePlaceholderBase && method is not null && receiver.Type?.IsValueType == true);
+#if DEBUG
+                    AssertVisited(receiver);
+#endif
+                    // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
+                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, _localScopeDepth, receiver.Type).MakeCompilerGenerated();
                 }
 
                 var tuple = getReceiver(method, receiver);
@@ -1982,9 +2188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = argRefKindsOpt[argIndex];
                     }
                     if (refKind == RefKind.None &&
-                        parameter?.RefKind == RefKind.In)
+                        parameter?.RefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                     {
-                        refKind = RefKind.In;
+                        refKind = parameter.RefKind;
                     }
 
                     escapeArguments.Add(new EscapeArgument(parameter, argument, refKind));
@@ -1996,8 +2202,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.Type.IsRefLikeType &&
                 parameter.RefKind.IsWritableReference();
 
-            static bool isMixableArgument(BoundExpression argument) =>
-                argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
+            static bool isMixableArgument(BoundExpression argument)
+            {
+                if (argument is BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None })
+                {
+                    return false;
+                }
+                if (argument.IsDiscardExpression())
+                {
+                    return false;
+                }
+                return true;
+            }
 
             static EscapeArgument getReceiver(MethodSymbol? method, BoundExpression receiver)
             {
@@ -2047,6 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2081,6 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetEscapeValuesForUpdatedRules(
                 symbol,
                 receiver,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2123,6 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetEscapeValuesForUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2141,6 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2220,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method?.UseUpdatedEscapeRules == true;
         }
 
-        private static bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
+        private bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
         {
             var symbol = argument switch
             {
@@ -2228,7 +2448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None } l => l.LocalSymbol,
                 _ => null
             };
-            if (symbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } local)
+            if (symbol is SourceLocalSymbol local &&
+                GetLocalScopes(local).ValEscapeScope == CallingMethodScope)
             {
                 localSymbol = local;
                 return true;
@@ -2252,6 +2473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiverOpt,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2261,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRulesForInvocation(symbol))
             {
-                return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
+                return CheckInvocationArgMixingWithUpdatedRules(syntax, symbol, receiverOpt, receiverIsSubjectToCloning, parameters, argsOpt, argRefKindsOpt, argsToParamsOpt, scopeOfTheContainingExpression, diagnostics);
             }
 
             // SPEC:
@@ -2289,6 +2511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiverOpt,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt: default,
@@ -2308,7 +2531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
+                    if (refKind.IsWritableReference()
+                        && !argument.IsDiscardExpression()
+                        && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -2336,7 +2561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
-                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                        SetLocalScopes(localSymbol, refEscapeScope: _localScopeDepth, valEscapeScope: inferredDestinationValEscape);
                     }
                 }
 
@@ -2352,6 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             Symbol symbol,
             BoundExpression? receiverOpt,
+            ThreeState receiverIsSubjectToCloning,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
@@ -2364,6 +2590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetEscapeValuesForUpdatedRules(
                 symbol,
                 receiverOpt,
+                receiverIsSubjectToCloning,
                 parameters,
                 argsOpt,
                 argRefKindsOpt,
@@ -2431,7 +2658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
-                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                        SetLocalScopes(localSymbol, refEscapeScope: _localScopeDepth, valEscapeScope: inferredDestinationValEscape);
                     }
                 }
             }
@@ -2485,7 +2712,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return checkingReceiver ? ErrorCode.ERR_EscapeCall2 : ErrorCode.ERR_EscapeCall;
         }
+    }
 
+    internal partial class Binder
+    {
         private static void ReportReadonlyLocalError(SyntaxNode node, LocalSymbol local, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)local != null);
@@ -2524,7 +2754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
+        private static ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType, bool isPrimaryConstructorParameter)
         {
             switch (kind)
             {
@@ -2543,7 +2773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
-                    return ErrorCode.ERR_RefReturnThis;
+                    return isPrimaryConstructorParameter ? ErrorCode.ERR_RefReturnPrimaryConstructorParameter : ErrorCode.ERR_RefReturnThis;
 
                 case BindValueKind.RefAssignable:
                     return ErrorCode.ERR_RefLocalOrParamExpected;
@@ -2628,17 +2858,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
         private static ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
         {
-            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
+            if (escapeTo is CallingMethodScope or ReturnOnlyScope)
             {
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
             return ErrorCode.ERR_EscapeOther;
         }
+    }
 
+    internal partial class Binder
+    {
         private static void ReportReadOnlyFieldError(FieldSymbol field, SyntaxNode node, BindValueKind kind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)field != null);
@@ -2647,11 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
-            if (kind == BindValueKind.AddressOf)
-            {
-                Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, node);
-                return;
-            }
+            Debug.Assert(kind != BindValueKind.AddressOf); // If this assert fails, we probably should report ErrorCode.ERR_InvalidAddrOp
 
             ErrorCode[] ReadOnlyErrors =
             {
@@ -2707,12 +2939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             int index = (checkingReceiver ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
             Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
         }
+    }
 
+    internal partial class RefSafetyAnalysis
+    {
         /// <summary>
-        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>
-        /// In a case if it cannot a bad expression is returned and diagnostics is produced.
+        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>.
         /// </summary>
-        internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
+        internal void ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
         {
             // The result of escape analysis is affected by the expression's type.
             // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
@@ -2720,20 +2954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isByRef)
             {
-                if (CheckRefEscape(expr.Syntax, expr, this.LocalScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
-                {
-                    return expr;
-                }
+                CheckRefEscape(expr.Syntax, expr, _localScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
             }
             else
             {
-                if (CheckValEscape(expr.Syntax, expr, this.LocalScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
-                {
-                    return expr;
-                }
+                CheckValEscape(expr.Syntax, expr, _localScopeDepth, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
             }
-
-            return ToBadExpression(expr);
         }
 
         /// <summary>
@@ -2745,20 +2971,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal uint GetRefEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
+#if DEBUG
+            AssertVisited(expr);
+#endif
+
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
             // cannot infer anything from Void (broken code)
             if (expr.Type?.GetSpecialTypeSafe() == SpecialType.System_Void)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
             // constants/literals cannot ref-escape current scope
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -2771,13 +3001,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
                     // array elements and pointer dereferencing are readwrite variables
-                    return Binder.CallingMethodScope;
+                    return CallingMethodScope;
 
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
                     // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
                     // it can, however, ref-escape to any other level (since TypedReference can val-escape to any other level)
-                    return Binder.CurrentMethodScope;
+                    return CurrentMethodScope;
 
                 case BoundKind.DiscardExpression:
                     // same as write-only byval local
@@ -2794,14 +3024,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetParameterRefEscape(((BoundParameter)expr).ParameterSymbol);
 
                 case BoundKind.Local:
-                    return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
+                    return GetLocalScopes(((BoundLocal)expr).LocalSymbol).RefEscapeScope;
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     return ((BoundCapturedReceiverPlaceholder)expr).LocalScopeDepth;
 
                 case BoundKind.ThisReference:
-                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
                     return GetParameterRefEscape(thisParam);
 
@@ -2834,7 +3064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // field-like events that are static or belong to reference types can ref escape anywhere
                     if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
                     {
-                        return Binder.CallingMethodScope;
+                        return CallingMethodScope;
                     }
 
                     // for other events defer to the receiver.
@@ -2853,6 +3083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             call.Method,
                             call.ReceiverOpt,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -2874,6 +3105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             methodSymbol,
                             receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
                             methodSymbol.Parameters,
                             ptrInvocation.Arguments,
                             ptrInvocation.ArgumentRefKindsOpt,
@@ -2890,6 +3122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -2911,6 +3144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -2920,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundArrayAccess:
                             // array elements are readwrite variables
-                            return Binder.CallingMethodScope;
+                            return CallingMethodScope;
 
                         case BoundCall call:
                             var methodSymbol = call.Method;
@@ -2932,6 +3166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 call.Method,
                                 implicitIndexerAccess.Receiver,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -2944,6 +3179,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)expr;
+
+                        if (elementAccess.GetItemOrSliceHelper is not (WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item) || elementAccess.IsValue)
+                        {
+                            Debug.Assert(GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out _, out _).RefKind == RefKind.None);
+                            break;
+                        }
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        Debug.Assert(equivalentSignatureMethod.RefKind != RefKind.None);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: true);
+                    }
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
 
@@ -2951,6 +3214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -2981,6 +3245,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+#if DEBUG
+            AssertVisited(expr);
+#endif
+
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
             if (escapeTo >= escapeFrom)
@@ -3002,7 +3270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // references to constants/literals cannot escape higher.
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
                 return false;
@@ -3019,7 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
                     // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
-                    if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
+                    if (escapeTo is CallingMethodScope or ReturnOnlyScope)
                     {
                         break;
                     }
@@ -3055,7 +3323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ThisReference:
-                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
                     return CheckParameterRefEscape(node, expr, thisParam, escapeTo, checkingReceiver, diagnostics);
 
@@ -3099,6 +3367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Syntax,
                             methodSymbol,
                             call.ReceiverOpt,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3124,6 +3393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Syntax,
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3154,6 +3424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Syntax,
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3179,6 +3450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Syntax,
                                 methodSymbol,
                                 implicitIndexerAccess.Receiver,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3194,6 +3466,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)expr;
+
+                        if (elementAccess.GetItemOrSliceHelper is not (WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item) || elementAccess.IsValue)
+                        {
+                            Debug.Assert(GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out _, out _).RefKind == RefKind.None);
+                            break;
+                        }
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        Debug.Assert(equivalentSignatureMethod.RefKind != RefKind.None);
+
+                        return CheckInvocationEscape(
+                            elementAccess.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: true);
+                    }
+
                 case BoundKind.FunctionPointerInvocation:
                     var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
 
@@ -3207,6 +3511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         functionPointerInvocation.Syntax,
                         signature,
                         functionPointerInvocation.InvokedExpression,
+                        receiverIsSubjectToCloning: ThreeState.False,
                         signature.Parameters,
                         functionPointerInvocation.Arguments,
                         functionPointerInvocation.ArgumentRefKindsOpt,
@@ -3231,6 +3536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertyAccess.Syntax,
                         propertySymbol,
                         propertyAccess.ReceiverOpt,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -3257,6 +3563,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeTo,
                         checkingReceiver: false,
                         diagnostics);
+
+                case BoundKind.Conversion:
+                    var conversion = (BoundConversion)expr;
+                    if (conversion.Conversion == Conversion.ImplicitThrow)
+                    {
+                        return CheckRefEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    }
+                    break;
+
+                case BoundKind.ThrowExpression:
+                    return true;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -3292,22 +3609,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
         {
+#if DEBUG
+            AssertVisited(expr);
+#endif
+
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
             // to have local-referring values an expression must have a ref-like type
             if (expr.Type?.IsRefLikeType != true)
             {
-                return Binder.CallingMethodScope;
+                return CallingMethodScope;
             }
 
             // cover case that can refer to local state
@@ -3315,14 +3636,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.ThisReference:
-                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
                     return GetParameterValEscape(thisParam);
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Utf8String:
                     // always returnable
-                    return Binder.CallingMethodScope;
+                    return CallingMethodScope;
 
                 case BoundKind.Parameter:
                     return GetParameterValEscape(((BoundParameter)expr).ParameterSymbol);
@@ -3330,7 +3651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FromEndIndexExpression:
                     // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
                     // always returnable
-                    return Binder.CallingMethodScope;
+                    return CallingMethodScope;
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
@@ -3342,16 +3663,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // for compat reasons
                     // NB: it also means can`t assign stackalloc spans to a __refvalue
                     //     we are ok with that.
-                    return Binder.CallingMethodScope;
+                    return CallingMethodScope;
 
                 case BoundKind.DiscardExpression:
-                    return ((BoundDiscardExpression)expr).ValEscape;
+                    return CallingMethodScope;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                case BoundKind.AwaitableValuePlaceholder:
+                    return GetPlaceholderScope((BoundValuePlaceholderBase)expr);
 
                 case BoundKind.Local:
-                    return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
+                    return GetLocalScopes(((BoundLocal)expr).LocalSymbol).ValEscapeScope;
 
                 case BoundKind.CapturedReceiverPlaceholder:
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
@@ -3360,7 +3683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    return Binder.CurrentMethodScope;
+                    return CurrentMethodScope;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -3391,7 +3714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
-                        return Binder.CallingMethodScope;
+                        return CallingMethodScope;
                     }
 
                     // for ref-like fields defer to the receiver.
@@ -3404,6 +3727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             call.Method,
                             call.ReceiverOpt,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             call.Method.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3419,6 +3743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         ptrSymbol,
                         receiver: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -3434,6 +3759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInvocationEscapeScope(
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3441,15 +3767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             scopeOfTheContainingExpression,
                             isRefEscape: false);
                     }
-
-                case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    return ((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape;
-
-                case BoundKind.ListPatternReceiverPlaceholder:
-                    return ((BoundListPatternReceiverPlaceholder)expr).ValEscape;
-
-                case BoundKind.SlicePatternReceiverPlaceholder:
-                    return ((BoundSlicePatternReceiverPlaceholder)expr).ValEscape;
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
@@ -3464,6 +3781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3479,6 +3797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return GetInvocationEscapeScope(
                                 call.Method,
                                 implicitIndexerAccess.Receiver,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 call.Method.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3490,6 +3809,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)expr;
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
 
@@ -3497,6 +3836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInvocationEscapeScope(
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -3510,7 +3850,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var escape = GetInvocationEscapeScope(
                         constructorSymbol,
-                        null,
+                        receiver: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructorSymbol.Parameters,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
@@ -3544,6 +3885,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetInterpolatedStringHandlerConversionEscapeScope(conversion.Operand, scopeOfTheContainingExpression);
                     }
 
+                    if (conversion.ConversionKind == ConversionKind.CollectionExpression)
+                    {
+                        return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
+                            CurrentMethodScope :
+                            CallingMethodScope;
+                    }
+
+                    if (conversion.Conversion.IsInlineArray)
+                    {
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(conversion, out arguments, out refKinds);
+
+                        return GetInvocationEscapeScope(
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -3567,8 +3933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RangeExpression:
                     var range = (BoundRangeExpression)expr;
 
-                    return Math.Max((range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : Binder.CallingMethodScope),
-                                    (range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : Binder.CallingMethodScope));
+                    return Math.Max((range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : CallingMethodScope),
+                                    (range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : CallingMethodScope));
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -3611,22 +3977,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // location.
                     return scopeOfTheContainingExpression;
 
-                case BoundKind.InterpolatedStringArgumentPlaceholder:
-                    // We saved off the safe-to-escape of the argument when we did binding
-                    return ((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape;
-
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
                     // then immediately discarded. The actual expression will be generated during lowering 
                     return scopeOfTheContainingExpression;
 
-                case BoundKind.AwaitableValuePlaceholder:
-                    return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
-
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
-                    return Binder.CallingMethodScope;
+                    return CallingMethodScope;
 
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
@@ -3650,6 +4009,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private bool HasLocalScope(BoundCollectionExpression expr)
+        {
+            // A non-empty collection expression with span type may be stored
+            // on the stack. In those cases the expression may have local scope.
+
+            if (expr.Type?.IsRefLikeType != true || expr.Elements.Length == 0)
+            {
+                return false;
+            }
+
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
+
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.ReadOnlySpan:
+                case CollectionExpressionTypeKind.ImmutableArray: // Error case.
+                    Debug.Assert(elementType.Type is { });
+                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
+                case CollectionExpressionTypeKind.Span:
+                    return true;
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    // For a ref struct type with a builder method, the scope of the collection
+                    // expression is the scope of an invocation of the builder method with the
+                    // collection expression as the span argument. That is, `R r = [x, y, z];`
+                    // is equivalent to `R r = Builder.Create((ReadOnlySpan<...>)[x, y, z]);`.
+                    var constructMethod = expr.CollectionBuilderMethod;
+                    if (constructMethod is not { Parameters: [{ RefKind: RefKind.None } parameter] })
+                    {
+                        // Unexpected construct method. Restrict the collection to local scope.
+                        return true;
+                    }
+                    Debug.Assert(constructMethod.ReturnType.Equals(expr.Type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(parameter.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
+                    if (parameter.EffectiveScope == ScopedKind.ScopedValue)
+                    {
+                        return false;
+                    }
+                    if (LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                    {
+                        return false;
+                    }
+                    return true;
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                    // Error cases. Restrict the collection to local scope.
+                    return true;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
+            }
+        }
+#nullable disable
+
         private uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
         {
             uint narrowestScope = scopeOfTheContainingExpression;
@@ -3663,7 +4075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
-            var result = Binder.CallingMethodScope;
+            var result = CallingMethodScope;
             foreach (var expression in initExpr.Initializers)
             {
                 if (expression.Kind == BoundKind.AssignmentOperator)
@@ -3689,7 +4101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
         {
-            var result = Binder.CallingMethodScope;
+            var result = CallingMethodScope;
             foreach (var expression in expressions)
             {
                 result = Math.Max(result, GetValEscape(expression, scopeOfTheContainingExpression));
@@ -3705,6 +4117,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+#if DEBUG
+            AssertVisited(expr);
+#endif
+
             Debug.Assert(!checkingReceiver || expr.Type.IsValueType || expr.Type.IsTypeParameter());
 
             if (escapeTo >= escapeFrom)
@@ -3720,7 +4136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // constants/literals cannot refer to local state
-            if (expr.ConstantValue != null)
+            if (expr.ConstantValueOpt != null)
             {
                 return true;
             }
@@ -3731,12 +4147,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            bool inUnsafeRegion = this.InUnsafeRegion;
+            bool inUnsafeRegion = _inUnsafeRegion;
 
             switch (expr.Kind)
             {
                 case BoundKind.ThisReference:
-                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
                     return CheckParameterValEscape(node, thisParam, escapeTo, diagnostics);
 
@@ -3764,23 +4180,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.DeconstructValuePlaceholder:
-                    if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
                 case BoundKind.AwaitableValuePlaceholder:
-                    if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
-                    if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
+                    if (GetPlaceholderScope((BoundValuePlaceholderBase)expr) > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
                         return inUnsafeRegion;
@@ -3789,7 +4191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Local:
                     var localSymbol = ((BoundLocal)expr).LocalSymbol;
-                    if (localSymbol.ValEscapeScope > escapeTo)
+                    if (GetLocalScopes(localSymbol).ValEscapeScope > escapeTo)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, localSymbol);
                         return inUnsafeRegion;
@@ -3803,7 +4205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    if (escapeTo < Binder.CurrentMethodScope)
+                    if (escapeTo < CurrentMethodScope)
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeStackAlloc : ErrorCode.ERR_EscapeStackAlloc, node, expr.Type);
                         return inUnsafeRegion;
@@ -3861,6 +4263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.Syntax,
                             methodSymbol,
                             call.ReceiverOpt,
+                            call.InitialBindingReceiverIsSubjectToCloning,
                             methodSymbol.Parameters,
                             call.Arguments,
                             call.ArgumentRefKindsOpt,
@@ -3880,6 +4283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ptrInvocation.Syntax,
                         ptrSymbol,
                         receiver: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         ptrSymbol.Parameters,
                         ptrInvocation.Arguments,
                         ptrInvocation.ArgumentRefKindsOpt,
@@ -3899,6 +4303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Syntax,
                             indexerSymbol,
                             indexerAccess.ReceiverOpt,
+                            indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                             indexerSymbol.Parameters,
                             indexerAccess.Arguments,
                             indexerAccess.ArgumentRefKindsOpt,
@@ -3909,30 +4314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             isRefEscape: false);
                     }
-
-                case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
-                case BoundKind.ListPatternReceiverPlaceholder:
-                    if (((BoundListPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
-
-                case BoundKind.SlicePatternReceiverPlaceholder:
-                    if (((BoundSlicePatternReceiverPlaceholder)expr).ValEscape > escapeTo)
-                    {
-                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return inUnsafeRegion;
-                    }
-                    return true;
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexerAccess = (BoundImplicitIndexerAccess)expr;
@@ -3948,6 +4329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.Syntax,
                                 indexerSymbol,
                                 implicitIndexerAccess.Receiver,
+                                indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                                 indexerSymbol.Parameters,
                                 indexerAccess.Arguments,
                                 indexerAccess.ArgumentRefKindsOpt,
@@ -3969,6 +4351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.Syntax,
                                 methodSymbol,
                                 implicitIndexerAccess.Receiver,
+                                call.InitialBindingReceiverIsSubjectToCloning,
                                 methodSymbol.Parameters,
                                 call.Arguments,
                                 call.ArgumentRefKindsOpt,
@@ -3983,6 +4366,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
                     }
 
+                case BoundKind.InlineArrayAccess:
+                    {
+                        var elementAccess = (BoundInlineArrayAccess)expr;
+
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayAccessEquivalentSignatureMethod(elementAccess, out arguments, out refKinds);
+
+                        return CheckInvocationEscape(
+                            elementAccess.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+                    }
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
 
@@ -3991,6 +4398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertyAccess.Syntax,
                         propertyAccess.PropertySymbol,
                         propertyAccess.ReceiverOpt,
+                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                         default,
                         default,
                         default,
@@ -4009,7 +4417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var escape = CheckInvocationEscape(
                             objectCreation.Syntax,
                             constructorSymbol,
-                            null,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
                             constructorSymbol.Parameters,
                             objectCreation.Arguments,
                             objectCreation.ArgumentRefKindsOpt,
@@ -4062,6 +4471,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
                         return CheckInterpolatedStringHandlerConversionEscape(conversion.Operand, escapeFrom, escapeTo, diagnostics);
+                    }
+
+                    if (conversion.ConversionKind == ConversionKind.CollectionExpression)
+                    {
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && escapeTo < CurrentMethodScope)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    if (conversion.Conversion.IsInlineArray)
+                    {
+                        ImmutableArray<BoundExpression> arguments;
+                        ImmutableArray<RefKind> refKinds;
+                        SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(conversion, out arguments, out refKinds);
+
+                        return CheckInvocationEscape(
+                            conversion.Syntax,
+                            equivalentSignatureMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            equivalentSignatureMethod.Parameters,
+                            argsOpt: arguments,
+                            argRefKindsOpt: refKinds,
+                            argsToParamsOpt: default,
+                            checkingReceiver,
+                            escapeFrom,
+                            escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
                     }
 
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -4293,6 +4734,106 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private SignatureOnlyMethodSymbol GetInlineArrayAccessEquivalentSignatureMethod(BoundInlineArrayAccess elementAccess, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            RefKind resultRefKind;
+            RefKind parameterRefKind;
+
+            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item or WellKnownMember.System_Span_T__get_Item)
+            {
+                // inlineArray[index] is equivalent to calling a method with the signature:
+                // - ref T GetItem(ref inlineArray), or
+                // - ref readonly T GetItem(in inlineArray), or
+                // - T GetItem(inlineArray)
+
+                if (elementAccess.IsValue)
+                {
+                    resultRefKind = RefKind.None;
+                    parameterRefKind = RefKind.None;
+                }
+                else
+                {
+                    resultRefKind = elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item ? RefKind.In : RefKind.Ref;
+                    parameterRefKind = resultRefKind;
+                }
+            }
+            else if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_Span_T__Slice_Int_Int)
+            {
+                // inlineArray[Range] is equivalent to calling a method with the signature:
+                // - Span<T> Slice(ref inlineArray), or
+                // - ReadOnlySpan<T> Slice(in inlineArray)
+                resultRefKind = RefKind.None;
+                parameterRefKind = elementAccess.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int ? RefKind.In : RefKind.Ref;
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var equivalentSignatureMethod = new SignatureOnlyMethodSymbol(
+                name: "",
+                this._symbol.ContainingType,
+                MethodKind.Ordinary,
+                Cci.CallingConvention.Default,
+                ImmutableArray<TypeParameterSymbol>.Empty,
+                ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                            TypeWithAnnotations.Create(elementAccess.Expression.Type),
+                                                            ImmutableArray<CustomModifier>.Empty,
+                                                            isParams: false,
+                                                            parameterRefKind
+                                                            )),
+                resultRefKind,
+                isInitOnly: false,
+                isStatic: true,
+                returnType: TypeWithAnnotations.Create(elementAccess.Type),
+                ImmutableArray<CustomModifier>.Empty,
+                ImmutableArray<MethodSymbol>.Empty);
+
+            arguments = ImmutableArray.Create(elementAccess.Expression);
+            refKinds = ImmutableArray.Create(parameterRefKind);
+
+            return equivalentSignatureMethod;
+        }
+
+        private SignatureOnlyMethodSymbol GetInlineArrayConversionEquivalentSignatureMethod(BoundConversion conversion, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            Debug.Assert(conversion.Conversion.IsInlineArray);
+            return GetInlineArrayConversionEquivalentSignatureMethod(inlineArray: conversion.Operand, resultType: conversion.Type, out arguments, out refKinds);
+        }
+
+        private SignatureOnlyMethodSymbol GetInlineArrayConversionEquivalentSignatureMethod(BoundExpression inlineArray, TypeSymbol resultType, out ImmutableArray<BoundExpression> arguments, out ImmutableArray<RefKind> refKinds)
+        {
+            // An inline array conversion is equivalent to calling a method with the signature:
+            // - Span<T> Convert(ref inlineArray), or
+            // - ReadOnlySpan<T> Convert(in inlineArray)
+
+            RefKind parameterRefKind = resultType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) ? RefKind.In : RefKind.Ref;
+
+            var equivalentSignatureMethod = new SignatureOnlyMethodSymbol(
+                name: "",
+                _symbol.ContainingType,
+                MethodKind.Ordinary,
+                Cci.CallingConvention.Default,
+                ImmutableArray<TypeParameterSymbol>.Empty,
+                ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
+                                                            TypeWithAnnotations.Create(inlineArray.Type),
+                                                            ImmutableArray<CustomModifier>.Empty,
+                                                            isParams: false,
+                                                            parameterRefKind
+                                                            )),
+                RefKind.None,
+                isInitOnly: false,
+                isStatic: true,
+                returnType: TypeWithAnnotations.Create(resultType),
+                ImmutableArray<CustomModifier>.Empty,
+                ImmutableArray<MethodSymbol>.Empty);
+
+            arguments = ImmutableArray.Create(inlineArray);
+            refKinds = ImmutableArray.Create(parameterRefKind);
+
+            return equivalentSignatureMethod;
+        }
+
         private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var element in elements)
@@ -4362,7 +4903,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
             // escape, or does the opposite. In either case, we need to check.
 
+#if DEBUG
+            // VisitArgumentsAndGetArgumentPlaceholders() does not visit data.Construction
+            // since that expression does not introduce locals or placeholders that are needed
+            // by GetValEscape() or CheckValEscape(), so we disable tracking here.
+            var previousVisited = _visited;
+            _visited = null;
+#endif
             CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+#if DEBUG
+            _visited = previousVisited;
+#endif
 
             var arguments = ArrayBuilder<BoundExpression>.GetInstance();
             GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
@@ -4388,7 +4939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (expression)
                 {
                     case BoundBinaryOperator binary:
-                        getParts((BoundInterpolatedString)binary.Right);
+                        GetInterpolatedStringHandlerArgumentsForEscape(binary.Right, arguments);
                         expression = binary.Left;
                         break;
 
@@ -4418,8 +4969,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: For a given argument `a` that is passed to parameter `p`:
                     // SPEC: 1. ...
                     // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
-                    if (UseUpdatedEscapeRules &&
-                        call.Method.Parameters[0].EffectiveScope == DeclarationScope.ValueScoped)
+                    if (_useUpdatedEscapeRules &&
+                        call.Method.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
                     {
                         continue;
                     }
@@ -4428,7 +4979,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+    }
 
+    internal partial class Binder
+    {
         internal enum AddressKind
         {
             // reference may be written to
@@ -4499,7 +5053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     return IsAnyReadOnly(addressKind) ||
-                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
+                        ((BoundParameter)expression).ParameterSymbol.RefKind is not (RefKind.In or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly
@@ -4533,7 +5087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     var lhsRefKind = assignment.Left.GetRefKind();
                     return lhsRefKind == RefKind.Ref ||
-                        (IsAnyReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
+                        (IsAnyReadOnly(addressKind) && lhsRefKind is RefKind.RefReadOnly or RefKind.RefReadOnlyParameter);
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(
@@ -4576,9 +5130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Special HasHome for fields. 
-        /// Fields have readable homes when they are not constants.
-        /// Fields have writeable homes unless they are readonly and used outside of the constructor.
+        /// Special HasHome for fields.
+        /// A field has a readable home unless the field is a constant.
+        /// A ref readonly field doesn't have a writable home.
+        /// Other fields have a writable home unless the field is a readonly value
+        /// and is used outside of a constructor or init method.
         /// </summary>
         private static bool FieldAccessHasHome(
             BoundFieldAccess fieldAccess,
@@ -4597,7 +5153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (field.RefKind is RefKind.Ref or RefKind.RefReadOnly)
+            if (field.RefKind is RefKind.Ref)
             {
                 return true;
             }
@@ -4619,6 +5175,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+
+            if (field.RefKind == RefKind.RefReadOnly)
+            {
+                return false;
+            }
+
+            Debug.Assert(field.RefKind == RefKind.None);
 
             if (!field.IsReadOnly)
             {

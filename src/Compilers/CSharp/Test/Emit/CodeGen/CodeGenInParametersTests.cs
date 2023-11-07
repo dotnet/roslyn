@@ -1539,7 +1539,7 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (14,19): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                // (14,19): error CS8178: A reference returned by a call to 'Program.RefReturning(ref int)' cannot be preserved across 'await' or 'yield' boundary.
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
                 );
@@ -2494,8 +2494,8 @@ public readonly struct S1
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
-        public void InParamGenericReadonly()
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonly([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2514,12 +2514,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(" + modifier + @" T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(" + modifier + @" T arg)
         {
             arg.M3();
         }
@@ -2543,7 +2543,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2558,8 +2558,8 @@ public readonly struct S1
 }");
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
-        public void InParamGenericReadonlyROstruct()
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonlyROstruct([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2575,12 +2575,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(" + modifier + @" T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(" + modifier + @" T arg)
         {
             arg.M3();
         }
@@ -2601,7 +2601,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2637,8 +2637,8 @@ class Program
         }
 
         [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
-        [Fact]
-        public void InParamsNullable()
+        [Theory, CombinatorialData]
+        public void InParamsNullable([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var text = @"
 
@@ -2655,7 +2655,7 @@ class Program
         Test2(ref ns);
     }
 
-    static void Test1(in S1? arg)
+    static void Test1(" + modifier + @" S1? arg)
     {
         // cannot not mutate
         System.Console.Write(arg.GetValueOrDefault());
@@ -2693,7 +2693,7 @@ struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
-            comp.VerifyIL("Program.Test1(in S1?)", @"
+            comp.VerifyIL($"Program.Test1({modifier} S1?)", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -4385,6 +4385,498 @@ class Derived : Test { }
   IL_0026:  ret
 }
 ");
+        }
+
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(" + modifier + @" S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            // Note: we use a temp instead of directly doing a constrained call on `in` parameter
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M<T>(" + modifier + @" T value) where T : struct, IEnumerable<int>
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            verifier.VerifyIL($"C.M<T>({modifier} T)", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "T"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "T"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnReadonlyField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    readonly S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
+            // Note: we use a temp instead of directly doing a constrained call on readonly field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       73 (0x49)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S D.field"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ldarg.0
+  IL_0033:  ldflda     "S D.field"
+  IL_0038:  constrained. "S"
+  IL_003e:  callvirt   "string object.ToString()"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnField()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S s = new();
+        var d = new D(s);
+        d.M();
+        d.M();
+    }
+}
+
+public class D
+{
+    S field;
+    public D(S s) { field = s; }
+
+    public void M()
+    {
+        foreach (var x in field) { }
+        System.Console.Write(field.ToString());
+    }
+}
+
+public struct S : IEnumerable<int>
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    private IEnumerator<int> GetEnumerator() => Enumerable.Range(0, ++a).GetEnumerator();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            // Note: we do a constrained call directly on the field
+            verifier.VerifyIL("D.M", """
+{
+  // Code size       70 (0x46)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "S D.field"
+  IL_0006:  constrained. "S"
+  IL_000c:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0011:  stloc.0
+  .try
+  {
+    IL_0012:  br.s       IL_001b
+    IL_0014:  ldloc.0
+    IL_0015:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001a:  pop
+    IL_001b:  ldloc.0
+    IL_001c:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0021:  brtrue.s   IL_0014
+    IL_0023:  leave.s    IL_002f
+  }
+  finally
+  {
+    IL_0025:  ldloc.0
+    IL_0026:  brfalse.s  IL_002e
+    IL_0028:  ldloc.0
+    IL_0029:  callvirt   "void System.IDisposable.Dispose()"
+    IL_002e:  endfinally
+  }
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     "S D.field"
+  IL_0035:  constrained. "S"
+  IL_003b:  callvirt   "string object.ToString()"
+  IL_0040:  call       "void System.Console.Write(string)"
+  IL_0045:  ret
+}
+""");
+        }
+
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var text = @"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        S1 s = new S1();
+        Console.Write(M(in s));
+        Console.Write(M(in s));
+    }
+    static string M(" + modifier + @" S1 s)
+    {
+        return s.ToString();
+    }
+}
+struct S1
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+}
+";
+
+            var comp = CompileAndVerify(text, expectedOutput: "00");
+
+            comp.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S1"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S1"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+        }
+
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write("RAN "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = $$"""
+public class C
+{
+    public static string M({{modifier}} S s)
+    {
+        return s.ToString();
+    }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            CompileAndVerify(libUser).VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            var src = """
+using System;
+
+S s = new S();
+s.Report();
+Console.Write(C.M(in s));
+Console.Write(C.M(in s));
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "RAN 00");
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnReadonlyField()
+        {
+            var libOrig_cs = """
+public struct S
+{
+    int i;
+    public void Report() { throw null; }
+}
+""";
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+
+            var libChanged_cs = """
+public struct S
+{
+    int i;
+    public override string ToString() => (i++).ToString();
+    public void Report() { System.Console.Write($"Report{i} "); }
+}
+""";
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+
+            var libUser_cs = """
+public class C
+{
+    readonly S field;
+    public C(int i)
+    {
+        field.ToString();
+    }
+    public string M()
+    {
+        return field.ToString();
+    }
+    public void Report() { field.Report(); }
+}
+""";
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            var verifier = CompileAndVerify(libUser);
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "S C.field"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "string object.ToString()"
+  IL_0014:  ret
+}
+""");
+
+            verifier.VerifyIL("C..ctor(int)", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "object..ctor()"
+  IL_0006:  ldarg.0
+  IL_0007:  ldflda     "S C.field"
+  IL_000c:  constrained. "S"
+  IL_0012:  callvirt   "string object.ToString()"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+
+            var src = """
+C c = new C(42);
+c.Report();
+System.Console.Write(c.M());
+System.Console.Write(c.M());
+""";
+
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "Report1 11");
         }
     }
 }

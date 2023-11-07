@@ -15,20 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            if (node.IsParentKind(SyntaxKind.MethodDeclaration) ||
-                node.IsParentKind(SyntaxKind.LocalFunctionStatement) ||
-                node.IsParentKind(SyntaxKind.ConstructorDeclaration) ||
-                node.IsParentKind(SyntaxKind.DelegateDeclaration))
+            if (node?.Parent?.Kind()
+                    is SyntaxKind.MethodDeclaration
+                    or SyntaxKind.LocalFunctionStatement
+                    or SyntaxKind.ConstructorDeclaration
+                    or SyntaxKind.DelegateDeclaration)
             {
                 return true;
             }
 
             if (includeOperators)
-            {
-                return
-                    node.IsParentKind(SyntaxKind.OperatorDeclaration) ||
-                    node.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
-            }
+                return node?.Parent?.Kind() is SyntaxKind.OperatorDeclaration or SyntaxKind.ConversionOperatorDeclaration;
 
             return false;
         }

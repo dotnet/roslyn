@@ -170,7 +170,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, WorkItem(538152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538152")>
         Public Async Function TestOnComma() As Task
             Await TestNoDataTipAsync(<text>
 class C
@@ -181,7 +181,7 @@ class C
 end class</text>)
         End Function
 
-        <Fact, WorkItem(546280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546280")>
         Public Async Function TestOnParameter() As Task
             Await TestAsync(<text>
 Module Module1
@@ -196,7 +196,7 @@ End Module
 </text>)
         End Function
 
-        <Fact, WorkItem(942699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942699")>
         Public Async Function TestOnCatchVariable() As Task
             Await TestAsync(<text>
 Module Module1
@@ -309,7 +309,7 @@ End Class
 </text>)
         End Function
 
-        <Fact, WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression() As Task
             Const sourceTemplate = "
 Class A
@@ -375,7 +375,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]") %></text>)
         End Function
 
-        <Fact, WorkItem(1077843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")>
         Public Async Function TestConditionalAccessExpression_Dictionary() As Task
             Const sourceTemplate = "
 Class A
@@ -405,7 +405,7 @@ End Class
             Await TestAsync(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Function
 
-        <Fact, WorkItem(2602, "https://github.com/dotnet/roslyn/issues/2602")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2602")>
         Public Async Function TestParameterizedProperty() As Task
             Const sourceTemplate = "
 Class Class1

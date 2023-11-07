@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             var reference = new StubAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             var document = project.Documents.Single();
-            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
 
             var stubRefactoringAction = refactorings.Single(refactoring => refactoring.CodeActions.FirstOrDefault().action?.Title == nameof(StubRefactoring));
             Assert.True(stubRefactoringAction is object);
@@ -67,19 +67,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-#pragma warning disable CS0612 // Type or member is obsolete
-                var isBlocking = ((ITypeScriptCodeRefactoringContext)context).IsBlocking;
-#pragma warning restore
-
-                context.RegisterRefactoring(CodeAction.Create($"Blocking={isBlocking}", _ => Task.FromResult<Document>(null)));
+                context.RegisterRefactoring(CodeAction.Create($"Blocking=false", _ => Task.FromResult<Document>(null)));
 
                 return Task.CompletedTask;
             }
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestTypeScriptRefactorings(bool isBlocking)
+        [Fact]
+        public async Task TestTypeScriptRefactorings()
         {
             var composition = FeaturesTestCompositions.Features.AddParts(typeof(TypeScriptCodeRefactoringProvider));
 
@@ -94,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var optionsProvider = workspace.GlobalOptions.GetCodeActionOptionsProvider();
-            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), optionsProvider, isBlocking, CancellationToken.None);
-            Assert.Equal($"Blocking={isBlocking}", refactorings.Single().CodeActions.Single().action.Title);
+            var refactorings = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), optionsProvider, CancellationToken.None);
+            Assert.Equal($"Blocking=false", refactorings.Single().CodeActions.Single().action.Title);
         }
 
         private static async Task VerifyRefactoringDisabledAsync<T>()
@@ -115,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
             var extensionManager = (EditorLayerExtensionManager.ExtensionManager)document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
-            var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var result = await refactoringService.GetRefactoringsAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codeRefactoring));
             Assert.False(extensionManager.IsIgnored(codeRefactoring));
 
@@ -160,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
                 => _refactorings;
         }
 
-        [Fact, WorkItem(62877, "https://github.com/dotnet/roslyn/issues/62877")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62877")]
         public async Task TestAdditionalDocumentRefactoringAsync()
         {
             using var workspace = TestWorkspace.CreateCSharp("", composition: FeaturesTestCompositions.Features);
@@ -178,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify available refactorings for .txt additional document
             var txtAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.txt");
-            var txtRefactorings = await refactoringService.GetRefactoringsAsync(txtAdditionalDocument, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var txtRefactorings = await refactoringService.GetRefactoringsAsync(txtAdditionalDocument, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
             Assert.Equal(2, txtRefactorings.Length);
             var txtRefactoringTitles = txtRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
             Assert.Contains(refactoring1.Title, txtRefactoringTitles);
@@ -186,14 +181,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify code refactoring application
             var codeAction = txtRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync();
+            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
             var changedtxtDocument = solution.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtAdditionalDocument.Id);
             Assert.Empty(txtAdditionalDocument.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal(refactoring1.Title, changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
 
             // Verify available refactorings for .log additional document
             var logAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.log");
-            var logRefactorings = await refactoringService.GetRefactoringsAsync(logAdditionalDocument, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var logRefactorings = await refactoringService.GetRefactoringsAsync(logAdditionalDocument, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
             var logRefactoring = Assert.Single(logRefactorings);
             var logRefactoringTitle = logRefactoring.CodeActions.Single().action.Title;
             Assert.Equal(refactoring2.Title, logRefactoringTitle);
@@ -217,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify available refactorings for .editorconfig document
             var editorConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".editorconfig");
-            var editorConfigRefactorings = await refactoringService.GetRefactoringsAsync(editorConfig, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var editorConfigRefactorings = await refactoringService.GetRefactoringsAsync(editorConfig, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
             Assert.Equal(2, editorConfigRefactorings.Length);
             var editorConfigRefactoringTitles = editorConfigRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
             Assert.Contains(refactoring1.Title, editorConfigRefactoringTitles);
@@ -225,14 +220,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
             // Verify code refactoring application
             var codeAction = editorConfigRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync();
+            var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
             var changedEditorConfig = solution.Projects.Single().AnalyzerConfigDocuments.Single(t => t.Id == editorConfig.Id);
             Assert.Empty(editorConfig.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal(refactoring1.Title, changedEditorConfig.GetTextSynchronously(CancellationToken.None).ToString());
 
             // Verify available refactorings for .globalconfig document
             var globalConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".globalconfig");
-            var globalConfigRefactorings = await refactoringService.GetRefactoringsAsync(globalConfig, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
+            var globalConfigRefactorings = await refactoringService.GetRefactoringsAsync(globalConfig, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
             var globalConfigRefactoring = Assert.Single(globalConfigRefactorings);
             var globalConfigRefactoringTitle = globalConfigRefactoring.CodeActions.Single().action.Title;
             Assert.Equal(refactoring2.Title, globalConfigRefactoringTitle);

@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 }
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

@@ -163,7 +163,9 @@ namespace Microsoft.Cci
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
-        public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+        public ImmutableArray<SourceSpan> CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
+
+        public bool IsPrimaryConstructor => false;
 
         public sealed override bool Equals(object obj)
         {

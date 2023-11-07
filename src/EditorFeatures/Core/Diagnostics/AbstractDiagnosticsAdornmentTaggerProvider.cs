@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag> :
-        AbstractPushOrPullDiagnosticsTaggerProvider<TTag>
+        AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : class, ITag
     {
         protected AbstractDiagnosticsAdornmentTaggerProvider(
@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected sealed override bool IsEnabled => true;
 
-        protected sealed override ITagSpan<TTag>? CreateTagSpan(
-            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+        protected sealed override ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
@@ -40,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Ensure the diagnostic has at least length 1.  Tags must have a non-empty length in order to actually show
             // up in the editor.
-            // Live update squiggles have to be at least 1 character long.
-            var minimumLength = isLiveUpdate ? 1 : 0;
-            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
+            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength: 1);
             if (adjustedSpan.Length == 0)
                 return null;
 

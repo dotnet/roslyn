@@ -9,15 +9,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 #endif
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces;
@@ -71,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable can be returned to indicate that this tagger should run unconditionally.</para>
         /// </summary>
         /// <remarks>All values must either be an <see cref="Option2{T}"/> or a <see cref="PerLanguageOption2{T}"/>.</remarks>
-        protected virtual ImmutableArray<IOption> Options => ImmutableArray<IOption>.Empty;
+        protected virtual ImmutableArray<IOption2> Options => ImmutableArray<IOption2>.Empty;
 
         /// <summary>
         /// Options controlling the feature that should be used to determine if the feature should recompute tags.
         /// These generally correspond to user facing options to change how a feature behaves if it is running.
         /// </summary>
-        protected virtual ImmutableArray<IOption> FeatureOptions => ImmutableArray<IOption>.Empty;
+        protected virtual ImmutableArray<IOption2> FeatureOptions => ImmutableArray<IOption2>.Empty;
 
         protected virtual bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer) => false;
 
@@ -255,41 +254,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             => SpanEquals(span1 is null ? null : new SnapshotSpan(snapshot1, span1.Value), span2 is null ? null : new SnapshotSpan(snapshot2, span2.Value));
 
         public bool SpanEquals(SnapshotSpan? span1, SnapshotSpan? span2)
-        {
-            if (span1 is null && span2 is null)
-                return true;
-
-            if (span1 is null || span2 is null)
-                return false;
-
-            // map one span to the snapshot of the other and see if they match.
-            span1 = span1.Value.TranslateTo(span2.Value.Snapshot, this.SpanTrackingMode);
-            return span1.Value.Span == span2.Value.Span;
-        }
+            => TaggerUtilities.SpanEquals(span1, span2, this.SpanTrackingMode);
 
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        private readonly struct DiffResult
+        private readonly struct DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
         {
-            public readonly NormalizedSnapshotSpanCollection Added;
-            public readonly NormalizedSnapshotSpanCollection Removed;
-
-            public DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
-            {
-                Added = added ?? NormalizedSnapshotSpanCollection.Empty;
-                Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
-            }
+            public readonly NormalizedSnapshotSpanCollection Added = added ?? NormalizedSnapshotSpanCollection.Empty;
+            public readonly NormalizedSnapshotSpanCollection Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
 
             public int Count => Added.Count + Removed.Count;
         }
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
         {
-            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
-
-            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
-                => _provider = provider;
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider = provider;
 
             internal Task ProduceTagsAsync(TaggerContext<TTag> context)
                 => _provider.ProduceTagsAsync(context, CancellationToken.None);

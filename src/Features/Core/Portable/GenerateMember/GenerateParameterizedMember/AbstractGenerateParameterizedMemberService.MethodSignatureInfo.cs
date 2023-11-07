@@ -12,18 +12,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
     internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
     {
-        protected class MethodSignatureInfo : SignatureInfo
+        protected class MethodSignatureInfo(
+            SemanticDocument document,
+            State state,
+            IMethodSymbol methodSymbol,
+            ImmutableArray<string> parameterNames = default) : SignatureInfo(document, state)
         {
-            private readonly IMethodSymbol _methodSymbol;
-
-            public MethodSignatureInfo(
-                SemanticDocument document,
-                State state,
-                IMethodSymbol methodSymbol)
-                : base(document, state)
-            {
-                _methodSymbol = methodSymbol;
-            }
+            private readonly IMethodSymbol _methodSymbol = methodSymbol;
+            private readonly ImmutableArray<string> _parameterNames = parameterNames;
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
                 => _methodSymbol.ReturnType;
@@ -44,7 +40,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 => _methodSymbol.Parameters.SelectAsArray(p => p.Type);
 
             protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
-                => _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true));
+                => _parameterNames.IsDefault
+                    ? _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true))
+                    : _parameterNames.SelectAsArray(p => new ParameterName(p, isFixed: true));
 
             protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
                 => ImmutableArray<ITypeSymbol>.Empty;

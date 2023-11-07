@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitExpression(conditional.Condition),
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Consequence, isUsed: true)!,
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
-                    conditional.ConstantValue,
+                    conditional.ConstantValueOpt,
                     leftType,
                     wasTargetTyped: true,
                     leftType);
@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 symbol = localSymbol;
                                 break;
                             case BoundParameter { ParameterSymbol: { RefKind: RefKind.None } parameterSymbol }:
+                                Debug.Assert(!IsCapturedPrimaryConstructorParameter(single));
                                 symbol = parameterSymbol;
                                 break;
                             case BoundDiscardExpression:

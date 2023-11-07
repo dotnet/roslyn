@@ -19,52 +19,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class DiagnosticAnalyzerTelemetry
     {
-        private readonly struct Data
+        private readonly struct Data(AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {
-            public readonly int CompilationStartActionsCount;
-            public readonly int CompilationEndActionsCount;
-            public readonly int CompilationActionsCount;
-            public readonly int SyntaxTreeActionsCount;
-            public readonly int AdditionalFileActionsCount;
-            public readonly int SemanticModelActionsCount;
-            public readonly int SymbolActionsCount;
-            public readonly int SymbolStartActionsCount;
-            public readonly int SymbolEndActionsCount;
-            public readonly int SyntaxNodeActionsCount;
-            public readonly int CodeBlockStartActionsCount;
-            public readonly int CodeBlockEndActionsCount;
-            public readonly int CodeBlockActionsCount;
-            public readonly int OperationActionsCount;
-            public readonly int OperationBlockStartActionsCount;
-            public readonly int OperationBlockEndActionsCount;
-            public readonly int OperationBlockActionsCount;
-            public readonly int SuppressionActionsCount;
+            public readonly int CompilationStartActionsCount = analyzerTelemetryInfo.CompilationStartActionsCount;
+            public readonly int CompilationEndActionsCount = analyzerTelemetryInfo.CompilationEndActionsCount;
+            public readonly int CompilationActionsCount = analyzerTelemetryInfo.CompilationActionsCount;
+            public readonly int SyntaxTreeActionsCount = analyzerTelemetryInfo.SyntaxTreeActionsCount;
+            public readonly int AdditionalFileActionsCount = analyzerTelemetryInfo.AdditionalFileActionsCount;
+            public readonly int SemanticModelActionsCount = analyzerTelemetryInfo.SemanticModelActionsCount;
+            public readonly int SymbolActionsCount = analyzerTelemetryInfo.SymbolActionsCount;
+            public readonly int SymbolStartActionsCount = analyzerTelemetryInfo.SymbolStartActionsCount;
+            public readonly int SymbolEndActionsCount = analyzerTelemetryInfo.SymbolEndActionsCount;
+            public readonly int SyntaxNodeActionsCount = analyzerTelemetryInfo.SyntaxNodeActionsCount;
+            public readonly int CodeBlockStartActionsCount = analyzerTelemetryInfo.CodeBlockStartActionsCount;
+            public readonly int CodeBlockEndActionsCount = analyzerTelemetryInfo.CodeBlockEndActionsCount;
+            public readonly int CodeBlockActionsCount = analyzerTelemetryInfo.CodeBlockActionsCount;
+            public readonly int OperationActionsCount = analyzerTelemetryInfo.OperationActionsCount;
+            public readonly int OperationBlockStartActionsCount = analyzerTelemetryInfo.OperationBlockStartActionsCount;
+            public readonly int OperationBlockEndActionsCount = analyzerTelemetryInfo.OperationBlockEndActionsCount;
+            public readonly int OperationBlockActionsCount = analyzerTelemetryInfo.OperationBlockActionsCount;
+            public readonly int SuppressionActionsCount = analyzerTelemetryInfo.SuppressionActionsCount;
 
-            public readonly bool IsTelemetryCollectionAllowed;
-
-            public Data(AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
-            {
-                CodeBlockActionsCount = analyzerTelemetryInfo.CodeBlockActionsCount;
-                CodeBlockEndActionsCount = analyzerTelemetryInfo.CodeBlockEndActionsCount;
-                CodeBlockStartActionsCount = analyzerTelemetryInfo.CodeBlockStartActionsCount;
-                CompilationActionsCount = analyzerTelemetryInfo.CompilationActionsCount;
-                CompilationEndActionsCount = analyzerTelemetryInfo.CompilationEndActionsCount;
-                CompilationStartActionsCount = analyzerTelemetryInfo.CompilationStartActionsCount;
-                SemanticModelActionsCount = analyzerTelemetryInfo.SemanticModelActionsCount;
-                SymbolActionsCount = analyzerTelemetryInfo.SymbolActionsCount;
-                SyntaxNodeActionsCount = analyzerTelemetryInfo.SyntaxNodeActionsCount;
-                SyntaxTreeActionsCount = analyzerTelemetryInfo.SyntaxTreeActionsCount;
-                AdditionalFileActionsCount = analyzerTelemetryInfo.AdditionalFileActionsCount;
-                OperationActionsCount = analyzerTelemetryInfo.OperationActionsCount;
-                OperationBlockActionsCount = analyzerTelemetryInfo.OperationBlockActionsCount;
-                OperationBlockEndActionsCount = analyzerTelemetryInfo.OperationBlockEndActionsCount;
-                OperationBlockStartActionsCount = analyzerTelemetryInfo.OperationBlockStartActionsCount;
-                SymbolStartActionsCount = analyzerTelemetryInfo.SymbolStartActionsCount;
-                SymbolEndActionsCount = analyzerTelemetryInfo.SymbolEndActionsCount;
-                SuppressionActionsCount = analyzerTelemetryInfo.SuppressionActionsCount;
-
-                IsTelemetryCollectionAllowed = isTelemetryCollectionAllowed;
-            }
+            public readonly bool IsTelemetryCollectionAllowed = isTelemetryCollectionAllowed;
         }
 
         private readonly object _guard = new();

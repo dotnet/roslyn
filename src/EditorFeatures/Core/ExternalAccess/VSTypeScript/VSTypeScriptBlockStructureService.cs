@@ -13,16 +13,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(BlockStructureService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptBlockStructureService : BlockStructureService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptBlockStructureService(IVSTypeScriptBlockStructureServiceImplementation impl) : BlockStructureService
     {
-        private readonly IVSTypeScriptBlockStructureServiceImplementation _impl;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptBlockStructureService(IVSTypeScriptBlockStructureServiceImplementation impl)
-        {
-            _impl = impl;
-        }
+        private readonly IVSTypeScriptBlockStructureServiceImplementation _impl = impl;
 
         public override string Language => InternalLanguageNames.TypeScript;
 
@@ -31,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var blockStructure = await _impl.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
 
             return new BlockStructure(blockStructure.Spans.SelectAsArray(
-                x => new BlockSpan(x.Type, x.IsCollapsible, x.TextSpan, x.HintSpan, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
+                x => new BlockSpan(x.Type!, x.IsCollapsible, x.TextSpan, x.HintSpan, primarySpans: null, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
         }
     }
 }

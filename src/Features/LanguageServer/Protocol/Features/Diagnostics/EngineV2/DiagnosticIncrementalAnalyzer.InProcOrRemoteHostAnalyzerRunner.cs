@@ -39,11 +39,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentAsync(
             DocumentAnalysisScope documentAnalysisScope,
             CompilationWithAnalyzers compilationWithAnalyzers,
+            bool isExplicit,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
             => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers,
-                forceExecuteAllAnalyzers: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+                isExplicit, forceExecuteAllAnalyzers: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
             Project project,
@@ -53,12 +54,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
             => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers,
-                forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+                isExplicit: false, forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
             DocumentAnalysisScope? documentAnalysisScope,
             Project project,
             CompilationWithAnalyzers compilationWithAnalyzers,
+            bool isExplicit,
             bool forceExecuteAllAnalyzers,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (remoteHostClient != null)
                 {
                     return await AnalyzeOutOfProcAsync(documentAnalysisScope, project, compilationWithAnalyzers, remoteHostClient,
-                        forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+                        isExplicit, forceExecuteAllAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
                 }
 
                 return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
@@ -156,6 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Project project,
             CompilationWithAnalyzers compilationWithAnalyzers,
             RemoteHostClient client,
+            bool isExplicit,
             bool forceExecuteAllAnalyzers,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
@@ -185,7 +188,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.Kind,
                 project.Id,
                 analyzerMap.Keys.ToArray(),
-                ideOptions);
+                ideOptions,
+                isExplicit);
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 project.Solution,

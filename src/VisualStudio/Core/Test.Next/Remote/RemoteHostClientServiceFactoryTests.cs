@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
 
             var oldText = document.GetTextSynchronously(CancellationToken.None);
-            var newText = oldText.WithChanges(new[] { new TextChange(new TextSpan(0, 1), "abc") });
+            var newText = oldText.WithChanges([new TextChange(new TextSpan(0, 1), "abc")]);
             var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
 
             workspace.TryApplyChanges(newSolution);
@@ -78,12 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: mock);
+            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
             Assert.True(await connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, "emptySource", Path.GetTempPath(), cancellationToken),
+                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
                 CancellationToken.None));
         }
 
@@ -98,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // doesn't matter what it returns
                 return typeof(object).Assembly;
             }
-        }
-
-        private class MockLogService : ISymbolSearchLogService
-        {
-            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
-            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

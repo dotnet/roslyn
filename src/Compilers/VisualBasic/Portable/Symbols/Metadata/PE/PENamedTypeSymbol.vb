@@ -220,7 +220,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
                 Return (_flags And TypeAttributes.Serializable) <> 0
+#Enable Warning SYSLIB0050
             End Get
         End Property
 
@@ -1442,14 +1444,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function DecodeAttributeUsageInfo() As AttributeUsageInfo
-            Dim attributeUsageHandle = Me.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle)
-            If Not attributeUsageHandle.IsNil Then
-                Dim decoder = New MetadataDecoder(ContainingPEModule)
-                Dim positionalArgs As TypedConstant() = Nothing
-                Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing
-                If decoder.GetCustomAttribute(attributeUsageHandle, positionalArgs, namedArgs) Then
-                    Return AttributeData.DecodeAttributeUsageAttribute(positionalArgs(0), namedArgs.AsImmutableOrNull())
-                End If
+            Dim result As AttributeUsageInfo = Nothing
+
+            If Me.ContainingPEModule.Module.HasAttributeUsageAttribute(_handle, New MetadataDecoder(ContainingPEModule), result) Then
+                Return result
             End If
 
             Dim baseType = Me.BaseTypeNoUseSiteDiagnostics
@@ -1556,6 +1554,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute)
+            End Get
+        End Property
     End Class
 
 End Namespace

@@ -143,85 +143,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' NOTE: a name maps into values collection containing types only instead of allocating another 
             ' NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray(Of NamedTypeSymbol)
 
-            Dim builder As New NameToSymbolMapBuilder(_declaration.Children.Length)
+            Dim builder As New Dictionary(Of String, Object)(_declaration.Children.Length, IdentifierComparison.Comparer)
             For Each declaration In _declaration.Children
-                builder.Add(BuildSymbol(declaration))
+                Dim symbol As NamespaceOrTypeSymbol = BuildSymbol(declaration)
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name, symbol)
             Next
 
             ' TODO(cyrusn): The C# and VB impls differ here.  C# reports errors here and VB does not.
             ' Is that what we want?
 
-            Return builder.CreateMap()
+            Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(builder.Count, IdentifierComparison.Comparer)
+            ImmutableArrayExtensions.CreateNameToMembersMap(Of String, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol)(builder, result)
+            Return result
         End Function
-
-        Private Structure NameToSymbolMapBuilder
-            Private ReadOnly _dictionary As Dictionary(Of String, Object)
-
-            Public Sub New(capacity As Integer)
-                _dictionary = New Dictionary(Of String, Object)(capacity, IdentifierComparison.Comparer)
-            End Sub
-
-            Public Sub Add(symbol As NamespaceOrTypeSymbol)
-                Dim name As String = symbol.Name
-                Dim item As Object = Nothing
-
-                If Me._dictionary.TryGetValue(name, item) Then
-                    Dim builder = TryCast(item, ArrayBuilder(Of NamespaceOrTypeSymbol))
-                    If builder Is Nothing Then
-                        builder = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
-                        builder.Add(DirectCast(item, NamespaceOrTypeSymbol))
-                        Me._dictionary(name) = builder
-                    End If
-                    builder.Add(symbol)
-
-                Else
-                    Me._dictionary(name) = symbol
-                End If
-
-            End Sub
-
-            Public Function CreateMap() As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
-                Dim result As New Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))(Me._dictionary.Count, IdentifierComparison.Comparer)
-
-                For Each kvp In Me._dictionary
-
-                    Dim value As Object = kvp.Value
-                    Dim members As ImmutableArray(Of NamespaceOrTypeSymbol)
-
-                    Dim builder = TryCast(value, ArrayBuilder(Of NamespaceOrTypeSymbol))
-                    If builder IsNot Nothing Then
-                        Debug.Assert(builder.Count > 1)
-                        Dim hasNamespaces As Boolean = False
-
-                        For i = 0 To builder.Count - 1
-                            If builder(i).Kind = SymbolKind.Namespace Then
-                                hasNamespaces = True
-                                Exit For
-                            End If
-                        Next
-
-                        If hasNamespaces Then
-                            members = builder.ToImmutable()
-                        Else
-                            members = StaticCast(Of NamespaceOrTypeSymbol).From(builder.ToDowncastedImmutable(Of NamedTypeSymbol)())
-                        End If
-
-                        builder.Free()
-                    Else
-                        Dim symbol = DirectCast(value, NamespaceOrTypeSymbol)
-                        If symbol.Kind = SymbolKind.Namespace Then
-                            members = ImmutableArray.Create(Of NamespaceOrTypeSymbol)(symbol)
-                        Else
-                            members = StaticCast(Of NamespaceOrTypeSymbol).From(ImmutableArray.Create(Of NamedTypeSymbol)(DirectCast(symbol, NamedTypeSymbol)))
-                        End If
-                    End If
-
-                    result.Add(kvp.Key, members)
-                Next
-
-                Return result
-            End Function
-        End Structure
 
         Private Function BuildSymbol(decl As MergedNamespaceOrTypeDeclaration) As NamespaceOrTypeSymbol
             Dim namespaceDecl = TryCast(decl, MergedNamespaceDeclaration)
@@ -252,42 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-
-                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(CaseInsensitiveComparison.Comparer)
-
-                Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = Me.GetNameToMembersMap()
-                For Each kvp In map
-                    Dim members As ImmutableArray(Of NamespaceOrTypeSymbol) = kvp.Value
-
-                    Dim hasType As Boolean = False
-                    Dim hasNamespace As Boolean = False
-
-                    For Each symbol In members
-                        If symbol.Kind = SymbolKind.NamedType Then
-                            hasType = True
-                            If hasNamespace Then
-                                Exit For
-                            End If
-
-                        Else
-                            Debug.Assert(symbol.Kind = SymbolKind.Namespace)
-                            hasNamespace = True
-                            If hasType Then
-                                Exit For
-                            End If
-                        End If
-                    Next
-
-                    If hasType Then
-                        If hasNamespace Then
-                            dictionary.Add(kvp.Key, members.OfType(Of NamedTypeSymbol).AsImmutable())
-                        Else
-                            dictionary.Add(kvp.Key, members.As(Of NamedTypeSymbol))
-                        End If
-                    End If
-                Next
-
-                Interlocked.CompareExchange(_nameToTypeMembersMap, dictionary, Nothing)
+                Interlocked.CompareExchange(
+                    _nameToTypeMembersMap,
+                    ImmutableArrayExtensions.GetTypesFromMemberMap(Of String, NamespaceOrTypeSymbol, NamedTypeSymbol)(
+                        Me.GetNameToMembersMap(), CaseInsensitiveComparison.Comparer),
+                    comparand:=Nothing)
             End If
 
             Return _nameToTypeMembersMap
@@ -464,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim reportedNamespaceMismatch As Boolean = False
 
             ' Check for a few issues with namespace declaration.
@@ -477,11 +380,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node As VisualBasicSyntaxNode = syntaxRef.GetVisualBasicSyntax(cancellationToken)
                 Select Case node.Kind
                     Case SyntaxKind.IdentifierName
-                        ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics, reportedNamespaceMismatch)
+                        ValidateNamespaceNameSyntax(DirectCast(node, IdentifierNameSyntax), diagnostics.DiagnosticBag, reportedNamespaceMismatch)
                     Case SyntaxKind.QualifiedName
-                        ValidateNamespaceNameSyntax(DirectCast(node, QualifiedNameSyntax).Right, diagnostics, reportedNamespaceMismatch)
+                        ValidateNamespaceNameSyntax(DirectCast(node, QualifiedNameSyntax).Right, diagnostics.DiagnosticBag, reportedNamespaceMismatch)
                     Case SyntaxKind.GlobalName
-                        ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics)
+                        ValidateNamespaceGlobalSyntax(DirectCast(node, GlobalNameSyntax), diagnostics.DiagnosticBag)
                     Case SyntaxKind.CompilationUnit
                         ' nothing to validate
                     Case Else
@@ -491,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics)) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()

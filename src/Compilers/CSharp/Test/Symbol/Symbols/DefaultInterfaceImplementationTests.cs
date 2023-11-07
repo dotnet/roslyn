@@ -31560,7 +31560,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = Verification.Passes)
+        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = default)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -68912,6 +68912,312 @@ public interface I1
                 //     static implicit operator int (I1 x) => 0;
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "int").WithArguments("I1.implicit operator int(I1)", "I1").WithLocation(28, 30)
                 );
+        }
+
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_DefaultImplementation()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C
+{
+    public static void Main()
+    {
+        S value = new();
+        ref readonly S valueRef = ref value;
+        Console.Write(valueRef);
+        M(in valueRef);
+        Console.Write(valueRef);
+    }
+    public static void M(in S value)
+    {
+        foreach (var x in value) { }
+    }
+}
+
+public interface MyEnumerable : IEnumerable<int>
+{
+    IEnumerator<int> GetEnumeratorCore();
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumeratorCore();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumeratorCore();
+}
+
+public struct S : MyEnumerable
+{
+    int a;
+    public readonly override string ToString() => a.ToString();
+    public IEnumerator<int> GetEnumeratorCore() => Enumerable.Range(0, ++a).GetEnumerator();
+}";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                expectedOutput: Execute(isStatic: false) ? "00" : null,
+                verify: Verify(isStatic: false));
+
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (System.Collections.Generic.IEnumerator<int> V_0,
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  constrained. "S"
+  IL_000f:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+  IL_0014:  stloc.0
+  .try
+  {
+    IL_0015:  br.s       IL_001e
+    IL_0017:  ldloc.0
+    IL_0018:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+    IL_001d:  pop
+    IL_001e:  ldloc.0
+    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+    IL_0024:  brtrue.s   IL_0017
+    IL_0026:  leave.s    IL_0032
+  }
+  finally
+  {
+    IL_0028:  ldloc.0
+    IL_0029:  brfalse.s  IL_0031
+    IL_002b:  ldloc.0
+    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0031:  endfinally
+  }
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void InParameters_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator !(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ~(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ++(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator --(in I1 x)
+    {
+        return x;
+    }
+
+    public static bool operator true(in I1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(in I1 x)
+    {
+        return false;
+    }
+
+    public static I1 operator +(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator *(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""*"");
+        return x;
+    }
+
+    public static I1 operator /(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""/"");
+        return x;
+    }
+
+    public static I1 operator %(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""%"");
+        return x;
+    }
+
+    public static I1 operator &(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""&"");
+        return x;
+    }
+
+    public static I1 operator |(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""|"");
+        return x;
+    }
+
+    public static I1 operator ^(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""^"");
+        return x;
+    }
+
+    public static I1 operator <<(in I1 x, in int y)
+    {
+        System.Console.WriteLine(""<<"");
+        return x;
+    }
+
+    public static I1 operator >>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>"");
+        return x;
+    }
+
+    public static I1 operator >(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">"");
+        return x;
+    }
+
+    public static I1 operator <(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<"");
+        return x;
+    }
+
+    public static I1 operator >=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">="");
+        return x;
+    }
+
+    public static I1 operator <=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<="");
+        return x;
+    }
+
+    public static I1 operator >>>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    foreach (var p in m01.Parameters)
+                    {
+                        Assert.Equal(RefKind.In, p.RefKind);
+                        Assert.Empty(p.RefCustomModifiers);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69413")]
+        public void IsBeforeFieldInit_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2
+{
+    public static int F2;
+}
+
+public interface I3
+{
+    public static int F3 = 9;
+}
+
+public interface I4
+{
+    public static int F4;
+
+    static I4()
+    {
+        F4 = 10;
+    }
+}
+
+public interface I5
+{
+    static I5()
+    {
+        System.Console.WriteLine();
+    }
+}
+
+public interface I6
+{
+    public static int F6 = 18;
+    
+    static I6()
+    {
+        System.Console.WriteLine();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                Assert.True(hasBeforeFieldInitFlag(module, "I1"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I2"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I3"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I4"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I5"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I6"));
+            }
+
+            static bool hasBeforeFieldInitFlag(ModuleSymbol module, string name)
+            {
+                return (((PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember(name)).Flags & System.Reflection.TypeAttributes.BeforeFieldInit) != 0;
+            }
         }
     }
 }

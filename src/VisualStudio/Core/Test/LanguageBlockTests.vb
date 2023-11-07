@@ -14,7 +14,7 @@ Namespace Tests
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
     Public Class LanguageBlockTests
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotInImports_VB()
             VerifyNoBlock("
 I$$mports System
@@ -27,7 +27,7 @@ End Module
 ", LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotLeadingTriviaOfRootClass_VB()
             VerifyNoBlock("
 Imports System
@@ -42,7 +42,7 @@ End Module
 ", LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InNamespace_VB()
             VerifyBlock("
 [|Namespace N
@@ -56,7 +56,7 @@ End Namespace|]
 ", LanguageNames.VisualBasic, "N")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InModule_VB()
             VerifyBlock("
 Namespace N
@@ -70,7 +70,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Program")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InSub()
             VerifyBlock("
 Namespace N
@@ -83,7 +83,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Sub Program.M()")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InFunction()
             VerifyBlock("
 Namespace N
@@ -96,7 +96,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Function Program.F() As Integer")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InProperty_VB()
             VerifyBlock("
 Namespace N
@@ -111,7 +111,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Property Program.P() As Integer")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotInUsings_CS()
             VerifyNoBlock("
 u$$sing System;
@@ -123,7 +123,7 @@ class Program
 ", LanguageNames.CSharp)
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotLeadingTriviaOfRootClass_CS()
             VerifyNoBlock("
 using System;
@@ -137,7 +137,7 @@ class Program
 ", LanguageNames.CSharp)
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InNamespace_CS()
             VerifyBlock("
 [|namespace N
@@ -151,7 +151,7 @@ $$
 ", LanguageNames.CSharp, "N")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InClass_CS()
             VerifyBlock("
 namespace N
@@ -165,7 +165,7 @@ namespace N
 ", LanguageNames.CSharp, "Program")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InMethod()
             VerifyBlock("
 namespace N
@@ -181,7 +181,7 @@ namespace N
 ", LanguageNames.CSharp, "void Program.M()")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_InProperty_CS()
             VerifyBlock("
 namespace N
@@ -200,7 +200,7 @@ namespace N
 ", LanguageNames.CSharp, "int Program.P")
         End Sub
 
-        <Fact, WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_DocumentDoesNotSupportSyntax()
             ' NoCompilation is the special Language-Name we use to indicate that a language does not
             ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that

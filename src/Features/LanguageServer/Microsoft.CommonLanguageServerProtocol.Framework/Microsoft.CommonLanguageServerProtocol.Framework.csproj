@@ -8,18 +8,13 @@
     <PackageDescription>
       A framework for building Language Server Protocol implementations in C#.
     </PackageDescription>
-    <PackageLicenseExpression></PackageLicenseExpression>
-    <PackageLicenseFile>License.txt</PackageLicenseFile>
   </PropertyGroup>
-  
   <ItemGroup>
-    <None Include="License.txt" PackagePath="" Pack="true" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
   </ItemGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />

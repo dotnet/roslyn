@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
@@ -588,9 +588,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -620,10 +619,9 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
-            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2).ToString());
         }
 
         [Fact]
@@ -1103,9 +1101,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1144,9 +1141,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1184,9 +1180,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1224,9 +1219,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1263,9 +1257,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -4576,6 +4569,260 @@ class Program
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericTypeInParameter_Constructor()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(B<int>.E e) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericTypeInParameter_Property()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public B<int>.E E { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(E = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("E", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constructor()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Property()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public T Prop { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(Prop = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("Prop", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedClass()
+        {
+            var source = """
+                class A1<T>
+                {
+                    public class A2 : System.Attribute
+                    {
+                        public A2(T t) { }
+                    }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A1<B<int>.E>.A2(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A2");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Object()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                enum E { }
+
+                [A<object>(C.X)]
+                class C
+                {
+                    public const E X = (E)33;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constant()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                [A<int>(33)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("System.Int32", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedGeneric()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(B<T>.E t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<int>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(542223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")]
@@ -10518,7 +10765,7 @@ class C { }
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10535,15 +10782,111 @@ class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7),
                 // (5,7): error CS0306: The type 'int*' may not be used as a type argument
                 // [Attr<int*>] // 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 7),
                 // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 // [Attr<delegate*<int, void>>] // 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class Outer
+{
+    [Attr<int*>] // 1
+    class C1 { }
+
+    [Attr<delegate*<int, void>>] // 2
+    class C2 { }
+
+    [Attr<TypedReference>] // 3
+    class C3 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0306: The type 'int*' may not be used as a type argument
+                //     [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 11),
+                // (10,11): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(10, 11),
+                // (13,11): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            // Legal in C#11.  Allowed for back compat
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_OnUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+unsafe class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_InUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class C
+{
+    [Attr<int*[]>] // 1
+    class C1 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -10820,7 +11163,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder
@@ -10843,21 +11186,11 @@ class Program
 } // end of class Holder
 ");
 
-            void verify(ModuleSymbol module)
+            static void verify(ModuleSymbol module)
             {
                 var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
                 var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
-            }
-
-            void verifyMetadata(ModuleSymbol module)
-            {
-                // https://github.com/dotnet/roslyn/issues/55190
-                // The compiler should be able to read this attribute argument from metadata.
-                // Once this is fixed, we should be able to use exactly the same 'verify' method for both source and metadata.
-                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
-                var attrs = holder.GetAttributes();
-                Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
             }
         }
 
@@ -11169,6 +11502,98 @@ class A<T>
                 // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [AB]
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact]
+        public void GenericAttribute_Unsafe()
+        {
+            var source = @"
+[A<int*[]>] // 1
+class C
+{
+}
+
+[A<int*[]>]
+unsafe class D
+{
+}
+
+class A<T> : System.Attribute
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]
+        public void AvoidCascadingDiagnosticsOnMissingAttribute()
+        {
+            var source = """
+[assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+""";
+
+            string expectedOperationTree = """
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Inexistent( ... { _ => 1 })')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Inexistent( ... { _ => 1 })')
+    Children(3):
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'SomeProperty = 1')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'SomeProperty')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'F = null')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'F')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'G = 0 switch { _ => 1 }')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'G')
+              Children(0)
+          Right:
+            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '0 switch { _ => 1 }')
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Arms(1):
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 1')
+                    Pattern:
+                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+""";
+            var expectedDiagnostics = new[]
+            {
+                // (1,22): error CS0246: The type or namespace name 'InexistentAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("InexistentAttribute").WithLocation(1, 22),
+                // (1,22): error CS0246: The type or namespace name 'Inexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("Inexistent").WithLocation(1, 22)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var firstArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().First();
+            Assert.Equal("SomeProperty = 1", firstArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(firstArgument.Expression).Type.ToTestDisplayString());
+
+            var secondArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(1).First();
+            Assert.Equal("F = null", secondArgument.ToString());
+            Assert.Null(model.GetTypeInfo(secondArgument.Expression).Type);
+
+            var thirdArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(2).Single();
+            Assert.Equal("G = 0 switch { _ => 1 }", thirdArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
         }
         #endregion
     }

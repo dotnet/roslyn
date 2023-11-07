@@ -60,6 +60,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
+        private static Workspace CreateWorkspaceWithProjectAndLinkedDocuments(
+            string docContents, ParseOptions? parseOptions1 = null, ParseOptions? parseOptions2 = null)
+        {
+            parseOptions1 ??= CSharpParseOptions.Default;
+            parseOptions2 ??= CSharpParseOptions.Default;
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var workspace = CreateWorkspace();
+
+            // note: despite the additional-doc and analyzer-config doc being at the same path in multiple projects,
+            // they will still be treated as unique as the workspace only has the concept of linked docs for normal
+            // docs.
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
+                .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId1, parseOptions1)
+                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId1), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId1), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")
+                .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId2, parseOptions2)
+                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddAdditionalDocument(DocumentId.CreateNewId(projectId2), "add.txt", SourceText.From("text", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "add.txt")
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId2), "editorcfg", SourceText.From("config", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "/a/b")));
+
+            return workspace;
+        }
+
         private static IEnumerable<T> EmptyEnumerable<T>()
         {
             yield break;
@@ -187,8 +213,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
         }
 
-        [Fact, WorkItem(34837, "https://github.com/dotnet/roslyn/issues/34837")]
-        [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/37125")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34837")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37125")]
         public void WithDocumentFilePath()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -361,6 +387,416 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null!, text, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText(new[] { documentId }, null!, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentText(new[] { documentId }, text, (PreservationMode)(-1)));
+        }
+
+        public enum TextUpdateType
+        {
+            SourceText,
+            TextLoader,
+            TextAndVersion,
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("public class Goo { }");
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+        }
+
+        private static Solution UpdateSolution(PreservationMode mode, TextUpdateType updateType, Solution solution, DocumentId documentId1, SourceText text, TextAndVersion textAndVersion)
+        {
+            solution = updateType switch
+            {
+                TextUpdateType.SourceText => solution.WithDocumentText(documentId1, text, mode),
+                TextUpdateType.TextAndVersion => solution.WithDocumentText(documentId1, textAndVersion, mode),
+                TextUpdateType.TextLoader => solution.WithDocumentTextLoader(documentId1, TextLoader.From(textAndVersion), mode),
+                _ => throw ExceptionUtilities.UnexpectedValue(updateType)
+            };
+            return solution;
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_PPConditionalDirective_SameParseOptions(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #if NETSTANDARD
+                public class Goo { }
+                """);
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can reuse trees with conditional directives if the parse options are the same.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes entirely
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can reuse trees with conditional directives if the parse options are the same.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_PPConditionalDirective_DifferentParseOptions1(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            var parseOptions1 = CSharpParseOptions.Default.WithPreprocessorSymbols("UNIQUE_NAME");
+            var parseOptions2 = CSharpParseOptions.Default;
+
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #if NETSTANDARD
+                public class Goo { }
+                """, parseOptions1, parseOptions2);
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can never reuse trees with conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
+
+            // Because we removed pp directives, we'll be able to reuse after this.
+            var text = SourceText.From("new text without pp directives", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes entirely
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can reuse trees once they don't have conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            Assert.Equal(parseOptions1, root1.SyntaxTree.Options);
+            Assert.Equal(parseOptions2, root2.SyntaxTree.Options);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_PPConditionalDirective_DifferentParseOptions2(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #if NETSTANDARD
+                public class Goo { }
+                """, CSharpParseOptions.Default.WithPreprocessorSymbols("UNIQUE_NAME"), CSharpParseOptions.Default);
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can never reuse trees with conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Because we still have pp directives, we'll still not be able to reuse the file.
+            var text = SourceText.From("#if true", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes entirely
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We can never reuse trees with conditional directives.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_NonConditionalDirective(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            using var workspace = CreateWorkspaceWithProjectAndLinkedDocuments("""
+                #nullable enable // should not impact being able to reuse.
+                public class Goo { }
+                """);
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
+
+            var text = SourceText.From("new text", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+            Assert.NotEqual(version1, version2);
+
+            // We get different red and green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.False(root1.IsIncrementallyIdenticalTo(root2));
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // We get different red nodes, but they should be backed by the same green nodes.
+            Assert.NotEqual(root1, root2);
+            Assert.True(root1.IsIncrementallyIdenticalTo(root2));
         }
 
         [Fact]
@@ -862,8 +1298,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Theory]
         [InlineData("#if DEBUG", false, LanguageNames.CSharp)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.CSharp)]
+        [InlineData(@"#nullable enable", true, LanguageNames.CSharp)]
+        [InlineData(@"#elif DEBUG", true, LanguageNames.CSharp)]
         [InlineData("// File", true, LanguageNames.CSharp)]
         [InlineData("#if DEBUG", false, LanguageNames.VisualBasic)]
+        [InlineData(@"#region ""goo""", true, LanguageNames.VisualBasic)]
+        [InlineData(@"#ElseIf DEBUG", true, LanguageNames.VisualBasic)]
         [InlineData("' File", true, LanguageNames.VisualBasic)]
         public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName)
         {
@@ -885,9 +1326,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
-            ParseOptions newOptions =
-                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
-                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+            ParseOptions newOptions = languageName == LanguageNames.CSharp
+                ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
 
             document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
 
@@ -931,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectReferences(projectId, new[] { new ProjectReference(projectId) }));
         }
 
-        [Fact, WorkItem(42406, "https://github.com/dotnet/roslyn/issues/42406")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42406")]
         public void WithProjectReferences_ProjectNotInSolution()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1459,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("bar", project.AssemblyName);
         }
 
-        [Fact, WorkItem(543964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543964")]
         public void MultipleProjectsWithSameDisplayName()
         {
             using var workspace = CreateWorkspace();
@@ -1826,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        [Fact, WorkItem(636431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636431")]
         public async Task TestProjectDependencyLoadingAsync()
         {
             using var workspace = CreateWorkspace();
@@ -2193,7 +2634,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, WorkItem(542736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2540,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13506")]
-        [WorkItem(13506, "https://github.com/dotnet/roslyn/issues/13506")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13506")]
         public void TestRecoverableSyntaxTreeCSharp()
         {
             var pid = ProjectId.CreateNewId();
@@ -2681,7 +3122,7 @@ End Class";
         [Theory]
         [InlineData(LanguageNames.CSharp)]
         [InlineData(LanguageNames.VisualBasic)]
-        [WorkItem(63834, "https://github.com/dotnet/roslyn/issues/63834")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/63834")]
         public void RecoverableTree_With(string language)
         {
             using var workspace = CreateWorkspace();
@@ -2819,7 +3260,7 @@ End Class";
             }
         }
 
-        [Fact, WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
         public async Task TestDocumentFileAccessFailureMissingFile()
         {
             var workspace = new AdhocWorkspace();
@@ -2903,7 +3344,7 @@ public class C : A {
             Assert.Equal(pid1, projectForBaseType.Id);
         }
 
-        [Fact, WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
         public void TestEncodingRetainedAfterTreeChanged()
         {
             var ws = new AdhocWorkspace();
@@ -2921,10 +3362,26 @@ public class C : A {
         }
 
         [Fact]
+        public void TestProjectWithNoMetadataReferencesHasIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            Assert.False(project.HasSuccessfullyLoadedAsync().Result);
+            Assert.Empty(project.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
         public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -2932,19 +3389,27 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             // Nothing should have incomplete references, and everything should build
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.True(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Equal(2, project2.GetCompilationAsync().Result.ExternalReferences.Length);
         }
 
         [Fact]
         public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
             workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
 
             var project2 = workspace.AddProject(
@@ -2954,11 +3419,12 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             Assert.True(project1.HasSuccessfullyLoadedAsync().Result);
             Assert.False(project2.HasSuccessfullyLoadedAsync().Result);
-            Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
+            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
         }
 
         [Fact]
@@ -3081,7 +3547,14 @@ public class C : A {
         public void TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
-            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project1 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }));
 
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3090,6 +3563,7 @@ public class C : A {
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(project1.Id) }));
 
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
@@ -3136,7 +3610,7 @@ public class C : A {
         }
 
         [Fact]
-        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesDocumentWithSamePathBeingRemovedAndAdded()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3158,7 +3632,7 @@ public class C : A {
         }
 
         [Fact]
-        [WorkItem(1467404, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404")]
         public async Task TestFrozenPartialSemanticsHandlesRemoveAndAddWithNullPathAndDifferentNames()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3311,7 +3785,7 @@ public class C : A {
             Assert.True(exceptionThrown);
         }
 
-        [Fact, WorkItem(18697, "https://github.com/dotnet/roslyn/issues/18697")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18697")]
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
@@ -3593,7 +4067,7 @@ public class C : A {
             Assert.False(finalProvider.TryGetGlobalDiagnosticValue("CA1234", default, out _));
         }
 
-        [Fact, WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3705")]
         public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
         {
             using var workspace = CreateWorkspace();
@@ -3722,7 +4196,8 @@ class C
                     VersionStamp.Create(),
                     "CSharpProject",
                     "CSharpProject",
-                    LanguageNames.CSharp).WithHasAllInformation(hasAllInformation: false));
+                    LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef }).WithHasAllInformation(hasAllInformation: false));
 
             vbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3730,7 +4205,8 @@ class C
                     VersionStamp.Create(),
                     "VisualBasicProject",
                     "VisualBasicProject",
-                    LanguageNames.VisualBasic));
+                    LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef }));
 
             dependsOnBrokenProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -3739,6 +4215,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id) }));
 
             dependsOnVbNormalProject = workspace.AddProject(
@@ -3748,6 +4225,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(vbNormalProject.Id) }));
 
             transitivelyDependsOnBrokenProjects = workspace.AddProject(
@@ -3757,6 +4235,7 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnBrokenProject.Id) }));
 
             transitivelyDependsOnNormalProjects = workspace.AddProject(
@@ -3766,6 +4245,7 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
+                    metadataReferences: new[] { MscorlibRef },
                     projectReferences: new[] { new ProjectReference(dependsOnVbNormalProject.Id) }));
         }
 
@@ -3775,7 +4255,7 @@ class C
             // Create an empty solution with no projects.
             using var workspace = CreateWorkspace();
             var s0 = workspace.CurrentSolution;
-            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>();
+            var optionService = workspace.Services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
 
             // Apply an option change to a C# option.
             var option = FormattingOptions.UseTabs;
@@ -3912,7 +4392,7 @@ class C
 
 #pragma warning disable RS0030 // Do not used banned APIs
             var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
-            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions.UseTabs));
 #pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
@@ -3921,6 +4401,26 @@ class C
 
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
             Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
+        }
+
+        [Fact]
+        public void GetRelatedDocumentsDoesNotReturnOtherTypesOfDocuments()
+        {
+            using var workspace = CreateWorkspace();
+
+            const string FilePath = "File.cs";
+
+            var solution = workspace.CurrentSolution
+                .AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("File.cs", "", filePath: FilePath).Project
+                .AddAdditionalDocument("File.cs", text: "", filePath: FilePath).Project.Solution;
+
+            // GetDocumentIdsWithFilePath should return two, since it'll count all types of documents
+            Assert.Equal(2, solution.GetDocumentIdsWithFilePath(FilePath).Length);
+
+            var regularDocumentId = solution.Projects.Single().DocumentIds.Single();
+
+            Assert.Single(solution.GetRelatedDocumentIds(regularDocumentId));
         }
     }
 }

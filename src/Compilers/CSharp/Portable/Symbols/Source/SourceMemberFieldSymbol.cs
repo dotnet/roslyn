@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             string name,
             SyntaxReference syntax,
-            Location location)
-            : base(containingType, name, syntax, location)
+            TextSpan locationSpan)
+            : base(containingType, name, syntax, locationSpan)
         {
             _modifiers = modifiers;
         }
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.GetFirstLocation());
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
             else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -128,6 +128,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            // Ensure availability of `DecimalConstantAttribute`.
+            if (IsConst && Type.SpecialType == SpecialType.System_Decimal &&
+                GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false) is { } value &&
+                !(decodedData is FieldWellKnownAttributeData fieldData && fieldData.ConstValue != CodeAnalysis.ConstantValue.Unset))
+            {
+                Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
+                    WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
+                    diagnostics,
+                    syntax: SyntaxNode);
+            }
+        }
+
         public override Symbol AssociatedSymbol
         {
             get
@@ -180,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var modifier in modifiers)
                 {
                     if (modifier.IsKind(SyntaxKind.FixedKeyword))
-                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier.Parent, modifier.GetLocation());
+                        MessageID.IDS_FeatureFixedBuffer.CheckFeatureAvailability(diagnostics, modifier);
                 }
 
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Static, diagnostics, errorLocation);
@@ -322,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool modifierErrors,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.Span)
         {
             _hasInitializer = declarator.Initializer != null;
 
@@ -404,32 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyTypeAndRefKind?.Type.DefaultType is { } defaultType)
-                {
-                    bool isPointerType = defaultType.Kind switch
-                    {
-                        SymbolKind.PointerType => true,
-                        SymbolKind.FunctionPointerType => true,
-                        _ => false
-                    };
-                    Debug.Assert(isPointerType == IsPointerFieldSyntactically());
-                    return isPointerType;
-                }
-
-                return IsPointerFieldSyntactically();
+                return TypeWithAnnotations.DefaultType.IsPointerOrFunctionPointer();
             }
-        }
-
-        private bool IsPointerFieldSyntactically()
-        {
-            var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false })
-            {
-                // public int * Blah;   // pointer
-                return true;
-            }
-
-            return IsFixedSizeBuffer;
         }
 
         internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
@@ -589,8 +581,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            Debug.Assert(type.DefaultType.IsPointerOrFunctionPointer() == IsPointerFieldSyntactically());
-
             // update the lazyType only if it contains value last seen by the current thread:
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
@@ -636,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstantValueUtils.EvaluateFieldConstant(this, (EqualsValueClauseSyntax)VariableDeclaratorNode.Initializer, dependencies, earlyDecodingWellKnownAttributes, diagnostics);
         }
 
-        internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (this.SyntaxTree == tree)
             {

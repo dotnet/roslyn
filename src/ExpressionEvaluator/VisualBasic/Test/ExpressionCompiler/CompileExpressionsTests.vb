@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class CompileExpressionsTests
         Inherits ExpressionCompilerTestBase
 
-        <Fact, WorkItem(482753, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=482753")>
         Public Sub LocalsInAsync()
             Const source =
 "Imports System

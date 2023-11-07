@@ -54,11 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, Manager.System_Object, Manager.System_IntPtr);
                 var fields = TypeDescriptor.Fields;
                 int parameterCount = fields.Length - 1;
-                var parameters = ArrayBuilder<(TypeWithAnnotations, RefKind, DeclarationScope, ConstantValue?, bool)>.GetInstance(parameterCount);
+                var parameters = ArrayBuilder<SynthesizedDelegateInvokeMethod.ParameterDescription>.GetInstance(parameterCount);
                 for (int i = 0; i < parameterCount; i++)
                 {
                     var field = fields[i];
-                    parameters.Add((field.TypeWithAnnotations, field.RefKind, field.Scope, field.DefaultValue, field.IsParams));
+                    parameters.Add(
+                        new SynthesizedDelegateInvokeMethod.ParameterDescription(field.TypeWithAnnotations, field.RefKind, field.Scope, field.DefaultValue, isParams: field.IsParams, hasUnscopedRefAttribute: field.HasUnscopedRefAttribute));
                 }
                 var returnField = fields.Last();
                 var invokeMethod = new SynthesizedDelegateInvokeMethod(this, parameters, returnField.TypeWithAnnotations, returnField.RefKind);

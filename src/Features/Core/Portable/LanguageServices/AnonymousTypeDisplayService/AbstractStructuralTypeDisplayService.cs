@@ -95,9 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 var structuralType = transitiveStructuralTypeReferences[i];
                 typeParts.AddRange(Space(count: 4));
 
-                var kind =
-                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName :
-                    structuralType.IsDelegateType() ? SymbolDisplayPartKind.DelegateName : SymbolDisplayPartKind.ClassName;
+                var kind = structuralType.GetSymbolDisplayPartKind();
 
                 typeParts.Add(Part(kind, structuralType, structuralType.Name));
                 typeParts.AddRange(Space());

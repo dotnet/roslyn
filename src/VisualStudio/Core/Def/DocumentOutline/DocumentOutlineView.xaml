@@ -1,0 +1,135 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.DocumentOutline.DocumentOutlineView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.DocumentOutline"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             d:DataContext="{d:DesignInstance Type=self:DocumentOutlineViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="DocumentOutline"
+             Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
+             FontFamily="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
+             FontSize="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- This CollectionViewSource allows us to sort items in the tree with the minimal number of draw calls.
+             With IsLiveSortingRequested set to "True" sorting happens on notify-property-change for our data, 
+             most of which is boolean property changes.
+             -->
+            <CollectionViewSource
+                x:Key="DocumentSymbolItems"
+                IsLiveSortingRequested="True"
+                Source="{Binding DocumentSymbolViewModelItems}" />
+            
+            <!-- An instance of our custom sorter, This uses ImmutableArray's sort methods instead of linq 
+             which uses far less memory.
+            -->
+            <self:DocumentSymbolDataViewModelSorter x:Key="ItemSorter"/>
+
+            <Style TargetType="TabControl">
+                <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="20" />
+                <Setter Property="Padding" Value="5" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0, 5, 0, 0" />
+            </Style>
+
+            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
+        <Grid Grid.Row="1" x:Name="SearchHost" />
+        <!-- Two important properties are being set for TreeView:
+               We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
+               Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
+        -->
+        <!-- Note: we register TreeViewItem.SourceUpdated and set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False`
+             for the item `IsSelected` event.  This is important for a reentrancy issue we would otherwise have.  Specifically,
+             As the user moves around, we want to expand/select the correct item of interest in the tree.  However, we do not 
+             want that *programmatic* selection to then end up firing an event saying "i was selected" which we then interpret
+             to mean that we should navigate to that item.  By only hearing when the source is updated (meaning the user actually
+             clicked on the tree view item, not that we programmatically set it) we only actual perform the navigation on user
+             interaction. -->
+        <TreeView Grid.Row="2"
+                  Name="SymbolTree"
+                  AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
+                  SourceUpdated="SymbolTree_SourceUpdated"
+                  TreeViewItem.Selected="SymbolTreeItem_Selected"
+                  Visibility="{Binding Visibility, Mode=OneWayToSource}"
+                  ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
+                    <HierarchicalDataTemplate.ItemsSource>
+                        <MultiBinding Converter="{StaticResource ItemSorter}"> <!-- This binding ensures our TreeViewItems are sorted if the collection is changed OR the sort option is changed -->
+                            <Binding Path="Children" />
+                            <Binding Path="DataContext.SortOption" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=UserControl}" />
+                        </MultiBinding>
+                    </HierarchicalDataTemplate.ItemsSource>
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <imaging:CrispImage Moniker="{Binding ImageMoniker}" Margin="0, 0, 5, 0" />
+                        <TextBlock Text="{Binding Data.Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}"
+                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                     Color="{StaticResource {x:Static vsshell:VsColors.NewProjectItemInactiveBorderKey}}" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}"
+                     Color="{DynamicResource {x:Static vsshell:VsColors.ButtonTextKey}}"/>
+            </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="AutomationProperties.Name" Value="{Binding Data.Name, Mode=OneWay}" />
+                    <!-- See docs above for why we set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False` -->
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False}" />
+                    <Setter Property="Padding" Value="4, 0, 6, 1" />
+                    <Setter Property="Margin" Value="0, 0, 0, 1" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </Grid>
+</UserControl>

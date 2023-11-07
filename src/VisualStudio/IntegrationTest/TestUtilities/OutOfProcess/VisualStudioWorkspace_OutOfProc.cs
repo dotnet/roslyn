@@ -4,8 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -20,17 +18,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
 
-        public bool IsPrettyListingOn(string languageName)
-            => _inProc.IsPrettyListingOn(languageName);
-
-        public void SetPrettyListing(string languageName, bool value)
-            => _inProc.SetPrettyListing(languageName, value);
-
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
-
-        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
-            => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
         public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
@@ -43,28 +32,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
-
-        public void SetImportCompletionOption(bool value)
-        {
-            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value);
-            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
-        }
-
-        public void SetEnableDecompilationOption(bool value)
-        {
-            SetGlobalOption(WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources, language: null, value);
-        }
-
-        public void SetArgumentCompletionSnippetsOption(bool value)
-        {
-            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
-            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
-        }
-
-        public void SetTriggerCompletionInArgumentLists(bool value)
-            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
-
-        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
-            => _inProc.SetGlobalOption(option, language, value);
     }
 }

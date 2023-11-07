@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<StructureDeclaration>|</StructureDeclaration>, "Event")
         End Sub
 
-        <Fact, WorkItem(544999, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544999")>
         Public Sub EventInInterfaceDeclarationTest()
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Event")
         End Sub
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<ClassDeclaration>Shadows |</ClassDeclaration>, "Event")
         End Sub
 
-        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

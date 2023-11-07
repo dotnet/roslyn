@@ -30,15 +30,24 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
         protected readonly IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> mappedMethods;
+        public readonly EmitBaseline Baseline;
+
         protected abstract SymbolMatcher MapToMetadataSymbolMatcher { get; }
         protected abstract SymbolMatcher MapToPreviousSymbolMatcher { get; }
 
-        protected DefinitionMap(IEnumerable<SemanticEdit> edits)
+        protected DefinitionMap(IEnumerable<SemanticEdit> edits, EmitBaseline baseline)
         {
             Debug.Assert(edits != null);
 
-            this.mappedMethods = GetMappedMethods(edits);
+            mappedMethods = GetMappedMethods(edits);
+
+            _methodInstrumentations = edits
+                .Where(edit => !edit.Instrumentation.IsEmpty)
+                .ToImmutableDictionary(edit => (IMethodSymbolInternal)GetISymbolInternalOrNull(edit.NewSymbol!)!, edit => edit.Instrumentation);
+
+            Baseline = baseline;
         }
 
         private IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
@@ -99,22 +108,27 @@ namespace Microsoft.CodeAnalysis.Emit
         internal bool NamespaceExists(Cci.INamespace @namespace)
             => MapNamespace(@namespace) is object;
 
-        internal abstract bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle);
-        internal abstract bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle);
-        internal abstract bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle);
-        internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
-        internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
+        internal EntityHandle GetInitialMetadataHandle(Cci.IDefinition def)
+            => MetadataTokens.EntityHandle(MapToMetadataSymbolMatcher.MapDefinition(def)?.GetInternalSymbol()?.MetadataToken ?? 0);
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
-        private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
+        /// <summary>
+        /// Gets a <see cref="MethodDefinitionHandle"/> for a given <paramref name="method"/>,
+        /// if it is defined in the initial metadata or has been added since.
+        /// </summary>
+        private bool TryGetMethodHandle(IMethodSymbolInternal method, out MethodDefinitionHandle handle)
         {
-            if (this.TryGetMethodHandle(def, out handle))
+            var methodDef = (Cci.IMethodDefinition)method.GetCciAdapter();
+
+            if (GetInitialMetadataHandle(methodDef) is { IsNil: false } entityHandle)
             {
+                handle = (MethodDefinitionHandle)entityHandle;
                 return true;
             }
 
-            var mappedDef = (Cci.IMethodDefinition?)MapToPreviousSymbolMatcher.MapDefinition(def);
-            if (mappedDef != null && baseline.MethodsAdded.TryGetValue(mappedDef, out int methodIndex))
+            var mappedDef = (Cci.IMethodDefinition?)MapToPreviousSymbolMatcher.MapDefinition(methodDef);
+            if (mappedDef != null && Baseline.MethodsAdded.TryGetValue(mappedDef, out int methodIndex))
             {
                 handle = MetadataTokens.MethodDefinitionHandle(methodIndex);
                 return true;
@@ -145,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Emit
         protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle);
 
-        internal VariableSlotAllocator? TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbolInternal topLevelMethod, DiagnosticBag diagnostics)
+        internal VariableSlotAllocator? TryCreateVariableSlotAllocator(Compilation compilation, IMethodSymbolInternal method, IMethodSymbolInternal topLevelMethod, DiagnosticBag diagnostics)
         {
             // Top-level methods are always included in the semantic edit list. Lambda methods are not.
             if (!mappedMethods.TryGetValue(topLevelMethod, out var mappedMethod))
@@ -156,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // TODO (bug https://github.com/dotnet/roslyn/issues/2504):
             // Handle cases when the previous method doesn't exist.
 
-            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method.GetCciAdapter(), out var previousHandle))
+            if (!TryGetMethodHandle(method, out var previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
@@ -167,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
             IReadOnlyDictionary<int, DebugId>? closureMap = null;
-            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap = null;
+            IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? stateMachineStateMap = null;
             StateMachineState? firstUnusedIncreasingStateMachineState = null;
             StateMachineState? firstUnusedDecreasingStateMachineState = null;
 
@@ -180,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Emit
             DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
-            if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out var addedOrChangedMethod))
+            if (Baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out var addedOrChangedMethod))
             {
                 methodId = addedOrChangedMethod.MethodId;
 
@@ -225,8 +239,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 StandaloneSignatureHandle localSignature;
                 try
                 {
-                    debugInfo = baseline.DebugInformationProvider(previousHandle);
-                    localSignature = baseline.LocalSignatureProvider(previousHandle);
+                    debugInfo = Baseline.DebugInformationProvider(previousHandle);
+                    localSignature = Baseline.LocalSignatureProvider(previousHandle);
                 }
                 catch (Exception e) when (e is InvalidDataException || e is IOException)
                 {
@@ -342,6 +356,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 GetLambdaSyntaxFacts());
         }
 
+        internal MethodInstrumentation GetMethodBodyInstrumentations(IMethodSymbolInternal method)
+            => _methodInstrumentations.TryGetValue(method, out var instrumentation) ? instrumentation : MethodInstrumentation.Empty;
+
         protected abstract LambdaSyntaxFacts GetLambdaSyntaxFacts();
 
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
@@ -380,11 +397,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void MakeStateMachineStateMap(
             ImmutableArray<StateMachineStateDebugInfo> debugInfos,
-            out IReadOnlyDictionary<int, StateMachineState>? map)
+            out IReadOnlyDictionary<(int syntaxOffset, AwaitDebugId debugId), StateMachineState>? map)
         {
             map = debugInfos.IsDefault ?
                 null :
-                debugInfos.ToDictionary(entry => entry.SyntaxOffset, entry => entry.StateNumber);
+                debugInfos.ToDictionary(entry => (entry.SyntaxOffset, entry.AwaitId), entry => entry.StateNumber);
         }
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(

@@ -100,6 +100,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                case BoundKind.CollectionExpression:
+                    return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
+                case BoundKind.CollectionExpressionSpreadElement:
+                    return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -137,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.ImplicitIndexerAccess:
                     return CreateBoundImplicitIndexerAccessOperation((BoundImplicitIndexerAccess)boundNode);
+                case BoundKind.InlineArrayAccess:
+                    return CreateBoundInlineArrayAccessOperation((BoundInlineArrayAccess)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -300,8 +306,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.UnconvertedCollectionExpression:
 
-                    ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
+                    ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
                     if (!isImplicit)
@@ -439,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Operations
             MethodSymbol targetMethod = boundCall.Method;
             SyntaxNode syntax = boundCall.Syntax;
             ITypeSymbol? type = boundCall.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundCall.ConstantValue;
+            ConstantValue? constantValue = boundCall.ConstantValueOpt;
             bool isImplicit = boundCall.WasCompilerGenerated;
 
             if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
@@ -510,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(initializer.Initializers.All(i => i is ISimpleAssignmentOperation));
             }
 
-            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
+            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValueOpt, isImplicit: true);
             return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
         }
 
@@ -552,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isDeclaration = boundLocal.DeclarationKind != BoundLocalDeclarationKind.None;
             SyntaxNode syntax = boundLocal.Syntax;
             ITypeSymbol? type = boundLocal.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundLocal.ConstantValue;
+            ConstantValue? constantValue = boundLocal.ConstantValueOpt;
             bool isImplicit = boundLocal.WasCompilerGenerated;
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
@@ -572,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isDeclaration = boundFieldAccess.IsDeclaration;
             SyntaxNode syntax = boundFieldAccess.Syntax;
             ITypeSymbol? type = boundFieldAccess.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundFieldAccess.ConstantValue;
+            ConstantValue? constantValue = boundFieldAccess.ConstantValueOpt;
             bool isImplicit = boundFieldAccess.WasCompilerGenerated;
             if (isDeclaration && syntax is DeclarationExpressionSyntax declarationExpressionSyntax)
             {
@@ -672,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol? type = boundLiteral.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundLiteral.ConstantValue;
+            ConstantValue? constantValue = boundLiteral.ConstantValueOpt;
             bool isImplicit = boundLiteral.WasCompilerGenerated || @implicit;
             return new LiteralOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -700,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Operations
             MethodSymbol constructor = boundObjectCreationExpression.Constructor;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;
             ITypeSymbol? type = boundObjectCreationExpression.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundObjectCreationExpression.ConstantValue;
+            ConstantValue? constantValue = boundObjectCreationExpression.ConstantValueOpt;
             bool isImplicit = boundObjectCreationExpression.WasCompilerGenerated;
 
             Debug.Assert(constructor is not null);
@@ -921,7 +928,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IArgumentOperation> arguments = DeriveArguments(boundCollectionElementInitializer);
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol? type = boundCollectionElementInitializer.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundCollectionElementInitializer.ConstantValue;
+            ConstantValue? constantValue = boundCollectionElementInitializer.ConstantValueOpt;
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
 
             if (IsMethodInvalid(boundCollectionElementInitializer.ResultKind, addMethod))
@@ -1106,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 ITypeSymbol? type = boundConversion.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundConversion.ConstantValue;
+                ConstantValue? constantValue = boundConversion.ConstantValueOpt;
 
                 // If this is a lambda or method group conversion to a delegate type, we return a delegate creation instead of a conversion
                 if ((boundOperand.Kind == BoundKind.Lambda ||
@@ -1180,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(typeOperand is not null);
             SyntaxNode syntax = boundSizeOfOperator.Syntax;
             ITypeSymbol? type = boundSizeOfOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundSizeOfOperator.ConstantValue;
+            ConstantValue? constantValue = boundSizeOfOperator.ConstantValueOpt;
             bool isImplicit = boundSizeOfOperator.WasCompilerGenerated;
             return new SizeOfOperation(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1214,10 +1221,51 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
+        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression boundCollectionExpression)
+        {
+            ImmutableArray<IOperation> elements = createChildren(boundCollectionExpression.Elements);
+            SyntaxNode syntax = boundCollectionExpression.Syntax;
+            ITypeSymbol? type = boundCollectionExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
+            return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
+
+            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundNode> elements)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    var child = createChild(element);
+                    if (child is { })
+                    {
+                        builder.Add(child);
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            IOperation? createChild(BoundNode element)
+            {
+                var result = element switch
+                {
+                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
+                    _ => element,
+                };
+                return Create(result);
+            }
+        }
+
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
+        {
+            SyntaxNode syntax = boundSpreadExpression.Syntax;
+            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
+            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
+            return new NoneOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
+        }
+
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
         {
             SyntaxNode syntax = boundDefaultLiteral.Syntax;
-            ConstantValue? constantValue = boundDefaultLiteral.ConstantValue;
+            ConstantValue? constantValue = boundDefaultLiteral.ConstantValueOpt;
             bool isImplicit = boundDefaultLiteral.WasCompilerGenerated;
             return new DefaultValueOperation(_semanticModel, syntax, type: null, constantValue, isImplicit);
         }
@@ -1226,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             SyntaxNode syntax = boundDefaultExpression.Syntax;
             ITypeSymbol? type = boundDefaultExpression.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundDefaultExpression.ConstantValue;
+            ConstantValue? constantValue = ((BoundExpression)boundDefaultExpression).ConstantValueOpt;
             bool isImplicit = boundDefaultExpression.WasCompilerGenerated;
             return new DefaultValueOperation(_semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1269,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isRef = boundAssignmentOperator.IsRef;
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol? type = boundAssignmentOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundAssignmentOperator.ConstantValue;
+            ConstantValue? constantValue = boundAssignmentOperator.ConstantValueOpt;
             bool isImplicit = boundAssignmentOperator.WasCompilerGenerated;
             return new SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1368,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IMethodSymbol? operatorMethod = boundUnaryOperator.MethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundUnaryOperator.Syntax;
             ITypeSymbol? type = boundUnaryOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundUnaryOperator.ConstantValue;
+            ConstantValue? constantValue = boundUnaryOperator.ConstantValueOpt;
             bool isLifted = boundUnaryOperator.OperatorKind.IsLifted();
             bool isChecked = boundUnaryOperator.OperatorKind.IsChecked() || (boundUnaryOperator.MethodOpt is not null && SyntaxFacts.IsCheckedOperator(boundUnaryOperator.MethodOpt.Name));
             bool isImplicit = boundUnaryOperator.WasCompilerGenerated;
@@ -1422,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                         boundBinaryOperator.TrueOperator.GetPublicSymbol();
                 SyntaxNode syntax = boundBinaryOperator.Syntax;
                 ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
+                ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
                 bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
                 bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
                 bool isCompareText = false;
@@ -1454,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             SyntaxNode syntax = boundBinaryOperator.Syntax;
             ITypeSymbol? type = boundBinaryOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundBinaryOperator.ConstantValue;
+            ConstantValue? constantValue = boundBinaryOperator.ConstantValueOpt;
             bool isLifted = boundBinaryOperator.OperatorKind.IsLifted();
             bool isChecked = boundBinaryOperator.OperatorKind.IsChecked() || (boundBinaryOperator.Method is not null && SyntaxFacts.IsCheckedOperator(boundBinaryOperator.Method.Name));
             bool isCompareText = false;
@@ -1510,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isRef = boundConditionalOperator.IsRef;
             SyntaxNode syntax = boundConditionalOperator.Syntax;
             ITypeSymbol? type = boundConditionalOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundConditionalOperator.ConstantValue;
+            ConstantValue? constantValue = boundConditionalOperator.ConstantValueOpt;
             bool isImplicit = boundConditionalOperator.WasCompilerGenerated;
             return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1521,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation whenNull = Create(boundNullCoalescingOperator.RightOperand);
             SyntaxNode syntax = boundNullCoalescingOperator.Syntax;
             ITypeSymbol? type = boundNullCoalescingOperator.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValue;
+            ConstantValue? constantValue = boundNullCoalescingOperator.ConstantValueOpt;
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
             Conversion valueConversion = BoundNode.GetConversion(boundNullCoalescingOperator.LeftConversion, boundNullCoalescingOperator.LeftPlaceholder);
 
@@ -1587,12 +1635,23 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ImplicitIndexerReferenceOperation(instance, argument, lengthSymbol, indexerSymbol, _semanticModel, syntax, type, isImplicit);
         }
 
+        private IInlineArrayAccessOperation CreateBoundInlineArrayAccessOperation(BoundInlineArrayAccess boundInlineArrayAccess)
+        {
+            IOperation arrayReference = Create(boundInlineArrayAccess.Expression);
+            IOperation argument = Create(boundInlineArrayAccess.Argument);
+            SyntaxNode syntax = boundInlineArrayAccess.Syntax;
+            ITypeSymbol? type = boundInlineArrayAccess.GetPublicTypeSymbol();
+            bool isImplicit = boundInlineArrayAccess.WasCompilerGenerated;
+
+            return new InlineArrayAccessOperation(arrayReference, argument, _semanticModel, syntax, type, isImplicit);
+        }
+
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {
             IOperation argument = Create(boundNameOfOperator.Argument);
             SyntaxNode syntax = boundNameOfOperator.Syntax;
             ITypeSymbol? type = boundNameOfOperator.GetPublicTypeSymbol();
-            ConstantValue constantValue = boundNameOfOperator.ConstantValue;
+            ConstantValue constantValue = boundNameOfOperator.ConstantValueOpt;
             bool isImplicit = boundNameOfOperator.WasCompilerGenerated;
             return new NameOfOperation(argument, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -1796,6 +1855,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
                                                     enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    inlineArrayConversion: enumeratorInfoOpt.InlineArraySpanType is WellKnownType.Unknown ? null : Conversion.InlineArray,
+                                                    collectionIsInlineArrayValue: enumeratorInfoOpt.InlineArrayUsedAsValue,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
@@ -1866,7 +1927,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
             IOperation loopControlVariable = CreateBoundForEachStatementLoopControlVariable(boundForEachStatement);
-            IOperation collection = Create(boundForEachStatement.Expression);
+            // Strip identity conversion added by compiler on top of inline array. Conversion produces an rvalue, but we need the IOperation tree to preserve lvalue-ness of the original collection. 
+            IOperation collection = Create(boundForEachStatement.EnumeratorInfoOpt?.InlineArraySpanType is null or WellKnownType.Unknown ||
+                                           boundForEachStatement.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ?
+                                               boundForEachStatement.Expression :
+                                               operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
             ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
@@ -2146,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo ?? boundInterpolatedString.InterpolationData?.PositionInfo[0]);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
-            ConstantValue? constantValue = boundInterpolatedString.ConstantValue;
+            ConstantValue? constantValue = boundInterpolatedString.ConstantValueOpt;
             bool isImplicit = boundInterpolatedString.WasCompilerGenerated;
             return new InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
@@ -2352,7 +2417,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             _semanticModel,
                             interpolatedString.Syntax,
                             interpolatedString.GetPublicTypeSymbol(),
-                            interpolatedString.ConstantValue,
+                            interpolatedString.ConstantValueOpt,
                             isImplicit: interpolatedString.WasCompilerGenerated);
 
                     default:
@@ -2369,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (placeholder.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
             {
-                return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type, placeholder.ConstantValue, isImplicit);
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, _semanticModel, syntax, type, placeholder.ConstantValueOpt, isImplicit);
             }
 
             const int NonArgumentIndex = -1;

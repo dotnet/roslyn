@@ -315,6 +315,58 @@ class Program
                             """""" );
     }
 }";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_A()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+  {
+                            world }.
+                            """""" );
+    }
+}";
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(12, 1));
+    }
+
+    [Fact]
+    public void TwoInserts02_B()
+    {
+        string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = ""Hello"";
+        var world = ""world"";
+        Console.WriteLine( $""""""
+                            {
+                                    hello
+                            },
+                            {
+                            world }.
+                            """""" );
+    }
+}";
         string expectedOutput = @"Hello,
 world.";
         CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -946,9 +998,9 @@ class Program {
 }";
 
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,37): error CS8917: The delegate type could not be inferred.
+            // (5,38): error CS8917: The delegate type could not be inferred.
             //         Console.WriteLine($"""X = { x=>3 }.""");
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 37),
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 38),
             // (6,37): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
             //         Console.WriteLine($"""X = { Program.Main }.""");
             Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 37),

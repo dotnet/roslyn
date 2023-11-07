@@ -4,9 +4,13 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
@@ -64,7 +68,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                             return foundReturnableConstruct.GetFirstToken().Span.Start;
                         }
 
-                        return symbol.Locations.FirstOrNone().SourceSpan.Start;
+                        return symbol.Locations.FirstOrDefault()?.SourceSpan.Start ?? 0;
+                    }
+
+                case SyntaxKind.GotoKeyword:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.CaseKeyword:
+                    {
+                        if (node.FirstAncestorOrSelf<GotoStatementSyntax>() is not GotoStatementSyntax gotoStatement)
+                            return null;
+
+                        if (semanticModel.GetOperation(gotoStatement) is not IBranchOperation gotoOperation)
+                            return null;
+
+                        Debug.Assert(gotoOperation is { BranchKind: BranchKind.GoTo });
+                        var target = gotoOperation.Target;
+                        return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart;
                     }
             }
 

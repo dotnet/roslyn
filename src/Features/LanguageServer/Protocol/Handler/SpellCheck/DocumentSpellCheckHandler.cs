@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         public override TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
-        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalSpellCheckableRangeReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             // handler treats those as separate worlds that they are responsible for.
             if (context.Document == null)
             {
-                context.TraceWarning("Ignoring spell check request because no document was provided");
+                context.TraceInformation("Ignoring spell check request because no document was provided");
                 return ImmutableArray<Document>.Empty;
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceWarning($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
+                context.TraceInformation($"Ignoring spell check request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<Document>.Empty;
             }
 

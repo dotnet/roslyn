@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,36 +17,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider
     {
-        private sealed class PullMemberUpWithDialogCodeAction : CodeActionWithOptions
+        private sealed class PullMemberUpWithDialogCodeAction(
+            Document document,
+            ImmutableArray<ISymbol> selectedMembers,
+            IPullMemberUpOptionsService service,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
             /// <summary>
             /// Member which user initially selects. It will be selected initially when the dialog pops up.
             /// </summary>
-            private readonly ImmutableArray<ISymbol> _selectedMembers;
-            private readonly Document _document;
-            private readonly IPullMemberUpOptionsService _service;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
+            private readonly Document _document = document;
+            private readonly IPullMemberUpOptionsService _service = service;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Pull_members_up_to_base_type;
-
-            public PullMemberUpWithDialogCodeAction(
-                Document document,
-                ImmutableArray<ISymbol> selectedMembers,
-                IPullMemberUpOptionsService service,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _document = document;
-                _selectedMembers = selectedMembers;
-                _service = service;
-                _fallbackOptions = fallbackOptions;
-            }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 return _service.GetPullMemberUpOptions(_document, _selectedMembers);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {

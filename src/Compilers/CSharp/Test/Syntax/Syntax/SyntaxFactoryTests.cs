@@ -28,6 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UsingDirective()
+        {
+            var someValidName = SyntaxFactory.ParseName("System.String");
+            var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, someValidName);
+            Assert.NotNull(usingDirective);
+            Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
+            Assert.Null(usingDirective.Alias);
+            Assert.Equal("System.String", usingDirective.Name.ToFullString());
+            Assert.Equal(SyntaxKind.SemicolonToken, usingDirective.SemicolonToken.Kind());
+        }
+
+        [Fact]
         public void SyntaxTree()
         {
             var text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null).GetText();
@@ -583,6 +595,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parameterList: SyntaxFactory.ParameterList(),
                 body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithoutMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default, default);
+            Assert.NotNull(record);
+            Assert.Equal("record R;", record.NormalizeWhitespace().ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default,
+                SyntaxFactory.SingletonList(SyntaxFactory.ParseMemberDeclaration("private int i;")));
+            Assert.NotNull(record);
+            Assert.Equal("record R\r\n{\r\n    private int i;\r\n}", record.NormalizeWhitespace().ToFullString());
         }
 
         [Fact]

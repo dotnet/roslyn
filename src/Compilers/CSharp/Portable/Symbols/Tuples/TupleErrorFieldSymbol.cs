@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newOwner,
                 Name,
                 TupleElementIndex,
-                _locations.IsEmpty ? null : Locations[0],
+                _locations.IsEmpty ? null : GetFirstLocation(),
                 newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
                 _useSiteDiagnosticInfo,
                 _isImplicitlyDeclared,

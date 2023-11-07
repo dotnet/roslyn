@@ -301,7 +301,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5607")>
         <WpfFact>
         Public Sub TestOverTypeAfterIntegerLiteral()
             Dim code = <code>Imports System.Collections.Generic
@@ -320,7 +320,7 @@ End Class</code>
             End Using
         End Sub
 
-        <WorkItem(5607, "https://github.com/dotnet/roslyn/issues/5607")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5607")>
         <WpfFact>
         Public Sub TestOverTypeAfterDateLiteral()
             Dim code = <code>Class C

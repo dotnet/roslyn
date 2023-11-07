@@ -80,6 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
                     fixedColumns);
 
             control.KeepSelectionInView = true;
+            control.DoNotLoseFocusOnBucketExpandOrCollapse();
+
             return control;
         }
 

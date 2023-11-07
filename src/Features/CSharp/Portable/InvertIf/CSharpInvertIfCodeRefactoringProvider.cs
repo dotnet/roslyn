@@ -217,8 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
 
             static bool HasCommentTrivia(SyntaxTrivia trivia)
             {
-                return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                   || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+                return trivia.Kind() is SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineCommentTrivia;
             }
         }
 

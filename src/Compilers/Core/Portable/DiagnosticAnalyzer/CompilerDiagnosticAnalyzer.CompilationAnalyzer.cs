@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
             {
                 var semanticModel = _compilation.GetSemanticModel(context.Tree);
-                var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
+                var diagnostics = semanticModel.GetSyntaxDiagnostics(context.FilterSpan, context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
             }
 

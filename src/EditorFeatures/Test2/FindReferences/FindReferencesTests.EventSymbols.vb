@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WorkItem(542443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEvent1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -43,7 +43,7 @@ public class MainClass
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEvent2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -78,7 +78,7 @@ public class MainClass
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEvent3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -113,7 +113,7 @@ public class MainClass
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542443")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEvent4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -148,7 +148,7 @@ public class MainClass
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEventCascading1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -167,7 +167,7 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529819")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEventCascading2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -186,8 +186,8 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(14428, "https://github.com/dotnet/roslyn/issues/14428")>
-        <WorkItem(553324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14428")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEventParameterCascading1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -208,8 +208,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(14428, "https://github.com/dotnet/roslyn/issues/14428")>
-        <WorkItem(553324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14428")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEventParameterCascading2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -230,8 +230,8 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(14428, "https://github.com/dotnet/roslyn/issues/14428")>
-        <WorkItem(553324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14428")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553324")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestEventParameterCascading3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -252,7 +252,7 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529804")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529804")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCrossAssemblyEventImplementation1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -285,7 +285,7 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(529804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529804")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529804")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCrossAssemblyEventImplementation2(kind As TestKind, host As TestHost) As Task
             Dim input =

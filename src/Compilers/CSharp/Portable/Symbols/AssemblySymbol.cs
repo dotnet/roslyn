@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract TypeConversions TypeConversions { get; }
+
         /// <summary>
         /// A helper method for ReferenceManager to set the system assembly, which provides primitive 
         /// types like Object, String, etc., e.g. mscorlib.dll. 
@@ -276,15 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return null; }
-        }
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -311,6 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        internal abstract bool HasImportedFromTypeLibAttribute { get; }
+
+        internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
 
 #nullable enable
         /// <summary>
@@ -411,11 +408,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+        {
+            // Keep in sync with VB's AssemblySymbol.SupportsRuntimeCapability
+            switch (capability)
+            {
+                case RuntimeCapability.ByRefFields:
+                    return this.RuntimeSupportsByRefFields;
+                case RuntimeCapability.CovariantReturnsOfClasses:
+                    return this.RuntimeSupportsCovariantReturnsOfClasses;
+                case RuntimeCapability.DefaultImplementationsOfInterfaces:
+                    return this.RuntimeSupportsDefaultInterfaceImplementation;
+                case RuntimeCapability.NumericIntPtr:
+                    return this.RuntimeSupportsNumericIntPtr;
+                case RuntimeCapability.UnmanagedSignatureCallingConvention:
+                    return this.RuntimeSupportsUnmanagedSignatureCallingConvention;
+                case RuntimeCapability.VirtualStaticsInInterfaces:
+                    return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
+                case RuntimeCapability.InlineArrayTypes:
+                    return this.RuntimeSupportsInlineArrayTypes;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Figure out if the target runtime supports default interface implementation.
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsDefaultInterfaceImplementation
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
         }
 
@@ -424,6 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsVirtualStaticsInInterfaces
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces);
         }
 
@@ -432,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsNumericIntPtr
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsNumericIntPtr
             get
             {
                 // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
@@ -441,16 +465,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsInlineArrayTypes
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsInlineArrayTypes
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) is object;
+            }
+        }
+
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsFeature
             Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
             return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
                    GetSpecialTypeMember(feature) is object;
         }
 
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsUnmanagedSignatureCallingConvention
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefFields
         internal bool RuntimeSupportsByRefFields
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields);
 
@@ -459,6 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsCovariantReturnsOfClasses
         {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsCovariantReturnsOfClasses
             get
             {
                 // check for the runtime feature indicator and the required attribute.
@@ -485,7 +525,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies();
         internal abstract void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies);
 
+        IEnumerable<ImmutableArray<byte>> IAssemblySymbolInternal.GetInternalsVisibleToPublicKeys(string simpleName)
+            => GetInternalsVisibleToPublicKeys(simpleName);
+
         internal abstract IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
+
+        IEnumerable<string> IAssemblySymbolInternal.GetInternalsVisibleToAssemblyNames()
+            => GetInternalsVisibleToAssemblyNames();
+
+        internal abstract IEnumerable<string> GetInternalsVisibleToAssemblyNames();
+
+        bool IAssemblySymbolInternal.AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal otherAssembly)
+            => AreInternalsVisibleToThisAssembly((AssemblySymbol)otherAssembly);
+
         internal abstract bool AreInternalsVisibleToThisAssembly(AssemblySymbol other);
 
         /// <summary>
@@ -498,10 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
         /// <summary>
         /// Gets the set of type identifiers from this assembly.

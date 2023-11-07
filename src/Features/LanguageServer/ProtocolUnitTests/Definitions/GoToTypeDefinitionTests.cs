@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         {
         }
 
-        [Fact]
-        public async Task TestGotoTypeDefinitionAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|definition:A|}
@@ -31,14 +31,14 @@ class B
 {
     {|caret:|}A classA;
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
-        [Fact]
-        public async Task TestGotoTypeDefinitionAsync_DifferentDocument()
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_DifferentDocument(bool mutatingLspWorkspace)
         {
             var markups = new string[]
             {
@@ -57,14 +57,14 @@ class B
 }"
             };
 
-            await using var testLspServer = await CreateTestLspServerAsync(markups);
+            await using var testLspServer = await CreateTestLspServerAsync(markups, mutatingLspWorkspace);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
-        [Fact]
-        public async Task TestGotoTypeDefinitionAsync_InvalidLocation()
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_InvalidLocation(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|definition:A|}
@@ -75,7 +75,7 @@ class B
     A classA;
     {|caret:|}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);

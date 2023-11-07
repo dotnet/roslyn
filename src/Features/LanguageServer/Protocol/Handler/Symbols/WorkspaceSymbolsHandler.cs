@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken);
 
             await searcher.SearchAsync(searchCurrentDocument: false, cancellationToken).ConfigureAwait(false);
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         private class LSPNavigateToCallback : INavigateToSearchCallback
         {
             private readonly RequestContext _context;
-            private readonly BufferedProgress<SymbolInformation> _progress;
+            private readonly BufferedProgress<SymbolInformation[]> _progress;
 
             public LSPNavigateToCallback(
                 RequestContext context,
-                BufferedProgress<SymbolInformation> progress)
+                BufferedProgress<SymbolInformation[]> progress)
             {
                 _context = context;
                 _progress = progress;
@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
+                var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
+                    document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
 
@@ -107,6 +109,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // do nothing, LSP doesn't support reporting progress towards completion.
                 // used by non-LSP editor API.
+            }
+
+            public void ReportIncomplete()
+            {
             }
         }
     }

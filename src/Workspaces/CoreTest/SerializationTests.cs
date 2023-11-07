@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
         private static void TestSymbolSerialization(Document document, string symbolName)
         {
             var model = document.GetSemanticModelAsync().Result;
@@ -91,5 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(id.Equals(did));
         }
+
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }

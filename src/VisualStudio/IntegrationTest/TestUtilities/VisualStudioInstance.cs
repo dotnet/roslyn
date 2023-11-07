@@ -30,37 +30,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public AddParameterDialog_OutOfProc AddParameterDialog { get; }
-
-        public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
-
-        public CodeDefinitionWindow_OutOfProc CodeDefinitionWindow { get; }
-
-        public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
-
-        public ObjectBrowserWindow_OutOfProc ObjectBrowserWindow { get; }
-
-        public Debugger_OutOfProc Debugger { get; }
-
-        public Editor_OutOfProc Editor { get; }
-
-        public ErrorList_OutOfProc ErrorList { get; }
-
-        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
-
-        public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
-
-        public ImmediateWindow_OutOfProc ImmediateWindow { get; }
-
-        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-
-        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
-        public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
-        public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
-
         public SendKeys SendKeys { get; }
-
-        public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
@@ -121,22 +91,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
-            AddParameterDialog = new AddParameterDialog_OutOfProc(this);
-            ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
-            CodeDefinitionWindow = new CodeDefinitionWindow_OutOfProc(this);
-            InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
-            ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
-            Debugger = new Debugger_OutOfProc(this);
-            Editor = new Editor_OutOfProc(this);
-            ErrorList = new ErrorList_OutOfProc(this);
-            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
-            GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
-            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
-            LocalsWindow = new LocalsWindow_OutOfProc(this);
-            MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
-            PickMembersDialog = new PickMembersDialog_OutOfProc(this);
-            Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
             StartPage = new StartPage_OutOfProc(this);
@@ -160,16 +114,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public void ExecuteInHostProcess(Type type, string methodName)
-        {
-            var result = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
-
-            if (result != null)
-            {
-                throw new InvalidOperationException("The specified call was not expected to return a value.");
-            }
-        }
-
         public T ExecuteInHostProcess<T>(Type type, string methodName)
         {
             var objectUri = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName) ?? throw new InvalidOperationException("The specified call was expected to return a value.");
@@ -185,21 +129,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             task.Wait(cancellationToken);
         }
 
-        public void ExecuteCommand(string commandName, string argument = "")
-            => _inProc.ExecuteCommand(commandName, argument);
-
-        public bool IsCommandAvailable(string commandName)
-            => _inProc.IsCommandAvailable(commandName);
-
-        public string[] GetAvailableCommands()
-            => _inProc.GetAvailableCommands();
-
-        public int ErrorListErrorCount
-            => _inProc.GetErrorListErrorCount();
-
-        public void WaitForNoErrorsInErrorList()
-            => _inProc.WaitForNoErrorsInErrorList();
-
         public bool IsRunning => !HostProcess.HasExited;
 
         public void CleanUp()
@@ -210,13 +139,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.WaitForAllAsyncOperationsOrFail(Helper.HangMitigatingTimeout);
 
             // Close any windows leftover from previous (failed) tests
-            InteractiveWindow.CloseInteractiveWindow();
-            ObjectBrowserWindow.CloseWindow();
-            ChangeSignatureDialog.CloseWindow();
-            GenerateTypeDialog.CloseWindow();
-            ExtractInterfaceDialog.CloseWindow();
-            MoveToNamespaceDialog.CloseWindow();
-            PickMembersDialog.CloseWindow();
             StartPage.CloseWindow();
 
             // Prevent the start page from showing after each solution closes
@@ -308,51 +230,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (_inProc.IsCommandAvailable(WellKnownCommandNames.Test_IntegrationTestService_Stop))
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
-            }
-        }
-
-        public TelemetryVerifier EnableTestTelemetryChannel()
-        {
-            _inProc.EnableTestTelemetryChannel();
-            return new TelemetryVerifier(this);
-        }
-
-        private void DisableTestTelemetryChannel()
-            => _inProc.DisableTestTelemetryChannel();
-
-        /// <summary>
-        /// Waits for specific telemetry events to occur.
-        /// </summary>
-        /// <param name="names">The telemetry events to wait for.</param>
-        /// <returns><see langword="true"/> if the telemetry events occurred; otherwise, <see langword="false"/> if
-        /// telemetry is disabled.</returns>
-        private bool TryWaitForTelemetryEvents(string[] names)
-            => _inProc.TryWaitForTelemetryEvents(names);
-
-        public class TelemetryVerifier : IDisposable
-        {
-            internal VisualStudioInstance _instance;
-
-            public TelemetryVerifier(VisualStudioInstance instance)
-            {
-                _instance = instance;
-            }
-
-            public void Dispose() => _instance.DisableTestTelemetryChannel();
-
-            /// <summary>
-            /// Asserts that a telemetry event of the given name was fired. Does not
-            /// do any additional validation (of performance numbers, etc).
-            /// </summary>
-            /// <param name="expectedEventNames"></param>
-            public void VerifyFired(params string[] expectedEventNames)
-            {
-                var telemetryEnabled = _instance.TryWaitForTelemetryEvents(expectedEventNames);
-                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Telemetry verification is optional for developer machines, but required for CI.
-                    Assert.True(telemetryEnabled);
-                }
             }
         }
     }

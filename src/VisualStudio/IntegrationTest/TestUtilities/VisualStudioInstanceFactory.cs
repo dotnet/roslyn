@@ -334,9 +334,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
-                // Disable text spell checker to avoid spurious warnings in the error list
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Editor\\EnableSpellChecker\" Value dword 0")).WaitForExit();
-
                 var lspRegistryValue = isUsingLspEditor ? "1" : "0";
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
@@ -367,11 +364,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
                 if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 1")).WaitForExit();
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Feature\" OOPCoreClr dword 1")).WaitForExit();
                 }
                 else
                 {
-                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 0")).WaitForExit();
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Feature\" OOPCoreClr dword 0")).WaitForExit();
                 }
 
                 _firstLaunch = false;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,18 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly LocalSymbol cachedState;
 
         /// <summary>
-        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this" 
+        /// Cached "this" local, used to store the captured "this", which is safe to cache locally since "this"
         /// is semantically immutable.
         /// It would be hard for such caching to happen at JIT level (since JIT does not know that it never changes).
         /// NOTE: this field is null when we are not caching "this" which happens when
         ///       - not optimizing
         ///       - method is not capturing "this" at all
-        ///       - containing type is a struct 
-        ///       (we could cache "this" as a ref local for struct containers, 
-        ///       but such caching would not save as much indirection and could actually 
+        ///       - containing type is a struct
+        ///       (we could cache "this" as a ref local for struct containers,
+        ///       but such caching would not save as much indirection and could actually
         ///       be done at JIT level, possibly more efficiently)
         /// </summary>
-        protected readonly LocalSymbol cachedThis;
+        protected readonly LocalSymbol? cachedThis;
+
+        protected readonly FieldSymbol? instanceIdField;
 
         /// <summary>
         /// Allocates resumable states, i.e. states that resume execution of the state machine after await expression or yield return.
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
         /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
-        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>> _lazyAvailableReusableHoistedFields;
+        private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>? _lazyAvailableReusableHoistedFields;
 
         /// <summary>
         /// Fields allocated for temporary variables are given unique names distinguished by a number at the end.
@@ -93,16 +93,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ArrayBuilder<StateMachineStateDebugInfo> _stateDebugInfoBuilder;
 
+        // Instrumentation related bound nodes:
+        protected BoundBlockInstrumentation? instrumentation;
+
         // new:
         public MethodToStateMachineRewriter(
             SyntheticBoundNodeFactory F,
             MethodSymbol originalMethod,
             FieldSymbol state,
+            FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
@@ -117,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.F = F;
             this.stateField = state;
+            this.instanceIdField = instanceIdField;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
             this.OriginalMethod = originalMethod;
             _hoistedVariables = hoistedVariables;
@@ -130,13 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;
-            CapturedSymbolReplacement thisProxy;
-            if ((object)thisParameter != null &&
+            CapturedSymbolReplacement? thisProxy;
+            if (thisParameter is not null &&
                 thisParameter.Type.IsReferenceType &&
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
                 BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
 
@@ -151,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 firstState: FirstIncreasingResumableState,
                 increasing: true);
         }
+#nullable disable
 
         protected abstract StateMachineState FirstIncreasingResumableState { get; }
         protected abstract string EncMissingStateMessage { get; }
@@ -199,22 +206,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
         }
 
         protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
@@ -300,7 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                 if (local.RefKind != RefKind.None)
                 {
-                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+                    Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                                 (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
                     continue;
                 }
 
@@ -312,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     proxies.Add(local, proxy);
                 }
 
-                // We need to produce hoisted local scope debug information for user locals as well as 
-                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                // We need to produce hoisted local scope debug information for user locals as well as
+                // lambda display classes, since Dev12 EE uses them to determine which variables are displayed
                 // in Locals window.
                 if ((local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() != SyntaxKind.SwitchSection) ||
                     local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
@@ -328,9 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var translatedStatement = wrapped();
-            var variableCleanup = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+            var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
 
-            // produce cleanup code for all fields of locals defined by this block 
+            // produce cleanup code for all fields of locals defined by this block
             // as well as all proxies allocated by VisitAssignmentOperator within this block:
             foreach (var local in locals)
             {
@@ -414,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
+        private void AddVariableCleanup(ArrayBuilder<BoundExpression> cleanup, FieldSymbol field)
         {
             if (MightContainReferences(field.Type))
             {
@@ -482,9 +490,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
         {
-            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(local.SyntaxOpt != null);
-            Debug.Assert(this.OriginalMethod.IsAsync);
+#pragma warning disable format
+            Debug.Assert(local.SynthesizedKind switch
+                         {
+                             SynthesizedLocalKind.Spill => this.OriginalMethod.IsAsync,
+                             SynthesizedLocalKind.ForEachArray => this.OriginalMethod.IsAsync || this.OriginalMethod.IsIterator,
+                             _ => false
+                         });
+#pragma warning restore format
 
             var right = (BoundExpression)Visit(node.Right);
 
@@ -497,12 +513,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
                 awaitSyntaxOpt = local.GetDeclaratorSyntax();
-                Debug.Assert(awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression));
+#pragma warning disable format
+                Debug.Assert(local.SynthesizedKind switch
+                             {
+                                 SynthesizedLocalKind.Spill => awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression),
+                                 SynthesizedLocalKind.ForEachArray => awaitSyntaxOpt is CommonForEachStatementSyntax,
+                                 _ => false
+                             });
+#pragma warning restore format
                 syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
             {
-                // These are only used to calculate debug id for ref-spilled variables, 
+                // These are only used to calculate debug id for ref-spilled variables,
                 // no need to do so in release build.
                 awaitSyntaxOpt = null;
                 syntaxOffset = -1;
@@ -591,13 +614,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.In)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.Out);
                         Debug.Assert(call.Method.RefKind != RefKind.None);
                         F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
                     }
@@ -608,13 +632,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
                     // NOTE: There are two kinds of 'In' arguments that we may see at this point:
-                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
-                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                    //       - `RefKindExtensions.StrictIn`     (originally specified with 'in' modifier)
+                    //       - `RefKind.In`                     (specified with no modifiers and matched an 'in' or 'ref readonly' parameter)
                     //
                     //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
                     //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                     if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                     {
+                        Debug.Assert(refKind is RefKindExtensions.StrictIn or RefKind.Ref or RefKind.In);
                         Debug.Assert(conditional.IsRef);
                         F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
                     }
@@ -623,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     goto default;
 
                 default:
-                    if (expr.ConstantValue != null)
+                    if (expr.ConstantValueOpt != null)
                     {
                         return expr;
                     }
@@ -689,8 +714,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            return PossibleIteratorScope(node.Locals, () => (BoundStatement)base.VisitBlock(node));
+            if (node.Instrumentation != null)
+            {
+                // Stash away the instrumentation node, it will be used when generating MoveNext method.
+                instrumentation = (BoundBlockInstrumentation)Visit(node.Instrumentation);
+            }
+
+            return PossibleIteratorScope(node.Locals, () => VisitBlock(node, removeInstrumentation: true));
         }
+
+        public override BoundNode VisitStateMachineInstanceId(BoundStateMachineInstanceId node)
+            => F.Field(F.This(), instanceIdField);
 
         public override BoundNode VisitScope(BoundScope node)
         {
@@ -798,7 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Here we handle ref temps. Ref synthesized variables are the target of a ref assignment operator before
             // being used in any other way.
 
-            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
+            Debug.Assert(leftLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                         (leftLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray && leftLocal.Type.HasInlineArrayAttribute(out _) && leftLocal.Type.TryGetInlineArrayElementField() is object));
             Debug.Assert(node.IsRef);
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
@@ -919,8 +954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //TODO: It seems we may capture more than needed here.
 
-                // TODO: Why don't we drop "this" while lowering if method is static? 
-                //       Actually, considering that method group expression does not evaluate to a particular value 
+                // TODO: Why don't we drop "this" while lowering if method is static?
+                //       Actually, considering that method group expression does not evaluate to a particular value
                 //       why do we have it in the lowered tree at all?
                 return node.Update(VisitType(node.Type));
             }

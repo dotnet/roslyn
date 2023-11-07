@@ -45,7 +45,7 @@ public class FormatterTests
     [Fact]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport()
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts([typeof(NoCompilationLanguageService), typeof(TestFormattingService)]).GetHostServices();
         using var workspace = new AdhocWorkspace(hostServices);
 
         var project = workspace.AddProject("Dummy", NoCompilationConstants.LanguageName);
@@ -63,7 +63,7 @@ public class FormatterTests
     [CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
-        var hostServices = s_composition.AddParts(new[] { typeof(NoCompilationLanguageService), typeof(TestFormattingService) }).GetHostServices();
+        var hostServices = s_composition.AddParts([typeof(NoCompilationLanguageService), typeof(TestFormattingService)]).GetHostServices();
 
         using var workspace = new AdhocWorkspace(hostServices);
 
@@ -83,7 +83,7 @@ public class FormatterTests
         Assert.Equal(7, documentOptions.GetOption(FormattingOptions.IndentationSize));
 #pragma warning restore
 
-        var options = passExplicitOptions ? new OptionValueSet(ImmutableDictionary<OptionKey, object?>.Empty.
+        var options = passExplicitOptions ? new TestOptionSet(ImmutableDictionary<OptionKey, object?>.Empty.
             Add(new OptionKey(FormattingOptions.UseTabs, NoCompilationConstants.LanguageName), true).
             Add(new OptionKey(FormattingOptions.TabSize, NoCompilationConstants.LanguageName), 5).
             Add(new OptionKey(FormattingOptions.IndentationSize, NoCompilationConstants.LanguageName), 6).
@@ -118,7 +118,7 @@ public class FormatterTests
 
         // Validate that options are read from specified OptionSet:
 
-        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(OptionValueSet.Empty, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
+        var updatedOptions = OptionsTestHelpers.GetOptionSetWithChangedOptions(TestOptionSet.Empty, OptionsTestHelpers.PublicFormattingOptionsWithNonDefaultValues);
         ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
         ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
 

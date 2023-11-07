@@ -19,26 +19,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// <summary>
 /// Provides C# and VB analyzers a convenient access to common editorconfig options with fallback to IDE default values.
 /// </summary>
-internal readonly struct AnalyzerOptionsProvider
+internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string language, IdeAnalyzerOptions fallbackOptions)
 {
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly AnalyzerConfigOptions _options;
+    private readonly IOptionsReader _options = options;
 
     /// <summary>
     /// Fallback options - the default options in Code Style layer.
     /// </summary>
-    private readonly IdeAnalyzerOptions _fallbackOptions;
+    private readonly IdeAnalyzerOptions _fallbackOptions = fallbackOptions;
 
-    public AnalyzerOptionsProvider(AnalyzerConfigOptions options, IdeAnalyzerOptions fallbackOptions)
-    {
-        _options = options;
-        _fallbackOptions = fallbackOptions;
-    }
+    private readonly string _language = language;
 
-    public AnalyzerOptionsProvider(AnalyzerConfigOptions options, AnalyzerOptions fallbackOptions)
-        : this(options, fallbackOptions.GetIdeOptions())
+    public AnalyzerOptionsProvider(IOptionsReader options, string language, AnalyzerOptions fallbackOptions)
+        : this(options, language, fallbackOptions.GetIdeOptions())
     {
     }
 
@@ -66,6 +62,7 @@ internal readonly struct AnalyzerOptionsProvider
     // CodeStyleOptions
 
     public CodeStyleOption2<bool> PreferObjectInitializer => GetOption(CodeStyleOptions2.PreferObjectInitializer, FallbackCodeStyleOptions.PreferObjectInitializer);
+    public CodeStyleOption2<bool> PreferCollectionExpression => GetOption(CodeStyleOptions2.PreferCollectionExpression, FallbackCodeStyleOptions.PreferCollectionExpression);
     public CodeStyleOption2<bool> PreferCollectionInitializer => GetOption(CodeStyleOptions2.PreferCollectionInitializer, FallbackCodeStyleOptions.PreferCollectionInitializer);
     public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions => GetOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, FallbackCodeStyleOptions.PreferSimplifiedBooleanExpressions);
     public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping => GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, FallbackCodeStyleOptions.OperatorPlacementWhenWrapping);
@@ -96,18 +93,18 @@ internal readonly struct AnalyzerOptionsProvider
     public string FileHeaderTemplate => GetOption(CodeStyleOptions2.FileHeaderTemplate, defaultValue: string.Empty); // no fallback IDE option
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, defaultValue);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, _language, defaultValue);
 
-    private IdeCodeStyleOptions.CommonOptions FallbackCodeStyleOptions
-        => _fallbackOptions.CodeStyleOptions?.Common ?? IdeCodeStyleOptions.CommonOptions.Default;
+    private IdeCodeStyleOptions FallbackCodeStyleOptions
+        => _fallbackOptions.CodeStyleOptions ?? IdeCodeStyleOptions.CommonDefaults;
 
-    private SimplifierOptions.CommonOptions FallbackSimplifierOptions
-        => _fallbackOptions.CleanupOptions?.SimplifierOptions.Common ?? SimplifierOptions.CommonOptions.Default;
+    private SimplifierOptions FallbackSimplifierOptions
+        => _fallbackOptions.CleanupOptions?.SimplifierOptions ?? SimplifierOptions.CommonDefaults;
 
-    internal AnalyzerConfigOptions GetAnalyzerConfigOptions()
+    internal IOptionsReader GetAnalyzerConfigOptions()
         => _options;
 
     internal IdeAnalyzerOptions GetFallbackOptions()
@@ -124,22 +121,22 @@ internal static partial class AnalyzerOptionsProviders
 #endif
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree)
-        => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree), analyzerOptions);
+        => new(analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), syntaxTree.Options.Language, analyzerOptions);
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this SemanticModelAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
+        => GetAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxNodeAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree), context.Options);
+        => GetAnalyzerOptions(context.Options, context.Node.SyntaxTree);
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this SyntaxTreeAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree), context.Options);
+        => GetAnalyzerOptions(context.Options, context.Tree);
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this OperationAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree), context.Options);
+        => GetAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
 
     public static AnalyzerOptionsProvider GetAnalyzerOptions(this CodeBlockAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.CodeBlock.SyntaxTree), context.Options);
+        => GetAnalyzerOptions(context.Options, context.CodeBlock.SyntaxTree);
 
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this SemanticModelAnalysisContext context)
         => context.Options.GetIdeOptions();

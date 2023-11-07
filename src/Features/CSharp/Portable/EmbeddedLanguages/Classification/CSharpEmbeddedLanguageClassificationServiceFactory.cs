@@ -14,14 +14,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
     [ExportLanguageService(typeof(IEmbeddedLanguageClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpEmbeddedLanguageClassificationService : AbstractEmbeddedLanguageClassificationService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpEmbeddedLanguageClassificationService(
+        [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers) : AbstractEmbeddedLanguageClassificationService(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, CSharpFallbackEmbeddedLanguageClassifier.Instance, classifiers)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEmbeddedLanguageClassificationService(
-            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers)
-            : base(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, CSharpFallbackEmbeddedLanguageClassifier.Instance, classifiers)
-        {
-        }
     }
 }

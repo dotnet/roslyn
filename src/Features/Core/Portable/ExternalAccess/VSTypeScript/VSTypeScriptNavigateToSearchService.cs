@@ -13,23 +13,19 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigateToSearchService), InternalLanguageNames.TypeScript), Shared]
-    internal sealed class VSTypeScriptNavigateToSearchService : INavigateToSearchService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptNavigateToSearchService(
+        [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService) : INavigateToSearchService
     {
-        private readonly IVSTypeScriptNavigateToSearchService? _searchService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptNavigateToSearchService(
-            [Import(AllowDefault = true)] IVSTypeScriptNavigateToSearchService? searchService)
-        {
-            _searchService = searchService;
-        }
+        private readonly IVSTypeScriptNavigateToSearchService? _searchService = searchService;
 
         public IImmutableSet<string> KindsProvided => _searchService?.KindsProvided ?? ImmutableHashSet<string>.Empty;
 
@@ -96,14 +92,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
             => new WrappedNavigateToSearchResult(result);
 
-        private class WrappedNavigateToSearchResult : INavigateToSearchResult
+        private class WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result) : INavigateToSearchResult
         {
-            private readonly IVSTypeScriptNavigateToSearchResult _result;
-
-            public WrappedNavigateToSearchResult(IVSTypeScriptNavigateToSearchResult result)
-            {
-                _result = result;
-            }
+            private readonly IVSTypeScriptNavigateToSearchResult _result = result;
 
             public string AdditionalInformation => _result.AdditionalInformation;
 
@@ -136,7 +127,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public string Summary => _result.Summary;
 
-            public INavigableItem? NavigableItem => _result.NavigableItem == null ? null : new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+            public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
+
+            public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
         }
     }
 }

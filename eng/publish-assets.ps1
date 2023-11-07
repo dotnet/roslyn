@@ -13,6 +13,7 @@ Param(
   [string]$branchName = "",
   [string]$releaseName = "",
   [switch]$test,
+  [switch]$prValidation,
 
   # Credentials
   [string]$nugetApiKey = ""
@@ -44,7 +45,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     }
 
     # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade")) {
+    if ($packageFeeds.equals("arcade") -and -not $prValidation) {
       Write-Host "    Skipping publishing for all packages as they will be published by arcade"
       continue
     }
@@ -53,12 +54,6 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     $packageFeeds = "default"
     if ($publishData.PSobject.Properties.Name -contains "packageFeeds") {
       $packageFeeds = $publishData.packageFeeds
-    }
-
-    # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade")) {
-      Write-Host "    Skipping publishing for all packages as they will be published by arcade"
-      continue
     }
 
     # Each branch stores the name of the package to feed map it should use.
@@ -87,9 +82,18 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       $feedName = $packagesData.$nupkgWithoutVersion
 
+      if ($prValidation) {
+        $feedName = "vs"
+      }
+
       # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
       if ($feedName.equals("arcade")) {
         Write-Host "Skipping publishing for $nupkg as it is published by arcade"
+        continue
+      }
+
+      if ($feedName.equals("npm")) {
+        Write-Host "Skipping publishing for $nupkg as it is published in a separate step as an NPM package"
         continue
       }
 
@@ -102,6 +106,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       $apiKey = Get-PublishKey $uploadUrl
 
       if (-not $test) {
+        Write-Host "Publishing $nupkg"
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }

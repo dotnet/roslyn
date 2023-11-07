@@ -9,12 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class SelectionChangedEventSource : AbstractTaggerEventSource
+        private class SelectionChangedEventSource(ITextView textView) : AbstractTaggerEventSource
         {
-            private readonly ITextView _textView;
-
-            public SelectionChangedEventSource(ITextView textView)
-                => _textView = textView;
+            private readonly ITextView _textView = textView;
 
             public override void Connect()
                 => _textView.Selection.SelectionChanged += OnSelectionChanged;

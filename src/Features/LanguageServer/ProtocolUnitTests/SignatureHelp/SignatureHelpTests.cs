@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
         {
         }
 
-        [Fact]
-        public async Task TestGetSignatureHelpAsync()
+        [Theory, CombinatorialData]
+        public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,
                 ActiveSignature = 0,
-                Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
+                Signatures = [CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "")]
             };
 
             var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             {
                 Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, methodDocumentation),
                 Label = methodLabal,
-                Parameters = new LSP.ParameterInformation[]
-                {
+                Parameters =
+                [
                     CreateParameterInformation(parameterLabel, parameterDocumentation)
-                }
+                ]
             };
 
         private static LSP.ParameterInformation CreateParameterInformation(string parameter, string documentation)

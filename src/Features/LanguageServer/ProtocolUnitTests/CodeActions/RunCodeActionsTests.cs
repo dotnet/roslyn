@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/65303")]
-        public async Task TestRunCodeActions()
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/65303"), CombinatorialData]
+        public async Task TestRunCodeActions(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -43,13 +43,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
     }
 }";
 
-            await using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var caretLocation = testLspServer.GetLocations("caret").Single();
-
-            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, new LSP.TextDocumentIdentifier
+            var documentId = new LSP.TextDocumentIdentifier
             {
                 Uri = caretLocation.Uri
-            });
+            };
+
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, documentId, fixAllFlavors: null);
 
             var results = await ExecuteRunCodeActionCommandAsync(testLspServer, commandArgument);
 
@@ -65,10 +66,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var command = new LSP.ExecuteCommandParams
             {
                 Command = CodeActionsHandler.RunCodeActionCommandName,
-                Arguments = new object[]
-                {
+                Arguments =
+                [
                     JToken.FromObject(codeActionData)
-                }
+                ]
             };
 
             var result = await testLspServer.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(

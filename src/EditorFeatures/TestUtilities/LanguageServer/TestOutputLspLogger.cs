@@ -19,8 +19,6 @@ public class TestOutputLspLogger : ILspServiceLogger
         _testOutputHelper = testOutputHelper;
     }
 
-    public void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
-
     public void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
 
     public void LogError(string message, params object[] @params) => Log("Error", message, @params);

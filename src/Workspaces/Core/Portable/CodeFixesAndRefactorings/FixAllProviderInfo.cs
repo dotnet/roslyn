@@ -112,49 +112,30 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 
         public abstract bool CanBeFixed(Diagnostic diagnostic);
 
-        private class CodeFixerFixAllProviderInfo : FixAllProviderInfo
+        private class CodeFixerFixAllProviderInfo(
+            IFixAllProvider fixAllProvider,
+            IEnumerable<string> supportedDiagnosticIds,
+            ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
         {
-            private readonly IEnumerable<string> _supportedDiagnosticIds;
-
-            public CodeFixerFixAllProviderInfo(
-                IFixAllProvider fixAllProvider,
-                IEnumerable<string> supportedDiagnosticIds,
-                ImmutableArray<FixAllScope> supportedScopes)
-                : base(fixAllProvider, supportedScopes)
-            {
-                _supportedDiagnosticIds = supportedDiagnosticIds;
-            }
-
             public override bool CanBeFixed(Diagnostic diagnostic)
-                => _supportedDiagnosticIds.Contains(diagnostic.Id);
+                => supportedDiagnosticIds.Contains(diagnostic.Id);
         }
 
-        private class SuppressionFixerFixAllProviderInfo : FixAllProviderInfo
+        private class SuppressionFixerFixAllProviderInfo(
+            IFixAllProvider fixAllProvider,
+            IConfigurationFixProvider suppressionFixer,
+            ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
         {
-            private readonly Func<Diagnostic, bool> _canBeSuppressedOrUnsuppressed;
-
-            public SuppressionFixerFixAllProviderInfo(
-                IFixAllProvider fixAllProvider,
-                IConfigurationFixProvider suppressionFixer,
-                ImmutableArray<FixAllScope> supportedScopes)
-                : base(fixAllProvider, supportedScopes)
-            {
-                _canBeSuppressedOrUnsuppressed = suppressionFixer.IsFixableDiagnostic;
-            }
+            private readonly Func<Diagnostic, bool> _canBeSuppressedOrUnsuppressed = suppressionFixer.IsFixableDiagnostic;
 
             public override bool CanBeFixed(Diagnostic diagnostic)
                 => _canBeSuppressedOrUnsuppressed(diagnostic);
         }
 
-        private class CodeRefactoringFixAllProviderInfo : FixAllProviderInfo
+        private class CodeRefactoringFixAllProviderInfo(
+            IFixAllProvider fixAllProvider,
+            ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
         {
-            public CodeRefactoringFixAllProviderInfo(
-                IFixAllProvider fixAllProvider,
-                ImmutableArray<FixAllScope> supportedScopes)
-                : base(fixAllProvider, supportedScopes)
-            {
-            }
-
             public override bool CanBeFixed(Diagnostic diagnostic)
                 => throw ExceptionUtilities.Unreachable();
         }

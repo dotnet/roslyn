@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class EndConstructCommandHandlerTests
         Private ReadOnly _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)(MockBehavior.Strict)
-        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
         Private ReadOnly _textViewMock As New Mock(Of ITextView)(MockBehavior.Strict)
         Private ReadOnly _textBufferMock As New Mock(Of ITextBuffer)(MockBehavior.Strict)
 
 #If False Then
+        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
+
         ' TODO(jasonmal): Figure out how to enable these tests.
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ServiceNotCompletingShouldCallNextHandler()
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 #End If
 
-        <WpfFact, WorkItem(544556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
         Public Sub EndConstruct_AfterCodeCleanup()
             Dim code = <code>Class C
     Sub Main(args As String())
@@ -67,7 +68,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
         End Sub
 
-        <WpfFact, WorkItem(546798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnlyTouched()
             Dim code = <code>Class C1
     Sub M1()
@@ -85,7 +86,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
         End Sub
 
-        <WpfFact, WorkItem(531347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531347")>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics()
             Dim code = <code>Module Program
     Sub Main(args As String())
@@ -109,7 +110,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
         End Sub
 
-        <WorkItem(628656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
         <WpfFact>
         Public Sub EndConstruct_NotOnLineFollowingToken()
             VerifyStatementEndConstructNotApplied(

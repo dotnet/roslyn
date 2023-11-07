@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
@@ -14,16 +15,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
     public static class ComboBoxExtensions
     {
-        public static async Task<bool> SimulateSelectItemAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string itemText, bool mustExist = true)
+        public static Task<bool> SimulateSelectItemAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string itemText, CancellationToken cancellationToken)
+            => SimulateSelectItemAsync(comboBox, joinableTaskFactory, itemText, mustExist: true, cancellationToken);
+
+        public static async Task<bool> SimulateSelectItemAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string itemText, bool mustExist, CancellationToken cancellationToken)
         {
-            await joinableTaskFactory.SwitchToMainThreadAsync();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (comboBox.Text == itemText)
             {
                 return true;
             }
 
-            if (!await comboBox.SimulateExpandAsync(joinableTaskFactory))
+            if (!await comboBox.SimulateExpandAsync(joinableTaskFactory, cancellationToken))
             {
                 return false;
             }
@@ -40,8 +44,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 }
 
                 // Collapse the combo box, and then set the value explicitly
-                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory)
-                    || !await comboBox.SimulateSetTextAsync(joinableTaskFactory, itemText))
+                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken)
+                    || !await comboBox.SimulateSetTextAsync(joinableTaskFactory, itemText, cancellationToken))
                 {
                     return false;
                 }
@@ -56,7 +60,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
                 // Wait for changes to propagate
                 await Task.Yield();
 
-                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory))
+                if (!await comboBox.SimulateCollapseAsync(joinableTaskFactory, cancellationToken))
                 {
                     return false;
                 }
@@ -65,9 +69,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             }
         }
 
-        public static async Task<bool> SimulateExpandAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory)
+        public static async Task<bool> SimulateExpandAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
         {
-            await joinableTaskFactory.SwitchToMainThreadAsync();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (comboBox.IsDropDownOpen)
             {
@@ -88,9 +92,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             return true;
         }
 
-        public static async Task<bool> SimulateCollapseAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory)
+        public static async Task<bool> SimulateCollapseAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
         {
-            await joinableTaskFactory.SwitchToMainThreadAsync();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (!comboBox.IsDropDownOpen)
             {
@@ -111,14 +115,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
             return true;
         }
 
-        public static async Task<bool> SimulateSetTextAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string value)
+        public static async Task<bool> SimulateSetTextAsync(this ComboBox comboBox, JoinableTaskFactory joinableTaskFactory, string value, CancellationToken cancellationToken)
         {
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            await joinableTaskFactory.SwitchToMainThreadAsync();
+            await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (comboBox.Text == value)
             {

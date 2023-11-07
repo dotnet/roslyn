@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
+            Verification verify = default) => CompileAndVerify(source, references, targetFramework: TargetFramework.Standard, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.

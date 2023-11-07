@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -70,7 +71,7 @@ namespace Microsoft.Cci
             // A state machine kickoff method doesn't have sequence points as it only contains generated code.
             // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
             // but there is no real need for such optimization.
-            // 
+            //
             // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
             // This is to accommodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
             bool isKickoffMethod = methodBody.StateMachineTypeName != null;
@@ -79,7 +80,7 @@ namespace Microsoft.Cci
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
 
-            // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
+            // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until
             // bug #1067635 is fixed and available in SDK.
             bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 

@@ -11,6 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using StreamJsonRpc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -18,7 +19,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 {
     private readonly JsonRpc _clientRpc;
 
-    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, ILspLogger logger) : base(jsonRpc, logger)
+    public TestExampleLanguageServer(Stream clientSteam, JsonRpc jsonRpc, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, logger, addExtraHandlers)
     {
         _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientSteam, clientSteam, CreateJsonMessageFormatter()))
         {
@@ -107,13 +108,31 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         return messageFormatter;
     }
 
+    internal static TestExampleLanguageServer CreateBadLanguageServer(ILspLogger logger)
+    {
+        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
+
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, CreateJsonMessageFormatter()));
+
+        var extraHandlers = (IServiceCollection serviceCollection) =>
+            {
+                serviceCollection.AddSingleton<IMethodHandler, ExtraDidOpenHandler>();
+            };
+
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger, extraHandlers);
+
+        jsonRpc.StartListening();
+        server.InitializeTest();
+        return server;
+    }
+
     internal static TestExampleLanguageServer CreateLanguageServer(ILspLogger logger)
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, CreateJsonMessageFormatter()));
 
-        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger);
+        var server = new TestExampleLanguageServer(clientStream, jsonRpc, logger, addExtraHandlers: null);
 
         jsonRpc.StartListening();
         server.InitializeTest();
@@ -138,5 +157,17 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
         var result = await ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, request, CancellationToken.None);
 
         return result;
+    }
+}
+
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+public class ExtraDidOpenHandler :
+    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>
+{
+    public bool MutatesSolutionState => throw new System.NotImplementedException();
+
+    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    {
+        throw new System.NotImplementedException();
     }
 }

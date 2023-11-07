@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -66,9 +67,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// For some Foo(int x, params int[] p), this helps convert the "1, 2, 3" in Foo(0, 1, 2, 3)
         /// to "new int[] { 1, 2, 3 }" in Foo(0, new int[] { 1, 2, 3 });
         /// </summary>
-        protected abstract SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int startingIndex, IParameterSymbol parameterSymbol);
+        protected abstract TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int startingIndex, IParameterSymbol parameterSymbol)
+            where TArgumentSyntax : SyntaxNode;
 
-        protected abstract SyntaxNode AddNameToArgument(SyntaxNode argument, string name);
+        protected abstract TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax argument, string name)
+            where TArgumentSyntax : SyntaxNode;
 
         /// <summary>
         /// Only some languages support:
@@ -395,6 +398,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         potentiallyUpdatedNode,
                         originalNode,
                         UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
+                        context.FallbackOptions,
                         cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
@@ -748,9 +752,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected virtual async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
+        protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
             ISymbol declarationSymbol,
-            SeparatedSyntaxList<SyntaxNode> newArguments,
+            SeparatedSyntaxList<TArgumentSyntax> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
@@ -758,8 +762,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             Document document,
             int position,
             CancellationToken cancellationToken)
+            where TArgumentSyntax : SyntaxNode
         {
-            var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
+            var fullList = ArrayBuilder<TArgumentSyntax>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
@@ -813,10 +818,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
                         var argument = generateAttributeArguments
-                            ? Generator.AttributeArgument(
+                            ? (TArgumentSyntax)Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 expression: expression)
-                            : Generator.Argument(
+                            : (TArgumentSyntax)Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);
@@ -915,10 +920,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
-            var options = RecommendationServiceOptions.From(document.Project);
+            var recommendationOptions = new RecommendationServiceOptions()
+            {
+                HideAdvancedMembers = false,
+                FilterOutOfScopeLocals = true,
+            };
 
             var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var recommendations = recommender.GetRecommendedSymbolsInContext(context, options, cancellationToken).NamedSymbols;
+            var recommendations = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 
@@ -952,12 +961,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return null;
         }
 
-        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
+        protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes, LanguageServices services, LineFormattingOptions options)
         {
             var updatedLeadingTrivia = ImmutableArray.CreateBuilder<SyntaxTrivia>();
             var index = 0;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = services.GetRequiredService<ISyntaxFactsService>();
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
@@ -1015,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var extraDocComments = Generator.DocumentationCommentTrivia(
                     extraNodeList,
                     node.GetTrailingTrivia(),
-                    document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
+                    options.NewLine);
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);

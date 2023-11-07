@@ -1143,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.CollectionExpression:
+                                    if (((CSharp.Syntax.CollectionExpressionSyntax)syntax).Elements.Any())
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
 
                             if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
@@ -2001,6 +2007,7 @@ endRegion:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
                 case OperationKind.Attribute:
+                case OperationKind.InlineArrayAccess:
                     return true;
             }
 

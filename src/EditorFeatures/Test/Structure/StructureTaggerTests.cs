@@ -56,9 +56,9 @@ namespace MyNamespace
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp), collapseRegionsWhenCollapsingToDefinitions);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForDeclarationLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -122,9 +122,9 @@ public class Bar
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp), collapseRegionsWhenCollapsingToDefinitions);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForDeclarationLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -167,10 +167,10 @@ public class Bar
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp), collapseRegionsWhenCollapsingToDefinitions);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForDeclarationLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForCodeLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp), showBlockStructureGuidesForCommentsAndPreprocessorRegions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp, showBlockStructureGuidesForCommentsAndPreprocessorRegions);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -212,9 +212,9 @@ namespace Foo
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp), collapseRegionsWhenCollapsingToDefinitions);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForDeclarationLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp), showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -264,9 +264,9 @@ End Namespace";
             using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var globalOptions = workspace.GlobalOptions;
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic), collapseRegionsWhenCollapsingToDefinitions);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic), showBlockStructureGuidesForDeclarationLevelConstructs);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic), showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic, collapseRegionsWhenCollapsingToDefinitions);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForDeclarationLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic, showBlockStructureGuidesForCodeLevelConstructs);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -325,7 +325,8 @@ End Module";
             hints.Do(v => v.TextView_TestOnly.Close());
         }
 
-        private static async Task<List<IStructureTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
+#pragma warning disable CS0618 // Type or member is obsolete
+        private static async Task<List<IStructureTag2>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
@@ -333,11 +334,12 @@ End Module";
             var provider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var context = new TaggerContext<IStructureTag>(document, view.TextSnapshot);
+            var context = new TaggerContext<IStructureTag2>(document, view.TextSnapshot);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.tagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
+            return context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private static string GetHeaderText(IStructureTag namespaceTag)
         {

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override DeclarationScope EffectiveScope => _originalParam.EffectiveScope;
+        internal sealed override ScopedKind EffectiveScope => _originalParam.EffectiveScope;
 
         internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
 

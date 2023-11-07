@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
-    internal sealed class GenerateTypeTestState : IDisposable
+    internal sealed class GenerateTypeTestState
     {
         public static List<string> FixIds = new List<string>(new[] { "CS0246", "CS0234", "CS0103", "BC30002", "BC30451", "BC30456" });
         private readonly TestHostDocument _testDocument;
@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             {
                 return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
             }
-        }
-
-        public void Dispose()
-        {
-            Workspace?.Dispose();
         }
     }
 }

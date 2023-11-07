@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_FullyQualify">
         <source>Fully qualify</source>
-        <target state="new">Fully qualify</target>
+        <target state="translated">Qualificare completamente</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
@@ -82,9 +82,14 @@
         <target state="translated">Margine di ereditarietà</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">Servizio keep-alive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
         <source>Solution Events</source>
-        <target state="new">Solution Events</target>
+        <target state="translated">Eventi della soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -127,6 +132,11 @@
         <target state="translated">Provider di asset</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="new">Source generation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">Esplora analisi dello stack</target>
@@ -149,7 +159,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_UnitTestingSearch">
         <source>Unit testing search</source>
-        <target state="new">Unit testing search</target>
+        <target state="translated">Ricerca unit test</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

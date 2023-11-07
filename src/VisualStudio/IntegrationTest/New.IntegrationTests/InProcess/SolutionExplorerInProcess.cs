@@ -3,20 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -28,8 +26,6 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
-using Reference5 = VSLangProj110.Reference5;
-using Reference2 = VSLangProj2.Reference2;
 using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -107,7 +103,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var convertedValue = value ? 1 : 0;
             var project = await GetProjectAsync(projectName, cancellationToken);
             project.Properties.Item("OptionInfer").Value = convertedValue;
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], cancellationToken);
         }
 
         public async Task AddProjectReferenceAsync(string projectName, string projectToReferenceName, CancellationToken cancellationToken)
@@ -143,6 +139,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public Task RemoveDllReferenceAsync(string projectName, string assemblyName, CancellationToken cancellationToken)
         {
             return RemoveReference(projectName, assemblyName, cancellationToken);
+        }
+
+        public async Task AddMetadataReferenceAsync(string assemblyName, string projectName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var vsproject = ((VSProject)project.Object);
+            vsproject.References.Add(assemblyName);
         }
 
         private async Task RemoveReference(string projectName, string referenceName, CancellationToken cancellationToken)
@@ -207,14 +212,22 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return references;
         }
 
-        public async Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+        public Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
+            => AddProjectAsync(projectName, projectTemplate, templateGroupId: null, languageName, cancellationToken);
+
+        public async Task AddProjectAsync(string projectName, string projectTemplate, string? templateGroupId, string languageName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
             var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
+
+            var args = new List<object>();
+            if (templateGroupId is not null)
+                args.Add($"$groupid$={templateGroupId}");
+
+            ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, args.Any() ? args.ToArray() : null, null, projectPath, projectName, null, out _));
         }
 
         public async Task AddCustomProjectAsync(string projectName, string projectFileExtension, string projectFileContent, CancellationToken cancellationToken)
@@ -229,6 +242,37 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
             ErrorHandler.ThrowOnFailure(solution.AddExistingProject(projectFilePath, pParent: null, out _));
+        }
+
+        public async Task SaveFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            var filePath = await GetAbsolutePathForProjectRelativeFilePathAsync(projectName, relativeFilePath, cancellationToken);
+
+            SaveFileWithExtraValidation(await GetOpenDocumentAsync(JoinableTaskFactory, dte, filePath, cancellationToken));
+
+            static async Task<EnvDTE.Document> GetOpenDocumentAsync(JoinableTaskFactory joinableTaskFactory, EnvDTE.DTE dte, string filePath, CancellationToken cancellationToken)
+            {
+                await joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                var documents = dte.Documents.Cast<EnvDTE.Document>();
+                var document = documents.SingleOrDefault(d => d.FullName == filePath);
+                return document ?? throw new InvalidOperationException($"Open document '{filePath} could not be found. Available documents: {string.Join(", ", documents.Select(x => x.FullName))}.");
+            }
+
+            static void SaveFileWithExtraValidation(EnvDTE.Document document)
+            {
+                var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
+                var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
+                var fullPath = document.FullName;
+                document.Save();
+                if (File.ReadAllText(fullPath) != currentTextInDocument)
+                {
+                    throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
+                }
+            }
         }
 
         public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)
@@ -277,15 +321,64 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 cancellationToken);
         }
 
+        public async Task SelectItemAsync(string itemName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE80.DTE2>(cancellationToken);
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+            Contract.ThrowIfNull(item);
+
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        private static EnvDTE.UIHierarchyItem? FindFirstItemRecursively(
+            EnvDTE.UIHierarchyItems currentItems,
+            string itemName)
+        {
+            if (currentItems == null)
+            {
+                return null;
+            }
+
+            foreach (var item in currentItems.Cast<EnvDTE.UIHierarchyItem>())
+            {
+                if (item.Name == itemName)
+                {
+                    return item;
+                }
+
+                var result = FindFirstItemRecursively(item.UIHierarchyItems, itemName);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
 
             // Wait for async save operations to complete before proceeding
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], cancellationToken);
 
             // Verify documents are truly saved after a Save Solution operation
             await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);
+        }
+
+        public async Task OpenFileWithDesignerAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var filePath = await GetAbsolutePathForProjectRelativeFilePathAsync(projectName, relativeFilePath, cancellationToken);
+            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
+            ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -311,6 +404,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var windowFrame = (IVsWindowFrame)windowFrameObj;
 
             ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
+        }
+
+        public async Task CloseDesignerFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
+        {
+            await CloseFileAsync(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile, cancellationToken);
         }
 
         public async Task CloseCodeFileAsync(string projectName, string relativeFilePath, bool saveFile, CancellationToken cancellationToken)
@@ -428,19 +526,40 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        /// <summary>
+        /// Adds a new standalone file to the Miscellaneous Files workspace.
+        /// </summary>
+        /// <param name="fileName">The name of the file to add.</param>
+        public async Task AddStandaloneFileAsync(string fileName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var project = await GetProjectAsync(projectName, cancellationToken);
-            var projectDirectory = Path.GetDirectoryName(project.FullName);
 
-            VsShellUtilities.RenameDocument(
-                ServiceProvider.GlobalProvider,
-                Path.Combine(projectDirectory, oldFileName),
-                Path.Combine(projectDirectory, newFileName));
+            string itemTemplate;
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".cs":
+                    itemTemplate = @"General\C# Class";
+                    break;
+                case ".csx":
+                    itemTemplate = @"Script\Visual C# Script";
+                    break;
+                case ".vb":
+                    itemTemplate = @"General\Visual Basic Class";
+                    break;
+                case ".txt":
+                    itemTemplate = @"General\Text File";
+                    break;
+                default:
+                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
+            }
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            dte.ItemOperations.NewFile(itemTemplate, fileName);
         }
 
-        public async Task RenameFileViaDTEAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
+        public async Task RenameFileAsync(string projectName, string oldFileName, string newFileName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var projectItem = await GetProjectItemAsync(projectName, oldFileName, cancellationToken);

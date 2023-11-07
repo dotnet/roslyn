@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.LocalFunctionStatement,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -90,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.RecordStructDeclaration,
-            SyntaxKind.RecordDeclaration);
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.StructDeclaration,
+            SyntaxKind.ClassDeclaration);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -278,19 +282,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxNode potentiallyUpdatedNode,
             SyntaxNode originalNode,
             SignatureChange signaturePermutation,
+            LineFormattingOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
 
             // Update <param> tags.
-            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.RecordDeclaration))
+            if (updatedNode?.Kind()
+                    is SyntaxKind.MethodDeclaration
+                    or SyntaxKind.ConstructorDeclaration
+                    or SyntaxKind.IndexerDeclaration
+                    or SyntaxKind.DelegateDeclaration
+                    or SyntaxKind.RecordStructDeclaration
+                    or SyntaxKind.RecordDeclaration
+                    or SyntaxKind.StructDeclaration
+                    or SyntaxKind.ClassDeclaration)
             {
-                var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
+                var updatedLeadingTrivia = await UpdateParamTagsInLeadingTriviaAsync(document, updatedNode, declarationSymbol, signaturePermutation, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -304,10 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode is RecordDeclarationSyntax { ParameterList: not null } record)
+            if (updatedNode is TypeDeclarationSyntax { ParameterList: not null } typeWithParameters)
             {
-                var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
-                return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                var updatedParameters = UpdateDeclaration(typeWithParameters.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return typeWithParameters.WithParameterList(typeWithParameters.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode is LocalFunctionStatementSyntax localFunction)
@@ -670,10 +678,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return newArgument;
         }
 
-        private async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
+        private async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
             ISymbol declarationSymbol,
-            SeparatedSyntaxList<SyntaxNode> newArguments,
-            SeparatedSyntaxList<SyntaxNode> originalArguments,
+            SeparatedSyntaxList<TArgumentSyntax> newArguments,
+            SeparatedSyntaxList<TArgumentSyntax> originalArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
@@ -681,6 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             Document document,
             int position,
             CancellationToken cancellationToken)
+            where TArgumentSyntax : SyntaxNode
         {
             var newArgumentList = await AddNewArgumentsToListAsync(
                 declarationSymbol, newArguments,
@@ -747,7 +756,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return result.ToImmutable();
         }
 
-        private ImmutableArray<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private async ValueTask<ImmutableArray<SyntaxTrivia>> UpdateParamTagsInLeadingTriviaAsync(
+            Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature, LineFormattingOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             if (!node.HasLeadingTrivia)
             {
@@ -765,7 +775,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return ImmutableArray<SyntaxTrivia>.Empty;
             }
 
-            return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
+            var options = await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options);
         }
 
         private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -870,25 +881,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
 
-        protected override SyntaxNode AddNameToArgument(SyntaxNode newArgument, string name)
+        protected override TArgumentSyntax AddNameToArgument<TArgumentSyntax>(TArgumentSyntax newArgument, string name)
         {
             return newArgument switch
             {
-                ArgumentSyntax a => a.WithNameColon(NameColon(name)),
-                AttributeArgumentSyntax a => a.WithNameColon(NameColon(name)),
+                ArgumentSyntax a => (TArgumentSyntax)(SyntaxNode)a.WithNameColon(NameColon(name)),
+                AttributeArgumentSyntax a => (TArgumentSyntax)(SyntaxNode)a.WithNameColon(NameColon(name)),
                 _ => throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())
             };
         }
 
-        protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        protected override TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
             RoslynDebug.Assert(parameterSymbol.IsParams);
 
             // These arguments are part of a params array, and should not have any modifiers, making it okay to just use their expressions.
-            var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
+            var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)(SyntaxNode)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
             var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
-            return Argument(objectCreation);
+            return (TArgumentSyntax)(SyntaxNode)Argument(objectCreation);
         }
 
         protected override bool SupportsOptionalAndParamsArrayParametersSimultaneously()
@@ -900,13 +911,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
 
         protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
-            => typeSymbol.TryGetRecordPrimaryConstructor(out primaryConstructor);
+            => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+                namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }

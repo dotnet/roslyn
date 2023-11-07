@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
 
-                            if (localSymbol.Scope == DeclarationScope.ValueScoped && !type.Type.IsErrorTypeOrRefLikeType())
+                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorTypeOrRefLikeType())
                             {
                                 diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
                                                    (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);
@@ -77,9 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
-                    var inferenceDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance()
+                    var inferenceDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies:
 #if DEBUG
-                                                                        , PooledHashSet<AssemblySymbol>.GetInstance()
+                                                                                                                         true
+#else
+                                                                                                                         false
 #endif
                                                                         );
 

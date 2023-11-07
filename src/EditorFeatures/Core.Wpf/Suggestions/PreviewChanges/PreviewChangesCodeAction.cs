@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 public override string Title => EditorFeaturesResources.Preview_changes2;
 
-                internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
+                private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+                    Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();
-                    return await _originalCodeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                    return await _originalCodeAction.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

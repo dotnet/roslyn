@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsingDeclaration)
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUsingDeclarations, diagnostics, usingKeyword.GetLocation());
+                CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations, diagnostics);
             }
             else if (hasAwait)
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureAsyncUsing, diagnostics, awaitKeyword.GetLocation());
+                CheckFeatureAvailability(awaitKeyword, MessageID.IDS_FeatureAsyncUsing, diagnostics);
             }
 
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
@@ -116,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expressionOpt = usingBinderOpt!.BindTargetExpression(diagnostics, originalBinder);
                 hasErrors |= !bindDisposable(fromExpression: true, out patternDisposeInfo, out awaitableTypeOpt);
+                Debug.Assert(expressionOpt is not null);
+                if (expressionOpt.Type is not null)
+                {
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, forUsingExpression: true);
+                }
             }
             else
             {
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasAwait)
             {
                 // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                originalBinder.ReportBadAwaitDiagnostics(awaitKeyword, diagnostics, ref hasErrors);
 
                 if (awaitableTypeOpt is null)
                 {
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors |= ReportUseSite(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
             }

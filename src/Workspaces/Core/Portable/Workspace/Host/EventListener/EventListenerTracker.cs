@@ -17,19 +17,14 @@ namespace Microsoft.CodeAnalysis.Host
     /// currently, this helper only supports services whose lifetime is same as Host (ex, VS)
     /// </summary>
     /// <typeparam name="TService">TService for <see cref="IEventListener{TService}"/></typeparam>
-    internal class EventListenerTracker<TService>
+    internal class EventListenerTracker<TService>(
+        IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
     {
         /// <summary>
         /// Workspace kind this event listener is initialized for
         /// </summary>
         private readonly HashSet<string> _eventListenerInitialized = new();
-        private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners;
-
-        public EventListenerTracker(
-            IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
-        {
-            _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
-        }
+        private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
 
         public void EnsureEventListener(Workspace workspace, TService serviceOpt)
         {

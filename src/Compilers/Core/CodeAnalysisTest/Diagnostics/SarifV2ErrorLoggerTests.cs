@@ -425,7 +425,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""version"": """",
           ""dottedQuadFileVersion"": ""1.0.0"",
           ""semanticVersion"": ""1.0.0"",
-          ""language"": """",
           ""rules"": [
             {{
               ""id"": ""uriDiagnostic""

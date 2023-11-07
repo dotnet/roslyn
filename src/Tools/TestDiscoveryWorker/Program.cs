@@ -85,7 +85,7 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
 
 return ExitFailure;
 
-internal sealed class Sink : IMessageSink
+file class Sink : IMessageSink
 {
     public bool AnyWriteFailures { get; private set; }
 

@@ -8,7 +8,7 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -592,7 +592,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
@@ -626,7 +626,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
             Dim source1 = "
 Class C

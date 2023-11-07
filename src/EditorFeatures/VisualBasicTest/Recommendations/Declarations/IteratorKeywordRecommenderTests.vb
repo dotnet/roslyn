@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsMissing(<ClassDeclaration>WriteOnly Shared |</ClassDeclaration>, "Iterator")
         End Sub
 
-        <Fact, WorkItem(674791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/674791")>
         Public Sub NotAfterHashTest()
             VerifyRecommendationsMissing(<File>
 Imports System

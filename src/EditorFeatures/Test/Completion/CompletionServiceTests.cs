@@ -46,7 +46,7 @@ class Test {
 
             var document = project.Documents.Single();
             var caretPosition = workspace.DocumentWithCursor.CursorPosition ?? throw new InvalidOperationException();
-            var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
+            var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionSet.Empty);
 
             // NuGet providers are not included until it's loaded and cached, this is to avoid potential delays, especially on UI thread.
             Assert.Empty(completions.ItemsList);
@@ -55,7 +55,7 @@ class Test {
             var waiter = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.CompletionSet);
             await waiter.ExpeditedWaitAsync();
 
-            completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
+            completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionSet.Empty);
 
             Assert.NotEmpty(completions.ItemsList);
 

@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -458,7 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var origAwaitCatchFrame = _currentAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = this.VisitList(node.CatchBlocks);
+            var rewrittenCatches = node.CatchBlocks.SelectAsArray(static (catchBlock, arg) =>
+            {
+                var (@this, origAwaitCatchFrame) = arg;
+                return (BoundCatchBlock)@this.VisitCatchBlock(catchBlock, parentAwaitCatchFrame: origAwaitCatchFrame);
+            },
+            (this, origAwaitCatchFrame));
+
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
@@ -501,10 +508,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        private BoundNode VisitCatchBlock(BoundCatchBlock node, AwaitCatchFrame parentAwaitCatchFrame)
+        {
             if (!_analysis.CatchContainsAwait(node))
             {
                 var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
-                _currentAwaitCatchFrame = null;
+                _currentAwaitCatchFrame = parentAwaitCatchFrame;
 
                 var result = base.VisitCatchBlock(node);
                 _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;
@@ -517,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Syntax.IsKind(SyntaxKind.CatchClause));
                 var tryStatementSyntax = (TryStatementSyntax)node.Syntax.Parent;
 
-                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax);
+                currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax, parentAwaitCatchFrame);
             }
 
             var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
@@ -995,6 +1007,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // they will become switch sections when pending exception is dispatched.
             public readonly List<BoundBlock> handlers;
 
+            private readonly AwaitCatchFrame _parentOpt;
+
             // when catch local must be used from a filter
             // we need to "hoist" it up to ensure that both the filter 
             // and the catch access the same variable.
@@ -1004,12 +1018,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Dictionary<LocalSymbol, LocalSymbol> _hoistedLocals;
             private readonly List<LocalSymbol> _orderedHoistedLocals;
 
-            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax)
+            public AwaitCatchFrame(SyntheticBoundNodeFactory F, TryStatementSyntax tryStatementSyntax, AwaitCatchFrame parentOpt)
             {
                 this.pendingCaughtException = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Object)), SynthesizedLocalKind.TryAwaitPendingCaughtException, tryStatementSyntax);
                 this.pendingCatch = new SynthesizedLocal(F.CurrentFunction, TypeWithAnnotations.Create(F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingCatch, tryStatementSyntax);
 
                 this.handlers = new List<BoundBlock>();
+                this._parentOpt = parentOpt;
                 _hoistedLocals = new Dictionary<LocalSymbol, LocalSymbol>();
                 _orderedHoistedLocals = new List<LocalSymbol>();
             }
@@ -1042,7 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool TryGetHoistedLocal(LocalSymbol originalLocal, out LocalSymbol hoistedLocal)
             {
-                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal);
+                return _hoistedLocals.TryGetValue(originalLocal, out hoistedLocal) ||
+                    (_parentOpt?.TryGetHoistedLocal(originalLocal, out hoistedLocal) == true);
             }
         }
     }

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind;
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
-                        (refKind == RefKind.In) ||
+                        (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
                         (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The effective scope. This is from the declared scope, implicit scope and any
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
-        internal abstract DeclarationScope EffectiveScope { get; }
+        internal abstract ScopedKind EffectiveScope { get; }
 
         internal abstract bool HasUnscopedRefAttribute { get; }
 
@@ -436,5 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
+
+        #region IParameterSymbolInternal
+
+        ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+
+        #endregion
     }
 }

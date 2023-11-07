@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             VerifyRecommendationsContain(<NamespaceDeclaration>|</NamespaceDeclaration>, "Interface")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub InterfaceInNamespaceFollowsTypeDeclarationTest()
             Dim code =
 <File>
@@ -41,7 +41,7 @@ End Namespace
             VerifyRecommendationsContain(<InterfaceDeclaration>|</InterfaceDeclaration>, "Interface")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub InterfaceFollowsInterfaceTest()
             Dim code =
 <File>
@@ -52,7 +52,7 @@ End Interface
             VerifyRecommendationsContain(code, "Interface")
         End Sub
 
-        <Fact, WorkItem(530727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530727")>
         Public Sub InterfaceFollowsMismatchedEndTest()
             Dim code =
 <File>
@@ -227,12 +227,12 @@ End Namespace</File>, "Interface")
             VerifyRecommendationsMissing(<ClassDeclaration>Shared |</ClassDeclaration>, "Interface")
         End Sub
 
-        <Fact, WorkItem(547254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547254")>
         Public Sub NotAfterAsyncTest()
             VerifyRecommendationsMissing(<ClassDeclaration>Async |</ClassDeclaration>, "Interface")
         End Sub
 
-        <Fact, WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20837")>
         Public Sub AfterAttribute()
             VerifyRecommendationsContain(<File>&lt;AttributeApplication&gt; |</File>, "Interface")
         End Sub

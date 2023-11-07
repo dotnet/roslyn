@@ -10,14 +10,17 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string AutomaticEndConstructCorrection = nameof(AutomaticEndConstructCorrection);
         public const string AutomaticPairCompletion = nameof(AutomaticPairCompletion);
         public const string BraceHighlighting = nameof(BraceHighlighting);
+        public const string BracePairs = nameof(BracePairs);
         public const string CallHierarchy = nameof(CallHierarchy);
         public const string Classification = nameof(Classification);
         public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
+        public const string CodeLens = nameof(CodeLens);
         public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttributes = nameof(DesignerAttributes);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string DocumentOutline = nameof(DocumentOutline);
+        public const string EditAndContinue = nameof(EditAndContinue);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
@@ -44,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string NavigateTo = nameof(NavigateTo);
         public const string NavigationBar = nameof(NavigationBar);
         public const string Outlining = nameof(Outlining);
+        public const string OrganizeDocument = nameof(OrganizeDocument);
         public const string PackageInstaller = nameof(PackageInstaller);
         public const string PersistentStorage = nameof(PersistentStorage);
         public const string QuickInfo = nameof(QuickInfo);

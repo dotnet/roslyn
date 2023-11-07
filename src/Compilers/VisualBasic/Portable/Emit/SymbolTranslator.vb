@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -301,18 +302,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
             '
             ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            ' 
+            '
             ' Top-level:
             '   private                       -> public
             '   family                        -> public (compiles with a warning)
-            '   public                         
+            '   public
             '   friend                        -> public
-            ' 
+            '
             ' In a nested class:
-            '   
-            '   private                       
-            '   family                     
-            '   public                         
+            '
+            '   private
+            '   family
+            '   public
             '   friend                        -> public
             '
             Select Case symbol.DeclaredAccessibility

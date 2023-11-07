@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private partial class Worker
         {
-            private readonly HostWorkspaceServices _workspaceServices;
+            private readonly SolutionServices _solutionServices;
             private readonly DiagnosticReporter _diagnosticReporter;
             private readonly PathResolver _pathResolver;
             private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToDiscoveredProjectInfosMap;
 
             public Worker(
-                HostWorkspaceServices services,
+                SolutionServices services,
                 DiagnosticReporter diagnosticReporter,
                 PathResolver pathResolver,
                 ProjectFileLoaderRegistry projectFileLoaderRegistry,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 DiagnosticReportingOptions discoveredProjectOptions,
                 bool preferMetadataForReferencesOfDiscoveredProjects)
             {
-                _workspaceServices = services;
+                _solutionServices = services;
                 _diagnosticReporter = diagnosticReporter;
                 _pathResolver = pathResolver;
                 _projectFileLoaderRegistry = projectFileLoaderRegistry;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _diagnosticReporter.Report(projectFile.Log);
 
                     return ImmutableArray.Create(
-                        ProjectFileInfo.CreateEmpty(loader.Language, projectPath, projectFile.Log));
+                        ProjectFileInfo.CreateEmpty(loader.Language, projectPath));
                 }
 
                 var projectFileInfos = await DoOperationAndReportProgressAsync(
@@ -212,10 +212,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 foreach (var projectFileInfo in projectFileInfos)
                 {
                     // If any diagnostics were logged during build, we'll carry on and try to produce a meaningful project.
-                    if (!projectFileInfo.Log.IsEmpty)
-                    {
-                        _diagnosticReporter.Report(projectFileInfo.Log);
-                    }
+                    // Note: any diagnostics would have been logged to the original project file's log.
+                    _diagnosticReporter.Report(projectFile.Log);
 
                     results.Add(projectFileInfo);
                 }
@@ -259,7 +257,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
                 }
 
-                // If this project resulted in more than a single project, a discrimator (e.g. TFM) should be
+                // If this project resulted in more than a single project, a discriminator (e.g. TFM) should be
                 // added to the project name.
                 var addDiscriminator = idsAndFileInfos.Count > 1;
 
@@ -452,7 +450,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
+                        new WorkspaceFileTextLoader(_solutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
 
@@ -462,7 +460,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return results.ToImmutable();
             }
 
-            private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+            private static readonly char[] s_directorySplitChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
             private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
             {
@@ -504,13 +502,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private TLanguageService? GetLanguageService<TLanguageService>(string languageName)
                 where TLanguageService : ILanguageService
-                => _workspaceServices
+                => _solutionServices
                     .GetLanguageServices(languageName)
                     .GetService<TLanguageService>();
 
             private TWorkspaceService? GetWorkspaceService<TWorkspaceService>()
                 where TWorkspaceService : IWorkspaceService
-                => _workspaceServices
+                => _solutionServices
                     .GetService<TWorkspaceService>();
         }
     }

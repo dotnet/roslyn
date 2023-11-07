@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (testData != null)
             {
-                this.SetMethodTestData(testData.Methods);
-                testData.Module = this;
+                SetTestData(testData);
             }
         }
 
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out StateMachineState state)
+            public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, AwaitDebugId awaitId, out StateMachineState state)
             {
                 state = 0;
                 return false;

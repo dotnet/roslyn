@@ -179,14 +179,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitNamedType(INamedTypeSymbol symbol)
         {
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeFileLocalTypesPrefix) != 0
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { } internalSymbol1 }
+                && internalSymbol1.GetFileLocalTypeMetadataNamePrefix() is { } fileLocalNamePrefix)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileLocalNamePrefix));
+            }
+
             VisitNamedTypeWithoutNullability(symbol);
             AddNullableAnnotations(symbol);
 
             if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
-                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol })
+                && symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: NamedTypeSymbol { AssociatedFileIdentifier: { } identifier } internalSymbol2 })
             {
                 var fileDescription = identifier.DisplayFilePath is { Length: not 0 } path ? path
-                    : internalSymbol.Locations.FirstOrNone().SourceTree is { } tree ? $"<tree {internalSymbol.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
+                    : internalSymbol2.GetFirstLocationOrNone().SourceTree is { } tree ? $"<tree {internalSymbol2.DeclaringCompilation.GetSyntaxTreeOrdinal(tree)}>"
                     : "<unknown>";
 
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
@@ -306,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
-            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseValueTuple))
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandValueTuple))
             {
                 return true;
             }

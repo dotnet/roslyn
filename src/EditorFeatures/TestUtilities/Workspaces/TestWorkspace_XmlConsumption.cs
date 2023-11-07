@@ -18,7 +18,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -346,7 +346,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
-                var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
+                var markupCode = (bool?)sourceGeneratedDocumentElement.Attribute(NormalizeAttributeName) is false
+                    ? sourceGeneratedDocumentElement.Value
+                    : sourceGeneratedDocumentElement.NormalizedValue();
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
@@ -769,7 +771,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            var markupCode = documentElement.NormalizedValue();
+            var markupCode = (bool?)documentElement.Attribute(NormalizeAttributeName) is false
+                ? documentElement.Value
+                : documentElement.NormalizedValue();
+
             var fileName = GetFileName(workspace, documentElement, ref documentId);
 
             var folders = GetFolders(documentElement);
@@ -1115,6 +1120,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net6).Value)
             {
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+            }
+
+            var net7 = element.Attribute(CommonReferencesNet7Name);
+            if (net7 != null &&
+                ((bool?)net7).HasValue &&
+                ((bool?)net7).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+            }
+
+            var mincorlib = element.Attribute(CommonReferencesMinCorlibName);
+            if (mincorlib != null &&
+                ((bool?)mincorlib).HasValue &&
+                ((bool?)mincorlib).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MinCorlibRef };
             }
 
             return references;

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
 
-        <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -31,7 +31,7 @@ class C : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestExplicitMethod2(kind As TestKind, host As TestHost) As Task
             Dim input =

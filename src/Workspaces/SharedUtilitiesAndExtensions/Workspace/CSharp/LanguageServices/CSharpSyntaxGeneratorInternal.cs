@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // The return parameter must use ref readonly, like regular methods.
                 RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
                 RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
+                RefKind.RefReadOnlyParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
 

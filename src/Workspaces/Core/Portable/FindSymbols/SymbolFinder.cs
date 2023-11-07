@@ -268,21 +268,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
                 }
 
+                var originalRoot = await location.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {
                     var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+
+                    // It's possible for us to have a solution snapshot where only part of a linked set of documents has
+                    // been updated.  As such, the other linked docs may have different contents/sizes than the original
+                    // doc we started with.  Skip those files as there's no sensible way to say that we have linked
+                    // symbols here when the contents are not the same.
                     var linkedSyntaxRoot = await linkedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    if (originalRoot.FullSpan != linkedSyntaxRoot.FullSpan)
+                        continue;
+
                     var linkedNode = linkedSyntaxRoot.FindNode(location.Span, getInnermostNodeForTie: true);
 
                     var semanticModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
+                    if (linkedSymbol is null)
+                        continue;
 
-                    if (linkedSymbol != null &&
-                        linkedSymbol.Kind == symbol.Kind &&
-                        linkedSymbol.Name == symbol.Name)
+                    if (linkedSymbol.Kind != symbol.Kind)
                     {
-                        linkedSymbols.Add(linkedSymbol);
+                        // With primary constructors, the declaring node of the primary constructor is the type
+                        // declaration node itself.  So, see if we're in that situation, and try to find the
+                        // corresponding primary constructor in the linked file.
+                        if (linkedSymbol is INamedTypeSymbol linkedNamedType &&
+                            symbol.IsConstructor())
+                        {
+                            linkedSymbol = linkedNamedType.Constructors.FirstOrDefault(
+                                c => c.DeclaringSyntaxReferences.Any(r => linkedNode.Equals(r.GetSyntax(cancellationToken))));
+                            if (linkedSymbol is null)
+                                continue;
+                        }
                     }
+
+                    if (linkedSymbol.Name == symbol.Name)
+                        linkedSymbols.Add(linkedSymbol);
                 }
             }
 

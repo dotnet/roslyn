@@ -12,15 +12,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 {
     [ExportLanguageService(typeof(IAsyncGoToDefinitionService), LanguageNames.CSharp), Shared]
-    internal class CSharpAsyncGoToDefinitionService : AbstractAsyncGoToDefinitionService
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CSharpAsyncGoToDefinitionService(
+        IThreadingContext threadingContext,
+        IStreamingFindUsagesPresenter streamingPresenter) : AbstractAsyncGoToDefinitionService(threadingContext, streamingPresenter)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAsyncGoToDefinitionService(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
-            : base(threadingContext, streamingPresenter)
-        {
-        }
     }
 }

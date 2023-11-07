@@ -3,27 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractConsoleSnippetProvider : AbstractSnippetProvider
+    internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
     {
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
@@ -35,21 +30,13 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
             if (consoleSymbol is null)
             {
                 return false;
             }
 
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
-        }
-
-        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var snippetTextChange = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(snippetTextChange);
+            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
@@ -57,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return syntaxFacts.IsExpressionStatement;
         }
 
-        private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

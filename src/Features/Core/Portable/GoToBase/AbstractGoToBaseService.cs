@@ -2,19 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GoToBase
 {
     internal abstract class AbstractGoToBaseService : IGoToBaseService
     {
-        protected AbstractGoToBaseService()
+        protected abstract Task<IMethodSymbol?> FindNextConstructorInChainAsync(
+            Solution solution, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected static IMethodSymbol? FindBaseNoArgConstructor(IMethodSymbol constructor)
         {
+            var baseType = constructor.ContainingType.BaseType;
+            if (baseType is null)
+                return null;
+
+            return baseType.InstanceConstructors.FirstOrDefault(
+                baseConstructor => baseConstructor.IsAccessibleWithin(constructor.ContainingType) &&
+                    baseConstructor.Parameters.All(p => p.IsOptional || p.IsParams));
         }
 
         public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
@@ -33,6 +44,12 @@ namespace Microsoft.CodeAnalysis.GoToBase
 
             var solution = project.Solution;
             var bases = await FindBaseHelpers.FindBasesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            if (bases.Length == 0 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+            {
+                var nextConstructor = await FindNextConstructorInChainAsync(solution, constructor, cancellationToken).ConfigureAwait(false);
+                if (nextConstructor != null)
+                    bases = ImmutableArray.Create<ISymbol>(nextConstructor);
+            }
 
             await context.SetSearchTitleAsync(
                 string.Format(FeaturesResources._0_bases,

@@ -4,10 +4,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -18,22 +16,20 @@ internal static class ExtractMethodOptionsStorage
     public static ExtractMethodOptions GetExtractMethodOptions(this IGlobalOptionService globalOptions, string language)
         => new()
         {
-            DontPutOutOrRefOnStruct = globalOptions.GetOption(DontPutOutOrRefOnStruct, language)
+            DoNotPutOutOrRefOnStruct = globalOptions.GetOption(DoNotPutOutOrRefOnStruct, language)
         };
 
     public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new()
         {
             CodeGenerationOptions = globalOptions.GetCodeGenerationOptions(languageServices),
+            CodeCleanupOptions = globalOptions.GetCodeCleanupOptions(languageServices),
             ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
-            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
-            LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)
         };
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.Services), cancellationToken);
 
-    public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(
-        "ExtractMethodOptions", "DontPutOutOrRefOnStruct", ExtractMethodOptions.Default.DontPutOutOrRefOnStruct,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
+    public static readonly PerLanguageOption2<bool> DoNotPutOutOrRefOnStruct = new(
+        "dotnet_extract_method_no_ref_or_out_structs", ExtractMethodOptions.Default.DoNotPutOutOrRefOnStruct);
 }

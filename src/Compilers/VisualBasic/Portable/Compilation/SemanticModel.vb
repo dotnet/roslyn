@@ -789,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundExpression = TryCast(node, BoundExpression)
             If boundExpression IsNot Nothing Then
                 ' Try calling ReclassifyAsValue
-                Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim resultNode = binder.ReclassifyAsValue(boundExpression, diagnostics)
 
                 ' Reclassify ArrayLiterals and other expressions missing types to expressions with types.
@@ -3531,6 +3531,10 @@ _Default:
                 Case SymbolKind.NamedType
                     If TypeOf declaringSyntax Is TypeStatementSyntax Then
                         If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is TypeBlockSyntax Then
+                            Return declaringSyntax.Parent
+                        End If
+                    ElseIf TypeOf declaringSyntax Is EnumStatementSyntax Then
+                        If declaringSyntax.Parent IsNot Nothing AndAlso TypeOf declaringSyntax.Parent Is EnumBlockSyntax Then
                             Return declaringSyntax.Parent
                         End If
                     End If

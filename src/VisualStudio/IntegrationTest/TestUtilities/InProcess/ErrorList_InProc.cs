@@ -20,9 +20,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static ErrorList_InProc Create()
             => new ErrorList_InProc();
 
-        public void ShowErrorList()
-            => ExecuteCommand("View.ErrorList");
-
         public void WaitForNoErrorsInErrorList(TimeSpan timeout)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -130,9 +127,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static string GetProject(this IVsTaskItem item)
         {
             var errorItem = (IVsErrorItem)item;
-            if (ErrorHandler.Failed(errorItem.GetHierarchy(out var hierarchy)))
-                return "Unknown";
-
+            ErrorHandler.ThrowOnFailure(errorItem.GetHierarchy(out var hierarchy));
             ErrorHandler.ThrowOnFailure(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name));
             return (string)name;
         }

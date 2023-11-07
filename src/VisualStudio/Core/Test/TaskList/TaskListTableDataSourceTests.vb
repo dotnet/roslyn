@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Assert.Equal(manager.Identifier, StandardTables.TasksTable)
@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TaskListTableItem, TaskListUpdatedArgs))
@@ -109,7 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -151,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -200,7 +200,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -231,7 +231,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -248,8 +248,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim span2 = New FileLinePositionSpan("test2", pos, pos)
                 Dim span1 = New FileLinePositionSpan("test1", pos, pos)
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
-                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, span:=span1, mappedSpan:=span1)
+                    New TaskListItem(Priority:=TaskListItemPriority.Medium, Message:="test2", DocumentId:=documentId, Span:=span2, MappedSpan:=span2),
+                    New TaskListItem(Priority:=TaskListItemPriority.Low, Message:="test", DocumentId:=documentId, Span:=span1, MappedSpan:=span1)
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -269,7 +269,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -286,8 +286,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim span2 = New FileLinePositionSpan("test2", pos, pos)
                 Dim span3 = New FileLinePositionSpan("test3", pos, pos)
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
-                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, span:=span3, mappedSpan:=span3)
+                    New TaskListItem(Priority:=TaskListItemPriority.Medium, Message:="test2", DocumentId:=documentId, Span:=span2, MappedSpan:=span2),
+                    New TaskListItem(Priority:=TaskListItemPriority.Low, Message:="test3", DocumentId:=documentId, Span:=span3, MappedSpan:=span3)
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -307,7 +307,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
@@ -347,7 +347,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
                 Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
+                Dim table = New VisualStudioTaskListTable(workspace, threadingContext, tableManagerProvider, provider)
 
                 provider.Items = New TaskListItem() {item1, item2}
                 provider.RaiseTodoListUpdated(workspace)

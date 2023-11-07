@@ -392,7 +392,7 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         Public Async Function TestVB_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =
 <Workspace>
@@ -459,8 +459,8 @@ End Module
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -516,8 +516,8 @@ End Class]]>
         End Function
 
         <WpfFact(Skip:="3260")>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInConditionalAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -572,8 +572,8 @@ End Class]]>
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInMemberAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -635,8 +635,8 @@ End Class]]>
         End Function
 
         <WpfFact(Skip:="3260")>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestVisualBasic_ExpandExtensionMethodInConditionalAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -1139,7 +1139,7 @@ public static class ProgramExtensions
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(654403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/654403")>
         Public Async Function TestCSharp_ExtensionMethodRewriteRoundTripsTrivia() As Task
             Dim input =
 <Workspace>
@@ -1188,8 +1188,8 @@ public static class GooExtension
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInMemberAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -1253,8 +1253,8 @@ class C
         End Function
 
         <WpfFact(Skip:="3260")>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInConditionalAccessExpression() As Task
             Dim input =
 <Workspace>
@@ -1317,8 +1317,8 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInMemberAccessExpression_2() As Task
             Dim input =
 <Workspace>
@@ -1392,8 +1392,8 @@ class C
         End Function
 
         <WpfFact(Skip:="3260")>
-        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
-        <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2593")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3260")>
         Public Async Function TestCSharp_ExpandExtensionMethodInConditionalAccessExpression_2() As Task
             Dim input =
 <Workspace>

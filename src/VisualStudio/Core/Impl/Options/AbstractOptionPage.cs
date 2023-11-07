@@ -9,13 +9,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
     internal abstract class AbstractOptionPage : UIElementDialogPage
     {
-        private static ILegacyWorkspaceOptionService s_optionService;
         private static OptionStore s_optionStore;
         private static bool s_needsToUpdateOptionStore = true;
 
@@ -30,9 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (s_optionStore == null)
             {
                 var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
-                var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                s_optionService = workspace.Services.GetService<ILegacyWorkspaceOptionService>();
-                s_optionStore = new OptionStore(new SolutionOptionSet(s_optionService));
+                s_optionStore = new OptionStore(componentModel.GetService<IGlobalOptionService>());
             }
 
             // Use a single option store for all option pages so that changes are accumulated
@@ -57,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (s_needsToUpdateOptionStore)
             {
                 // Reset the option store to the current state of the options.
-                s_optionStore.SetOptions(new SolutionOptionSet(s_optionService));
+                s_optionStore.Clear();
 
                 s_needsToUpdateOptionStore = false;
             }
@@ -107,14 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // option service.
             pageControl.OnSave();
 
-            // Save the changes that were accumulated in the option store.
-            var oldOptions = new SolutionOptionSet(s_optionService);
-            var newOptions = (SolutionOptionSet)s_optionStore.GetOptions();
+            var changedOptions = s_optionStore.GetChangedOptions();
+            OptionLogger.Log(changedOptions);
 
-            // Must log the option change before setting the new option values via s_optionService,
-            // otherwise oldOptions and newOptions would be identical and nothing will be logged.
-            OptionLogger.Log(oldOptions, newOptions);
-            s_optionService.SetOptions(newOptions, newOptions.GetChangedOptions());
+            s_optionStore.GlobalOptions.SetGlobalOptions(changedOptions.SelectAsArray(entry => KeyValuePairUtil.Create(entry.key, entry.newValue)));
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated

@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var syntaxFacts = state.SyntaxFacts;
 
-            var indexerReferenceExpresssions = state.Root.DescendantNodes(descendIntoTrivia: true)
+            var indexerReferenceExpressions = state.Root.DescendantNodes(descendIntoTrivia: true)
                 .Where(node =>
                     syntaxFacts.IsElementAccessExpression(node) ||
                     syntaxFacts.IsImplicitElementAccess(node) ||
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     syntaxFacts.IsIndexerMemberCref(node));
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
-            foreach (var node in indexerReferenceExpresssions)
+            foreach (var node in indexerReferenceExpressions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

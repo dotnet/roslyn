@@ -94,7 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             var normalizedWindowsPath = Directory.GetDirectories(windowsRoot, windowsDir.Name).Single();
             var windowsFolderName = Path.GetFileName(normalizedWindowsPath);
 
-            var code = "#r \"" + windowsRoot + "$$";
+            var code = """
+                #r "
+                """ + windowsRoot + "$$";
             await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
@@ -104,11 +106,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [InlineData("#r$$", false)]
         [InlineData("#r\"$$", true)]
         [InlineData(" # r \"$$", true)]
-        [InlineData(" # r \"$$\"", true)]
+        [InlineData("""
+            # r "$$"
+            """, true)]
         [InlineData(" # r \"\"$$", true)]
-        [InlineData("$$ # r \"\"", false)]
-        [InlineData(" # $$r \"\"", false)]
-        [InlineData(" # r $$\"\"", false)]
+        [InlineData("""
+            $$ # r ""
+            """, false)]
+        [InlineData("""
+            # $$r ""
+            """, false)]
+        [InlineData("""
+            # r $$""
+            """, false)]
         public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
         {
             var position = textWithPositionMarker.IndexOf("$$");
@@ -117,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
             var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionValueSet.Empty));
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionSet.Empty));
         }
     }
 }

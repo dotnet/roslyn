@@ -475,9 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)underlying != null);
             Debug.Assert(underlying.SpecialType != SpecialType.None);
 
-            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            var nullableEnum = nullable.Construct(enumType);
-            var nullableUnderlying = nullable.Construct(underlying);
+            var nullableEnum = Compilation.GetOrCreateNullableType(enumType);
+            var nullableUnderlying = Compilation.GetOrCreateNullableType(underlying);
 
             switch (kind)
             {

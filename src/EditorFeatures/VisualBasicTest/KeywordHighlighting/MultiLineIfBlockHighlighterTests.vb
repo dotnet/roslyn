@@ -93,7 +93,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, WorkItem(542614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542614")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542614")>
         Public Async Function TestMultilineIf6() As Task
             Await TestAsync(<Text><![CDATA[
 Imports System

@@ -124,8 +124,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
-        [Fact]
-        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        [Fact, WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToNonConstantExprs()
         {
             var comp = CreateCompilation(@"
@@ -163,7 +162,7 @@ class C
                 // (12,18): error CS0150: A constant value is expected
                 //             case new { X = 0 }:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
-                );
+            );
         }
 
         [Fact]
@@ -2136,7 +2135,7 @@ public class C
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowInvalidOperationException""
+    IL_002f:  call       ""ThrowInvalidOperationException()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2278,7 +2277,7 @@ namespace System.Runtime.CompilerServices
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless""
+    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2472,7 +2471,7 @@ namespace System.Runtime.CompilerServices
     IL_001d:  ldloc.1
     IL_001e:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
     IL_0023:  box        ""System.ValueTuple<int, int>""
-    IL_0028:  call       ""ThrowSwitchExpressionException""
+    IL_0028:  call       ""ThrowSwitchExpressionException(object)""
     IL_002d:  nop
     // sequence point: <hidden>
     IL_002e:  ldc.i4.1
@@ -3430,16 +3429,16 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
-                // (5,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                // 0.cs(5,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is {}) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{}").WithLocation(5, 18),
-                // (6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                // 0.cs(6,18): error CS0266: Cannot implicitly convert type 'int' to 'int*'. An explicit conversion exists (are you missing a cast?)
                 //         if (p is 1) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "int*").WithLocation(6, 18),
-                // (6,18): error CS0150: A constant value is expected
+                // 0.cs(6,18): error CS9133: A constant value of type 'int*' is expected
                 //         if (p is 1) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(6, 18),
-                // (7,18): error CS8521: Pattern-matching is not permitted for pointer types.
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "1").WithArguments("int*").WithLocation(6, 18),
+                // 0.cs(7,18): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         if (p is var (x, y)) { }
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x, y)").WithLocation(7, 18)
                 );
@@ -3469,6 +3468,67 @@ class Program
                 //         _ = p switch { { } => true, null => false }; // 1
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ }").WithLocation(11, 24)
                 );
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Comparison([CombinatorialValues("<", ">", "<=", ">=")] string op, bool not)
+        {
+            var source = $$"""
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is {{(not ? "not " : "    ") + op}} null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,22): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is     < null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, $"{op} null").WithArguments("void*").WithLocation(5, 22));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Equality([CombinatorialValues("==", "!=")] string op, bool not)
+        {
+            var source = $$"""
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is {{(not ? "not " : "    ") + op}} null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,22): error CS1525: Invalid expression term '=='
+                //         if (p is     == null) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, op).WithArguments(op).WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70048")]
+        public void Pointer_Pattern_Complex()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(void* p)
+                    {
+                        if (p is < null or > null) { }
+                        if (p is < null or null) { }
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (5,18): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or > null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< null").WithArguments("void*").WithLocation(5, 18),
+                // (5,28): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or > null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "> null").WithArguments("void*").WithLocation(5, 28),
+                // (6,18): error CS8781: Relational patterns may not be used for a value of type 'void*'.
+                //         if (p is < null or null) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< null").WithArguments("void*").WithLocation(6, 18));
         }
 
         [Fact]
@@ -4748,5 +4808,35 @@ public class C
 """);
         }
 #endif
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67923")]
+        public void VarPatternCapturingAfterDisjunctiveTypeTest()
+        {
+            var source = """
+A a = new B();
+
+if (a is (B or C) and var x)
+{
+    if (x is null)
+        throw null;
+    else
+        System.Console.WriteLine("OK");
+}
+
+class A { }
+class B : A { }
+class C : A { }
+class D : A { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "OK");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var x = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().First();
+            Assert.Equal("x", x.ToString());
+            Assert.Equal("A? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
     }
 }

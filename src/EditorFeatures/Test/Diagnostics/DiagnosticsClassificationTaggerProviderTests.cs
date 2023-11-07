@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [WpfTheory, WorkItem(62183, "https://github.com/dotnet/roslyn/issues/62183")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/62183")]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, true)]
         [InlineData(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, false)]
         [InlineData(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId, true)]
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Set fading option
             var fadingOption = GetFadingOptionForDiagnostic(diagnosticId);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(fadingOption, LanguageNames.CSharp), fadingOptionValue);
+            workspace.GlobalOptions.SetGlobalOption(fadingOption, LanguageNames.CSharp, fadingOptionValue);
 
             // Add mapping from diagnostic ID to fading option
             IDEDiagnosticIdToOptionMappingHelper.AddFadingOptionMapping(diagnosticId, fadingOption);

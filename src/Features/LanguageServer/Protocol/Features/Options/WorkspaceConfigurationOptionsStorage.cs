@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -14,37 +15,36 @@ internal static class WorkspaceConfigurationOptionsStorage
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
-            DisableCloneWhenProducingSkeletonReferences: globalOptions.GetOption(DisableCloneWhenProducingSkeletonReferences));
+            DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
+            DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
+            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
+            RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
 
     public static readonly Option2<StorageDatabase> Database = new(
-        "FeatureManager/Storage", nameof(Database), WorkspaceConfigurationOptions.Default.CacheStorage,
-        new LocalUserProfileStorageLocation(@"Roslyn\Internal\OnOff\Features\Database"));
+        "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
 
     public static readonly Option2<bool> CloudCacheFeatureFlag = new(
-        "FeatureManager/Storage", "CloudCacheFeatureFlag", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache,
-        new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
+        "dotnet_storage_cloud_cache", WorkspaceConfigurationOptions.Default.CacheStorage == StorageDatabase.CloudCache);
 
-    public static readonly Option2<bool> DisableCloneWhenProducingSkeletonReferences = new(
-        "WorkspaceConfigurationOptions", "DisableCloneWhenProducingSkeletonReferences", WorkspaceConfigurationOptions.Default.DisableCloneWhenProducingSkeletonReferences,
-        new FeatureFlagStorageLocation("Roslyn.DisableCloneWhenProducingSkeletonReferences"));
+    public static readonly Option2<bool> DisableSharedSyntaxTrees = new(
+        "dotnet_disable_shared_syntax_trees", WorkspaceConfigurationOptions.Default.DisableSharedSyntaxTrees);
 
-    public static readonly Option2<bool> DisableReferenceManagerRecoverableMetadata = new(
-        "WorkspaceConfigurationOptions", "DisableReferenceManagerRecoverableMetadata", WorkspaceConfigurationOptions.Default.DisableReferenceManagerRecoverableMetadata,
-        new FeatureFlagStorageLocation("Roslyn.DisableReferenceManagerRecoverableMetadata"));
+    public static readonly Option2<bool> DisableRecoverableText = new(
+        "dotnet_disable_recoverable_text", WorkspaceConfigurationOptions.Default.DisableRecoverableText);
 
-    public static readonly Option2<bool> DisableBackgroundCompilation = new(
-        "WorkspaceConfigurationOptions", "DisableBackgroundCompilation", WorkspaceConfigurationOptions.Default.DisableBackgroundCompilation,
-        new FeatureFlagStorageLocation("Roslyn.DisableBackgroundCompilation"));
+    public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
+        "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
+
+    public static readonly Option2<bool> RunSourceGeneratorsInSameProcessOnly = new(
+        "dotnet_run_source_generators_in_same_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInSameProcessOnly);
 
     /// <summary>
     /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
     /// surprised by this and we want some time to work through those issues.
     /// </summary>
     public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspace", defaultValue: null,
-        new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+        "dotnet_enable_opening_source_generated_files_in_workspace", defaultValue: null);
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
-        "WorkspaceConfigurationOptions", "EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles,
-        new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
+        "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 }

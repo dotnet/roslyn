@@ -35,12 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private UnboundLambda AnalyzeAnonymousFunction(
             AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
+            // !!! The only binding operations allowed here - binding type references
+
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
-            ImmutableArray<DeclarationScope> scopes = default;
+            ImmutableArray<ScopedKind> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             ImmutableArray<EqualsValueClauseSyntax?> defaultValues = default;
             RefKind returnRefKind = RefKind.None;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntax is LambdaExpressionSyntax lambdaSyntax)
             {
-                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, syntax, lambdaSyntax.ArrowToken.GetLocation());
+                MessageID.IDS_FeatureLambda.CheckFeatureAvailability(diagnostics, lambdaSyntax.ArrowToken);
 
                 checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
             }
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // delegate (int x) { }
                     // delegate { }
                     var anon = (AnonymousMethodExpressionSyntax)syntax;
-                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon, anon.DelegateKeyword.GetLocation());
+                    MessageID.IDS_FeatureAnonDelegates.CheckFeatureAvailability(diagnostics, anon.DelegateKeyword);
 
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
@@ -103,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (modifier.IsKind(SyntaxKind.AsyncKeyword))
                 {
-                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, modifier);
                     isAsync = true;
                 }
                 else if (modifier.IsKind(SyntaxKind.StaticKeyword))
                 {
-                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, syntax, modifier.GetLocation());
+                    MessageID.IDS_FeatureStaticAnonymousFunction.CheckFeatureAvailability(diagnostics, modifier);
                     isStatic = true;
                 }
             }
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
-                var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
+                var scopesBuilder = ArrayBuilder<ScopedKind>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
                 var defaultValueBuilder = ArrayBuilder<EqualsValueClauseSyntax?>.GetInstance();
 
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, syntax, p.Default.EqualsToken.GetLocation());
+                            MessageID.IDS_FeatureLambdaOptionalParameters.CheckFeatureAvailability(diagnostics, p.Default.EqualsToken);
                         }
                     }
 
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
-                    var scope = DeclarationScope.Unscoped;
+                    var scope = ScopedKind.None;
 
                     if (typeSyntax == null)
                     {
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
-                if (scopesBuilder.Any(s => s != DeclarationScope.Unscoped))
+                if (scopesBuilder.Any(s => s != ScopedKind.None))
                 {
                     scopes = scopesBuilder.ToImmutable();
                 }

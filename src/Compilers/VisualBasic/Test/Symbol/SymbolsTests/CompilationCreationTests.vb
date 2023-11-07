@@ -94,8 +94,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             For i As Integer = 1 To SpecialType.Count Step 1
                 Dim type As NamedTypeSymbol = c1.Assembly.GetSpecialType(CType(i, SpecialType))
 
-                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Or
-                   i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
+                   i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
+                   i = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(type.Kind, SymbolKind.ErrorType) ' Not available
                 Else
                     Assert.NotEqual(type.Kind, SymbolKind.ErrorType)
@@ -2229,6 +2230,41 @@ End Class
                     Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types(i).Locations(0), types(j).Locations(0))), Math.Sign(i.CompareTo(j)))
                 Next
             Next
+        End Sub
+
+        <Fact>
+        Public Sub RuntimeCapabilitiesSupported()
+            Dim compilation = VisualBasicCompilation.Create("Compilation")
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net50, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net60, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, Nothing))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
     End Class
 End Namespace

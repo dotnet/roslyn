@@ -1,5 +1,142 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## All locals of restricted types are disallowed in async methods 
+
+***Introduced in Visual Studio 2022 version 17.6p1***
+
+Locals of restricted types are disallowed in async methods. But in earlier versions,
+the compiler failed to notice some implicitly-declared locals. For instance, in 
+`foreach` or `using` statements or deconstructions.  
+Now, such implicitly-declared locals are disallowed as well.
+
+```csharp
+ref struct RefStruct { public void Dispose() { } }
+public class C 
+{
+    public async Task M() 
+    {
+        RefStruct local = default; // disallowed
+        using (default(RefStruct)) { } // now disallowed too ("error CS9104: A using statement resource of this type cannot be used in async methods or async lambda expressions")
+    }
+}
+```
+
+See https://github.com/dotnet/roslyn/pull/66264
+
+## Pointers must always be in unsafe contexts.
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+In earlier SDKs, the compiler would occasionally allow locations where pointers could be referenced, without explicitly marking that location as unsafe. 
+Now, the `unsafe` modifier must be present.  
+For example `using Alias = List<int*[]>;` should be changed to `using unsafe Alias = List<int*[]>;` to be legal.  
+A usage such as `void Method(Alias a) ...` should be changed to `unsafe void Method(Alias a) ...`.  
+
+The rule is unconditional, except for `using` alias declarations (which didn't allow an `unsafe` modifier before C# 12).  
+So for `using` declarations, the rule only takes effect if the language version is chosen as C# 12 or higher.
+
+## System.TypedReference considered managed
+
+***Introduced in Visual Studio 2022 version 17.6***
+
+Moving forward the `System.TypedReference` type is considered managed.
+
+```csharp
+unsafe
+{
+    TypedReference* r = null; // warning: This takes the address of, gets the size of, or declares a pointer to a managed type
+    var a = stackalloc TypedReference[1]; // error: Cannot take the address of, get the size of, or declare a pointer to a managed type
+}
+```
+
+## Ref safety errors do not affect conversion from lambda expression to delegate
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+Ref safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a delegate type. This change can affect overload resolution.
+
+In the example below, the call to `M(x => ...)` is ambiguous with Visual Studio 17.5 because both `M(D1)` and `M(D2)` are now considered applicable, even though the call to `F(ref x, ref y)` within the lambda body will result in a ref safety with `M(D1)` (see the examples in `d1` and `d2` for comparison). Previously, the call bound unambiguously to `M(D2)` because the `M(D1)` overload was considered not applicable.
+```csharp
+using System;
+
+ref struct R { }
+
+delegate R D1(R r);
+delegate object D2(object o);
+
+class Program
+{
+    static void M(D1 d1) { }
+    static void M(D2 d2) { }
+
+    static void F(ref R x, ref Span<int> y) { }
+    static void F(ref object x, ref Span<int> y) { }
+
+    static void Main()
+    {
+        // error CS0121: ambiguous between: 'M(D1)' and 'M(D2)'
+        M(x =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y);
+                return x;
+            });
+
+        D1 d1 = x1 =>
+            {
+                Span<int> y1 = stackalloc int[1];
+                F(ref x1, ref y1); // error CS8352: 'y2' may expose referenced variables
+                return x1;
+            };
+
+        D2 d2 = x2 =>
+            {
+                Span<int> y2 = stackalloc int[1];
+                F(ref x2, ref y2); // ok: F(ref object x, ref Span<int> y)
+                return x2;
+            };
+    }
+}
+```
+
+To workaround the overload resolution changes, use explicit types for the lambda parameters or delegate.
+
+```csharp
+        // ok: M(D2)
+        M((object x) =>
+            {
+                Span<int> y = stackalloc int[1];
+                F(ref x, ref y); // ok: F(ref object x, ref Span<int> y)
+                return x;
+            });
+```
+
+## Raw string interpolations at start of line.
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+In .NET SDK 7.0.100 or earlier the following was erroneously allowed:
+
+```csharp
+var x = $"""
+    Hello
+{1 + 1}
+    World
+    """;
+```
+
+This violated the rule that the lines content (including where an interpolation starts) must start with same whitespace as the final `    """;` line.  It is now required that the above be written as:
+
+
+```csharp
+var x = $"""
+    Hello
+    {1 + 1}
+    World
+    """;
+```
+
+
 ## Inferred delegate type for methods includes default parameter values and `params` modifier
 
 ***Introduced in Visual Studio 2022 version 17.5***

@@ -26,16 +26,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SyntacticTaggerTests
     {
-        [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
         [WpfFact]
         public async Task TestTagsChangedForPortionThatChanged()
         {
             var code =
-@"class Program2
-{
-    string x = @""/// <summary>$$
-/// </summary>"";
-}";
+                """
+                class Program2
+                {
+                    string x = @"/// <summary>$$
+                /// </summary>";
+                }
+                """;
             using var workspace = TestWorkspace.CreateCSharp(code);
             var document = workspace.Documents.First();
             var subjectBuffer = document.GetTextBuffer();
@@ -49,8 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                AsynchronousOperationListenerProvider.NullListener,
-                typeMap: null,
                 diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.
@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             checkpoint = new Checkpoint();
 
             // Now apply an edit that require us to reclassify more that just the current line
-            var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, "\"");
+            var snapshot = subjectBuffer.Insert(document.CursorPosition.Value, """
+                "
+                """);
             expectedLength = snapshot.Length;
 
             // NOTE: TagsChanged is raised on the UI thread, so there is no race between
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             Assert.Equal(2, callstacks.Count);
         }
 
-        [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
         [WpfFact]
         public async Task TestTagsChangedAfterDelete()
         {
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var checkpoint = new Checkpoint();
 
-            var typeMap = workspace.ExportProvider.GetExportedValue<SyntacticClassificationTypeMap>();
+            var typeMap = workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>();
 
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(
@@ -107,8 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IGlobalOptionService>(),
                     AsynchronousOperationListenerProvider.NullProvider),
                 subjectBuffer,
-                AsynchronousOperationListenerProvider.NullListener,
-                typeMap,
                 diffTimeout: TimeSpan.MaxValue);
 
             // Capture the expected value before the await, in case it changes.

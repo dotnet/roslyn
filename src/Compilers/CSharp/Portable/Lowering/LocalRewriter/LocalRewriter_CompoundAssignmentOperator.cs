@@ -385,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIndexerAccess(
                 syntax,
                 transformedReceiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt,
                                                                                           isRegularCompoundAssignment, stores, temps),
-                                                         propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
+                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
                     break;
@@ -666,6 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.InlineArrayAccess:
+                    Debug.Assert(originalLHS.GetRefKind() == RefKind.Ref);
+                    break;
+
                 case BoundKind.DynamicMemberAccess:
                     return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps);
 
@@ -676,8 +681,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference: // a special kind of parameter
                 case BoundKind.PseudoVariable:
-                    // No temporaries are needed. Just generate local = local + value
-                    return originalLHS;
+                    {
+                        // No temporaries are needed. Just generate local = local + value
+                        var result = VisitExpression(originalLHS);
+                        Debug.Assert((object)result == originalLHS || IsCapturedPrimaryConstructorParameter(originalLHS)); // If this fails, we might need to add tests for new scenarios and relax the assert.
+                        return result;
+                    }
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
@@ -716,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, ref receiverOpt, stores, temps))
                         {
-                            return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValue, eventAccess.ResultKind, eventAccess.Type);
+                            return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValueOpt, eventAccess.ResultKind, eventAccess.Type);
                         }
                     }
                     break;
@@ -754,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion.Boxing,
                 memberContainingType,
                 @checked: false,
-                constantValueOpt: rewrittenReceiver.ConstantValue);
+                constantValueOpt: rewrittenReceiver.ConstantValueOpt);
         }
 
         private BoundExpression SpillArrayElementAccess(
@@ -812,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
             {
                 var type = expression.Type;
                 return !ConstantValueIsTrivial(type);
@@ -831,6 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
                     return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Local:
@@ -848,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool ReadIsSideeffecting(
             BoundExpression expression)
         {
-            if (expression.ConstantValue != null)
+            if (expression.ConstantValueOpt != null)
             {
                 return false;
             }
@@ -860,12 +870,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (expression.Kind)
             {
+                case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
+                    goto case BoundKind.Local;
+                case BoundKind.Local:
+                case BoundKind.Lambda:
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
                 case BoundKind.Literal:
-                case BoundKind.Parameter:
-                case BoundKind.Local:
-                case BoundKind.Lambda:
                     return false;
 
                 case BoundKind.Conversion:

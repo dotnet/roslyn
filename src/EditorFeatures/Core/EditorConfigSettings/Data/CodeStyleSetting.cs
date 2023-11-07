@@ -4,25 +4,24 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 {
-    internal abstract class CodeStyleSetting : Setting
+    internal abstract class CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location) : Setting(optionKey, description, updater, location)
     {
-        private static readonly bool[] s_boolValues = new[] { true, false };
-
-        public CodeStyleSetting(IOptionWithGroup option, OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location)
-            : base(option, optionKey, description, updater, location)
-        {
-        }
+        private static readonly bool[] s_boolValues = [true, false];
 
         public abstract ICodeStyleOption GetCodeStyle();
 
-        public DiagnosticSeverity GetSeverity()
-            => GetCodeStyle().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
+        public ReportDiagnostic GetSeverity()
+        {
+            var severity = GetCodeStyle().Notification.Severity;
+            if (severity is ReportDiagnostic.Default or ReportDiagnostic.Suppress)
+                severity = ReportDiagnostic.Hidden;
+            return severity;
+        }
 
         public sealed override object? GetValue()
             => GetCodeStyle();
@@ -32,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         protected abstract object GetPossibleValue(int valueIndex);
 
-        public void ChangeSeverity(DiagnosticSeverity severity)
+        public void ChangeSeverity(ReportDiagnostic severity)
         {
             var notification = severity switch
             {
-                DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-                DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-                DiagnosticSeverity.Warning => NotificationOption2.Warning,
-                DiagnosticSeverity.Error => NotificationOption2.Error,
+                ReportDiagnostic.Hidden => NotificationOption2.Silent,
+                ReportDiagnostic.Info => NotificationOption2.Suggestion,
+                ReportDiagnostic.Warn => NotificationOption2.Warning,
+                ReportDiagnostic.Error => NotificationOption2.Error,
                 _ => NotificationOption2.None,
             };
 
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 falseValueDescription ?? EditorFeaturesResources.No
             };
 
-            return new CodeStyleSetting<bool>(option, optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create(
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 falseValueDescription ?? EditorFeaturesResources.No
             };
 
-            return new CodeStyleSetting<bool>(option, optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create<T>(
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             var optionKey = new OptionKey2(option);
             options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
+            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
 
         internal static CodeStyleSetting Create<T>(
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         {
             var optionKey = new OptionKey2(option, options.Language);
             options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(option, optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
+            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
         }
     }
 }

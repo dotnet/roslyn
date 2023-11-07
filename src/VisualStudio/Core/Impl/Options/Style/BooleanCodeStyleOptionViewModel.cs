@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     /// <summary>
-    /// This class represents the view model for a <see cref="CodeStyleOption{T}"/>
+    /// This class represents the view model for a <see cref="CodeStyleOption2{T}"/>
     /// that binds to the codestyle options UI.
     /// </summary>
     internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public BooleanCodeStyleOptionViewModel(
-            IOption option,
+            IOption2 option,
             string description,
             string truePreview,
             string falsePreview,
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _truePreview = truePreview;
             _falsePreview = falsePreview;
 
-            var codeStyleOption = ((CodeStyleOption<bool>)optionStore.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var codeStyleOption = optionStore.GetOption<CodeStyleOption2<bool>>(option, option.IsPerLanguage ? info.Language : null);
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 if (SetProperty(ref _selectedPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption2<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 if (SetProperty(ref _selectedNotificationPreference, value))
                 {
-                    Info.SetOptionAndUpdatePreview(new CodeStyleOption<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
+                    Info.SetOptionAndUpdatePreview(new CodeStyleOption2<bool>(_selectedPreference.IsChecked, _selectedNotificationPreference.Notification), Option, GetPreview());
                 }
             }
         }

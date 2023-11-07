@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
     {
         /// <summary>
         /// A preferred name used to generated a declaration when the
-        /// inline method's body is not a valid expresion in ExpressionStatement
+        /// inline method's body is not a valid expression in ExpressionStatement
         /// Example:
         /// void Caller()
         /// {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 callerDeclarationNode,
                 inlineExpression, invocationOperation);
 
-            var nestedCodeAction = CodeAction.CodeActionWithNestedActions.Create(
+            var nestedCodeAction = CodeAction.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
                 isInlinable: true);
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                         _semanticFactsService.GenerateUniqueLocalName(
                             semanticModel,
                             calleeInvocationNode,
-                            containerOpt: null,
+                            container: null,
                             TemporaryName,
                             cancellationToken);
 

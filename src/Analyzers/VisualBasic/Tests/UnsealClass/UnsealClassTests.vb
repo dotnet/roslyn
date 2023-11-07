@@ -143,7 +143,7 @@ end class")
         Public Async Function RemovedFromAllPartialClassDeclarationsAcrossFiles() As Task
             Await TestInRegularAndScriptAsync(
 <Workspace>
-    <Project Language="Visual Basic">
+    <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 partial public notinheritable class C
 end class
@@ -162,7 +162,7 @@ end class
     </Project>
 </Workspace>.ToString(),
 <Workspace>
-    <Project Language="Visual Basic">
+    <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 partial public class C
 end class

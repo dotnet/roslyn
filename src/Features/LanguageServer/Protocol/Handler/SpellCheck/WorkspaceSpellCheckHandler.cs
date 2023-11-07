@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
     internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
-        protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId)
+        protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()
             {
                 TextDocument = identifier,
-                Ranges = ranges!,
+                Ranges = ranges,
                 ResultId = resultId,
             };
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        context.TraceDebug($"Skipping tracked document: {document.GetURI()}");
+                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
                         continue;
                     }
 

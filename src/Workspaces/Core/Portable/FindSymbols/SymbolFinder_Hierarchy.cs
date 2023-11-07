@@ -82,13 +82,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
         {
-            return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+            return await FindImplementedInterfaceMembersArrayAsync(
+                symbol, solution, projects,
+                includeImplementationsThroughDerivedTypes: true,
+                cancellationToken).ConfigureAwait(false);
         }
 
         internal static Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            return FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects: null, cancellationToken);
+            return FindImplementedInterfaceMembersArrayAsync(
+                symbol, solution, projects: null,
+                includeImplementationsThroughDerivedTypes: true, cancellationToken);
         }
 
         /// <inheritdoc cref="FindImplementedInterfaceMembersAsync"/>
@@ -96,7 +101,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
         /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
+            ISymbol symbol,
+            Solution solution,
+            IImmutableSet<Project>? projects,
+            bool includeImplementationsThroughDerivedTypes,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -122,8 +131,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
                         // Derived.
                         var containingType = symbol.ContainingType.OriginalDefinition;
-                        var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                            containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                        var derivedClasses = includeImplementationsThroughDerivedTypes
+                            ? await FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false)
+                            : SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
                         var allTypes = derivedClasses.Concat(containingType);
 
                         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
@@ -144,12 +154,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                                 if (interfaceType.MemberNames.Contains(nameToLookFor))
                                 {
-                                    foreach (var m in interfaceType.GetMembers(symbol.Name))
+                                    foreach (var interfaceMember in interfaceType.GetMembers(symbol.Name))
                                     {
-                                        var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                                        var bestMethod = sourceMethod ?? m;
+                                        var sourceMethod = await FindSourceDefinitionAsync(interfaceMember, solution, cancellationToken).ConfigureAwait(false);
+                                        var bestMethod = sourceMethod ?? interfaceMember;
 
-                                        var implementations = await type.FindImplementationsForInterfaceMemberAsync(bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                        var implementations = await type.FindImplementationsForInterfaceMemberAsync(
+                                            bestMethod, solution, cancellationToken).ConfigureAwait(false);
                                         foreach (var implementation in implementations)
                                         {
                                             if (implementation != null &&

@@ -440,14 +440,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         if (parameter.RefKind is RefKind.Ref or RefKind.Out)
                         {
-                            var currentWrites = CurrentBlockAnalysisData.GetCurrentWrites(parameter);
-                            foreach (var write in currentWrites)
-                            {
-                                if (write != null)
+                            CurrentBlockAnalysisData.ForEachCurrentWrite(
+                                parameter,
+                                static (write, arg) =>
                                 {
-                                    SymbolsWriteBuilder[(parameter, write)] = true;
-                                }
-                            }
+                                    if (write != null)
+                                    {
+                                        arg.self.SymbolsWriteBuilder[(arg.parameter, write)] = true;
+                                    }
+                                },
+                                (parameter, self: this));
                         }
                     }
                 }
@@ -519,28 +521,40 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     //      Action y = x;
                     //
                     var targetsBuilder = PooledHashSet<IOperation>.GetInstance();
-                    foreach (var symbolWrite in CurrentBlockAnalysisData.GetCurrentWrites(symbol))
-                    {
-                        if (symbolWrite == null)
+                    var completedVisit = CurrentBlockAnalysisData.ForEachCurrentWrite(
+                        symbol,
+                        static (symbolWrite, arg) =>
                         {
-                            continue;
-                        }
-
-                        if (!_reachingDelegateCreationTargets.TryGetValue(symbolWrite, out var targetsBuilderForSymbolWrite))
-                        {
-                            // Unable to find delegate creation targets for this symbol write.
-                            // Bail out without setting targets.
-                            targetsBuilder.Free();
-                            return;
-                        }
-                        else
-                        {
-                            foreach (var target in targetsBuilderForSymbolWrite)
+                            if (symbolWrite == null)
                             {
-                                targetsBuilder.Add(target);
+                                // Continue with the iteration
+                                return true;
                             }
-                        }
-                    }
+
+                            if (!arg.self._reachingDelegateCreationTargets.TryGetValue(symbolWrite, out var targetsBuilderForSymbolWrite))
+                            {
+                                // Unable to find delegate creation targets for this symbol write.
+                                // Bail out without setting targets.
+                                arg.targetsBuilder.Free();
+
+                                // Stop iterating here, even if early
+                                return false;
+                            }
+                            else
+                            {
+                                foreach (var target in targetsBuilderForSymbolWrite)
+                                {
+                                    arg.targetsBuilder.Add(target);
+                                }
+                            }
+
+                            // Continue with the iteration
+                            return true;
+                        },
+                        (targetsBuilder, self: this));
+
+                    if (!completedVisit)
+                        return;
 
                     _reachingDelegateCreationTargets[write] = targetsBuilder;
                 }

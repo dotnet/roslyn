@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             if (option.Value)
                 return;
 
-            var cancellationToken = context.CancellationToken;
-            var root = context.Tree.GetRoot(cancellationToken);
-
-            Recurse(context, option.Notification.Severity, root, cancellationToken);
+            Recurse(context, option.Notification.Severity, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
         }
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)
@@ -58,6 +55,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             foreach (var child in node.ChildNodesAndTokens())
             {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
                 if (child.IsNode)
                     Recurse(context, severity, child.AsNode()!, cancellationToken);
             }

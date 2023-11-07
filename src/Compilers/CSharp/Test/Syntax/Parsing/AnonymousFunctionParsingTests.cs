@@ -1160,16 +1160,16 @@ public class C
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
             CreateCompilation(testInMethod).VerifyDiagnostics(
-                // (1,34): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (1,43): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static x => x]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static x => x").WithArguments("lambda expression", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(1, 43));
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { _ = new int[static x => x]; } }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
-                // (1,34): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (1,43): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static x => x]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static x => x").WithArguments("lambda expression", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(1, 43));
 
             UsingStatement(test);
             verify();
@@ -1476,13 +1476,12 @@ public class C
             var test = @"_ = new Action[] { static }";
 
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
-                // (1,20): error CS1003: Syntax error, ',' expected
+                // (1,20): error CS1041: Identifier expected; 'static' is a keyword
                 // _ = new Action[] { static }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "static").WithArguments("", "static").WithLocation(1, 20),
                 // (1,28): error CS1002: ; expected
                 // _ = new Action[] { static }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28));
 
             N(SyntaxKind.ExpressionStatement);
             {
@@ -1531,13 +1530,12 @@ public class C
             var test = @"_ = new Action[] { static x }";
 
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
-                // (1,20): error CS1003: Syntax error, ',' expected
+                // (1,20): error CS1041: Identifier expected; 'static' is a keyword
                 // _ = new Action[] { static x }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "static").WithArguments("", "static").WithLocation(1, 20),
                 // (1,30): error CS1002: ; expected
                 // _ = new Action[] { static x }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30)
-                );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30));
 
             N(SyntaxKind.ExpressionStatement);
             {
@@ -1795,16 +1793,16 @@ public class C
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
             CreateCompilation(testInMethod).VerifyDiagnostics(
-                // (1,34): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                // (1,41): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static delegate(int x) { }]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate(int x) { }").WithArguments("anonymous method", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "int").WithLocation(1, 41));
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,34): error CS8400: Feature 'static anonymous function' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { _ = new int[static delegate(int x) { }]; } }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "static").WithArguments("static anonymous function", "9.0").WithLocation(1, 34),
-                // (1,34): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
+                // (1,41): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
                 // class C { void M() { _ = new int[static delegate(int x) { }]; } }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "static delegate(int x) { }").WithArguments("anonymous method", "int").WithLocation(1, 34));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "int").WithLocation(1, 41));
 
             UsingStatement(test);
             verify();
@@ -2036,33 +2034,21 @@ public class C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 58));
 
             UsingStatement(test,
-                // (1,1): error CS1073: Unexpected token ')'
-                // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
                 // (1,24): error CS1525: Invalid expression term 'static'
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24),
-                // (1,32): error CS1002: ; expected
-                // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24));
             verify();
 
             UsingStatement(test, options: TestOptions.Regular8,
-                // (1,1): error CS1073: Unexpected token ')'
-                // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate*<void> ptr = &static (").WithArguments(")").WithLocation(1, 1),
                 // (1,24): error CS1525: Invalid expression term 'static'
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24),
-                // (1,32): error CS1002: ; expected
-                // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24));
             verify();
 
             void verify()
@@ -2105,7 +2091,7 @@ public class C
                             }
                         }
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }

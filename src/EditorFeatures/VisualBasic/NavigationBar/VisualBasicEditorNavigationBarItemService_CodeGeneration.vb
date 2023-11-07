@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Partial Friend Class VisualBasicEditorNavigationBarItemService
         Private Async Function GenerateCodeForItemAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken) As Task
             ' We'll compute everything up front before we go mutate state
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
             Dim newDocument = Await GetGeneratedDocumentAsync(document, generateCodeItem, _globalOptions, cancellationToken).ConfigureAwait(False)
             Dim generatedTree = Await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 

@@ -398,9 +398,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetDeclaredSymbolCore(SyntaxNode declaration, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
-        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically:
+        /// <list type="number">
+        /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+        /// all declared symbols.</item>
+        /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type
         /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
@@ -414,9 +419,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the symbol associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
-        /// this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-        /// which can declare multiple symbols, this method returns all declared symbols.
+        /// Gets the symbols associated with a declaration syntax node. Unlike <see cref="GetDeclaredSymbolForNode(SyntaxNode, CancellationToken)"/>,
+        /// this method returns all symbols declared by a given declaration syntax node. Specifically:
+        /// <list type="number">
+        /// <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+        /// all declared symbols.</item>
+        /// <item>in the case of type declarations with a primary constructor, both the <see cref="INamedTypeSymbol"/>
+        /// for the type, and the <see cref="IMethodSymbol"/> for the primary contructor will be returned.</item>
+        /// </list>
         /// </summary>
         /// <param name="declaration">A syntax node that is a declaration. This can be any type
         /// derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,

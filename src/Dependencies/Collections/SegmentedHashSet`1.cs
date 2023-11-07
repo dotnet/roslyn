@@ -1422,11 +1422,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 return false;
             }
 
-            public T Current => _current;
+            public readonly T Current => _current;
 
-            public void Dispose() { }
+            public readonly void Dispose() { }
 
-            object? IEnumerator.Current
+            readonly object? IEnumerator.Current
             {
                 get
                 {

@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
@@ -170,7 +170,7 @@ namespace CSAssembly1
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
@@ -271,7 +271,7 @@ namespace CSAssembly2
                 onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
-        <Fact, WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12169")>
         Public Async Function AddProjectReference_CSharpToCSharp_StaticField() As Task
             Dim input =
                 <Workspace>
@@ -460,7 +460,7 @@ End Namespace
             Await service.GetTestAccessor().AnalyzeSolutionAsync()
         End Function
 
-        <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
+        <Fact, WorkItem("https://github.com/dotnet/Roslyn/issues/8036")>
         Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
             Dim input =
                 <Workspace>
@@ -501,7 +501,7 @@ class C
             Await TestMissing(input)
         End Function
 
-        <WpfFact, WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16022")>
         Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
             Dim input =
                 <Workspace>

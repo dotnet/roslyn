@@ -7,12 +7,19 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -33,7 +40,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
         private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
             FindReferencesWindowInProcess.FindReferencesWindowGuid,
-            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser));
+            new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
+            new Guid(ToolWindowGuids80.CodedefinitionWindow),
+            VSConstants.StandardToolWindows.Immediate);
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
@@ -43,23 +52,38 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            ResetOption(globalOptions, CSharpCodeStyleOptions.NamespaceDeclarations);
+            ResetOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.PreviewChanges);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameFile);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInComments);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInStrings);
+            ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameOverloads);
+            ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
+            ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
+            ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);
+            ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports);
+            ResetPerLanguageOption(globalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
-            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
-            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
-            ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetPerLanguageOption(globalOptions, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption);
+            ResetPerLanguageOption(globalOptions, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
+            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser);
+            ResetPerLanguageOption(globalOptions, AddImportOnPasteOptionsStorage.AddImportsOnPaste);
+            ResetPerLanguageOption(globalOptions, LineCommitOptionsStorage.PrettyListing);
+            ResetPerLanguageOption(globalOptions, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets);
 
             static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
-                globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
+                globalOptions.SetGlobalOption(option, option.DefaultValue);
             }
 
             static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+                globalOptions.SetGlobalOption(option, LanguageNames.CSharp, option.DefaultValue);
+                globalOptions.SetGlobalOption(option, LanguageNames.VisualBasic, option.DefaultValue);
             }
         }
 
@@ -82,6 +106,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
 
+            await CloseActiveWindowsAsync(cancellationToken);
+        }
+
+        public async Task CloseActiveWindowsAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.AddParameterDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.ChangeSignatureDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.ExtractInterfaceDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.MoveToNamespaceDialog.CloseWindowAsync(cancellationToken);
+            await TestServices.PickMembersDialog.CloseWindowAsync(cancellationToken);
+
             // Close any modal windows
             var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
             var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
@@ -101,6 +136,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     // Don't loop forever if windows aren't closing.
                     break;
                 }
+
+                modalWindow = nextModalWindow;
             }
 
             // Close tool windows where desired (see s_windowsToClose)

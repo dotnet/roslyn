@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns whether this method is generic; i.e., does it have any type parameters?
         ''' </summary>
-        Public Overridable ReadOnly Property IsGenericMethod As Boolean
+        Public Overridable ReadOnly Property IsGenericMethod As Boolean Implements IMethodSymbolInternal.IsGenericMethod
             Get
                 Return Arity <> 0
             End Get
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters. 
-        ''' If nothing has been substituted for a give type parameters,
+        ''' If nothing has been substituted for a given type parameter,
         ''' then the type parameter itself is consider the type argument.
         ''' </summary>
         Public MustOverride ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <remarks>
         ''' The default implementation is always correct, but may be unnecessarily slow.
         ''' </remarks>
-        Friend Overridable ReadOnly Property ParameterCount As Integer
+        Friend Overridable ReadOnly Property ParameterCount As Integer Implements IMethodSymbolInternal.ParameterCount
             Get
                 Return Me.Parameters.Length
             End Get
@@ -869,6 +869,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend MustOverride ReadOnly Property HasSetsRequiredMembers As Boolean
+
 #Region "IMethodSymbol"
 
         Private ReadOnly Property IMethodSymbol_Arity As Integer Implements IMethodSymbol.Arity
@@ -955,6 +957,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbolInternal_Parameters As ImmutableArray(Of IParameterSymbolInternal) Implements IMethodSymbolInternal.Parameters
+            Get
+                Return ImmutableArray(Of IParameterSymbolInternal).CastUp(Me.Parameters)
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this symbol is defined outside of the compilation.
         ''' For instance if the method is <c>Declare Sub</c>.
@@ -1004,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
+        Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid, IMethodSymbolInternal.ReturnsVoid
             Get
                 Return Me.IsSub
             End Get

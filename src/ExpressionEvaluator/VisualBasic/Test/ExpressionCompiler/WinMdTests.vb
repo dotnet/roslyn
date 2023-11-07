@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         ''' (compile-time assembly) since those are the assemblies
         ''' loaded in the debuggee.
         ''' </summary>
-        <WorkItem(981104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981104")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981104")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub Win8RuntimeAssemblies()
             Const source =
@@ -185,7 +185,7 @@ End Class"
         ''' Assembly-qualified name containing "ContentType=WindowsRuntime",
         ''' and referencing runtime assembly.
         ''' </summary>
-        <WorkItem(1116143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1116143")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub AssemblyQualifiedName()
             Const source =

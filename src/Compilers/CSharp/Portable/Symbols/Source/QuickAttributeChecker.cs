@@ -93,7 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var usingDirective in usingsSyntax)
             {
-                if (usingDirective.Alias != null && (!onlyGlobalAliases || usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword)))
+                if (usingDirective.Alias != null &&
+                    usingDirective.Name != null &&
+                    (!onlyGlobalAliases || usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword)))
                 {
                     string name = usingDirective.Alias.Name.Identifier.ValueText;
                     string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;

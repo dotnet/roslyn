@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -25,25 +26,26 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
         }
 
+        protected abstract string Language { get; }
         protected abstract SyntaxNode? GetAlias(TUsingOrAliasSyntax usingOrAlias);
         protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation, SyntaxGenerator generator);
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
 
-        public AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
+        public AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
         {
             fallbackOptions ??= AddImportPlacementOptions.Default;
 
             return new()
             {
-                PlaceSystemNamespaceFirst = configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.PlaceSystemNamespaceFirst),
+                PlaceSystemNamespaceFirst = configOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language, fallbackOptions.PlaceSystemNamespaceFirst),
                 UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions, fallbackOptions.UsingDirectivePlacement),
                 AllowInHiddenRegions = allowInHiddenRegions
             };
         }
 
-        public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(AnalyzerConfigOptions configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue);
+        public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;

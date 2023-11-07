@@ -6,23 +6,17 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 {
-    internal readonly struct DocumentToUpdate
+    internal readonly struct DocumentToUpdate(Document document, ImmutableArray<SyntaxNode> nodesToUpdate)
     {
         /// <summary>
         /// The document to update.
         /// </summary>
-        public readonly Document Document;
+        public readonly Document Document = document;
 
         /// <summary>
         /// The subnodes in this document to walk and update.  If empty, the entire document
         /// should be walked.
         /// </summary>
-        public readonly ImmutableArray<SyntaxNode> NodesToUpdate;
-
-        public DocumentToUpdate(Document document, ImmutableArray<SyntaxNode> nodesToUpdate)
-        {
-            Document = document;
-            NodesToUpdate = nodesToUpdate;
-        }
+        public readonly ImmutableArray<SyntaxNode> NodesToUpdate = nodesToUpdate;
     }
 }

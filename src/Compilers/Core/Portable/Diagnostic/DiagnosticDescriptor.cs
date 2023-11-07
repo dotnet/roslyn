@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(this.Category.GetHashCode(),
-                Hash.Combine(this.DefaultSeverity.GetHashCode(),
+                Hash.Combine(((int)this.DefaultSeverity).GetHashCode(),
                 Hash.Combine(this.Description.GetHashCode(),
                 Hash.Combine(this.HelpLinkUri.GetHashCode(),
                 Hash.Combine(this.Id.GetHashCode(),
@@ -248,6 +248,25 @@ namespace Microsoft.CodeAnalysis
                     return ReportDiagnostic.Warn;
                 case DiagnosticSeverity.Error:
                     return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(severity);
+            }
+        }
+
+        internal static DiagnosticSeverity? MapReportToSeverity(ReportDiagnostic severity)
+        {
+            switch (severity)
+            {
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
+                case ReportDiagnostic.Suppress:
+                    return null;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(severity);
             }

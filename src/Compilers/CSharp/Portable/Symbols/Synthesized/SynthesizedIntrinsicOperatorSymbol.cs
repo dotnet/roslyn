@@ -465,11 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, ScopedKind.None, name)
             {
             }
 
-            internal override bool IsMetadataIn => RefKind == RefKind.In;
+            internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
             internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
@@ -504,6 +504,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return null; }
             }
+
+            internal override bool HasUnscopedRefAttribute => false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
     }
 }

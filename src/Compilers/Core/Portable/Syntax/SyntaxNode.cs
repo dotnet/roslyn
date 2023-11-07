@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(this.Green.FullWidth);
             this.WriteTo(new StringWriter(builder));
             return new StringBuilderText(builder, encoding, checksumAlgorithm);
         }
@@ -426,17 +427,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines whether this node has any descendant preprocessor directives.
-        /// </summary>
-        public bool ContainsDirectives
-        {
-            get
-            {
-                return this.Green.ContainsDirectives;
-            }
-        }
-
-        /// <summary>
         /// Determines whether this node or any of its descendant nodes, tokens or trivia have any diagnostics on them. 
         /// </summary>
         public bool ContainsDiagnostics
@@ -444,6 +434,87 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return this.Green.ContainsDiagnostics;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether this node has any descendant preprocessor directives.
+        /// </summary>
+        public bool ContainsDirectives => this.Green.ContainsDirectives;
+
+        /// <summary>
+        /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.
+        /// </summary>
+        public bool ContainsDirective(int rawKind)
+        {
+            // Easy bail out without doing any work.
+            if (!this.ContainsDirectives)
+                return false;
+
+            var stack = PooledObjects.ArrayBuilder<GreenNode?>.GetInstance();
+            stack.Push(this.Green);
+
+            try
+            {
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+
+                    // Don't bother looking further down this portion of the tree if it clearly doesn't contain directives.
+                    if (current is not { ContainsDirectives: true })
+                        continue;
+
+                    if (current.IsToken)
+                    {
+                        // no need to look within if this token doesn't even have leading trivia.
+                        if (current.HasLeadingTrivia)
+                        {
+                            if (triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind))
+                                return true;
+                        }
+                        else
+                        {
+                            Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
+                        }
+
+                        Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
+                    }
+                    else
+                    {
+                        // nodes and lists.  Push children backwards so we walk the tree in lexical order.
+                        for (int i = current.SlotCount - 1; i >= 0; i--)
+                            stack.Push(current.GetSlot(i));
+                    }
+                }
+
+                return false;
+            }
+            finally
+            {
+                stack.Free();
+            }
+
+            static bool triviaContainsMatch(GreenNode? triviaNode, int rawKind)
+            {
+                if (triviaNode is not null)
+                {
+                    // Will either have one or many trivia nodes.
+                    if (triviaNode.IsList)
+                    {
+                        for (int i = 0, n = triviaNode.SlotCount; i < n; i++)
+                        {
+                            var child = triviaNode.GetSlot(i);
+                            if (child is { IsDirective: true, RawKind: var childKind } && childKind == rawKind)
+                                return true;
+                        }
+                    }
+                    else if (triviaNode.IsDirective && triviaNode.RawKind == rawKind)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -542,6 +613,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual int GetChildPosition(int index)
         {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
             int offset = 0;
             var green = this.Green;
             while (index > 0)
@@ -560,6 +636,36 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.Position + offset;
+        }
+
+        // Similar to GetChildPosition() but calculating based on the positions of
+        // following siblings rather than previous siblings.
+        internal int GetChildPositionFromEnd(int index)
+        {
+            if (this.GetCachedSlot(index) is { } node)
+            {
+                return node.Position;
+            }
+
+            var green = this.Green;
+            int offset = green.GetSlot(index)?.FullWidth ?? 0;
+            int slotCount = green.SlotCount;
+            while (index < slotCount - 1)
+            {
+                index++;
+                var nextSibling = this.GetCachedSlot(index);
+                if (nextSibling != null)
+                {
+                    return nextSibling.Position - offset;
+                }
+                var greenChild = green.GetSlot(index);
+                if (greenChild != null)
+                {
+                    offset += greenChild.FullWidth;
+                }
+            }
+
+            return this.EndPosition - offset;
         }
 
         public Location GetLocation()
@@ -1286,6 +1392,7 @@ recurse:
         /// Serializes the node to the given <paramref name="stream"/>.
         /// Leaves the <paramref name="stream"/> open for further writes.
         /// </summary>
+        [Obsolete(SerializationDeprecationException.Text, error: false)]
         public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
@@ -1298,8 +1405,24 @@ recurse:
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
+            // Report NFW to see if this is being used in the wild.
+            FatalError.ReportNonFatalError(new SerializationDeprecationException());
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
             writer.WriteValue(Green);
+        }
+
+        /// <summary>
+        /// Specialized exception subtype to make it easier to search telemetry streams for this specific case.
+        /// </summary>
+        private protected sealed class SerializationDeprecationException : Exception
+        {
+            public const string Text = "Syntax serialization support is deprecated and will be removed in a future version of this API";
+
+            public SerializationDeprecationException()
+                : base(Text)
+            {
+
+            }
         }
 
         #region Core Methods

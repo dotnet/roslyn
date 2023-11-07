@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
@@ -11,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Roslyn.Test.Utilities
@@ -34,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
-                Using tempRoot = New TempRoot(), analyzer = New VisualStudioAnalyzer(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 
@@ -59,12 +61,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim eventHandler = New EventHandlers(file)
                 AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-                Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                Using analyzer = New ProjectAnalyzerReference(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference = analyzer.GetReference()
                     reference.GetAnalyzers(LanguageNames.VisualBasic)
 
                     RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticRemovedTest
+                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandlers.DiagnosticRemovedTest
                 End Using
 
                 IO.File.Delete(file)
@@ -78,16 +80,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Me.File = file
             End Sub
 
-            Public Sub DiagnosticAddedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.Diagnostics
+            Public Sub DiagnosticAddedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
                 Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic As DiagnosticData = diagnostics.First()
                 Assert.Equal("BC42378", diagnostic.Id)
                 Assert.Contains(File, diagnostic.Message, StringComparison.Ordinal)
             End Sub
 
-            Public Sub DiagnosticRemovedTest(o As Object, e As DiagnosticsUpdatedArgs)
-                Dim diagnostics = e.Diagnostics
+            Public Shared Sub DiagnosticRemovedTest(o As Object, e As ImmutableArray(Of DiagnosticsUpdatedArgs))
+                Dim diagnostics = e.Single().Diagnostics
                 Assert.Equal(0, diagnostics.Length)
             End Sub
         End Class

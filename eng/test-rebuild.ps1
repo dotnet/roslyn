@@ -33,7 +33,7 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
   Subst-TempDir

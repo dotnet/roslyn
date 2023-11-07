@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             Debug.Assert(
                                 (toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr || toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr) && !toType.IsNativeIntegerWrapperType ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer ||
+                                (fromPredefTypeKind == Cci.PrimitiveTypeCode.IntPtr && conversion.Operand is BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Division })); // pointer subtraction: see LocalRewriter.RewritePointerSubtraction()
                             break;
                     }
 #endif
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // doing this or marking somewhere else that this is necessary.
 
                         // Don't need to do this for constants, however.
-                        if (conversion.Operand.ConstantValue == null)
+                        if (conversion.Operand.ConstantValueOpt == null)
                         {
                             EmitNumericConversion(conversion);
                         }

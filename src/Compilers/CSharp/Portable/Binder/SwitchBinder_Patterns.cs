@@ -267,10 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
 
-                        MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
+                        MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.Keyword);
 
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, node.HasErrors, diagnostics);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 

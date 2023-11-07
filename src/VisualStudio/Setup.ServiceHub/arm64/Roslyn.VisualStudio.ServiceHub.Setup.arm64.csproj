@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <SetupProductArch>arm64</SetupProductArch>
+    <!-- If the user is building the entire repository locally, don't deploy this project. We will deploy the x64 flavor,
+         which for purposes of local deploy is actually the same thing; the only difference of this project and the x64 flavor
+         is for crossgen, which we don't run during F5. Since either project will work equally well (even if you were developing on
+         an arm64 machine), we'll just disable this one. -->
+    <DeployExtension>false</DeployExtension>
+    <!-- Workaround an issue in Arcade where the value of `DeployExtension` is always overwritten to be `true`. 
+         See: https://github.com/dotnet/arcade/pull/14052 -->
+    <DeployProjectOutput>false</DeployProjectOutput>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Workspaces\Remote\ServiceHub.CoreComponents\arm64\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.arm64.csproj">
+      <Name>ServiceHubARM64</Name>
+      <!-- This project targets netcoreapp -->
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>false</Private>
+      <!-- Disable NGEN. Core assemblies are crossgened. -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+</Project>

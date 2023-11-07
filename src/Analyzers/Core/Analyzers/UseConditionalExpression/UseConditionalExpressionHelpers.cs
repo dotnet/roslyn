@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// </summary>
         [return: NotNullIfNotNull(nameof(statement))]
         public static IOperation? UnwrapSingleStatementBlock(IOperation? statement)
-            => statement is IBlockOperation block && block.Operations.Length == 1
-                ? block.Operations[0]
+            => statement is IBlockOperation { Operations: [var operationInBlock] }
+                ? operationInBlock
                 : statement;
 
         public static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)

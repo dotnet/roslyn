@@ -279,5 +279,7 @@ namespace Microsoft.CodeAnalysis
         Utf8String = 0x7c,
         /// <summary>Indicates an <see cref="IAttributeOperation"/>.</summary>
         Attribute = 0x7d,
+        /// <summary>Indicates an <see cref="IInlineArrayAccessOperation"/>.</summary>
+        InlineArrayAccess = 0x7e,
     }
 }

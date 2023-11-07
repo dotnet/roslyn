@@ -73,7 +73,7 @@ class A
         T{|caret:|}
     }
 }";
-            _testServer = await CreateTestLspServerAsync(markup, new LSP.VSInternalClientCapabilities
+            _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
             {
                 TextDocument = new LSP.TextDocumentClientCapabilities
                 {
@@ -81,7 +81,7 @@ class A
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { "editRange" },
+                            ItemDefaults = ["editRange"],
                         }
                     }
                 }

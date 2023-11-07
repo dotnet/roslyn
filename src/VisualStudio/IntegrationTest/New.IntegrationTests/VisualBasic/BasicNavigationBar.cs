@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -104,10 +105,10 @@ End Structure";
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic), false);
+            globalOptions.SetGlobalOption(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic, false);
             Assert.False(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic), true);
+            globalOptions.SetGlobalOption(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.VisualBasic, true);
             Assert.True(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
         }
 

@@ -26,7 +26,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
-    internal class DecompilationMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "Decompilation";
 
@@ -44,19 +46,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
+        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService = implementationAssemblyLookupService;
 
         /// <summary>
         /// Only accessed and mutated from UI thread.
         /// </summary>
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService)
-        {
-            _implementationAssemblyLookupService = implementationAssemblyLookupService;
-        }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
             MetadataAsSourceWorkspace metadataWorkspace,
@@ -81,8 +76,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // If the assembly wants to suppress decompilation we respect that
             if (useDecompiler)
             {
+#pragma warning disable SYSLIB0025  // 'SuppressIldasmAttribute' is obsolete: 'SuppressIldasmAttribute has no effect in .NET 6.0+.'
                 useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(static attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                     && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+#pragma warning restore SYSLIB0025
             }
 
             var refInfo = GetReferenceInfo(compilation, symbol.ContainingAssembly);
@@ -105,10 +102,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 // We need to generate this. First, we'll need a temporary project to do the generation into. We
                 // avoid loading the actual file from disk since it doesn't exist yet.
-                var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(metadataWorkspace, loadFileFromDisk: false);
-                var temporaryDocument = metadataWorkspace.CurrentSolution
-                    .AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                    .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
+                var metadataSolution = metadataWorkspace.CurrentSolution;
+                var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(metadataSolution.Services, loadFileFromDisk: false);
+                var temporaryDocument = metadataSolution
+                    .AddProject(temporaryProjectInfo)
+                    .GetRequiredDocument(temporaryDocumentId);
 
                 if (useDecompiler)
                 {
@@ -150,15 +148,38 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 // We have the content, so write it out to disk
-                var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.
+                //
+                // If we still can't create the folder after 5 seconds, assume we will not be able to create it and
+                // continue without actually writing the text to disk.
                 var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
+                var stopwatch = SharedStopwatch.StartNew();
+                var timeout = TimeSpan.FromSeconds(5);
+                var firstAttempt = true;
+                var skipWritingFile = false;
                 while (!Directory.Exists(directoryToCreate))
                 {
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                    {
+                        // If we still can't create the folder after 5 seconds, assume we will not be able to create it.
+                        skipWritingFile = true;
+                        break;
+                    }
+
                     try
                     {
+                        if (firstAttempt)
+                        {
+                            firstAttempt = false;
+                        }
+                        else
+                        {
+                            await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
+                        }
+
                         Directory.CreateDirectory(directoryToCreate);
                     }
                     catch (DirectoryNotFoundException)
@@ -169,23 +190,23 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     }
                 }
 
-                using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                if (!skipWritingFile)
                 {
-                    text.Write(textWriter, cancellationToken);
-                }
+                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                    {
+                        text.Write(textWriter, cancellationToken);
+                    }
 
-                // Mark read-only
-                new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
+                    // Mark read-only
+                    new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
+                }
 
                 // Locate the target in the thing we just created
                 navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
             }
 
             // If we don't have a location yet, then that means we're re-using an existing file. In this case, we'll want to relocate the symbol.
-            if (navigateLocation == null)
-            {
-                navigateLocation = await RelocateSymbol_NoLockAsync(metadataWorkspace, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
-            }
+            navigateLocation ??= await RelocateSymbol_NoLockAsync(metadataWorkspace.CurrentSolution, fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
 
             var documentName = string.Format(
                 "{0} [{1}]",
@@ -226,24 +247,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return (metadataReference, assemblyLocation, isReferenceAssembly);
         }
 
-        private async Task<Location> RelocateSymbol_NoLockAsync(Workspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
+        private async Task<Location> RelocateSymbol_NoLockAsync(Solution solution, MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(workspace);
-
             // We need to relocate the symbol in the already existing file. If the file is open, we can just
             // reuse that workspace. Otherwise, we have to go spin up a temporary project to do the binding.
             if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
-                var document = workspace.CurrentSolution.GetRequiredDocument(openDocumentId);
+                var document = solution.GetRequiredDocument(openDocumentId);
 
                 return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             }
 
             // Annoying case: the file is still on disk. Only real option here is to spin up a fake project to go and bind in.
-            var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: true);
-            var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                             .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
+            var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(solution.Services, loadFileFromDisk: true);
+            var temporaryDocument = solution.AddProject(temporaryProjectInfo).GetRequiredDocument(temporaryDocumentId);
 
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
         }
@@ -278,12 +296,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
                 // We do own the file, so let's open it up in our workspace
-                var newProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: true);
+                var (projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
 
-                workspace.OnProjectAdded(newProjectInfoAndDocumentId.Item1);
-                workspace.OnDocumentOpened(newProjectInfoAndDocumentId.Item2, sourceTextContainer);
+                workspace.OnProjectAdded(projectInfo);
+                workspace.OnDocumentOpened(documentId, sourceTextContainer);
 
-                _openedDocumentIds = _openedDocumentIds.Add(fileInfo, newProjectInfoAndDocumentId.Item2);
+                _openedDocumentIds = _openedDocumentIds.Add(fileInfo, documentId);
 
                 return true;
             }

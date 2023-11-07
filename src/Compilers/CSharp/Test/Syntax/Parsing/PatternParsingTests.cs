@@ -2155,32 +2155,20 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 // (1,30): error CS0103: The name 'e' does not exist in the current context
                 // class C { void M() { switch (e) { case (: ; } } }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
-                // (1,35): error CS8070: Control cannot fall out of switch from final case label ('case (: ')
+                // (1,35): error CS8070: Control cannot fall out of switch from final case label ('case (:')
                 // class C { void M() { switch (e) { case (: ; } } }
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (: ").WithArguments("case (: ").WithLocation(1, 35),
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case (:").WithArguments("case (:").WithLocation(1, 35),
                 // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class C { void M() { switch (e) { case (: ; } } }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(: ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
-                // (1,41): error CS1001: Identifier expected
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "(").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                // (1,41): error CS1026: ) expected
                 // class C { void M() { switch (e) { case (: ; } } }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 41),
-                // (1,43): error CS1026: ) expected
-                // class C { void M() { switch (e) { case (: ; } } }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 43),
-                // (1,43): error CS1003: Syntax error, ':' expected
-                // class C { void M() { switch (e) { case (: ; } } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 43));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 41));
 
             UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns,
-                // (1,20): error CS1001: Identifier expected
+                // (1,20): error CS1026: ) expected
                 // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 20),
-                // (1,22): error CS1026: ) expected
-                // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 22),
-                // (1,22): error CS1003: Syntax error, ':' expected
-                // switch (e) { case (: ; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 22));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 20));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -2204,7 +2192,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 M(SyntaxKind.CloseParenToken);
                             }
                         }
-                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.EmptyStatement);
                     {
@@ -2737,25 +2725,16 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 30),
                 // (1,40): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( : Q x ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "T( ").WithArguments("recursive patterns", "8.0").WithLocation(1, 40),
                 // (1,40): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
                 // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 40),
-                // (1,43): error CS1001: Identifier expected
-                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 43),
                 // (1,45): error CS0246: The type or namespace name 'Q' could not be found (are you missing a using directive or an assembly reference?)
                 // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Q").WithArguments("Q").WithLocation(1, 45),
-                // (1,49): error CS1026: ) expected
+                // (1,43): error CS1026: ) expected
                 // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=").WithLocation(1, 49),
-                // (1,49): error CS1003: Syntax error, ':' expected
-                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":").WithLocation(1, 49),
-                // (1,49): error CS1525: Invalid expression term '='
-                // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 49),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 43),
                 // (1,51): error CS0103: The name 'n' does not exist in the current context
                 // class C { void M() { switch (e) { case T( : Q x = n; break; }  } }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "n").WithArguments("n").WithLocation(1, 51));
@@ -2763,21 +2742,9 @@ case KeyValuePair<String, DateTime>[] pairs2:
             // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
             // are not as important as the fact that it terminates.
             UsingStatement(test, TestOptions.RegularWithoutRecursivePatterns,
-                // (1,22): error CS1001: Identifier expected
+                // (1,22): error CS1026: ) expected
                 // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),
-                // (1,28): error CS1003: Syntax error, ',' expected
-                // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 28),
-                // (1,30): error CS1003: Syntax error, ',' expected
-                // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "n").WithArguments(",").WithLocation(1, 30),
-                // (1,31): error CS1026: ) expected
-                // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
-                // (1,31): error CS1003: Syntax error, ':' expected
-                // switch (e) { case T( : Q x = n; break; } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 31)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ":").WithLocation(1, 22)
                 );
             N(SyntaxKind.SwitchStatement);
             {
@@ -2803,38 +2770,32 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.PositionalPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.Subpattern);
-                                {
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "Q");
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "x");
-                                        }
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Subpattern);
-                                {
-                                    N(SyntaxKind.ConstantPattern);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "n");
-                                        }
-                                    }
-                                }
                                 M(SyntaxKind.CloseParenToken);
                             }
                         }
-                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ColonToken);
                     }
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Q");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "n");
+                                    }
+                                }
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.BreakStatement);
@@ -11891,6 +11852,9 @@ switch (e)
             var source = @"_ = this is Program { P1: (1,  }";
             var expectedErrors = new[]
             {
+                // (1,32): error CS8504: Pattern missing
+                // _ = this is Program { P1: (1,  }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 32),
                 // (1,32): error CS1026: ) expected
                 // _ = this is Program { P1: (1,  }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 32),
@@ -11962,6 +11926,16 @@ switch (e)
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
+                                                M(SyntaxKind.Subpattern);
+                                                {
+                                                    M(SyntaxKind.ConstantPattern);
+                                                    {
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                    }
+                                                }
                                                 M(SyntaxKind.CloseParenToken);
                                             }
                                         }
@@ -11986,6 +11960,9 @@ switch (e)
                 // (1,1): error CS1073: Unexpected token '}'
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = i is (1,   ").WithArguments("}").WithLocation(1, 1),
+                // (1,16): error CS8504: Pattern missing
+                // _ = i is (1,   }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "}").WithLocation(1, 16),
                 // (1,16): error CS1026: ) expected
                 // _ = i is (1,   }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(1, 16),
@@ -12038,6 +12015,16 @@ switch (e)
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.Subpattern);
+                                    {
+                                        M(SyntaxKind.ConstantPattern);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                    }
                                     M(SyntaxKind.CloseParenToken);
                                 }
                             }
@@ -12698,6 +12685,67 @@ switch (e)
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(53011, "https://github.com/dotnet/roslyn/issues/53011")]
+        public void InvalidPropertyPattern()
+        {
+            UsingExpression(@"new object() is { {}: 1 }", TestOptions.RegularWithPatternCombinators,
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 21),
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // new object() is { {}: 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",").WithLocation(1, 23));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.ObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RecursivePattern);
+                            {
+                                N(SyntaxKind.PropertyPatternClause);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
             }
             EOF();
         }

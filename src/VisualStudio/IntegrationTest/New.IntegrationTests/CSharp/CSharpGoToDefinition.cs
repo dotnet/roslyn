@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -111,7 +112,7 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
         public async Task GoToDefinitionFromMetadataCollapsed()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName), true);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName, true);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
@@ -133,8 +134,8 @@ class C
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
             // When collapsing, not everything is collapsed (eg, namespace and class aren't), but most things are
-            Assert.Equal(32, actual.Length);
-            Assert.Equal(8, actual.Count(s => !s.Collapsed));
+            Assert.Equal(31, actual.Length);
+            Assert.Equal(7, actual.Count(s => !s.Collapsed));
         }
 
         [IdeFact]
@@ -142,7 +143,7 @@ class C
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName), false);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName, false);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
@@ -163,11 +164,11 @@ class C
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
-            Assert.Equal(32, actual.Length);
+            Assert.Equal(31, actual.Length);
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70376")]
         public async Task GoToDefinitionFromMetadataSecondHop()
         {
             await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(CSharpGoToDefinition).Assembly.Location, HangMitigatingCancellationToken);

@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
@@ -128,6 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return MetadataTokens.GetToken(_assembly.Handle);
             }
         }
+
+        internal override bool HasImportedFromTypeLibAttribute
+            => PrimaryModule.Module.HasImportedFromTypeLibAttribute(Assembly.Handle, out _);
+
+        internal override bool HasPrimaryInteropAssemblyAttribute
+            => PrimaryModule.Module.HasPrimaryInteropAssemblyAttribute(Assembly.Handle, out _, out _);
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
@@ -247,6 +255,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return Assembly.GetInternalsVisibleToPublicKeys(simpleName);
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return Assembly.GetInternalsVisibleToAssemblyNames();
+        }
+
         internal DocumentationProvider DocumentationProvider
         {
             get
@@ -306,5 +319,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool HasUnsupportedMetadata
             => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    var experimentalData = PrimaryModule.Module.TryDecodeExperimentalAttributeData(Assembly.Handle, new MetadataDecoder(PrimaryModule));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
+            }
+        }
     }
 }

@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             => UIContext.FromUIContextGuid(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid).IsActive;
 
         public bool IsInLspEditorContext()
-            => IsLiveShareGuest() || IsCloudEnvironmentClient() || _globalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            => IsLiveShareGuest() || IsCloudEnvironmentClient() || _globalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
         /// <summary>
         /// Checks if the VS instance is running as a Live Share guest session.

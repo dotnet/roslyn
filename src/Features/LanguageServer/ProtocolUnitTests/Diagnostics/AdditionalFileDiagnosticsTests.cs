@@ -25,7 +25,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -35,7 +35,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.Equal(new[]
@@ -54,7 +54,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -64,7 +64,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
@@ -92,8 +92,8 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.NotNull(results2[2].ResultId);
     }
 
-    [Fact]
-    public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects()
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects(bool mutatingLspWorkspace)
     {
         var workspaceXml =
 @$"<Workspace>
@@ -107,7 +107,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
+        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
         Assert.Equal(6, results.Length);

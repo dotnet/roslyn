@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return ConstantValue?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
+            get { return ConstantValueOpt?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
         }
     }
 
@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
             => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
+    }
+
+    internal partial class BoundUnconvertedCollectionExpression
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureCollectionExpressions.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

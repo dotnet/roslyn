@@ -17,22 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             // # of sessions where import completion is enabled by default
             SessionWithTypeImportCompletionEnabled,
-            // # of sessions that we wait for import compeltion task to complete before return
-            // curerntly it's decided by "responsive completion" options
-            SessionWithImportCompletionBlocking,
-            // # of sessions where items from import completion are not included intially 
-            SessionWithImportCompletionDelayed,
+
             // # of session among SessionWithImportCompletionDelayed where import completion items
             // are later included in list update. Note this doesn't include using of expander.
             SessionWithDelayedImportCompletionIncludedInUpdate,
-            // Among sessions in SessionWithImportCompletionDelayed, how much longer it takes 
-            // for import completion task to finish after regular item task is completed.
-            // Knowing this would help us to decide whether a short wait would have ensure import completion
-            // items to be included in the intial list.
-            AdditionalTicksToCompleteDelayedImportCompletion,
-            ExpanderUsageCount,
 
-            GetDefaultsMatchTicks,
+            ExpanderUsageCount,
 
             SourceInitializationTicks,
             SourceGetContextCompletedTicks,
@@ -43,31 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ItemManagerUpdateCanceledTicks,
         }
 
-        internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
-        {
-            s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
-
-            if (isBlocking)
-                s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionBlocking);
-
-            if (delayed)
-                s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithImportCompletionDelayed);
-        }
+        internal static void LogImportCompletionGetContext()
+            => s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
 
         internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate()
             => s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
 
-        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(TimeSpan timeSpan)
-            => s_histogramLogAggregator.LogTime(ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, timeSpan);
-
-        internal static void LogDelayedImportCompletionIncluded()
-            => s_countLogAggregator.IncreaseCount(ActionInfo.SessionWithTypeImportCompletionEnabled);
-
         internal static void LogExpanderUsage()
             => s_countLogAggregator.IncreaseCount(ActionInfo.ExpanderUsageCount);
-
-        internal static void LogGetDefaultsMatchTicksDataPoint(int count)
-            => s_statisticLogAggregator.AddDataPoint(ActionInfo.GetDefaultsMatchTicks, count);
 
         internal static void LogSourceInitializationTicksDataPoint(TimeSpan elapsed)
         {

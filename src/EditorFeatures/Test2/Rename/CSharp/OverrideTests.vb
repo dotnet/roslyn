@@ -47,7 +47,7 @@ namespace ClassLibrary2
         End Sub
 
         <Theory, CombinatorialData>
-        <WorkItem(25682, "https://github.com/dotnet/roslyn/issues/25682")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25682")>
         Public Sub RenameOverrideMemberFromDerivedClassWhenMemberIsPrivate(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
