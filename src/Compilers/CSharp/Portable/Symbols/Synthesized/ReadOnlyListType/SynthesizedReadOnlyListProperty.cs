@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _containingType = containingType;
             _interfaceProperty = interfaceProperty;
-            Name = ExplicitInterfaceHelpers.GetMemberName(interfaceProperty.Name, interfaceProperty.ContainingType, aliasQualifierOpt: null);
+            Name = ExplicitInterfaceHelpers.GetMemberMetadataName(interfaceProperty.Name, interfaceProperty.ContainingType, aliasQualifierOpt: null);
             Parameters = interfaceProperty.Parameters.SelectAsArray(static (p, t) => SynthesizedParameterSymbol.DeriveParameter(t, p), this);
             GetMethod = new SynthesizedReadOnlyListMethod(containingType, interfaceProperty.GetMethod, getAccessorBody);
             SetMethod = interfaceProperty.SetMethod is null ? null : new SynthesizedReadOnlyListMethod(containingType, interfaceProperty.SetMethod, setAccessorBody!);

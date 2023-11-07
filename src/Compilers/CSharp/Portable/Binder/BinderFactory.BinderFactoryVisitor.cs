@@ -449,13 +449,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:
                         var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
                         var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
+                        return ExplicitInterfaceHelpers.GetMemberName(conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(baseMethodDeclarationSyntax.Kind());
                 }
@@ -474,13 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.PropertyDeclaration:
                         var propertyDecl = (PropertyDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierSyntax, propertyDecl.Identifier.ValueText);
                     case SyntaxKind.IndexerDeclaration:
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
+                        return ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierSyntax, WellKnownMemberNames.Indexer);
                     case SyntaxKind.EventDeclaration:
                     case SyntaxKind.EventFieldDeclaration:
                         var eventDecl = (EventDeclarationSyntax)basePropertyDeclarationSyntax;
-                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
+                        return ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(basePropertyDeclarationSyntax.Kind());
                 }

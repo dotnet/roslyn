@@ -1710,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Option 2: detect explicit impl and return null
             //  Option 3: get a binder and figure out the name
             // For now, we're going with Option 3
-            return ExplicitInterfaceHelpers.GetMemberName(_binderFactory.GetBinder(declaration), explicitInterfaceSpecifierOpt, memberName);
+            return ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierOpt, memberName);
         }
 
         private NamespaceSymbol GetDeclaredNamespace(NamespaceOrTypeSymbol container, TextSpan declarationSpan, NameSyntax name)

@@ -663,8 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
 
                         var explicitInterfaceSpecifier = _property.GetExplicitInterfaceSpecifier();
-                        string? aliasQualifierOpt = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
-                        name = ExplicitInterfaceHelpers.GetMemberName(accessorName, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifierOpt);
+                        name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifier, accessorName);
                     }
                     else if (IsOverride)
                     {

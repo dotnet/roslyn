@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol implementedAccessor = isAdder ? explicitlyImplementedEventOpt.AddMethod : explicitlyImplementedEventOpt.RemoveMethod;
                 string accessorName = (object)implementedAccessor != null ? implementedAccessor.Name : SourceEventSymbol.GetAccessorName(explicitlyImplementedEventOpt.Name, isAdder);
 
-                name = ExplicitInterfaceHelpers.GetMemberName(accessorName, explicitlyImplementedEventOpt.ContainingType, aliasQualifierOpt);
+                name = ExplicitInterfaceHelpers.GetMemberMetadataName(accessorName, explicitlyImplementedEventOpt.ContainingType, aliasQualifierOpt);
                 explicitInterfaceImplementations = (object)implementedAccessor == null ? ImmutableArray<MethodSymbol>.Empty : ImmutableArray.Create<MethodSymbol>(implementedAccessor);
             }
 

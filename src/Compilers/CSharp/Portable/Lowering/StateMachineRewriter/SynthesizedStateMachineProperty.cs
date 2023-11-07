@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol interfacePropertyGetter,
             StateMachineTypeSymbol stateMachineType)
         {
-            _name = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.AssociatedSymbol.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
-            var getterName = ExplicitInterfaceHelpers.GetMemberName(interfacePropertyGetter.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
+            _name = ExplicitInterfaceHelpers.GetMemberMetadataName(interfacePropertyGetter.AssociatedSymbol.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
+            var getterName = ExplicitInterfaceHelpers.GetMemberMetadataName(interfacePropertyGetter.Name, interfacePropertyGetter.ContainingType, aliasQualifierOpt: null);
 
             _getter = new SynthesizedStateMachineDebuggerHiddenMethod(
                 getterName,

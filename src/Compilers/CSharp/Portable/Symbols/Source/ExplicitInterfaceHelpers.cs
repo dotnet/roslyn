@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyMemberMetadataName is null)
                 {
-                    var memberMetadataName = ExplicitInterfaceHelpers.GetMemberName(Name, ExplicitInterfaceType, AliasQualifier);
+                    var memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(Name, ExplicitInterfaceType, AliasQualifier);
                     return InterlockedOperations.Initialize(ref _lazyMemberMetadataName, memberMetadataName);
                 }
 
@@ -66,14 +66,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class ExplicitInterfaceHelpers
     {
+#nullable enable
         public static string GetMemberName(
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            string name)
+        {
+            string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
+            return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier);
+        }
+#nullable disable
+
+        public static string GetMemberMetadataName(
             Binder binder,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name)
         {
             TypeSymbol discardedExplicitInterfaceType;
             string discardedAliasOpt;
-            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
+            string methodName = GetMemberMetadataNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
 
             return methodName;
         }
@@ -97,13 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Name = name,
                 AliasQualifier = aliasQualifier,
-                MemberName = GetMemberName(name, explicitInterfaceSpecifier.Name.ToString(), aliasQualifier),
+                MemberName = GetMemberName(explicitInterfaceSpecifier, name),
             };
             return null;
         }
 #nullable disable
 
-        public static string GetMemberNameAndInterfaceSymbol(
+        public static string GetMemberMetadataNameAndInterfaceSymbol(
             Binder binder,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name,
@@ -125,17 +135,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
             explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).Type;
             aliasQualifierOpt = explicitInterfaceName.GetAliasQualifierOpt();
-            return GetMemberName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
+            return GetMemberMetadataName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
         }
 
-        public static string GetMemberName(string name, TypeSymbol explicitInterfaceTypeOpt, string aliasQualifierOpt)
+        public static string GetMemberMetadataName(string name, TypeSymbol explicitInterfaceTypeOpt, string aliasQualifierOpt)
         {
             string interfaceName = explicitInterfaceTypeOpt?.ToDisplayString(SymbolDisplayFormat.ExplicitInterfaceImplementationFormat);
             return GetMemberName(name, interfaceName, aliasQualifierOpt);
         }
 
 #nullable enable
-        public static string GetMemberName(string name, string? explicitInterfaceName, string? aliasQualifier)
+        private static string GetMemberName(string name, string? explicitInterfaceName, string? aliasQualifier)
         {
             if (explicitInterfaceName is null)
             {

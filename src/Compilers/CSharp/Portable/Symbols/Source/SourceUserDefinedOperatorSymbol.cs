@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;
-            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            name = ExplicitInterfaceHelpers.GetMemberMetadataNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
 
             var methodKind = interfaceSpecifier == null
                 ? MethodKind.UserDefinedOperator
