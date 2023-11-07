@@ -818,9 +818,11 @@ class C
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(5));
+
                 string[] expectedContents =
                 [
-                    $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
+                    $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
                 ];
 
                 var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
@@ -890,9 +892,11 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(5));
+
                 string[] expectedContents =
                 [
-                    $"(Compiler) Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
+                    $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
                 ];
 
                 var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
@@ -995,19 +999,20 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await Task.Delay(TimeSpan.FromSeconds(5));
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
                 if (expectedCompilerDiagnosticSeverity != "none")
                 {
-                    expectedContentsBuilder.Add($"(Compiler) Class1.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'y' is assigned but its value is never used");
-                    expectedContentsBuilder.Add($"(Compiler) Class2.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'x' is assigned but its value is never used");
+                    expectedContentsBuilder.Add($"Class1.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'y' is assigned but its value is never used");
+                    expectedContentsBuilder.Add($"Class2.cs(8, 13): {expectedCompilerDiagnosticSeverity} CS0219: The variable 'x' is assigned but its value is never used");
                 }
 
                 if (expectedAnalyzerDiagnosticSeverity != "none")
                 {
-                    expectedContentsBuilder.Add($"(Compiler) Class1.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'y'");
-                    expectedContentsBuilder.Add($"(Compiler) Class2.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'x'");
+                    expectedContentsBuilder.Add($"Class1.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'y'");
+                    expectedContentsBuilder.Add($"Class2.cs(8, 13): {expectedAnalyzerDiagnosticSeverity} IDE0059: Unnecessary assignment of a value to 'x'");
                 }
 
                 var expectedContents = expectedContentsBuilder.ToImmutable().Sort();
