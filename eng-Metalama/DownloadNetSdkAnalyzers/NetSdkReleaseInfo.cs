@@ -1,7 +1,6 @@
-﻿using NuGet.Versioning;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using NuGet.Versioning;
 
 namespace DownloadNetSdkAnalyzers;
 
@@ -18,31 +17,29 @@ static class NetSdkReleaseInfo
         WriteIndented = true,
     };
 
-    public static async Task<NetSdkDownloader> GetLatestStableSdkForRoslynVersionAsync(Version requestedRoslynVersion)
+    public static async Task<NetSdkDownloader> GetLatestSdkForRoslynVersionAsync(SemanticVersion requestedRoslynVersion)
     {
         // TODO: make this more efficient by not dowloading releases-index.json and all the releases.json every time?
 
-        // Replace empty version components with zeroes. Version says that e.g. 4.6.0.0 > 4.6.0, but we want those two to be considered equal.
-        if (requestedRoslynVersion.Build == -1)
-        {
-            requestedRoslynVersion = new Version(requestedRoslynVersion.Major, requestedRoslynVersion.Minor, 0, 0);
-        }
-        else if (requestedRoslynVersion.Revision == -1)
-        {
-            requestedRoslynVersion = new Version(requestedRoslynVersion.Major, requestedRoslynVersion.Minor, requestedRoslynVersion.Build, 0);
-        }
-
         var netSdkReleasesPath = "net-sdk-releases.json";
 
-        NetSdkReleasesDocument netSdkReleases;
+        NetSdkReleasesDocument? netSdkReleases = null;
 
         if (File.Exists(netSdkReleasesPath))
         {
             using var stream = File.OpenRead(netSdkReleasesPath);
 
-            netSdkReleases = JsonSerializer.Deserialize<NetSdkReleasesDocument>(stream, s_jsonOptions)!;
+            try
+            {
+                netSdkReleases = JsonSerializer.Deserialize<NetSdkReleasesDocument>(stream, s_jsonOptions)!;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
         }
-        else
+
+        if (netSdkReleases == null)
         {
             netSdkReleases = new(new());
         }
@@ -56,28 +53,28 @@ static class NetSdkReleaseInfo
 
         foreach (var channel in channels)
         {
-            if (channel.SupportPhase == "preview")
-            {
-                continue;
-            }
-
             var releases = await s_httpClient.GetFromJsonAsync<ReleasesDocument>(channel.ReleasesJsonUrl, s_jsonOptions);
 
             foreach (var release in releases!.Releases)
             {
-                if (release.Sdk.VersionDisplay.IsPrerelease)
+                var sdkVersion = release.Sdk.VersionDisplay;
+
+                // Only consider pre-release versions if the .Net version is still in preview.
+                if (sdkVersion.IsPrerelease && channel.SupportPhase is not ("preview" or "go-live"))
                 {
                     continue;
                 }
 
-                if (!netSdkReleases.Releases.ContainsKey(release.Sdk.VersionDisplay))
+                if (!netSdkReleases.Releases.ContainsKey(sdkVersion))
                 {
+                    Console.Error.WriteLine($"Downloading .Net SDK {sdkVersion}.");
+
                     var sdkZip = release.Sdk.Files.Single(file => file.Name == "dotnet-sdk-win-x64.zip");
 
-                    var downloader = await NetSdkDownloader.CreateAsync(sdkZip.Url, release.Sdk.VersionDisplay);
+                    var downloader = await NetSdkDownloader.CreateAsync(sdkZip.Url, sdkVersion);
 
                     netSdkReleases.Releases.Add(
-                        release.Sdk.VersionDisplay, new(sdkZip.Url, downloader.GetCodeAnalysisVersion()));
+                        sdkVersion, new(sdkZip.Url, downloader.GetCodeAnalysisVersion()));
 
                     change = true;
                 }
@@ -86,12 +83,13 @@ static class NetSdkReleaseInfo
 
         if (change)
         {
-            using var stream = File.OpenWrite(netSdkReleasesPath);
+            using var stream = File.Create(netSdkReleasesPath);
 
             JsonSerializer.Serialize(stream, netSdkReleases, s_jsonOptions);
         }
 
-        var (foundReleaseVersion, foundRelease) = netSdkReleases.Releases.Last(kvp => kvp.Value.RoslynVersion <= requestedRoslynVersion);
+        // Only consider preview SDKs if the requested version is also preview.
+        var (foundReleaseVersion, foundRelease) = netSdkReleases.Releases.Last(kvp => (!kvp.Key.IsPrerelease || requestedRoslynVersion.IsPrerelease) && kvp.Value.RoslynVersion <= requestedRoslynVersion);
 
         // TODO: this could reuse downloader from the previous step
         return await NetSdkDownloader.CreateAsync(foundRelease.SdkZipUrl, foundReleaseVersion);

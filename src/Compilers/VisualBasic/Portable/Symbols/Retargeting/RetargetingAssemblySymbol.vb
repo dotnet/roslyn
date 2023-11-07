@@ -268,5 +268,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _underlyingAssembly.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingAssembly.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

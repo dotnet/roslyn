@@ -888,20 +888,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns an array of all <see cref="DiagnosticDescriptor"/>s for all <see cref="Analyzers"/> along
-        /// with a boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
-        /// external non-source suppression from editorconfig, ruleset, command line options, etc.,
-        /// which disables the descriptor for either part of the compilation or the entire compilation.
-        /// Note that this flag doesn't account for source suppressions from pragma directives,
-        /// SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppresses individual instances
-        /// of reported diagnostics.
+        /// Returns an array of  <see cref="DiagnosticDescriptor"/>s for all <see cref="Analyzers"/>
+        /// along with <see cref="DiagnosticDescriptorErrorLoggerInfo"/> to be logged by the <see cref="ErrorLogger"/>.
         /// </summary>
-        public ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> GetAllDescriptors(CancellationToken cancellationToken)
+        public ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> GetAllDiagnosticDescriptorsWithInfo(CancellationToken cancellationToken, out double totalAnalyzerExecutionTime)
         {
             var uniqueDiagnosticIds = PooledHashSet<string>.GetInstance();
             var analyzersSuppressedForSomeTree = SuppressedAnalyzersForTreeMap.SelectMany(kvp => kvp.Value).ToImmutableHashSet();
+            totalAnalyzerExecutionTime = AnalyzerExecutionTimes.Sum(kvp => kvp.Value.TotalSeconds);
 
-            var builder = ArrayBuilder<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>.GetInstance();
+            var builder = ArrayBuilder<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)>.GetInstance();
             foreach (var analyzer in Analyzers)
             {
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor, cancellationToken);
@@ -910,6 +906,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // or for one or more syntax trees via editorconfig.
                 bool isAnalyzerEverSuppressed = !UnsuppressedAnalyzers.Contains(analyzer) ||
                     analyzersSuppressedForSomeTree.Contains(analyzer);
+
+                double analyzerExecutionTime = 0;
+                if (AnalyzerExecutionTimes.TryGetValue(analyzer, out var analyzerExecutionTimeSpan))
+                {
+                    analyzerExecutionTime = analyzerExecutionTimeSpan.TotalSeconds;
+                }
+
+                var executionPercentage = (int)(analyzerExecutionTime * 100 / totalAnalyzerExecutionTime);
+
                 foreach (var descriptor in descriptors)
                 {
                     if (!uniqueDiagnosticIds.Add(descriptor.Id))
@@ -922,12 +927,75 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    builder.Add((descriptor, isDiagnosticIdEverSuppressed));
+                    var effectiveSeverities = GetEffectiveSeverities(descriptor, AnalyzerExecutor.Compilation, AnalyzerExecutor.AnalyzerOptions, cancellationToken);
+                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, effectiveSeverities, isDiagnosticIdEverSuppressed);
+                    builder.Add((descriptor, info));
                 }
             }
 
             uniqueDiagnosticIds.Free();
             return builder.ToImmutableAndFree();
+
+            static ImmutableHashSet<ReportDiagnostic> GetEffectiveSeverities(
+                DiagnosticDescriptor descriptor,
+                Compilation compilation,
+                AnalyzerOptions analyzerOptions,
+                CancellationToken cancellationToken)
+            {
+                var defaultSeverity = descriptor.IsEnabledByDefault ?
+                    DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) :
+                    ReportDiagnostic.Suppress;
+
+                if (descriptor.IsNotConfigurable())
+                    return ImmutableHashSet.Create(defaultSeverity);
+
+                if (compilation.Options.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var severity) ||
+                    compilation.Options.SyntaxTreeOptionsProvider?.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out severity) == true)
+                {
+                    if (severity != ReportDiagnostic.Default)
+                    {
+                        defaultSeverity = severity;
+                    }
+                }
+
+                // Handle /warnaserror
+                if (defaultSeverity == ReportDiagnostic.Warn &&
+                    compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    defaultSeverity = ReportDiagnostic.Error;
+                }
+
+                if (compilation.Options.SyntaxTreeOptionsProvider is not { } syntaxTreeProvider ||
+                    compilation.SyntaxTrees.IsEmpty())
+                {
+                    return ImmutableHashSet.Create(defaultSeverity);
+                }
+
+                var builder = ImmutableHashSet.CreateBuilder<ReportDiagnostic>();
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var severityForTree = defaultSeverity;
+
+                    if (syntaxTreeProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out severity) ||
+                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out severity))
+                    {
+                        Debug.Assert(severity != ReportDiagnostic.Default);
+
+                        // Handle /warnaserror
+                        if (severity == ReportDiagnostic.Warn &&
+                            compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                        {
+                            severity = ReportDiagnostic.Error;
+                        }
+
+                        severityForTree = severity;
+                    }
+
+                    builder.Add(severityForTree);
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
@@ -1620,7 +1688,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace, symbol, analyzer).ConfigureAwait(false);
-                await processContainerOnMemberCompletedAsync(symbol.ContainingType, symbol, analyzer).ConfigureAwait(false);
+
+                for (var type = symbol.ContainingType; type != null; type = type.ContainingType)
+                    await processContainerOnMemberCompletedAsync(type, symbol, analyzer).ConfigureAwait(false);
             }
 
             async Task processContainerOnMemberCompletedAsync(INamespaceOrTypeSymbol containerSymbol, ISymbol processedMemberSymbol, DiagnosticAnalyzer analyzer)

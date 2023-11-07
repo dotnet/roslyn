@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
-                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.AnonymousDelegatesWithIndexedNames, moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames()))
+                if (!ContainsPreviousAnonymousDelegates(definitionMap, baseline.SynthesizedTypes.AnonymousDelegatesWithIndexedNames, compilation.AnonymousTypeManager.GetCreatedAnonymousDelegateTypesWithIndexedNames()))
                 {
                     diagnostics.Add(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged, Location.None);
                 }
@@ -120,32 +122,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private static bool ContainsPreviousAnonymousDelegates(
             CSharpDefinitionMap definitionMap,
-            IReadOnlyDictionary<string, AnonymousTypeValue> previousDictionary,
-            IReadOnlyDictionary<string, AnonymousTypeValue> currentDictionary)
+            ImmutableSegmentedDictionary<string, AnonymousTypeValue> previousDictionary,
+            IEnumerable<Cci.ITypeDefinition> currentTypes)
         {
             if (previousDictionary.Count == 0)
             {
                 return true;
             }
 
-            if (previousDictionary.Count > currentDictionary.Count)
+            var currentTypesByName = currentTypes.ToImmutableDictionary(getName);
+            if (previousDictionary.Count > currentTypesByName.Count)
             {
                 return false;
             }
 
-            Dictionary<string, Cci.ITypeDefinition> currentTypes = getTypes(currentDictionary).ToDictionary(t => getName(t));
-            IEnumerable<Cci.ITypeDefinition> previousTypes = getTypes(previousDictionary);
-            foreach (var previousType in previousTypes)
+            foreach (var previousType in previousDictionary)
             {
-                if (!currentTypes.TryGetValue(getName(previousType), out var currentType) ||
+                if (!currentTypesByName.TryGetValue(getName(previousType.Value.Type), out var currentType) ||
                     definitionMap.MapDefinition(currentType) is null)
                 {
                     return false;
                 }
             }
+
             return true;
 
-            static IEnumerable<Cci.ITypeDefinition> getTypes(IReadOnlyDictionary<string, AnonymousTypeValue> dictionary) => dictionary.Values.Select(v => v.Type);
             static string getName(Cci.ITypeDefinition type) => ((Cci.INamedEntity)type).Name!;
         }
 
@@ -175,25 +176,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
             RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
+            var synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes();
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
             var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
 
             // Mapping from previous compilation to the current.
-            var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
-            var anonymousDelegates = moduleBeingBuilt.GetAnonymousDelegates();
-            var anonymousDelegatesWithIndexedNames = moduleBeingBuilt.GetAnonymousDelegatesWithIndexedNames();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
             var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
-                anonymousTypeMap,
-                anonymousDelegates,
-                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
+                synthesizedTypes,
                 currentSynthesizedMembers,
                 currentDeletedMembers);
 
@@ -204,13 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
-                anonymousTypeMap,
-                anonymousDelegates,
-                anonymousDelegatesWithIndexedNames,
                 sourceAssembly,
                 sourceContext,
                 compilation.SourceAssembly,
                 otherContext,
+                synthesizedTypes,
                 mappedSynthesizedMembers,
                 mappedDeletedMembers);
 

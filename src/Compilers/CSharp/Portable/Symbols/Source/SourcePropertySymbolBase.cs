@@ -446,6 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new LexicalSortKey(Location, this.DeclaringCompilation);
         }
 
+        public sealed override Location TryGetFirstLocation() => Location;
+
         public override ImmutableArray<Location> Locations
         {
             get
@@ -807,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
                 if (explicitlyImplementedProperty is object)
                 {
-                    TypeSymbol.CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
+                    TypeSymbol.CheckModifierMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedProperty, isExplicit: true, diagnostics);
                 }
             }
 
@@ -816,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(Type))
             {
@@ -1269,6 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute
                 | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.RequiresLocationAttribute
                 | ReservedAttributes.IsUnmanagedAttribute
                 | ReservedAttributes.IsByRefLikeAttribute
                 | ReservedAttributes.TupleElementNamesAttribute
@@ -1460,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 if (parameters.Length > 0)
                                 {
                                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                                    var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                    var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);
@@ -1489,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (_state.NotePartComplete(CompletionPart.StartPropertyType))
                             {
                                 var diagnostics = BindingDiagnosticBag.GetInstance();
-                                var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+                                var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, Location, diagnostics);
 
                                 ValidatePropertyType(diagnostics);

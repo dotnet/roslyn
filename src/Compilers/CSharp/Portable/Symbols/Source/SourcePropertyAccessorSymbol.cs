@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            Flags flags = MakeFlags(MethodKind.PropertyGet, property.RefKind, declarationModifiers, returnsVoid: false, isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            Flags flags = MakeFlags(MethodKind.PropertyGet, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
+                                    isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVarArg: false, isExplicitInterfaceImplementation: property.IsExplicitInterfaceImplementation);
 
             return (declarationModifiers, flags);
@@ -243,7 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            Flags flags = MakeFlags(methodKind, property.RefKind, declarationModifiers, returnsVoid: false, isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+            Flags flags = MakeFlags(methodKind, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
+                                    isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVarArg: false, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation);
 
             return (declarationModifiers, flags);

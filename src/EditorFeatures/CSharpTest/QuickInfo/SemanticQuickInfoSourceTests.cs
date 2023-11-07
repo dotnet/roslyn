@@ -2575,6 +2575,19 @@ void Method(int i = 0)
         }
 
         [Fact]
+        public async Task Method_RefReadonly()
+        {
+            await TestInClassAsync(
+                """
+                void Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)
+                {
+                    Go$$o(in DateTime.Now, in fi, 32);
+                }
+                """,
+                MainDescription("void C.Goo(ref readonly DateTime dt, ref readonly System.IO.FileInfo fi, params int[] numbers)"));
+        }
+
+        [Fact]
         public async Task Constructor()
         {
             await TestInClassAsync(

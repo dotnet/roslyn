@@ -16,19 +16,28 @@ namespace Microsoft.CodeAnalysis.Completion
     /// This type is not thread safe due to the restriction of underlying PatternMatcher. 
     /// Must be disposed after use.
     /// </summary>
-    internal sealed class PatternMatchHelper : IDisposable
+    internal sealed class PatternMatchHelper(string pattern) : IDisposable
     {
+        private static readonly CultureInfo EnUSCultureInfo;
+
+        static PatternMatchHelper()
+        {
+            try
+            {
+                EnUSCultureInfo = new("en-US");
+            }
+            catch (CultureNotFoundException)
+            {
+                // See https://github.com/microsoft/vscode-dotnettools/issues/386
+                // This can happen when running on a runtime that is setup for culture invariant mode only.
+                EnUSCultureInfo = CultureInfo.InvariantCulture;
+            }
+        }
+
         private readonly object _gate = new();
         private readonly Dictionary<(CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap = new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
-
-        public string Pattern { get; }
-
-        public PatternMatchHelper(string pattern)
-        {
-            Pattern = pattern;
-        }
+        public string Pattern { get; } = pattern;
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(string text, CultureInfo culture)
         {

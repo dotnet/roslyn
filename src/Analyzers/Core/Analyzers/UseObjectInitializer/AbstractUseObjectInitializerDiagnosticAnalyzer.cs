@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -28,7 +30,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
+        where TLocalDeclarationStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TAssignmentStatementSyntax,
+            TLocalDeclarationStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
         private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
@@ -45,6 +57,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             isUnnecessary: true);
 
         protected abstract bool FadeOutOperatorToken { get; }
+        protected abstract TAnalyzer GetAnalyzer();
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
@@ -55,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
-        protected override void InitializeWorker(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(context =>
             {
@@ -85,6 +98,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetAnalyzerOptions().PreferObjectInitializer;
@@ -95,10 +109,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
-                context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
+            using var analyzer = GetAnalyzer();
+            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
-            if (matches == null || matches.Value.Length == 0)
+            if (matches.IsDefaultOrEmpty)
                 return;
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
@@ -108,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             if (!IsValidContainingStatement(containingStatement))
                 return;
 
-            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value.Select(m => m.Statement));
+            var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Select(m => m.Statement));
             if (syntaxFacts.ContainsInterleavedDirective(nodes, context.CancellationToken))
                 return;
 
@@ -121,7 +135,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 locations,
                 properties: null));
 
-            FadeOutCode(context, matches.Value, locations);
+            FadeOutCode(context, matches, locations);
         }
 
         private void FadeOutCode(
@@ -160,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

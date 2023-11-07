@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitCrefParameter(CrefParameterSyntax node)
-            => node.Update(VisitToken(node.RefKindKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+            => node.Update(VisitToken(node.RefKindKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitXmlElement(XmlElementSyntax node)
             => node.Update((XmlElementStartTagSyntax?)Visit(node.StartTag) ?? throw new ArgumentNullException("startTag"), VisitList(node.Content), (XmlElementEndTagSyntax?)Visit(node.EndTag) ?? throw new ArgumentNullException("endTag"));
@@ -7753,7 +7753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.CrefBracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new CrefParameterSyntax instance.</summary>
-        public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
+        public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
             switch (refKindKeyword.Kind())
             {
@@ -7763,19 +7763,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
+            switch (readOnlyKeyword.Kind())
+            {
+                case SyntaxKind.ReadOnlyKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(readOnlyKeyword));
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
             // <Metalama> This change is generated. See Modifications.md for details.
             refKindKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKindKeyword);
             // </Metalama>
             // <Metalama> This change is generated. See Modifications.md for details.
+            readOnlyKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(readOnlyKeyword);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
             type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
             // </Metalama>
-            return (CrefParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+            return (CrefParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
         /// <summary>Creates a new CrefParameterSyntax instance.</summary>
+        public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
+            => SyntaxFactory.CrefParameter(refKindKeyword, default, type);
+
+        /// <summary>Creates a new CrefParameterSyntax instance.</summary>
         public static CrefParameterSyntax CrefParameter(TypeSyntax type)
-            => SyntaxFactory.CrefParameter(default, type);
+            => SyntaxFactory.CrefParameter(default, default, type);
 
         /// <summary>Creates a new XmlElementSyntax instance.</summary>
         public static XmlElementSyntax XmlElement(XmlElementStartTagSyntax startTag, SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)

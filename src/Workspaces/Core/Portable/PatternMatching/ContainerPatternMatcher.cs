@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         i--, j--)
                 {
                     var containerName = containerParts[j];
-                    if (!MatchPatternSegment(containerName, _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
+                    if (!MatchPatternSegment(containerName, ref _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
                     {
                         // This container didn't match the pattern piece.  So there's no match at all.
                         return false;

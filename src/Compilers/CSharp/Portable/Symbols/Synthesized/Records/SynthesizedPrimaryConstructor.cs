@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedPrimaryConstructor : SourceConstructorSymbolBase
     {
         private IReadOnlyDictionary<ParameterSymbol, FieldSymbol>? _capturedParameters = null;
+        private Roslyn.Utilities.IReadOnlySet<ParameterSymbol>? _parametersPassedToTheBase = null;
 
         public SynthesizedPrimaryConstructor(
              SourceMemberContainerTypeSymbol containingType,
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.HasPrimaryConstructor);
             Debug.Assert(containingType is SourceNamedTypeSymbol);
             Debug.Assert(containingType is IAttributeTargetSymbol);
+
+            if (syntax.PrimaryConstructorBaseTypeIfClass is not PrimaryConstructorBaseTypeSyntax { ArgumentList.Arguments.Count: not 0 })
+            {
+                _parametersPassedToTheBase = SpecializedCollections.EmptyReadOnlySet<ParameterSymbol>();
+            }
         }
 
         private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourceMemberContainerTypeSymbol containingType, TypeDeclarationSyntax syntax)
@@ -37,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     RefKind.None,
                                     declarationModifiers,
                                     returnsVoid: true,
+                                    returnsVoidIsSet: true,
                                     isExpressionBodied: false,
                                     isExtensionMethod: false,
                                     isVarArg: syntax.ParameterList.IsVarArg(),
@@ -177,6 +184,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             target.GetLocation(), target.ToString(), (AttributeOwner.AllowedAttributeLocations & ~AttributeLocation.Method).ToDisplayString());
 
             return false;
+        }
+
+        public Roslyn.Utilities.IReadOnlySet<ParameterSymbol> GetParametersPassedToTheBase()
+        {
+            if (_parametersPassedToTheBase != null)
+            {
+                return _parametersPassedToTheBase;
+            }
+
+            TryGetBodyBinder().BindConstructorInitializer(GetSyntax().PrimaryConstructorBaseTypeIfClass, BindingDiagnosticBag.Discarded);
+
+            if (_parametersPassedToTheBase is null)
+            {
+                _parametersPassedToTheBase = SpecializedCollections.EmptyReadOnlySet<ParameterSymbol>();
+            }
+
+            return _parametersPassedToTheBase;
+        }
+
+        internal void SetParametersPassedToTheBase(Roslyn.Utilities.IReadOnlySet<ParameterSymbol> value)
+        {
+#if DEBUG
+            var oldSet = _parametersPassedToTheBase;
+
+            if (oldSet is not null)
+            {
+                int count = oldSet.Count;
+                Debug.Assert(count == value.Count);
+
+                if (count != 0)
+                {
+                    foreach (ParameterSymbol p in Parameters)
+                    {
+                        if (value.Contains(p))
+                        {
+                            count--;
+                            Debug.Assert(oldSet.Contains(p));
+                        }
+                    }
+
+                    Debug.Assert(count == 0);
+                }
+            }
+#endif
+            _parametersPassedToTheBase = value;
         }
     }
 }

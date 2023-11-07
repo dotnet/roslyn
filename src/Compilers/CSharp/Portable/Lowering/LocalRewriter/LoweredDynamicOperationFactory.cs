@@ -803,7 +803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return synthesizedType.Construct(delegateSignature);
 
             // The distinction between by-ref kinds is ignored for dynamic call-sites.
-            static RefKind getRefKind(RefKind refKind) => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
+            static RefKind getRefKind(RefKind refKind)
+            {
+                Debug.Assert(refKind != RefKind.RefReadOnlyParameter);
+                return refKind == RefKind.None ? RefKind.None : RefKind.Ref;
+            }
         }
 
         private BoundExpression GetArgumentInfo(

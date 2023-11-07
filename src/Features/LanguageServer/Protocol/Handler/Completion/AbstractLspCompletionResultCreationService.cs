@@ -11,8 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CompletionList list, bool isIncomplete, long resultId,
             CancellationToken cancellationToken)
         {
+            var isSuggestionMode = list.SuggestionModeItem is not null;
             if (list.ItemsList.Count == 0)
             {
                 return new LSP.VSInternalCompletionList
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     Items = Array.Empty<LSP.CompletionItem>(),
                     // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                     // We don't need to return the fake suggestion mode item.
-                    SuggestionMode = list.SuggestionModeItem is not null,
+                    SuggestionMode = isSuggestionMode,
                     IsIncomplete = isIncomplete,
                 };
             }
@@ -132,18 +133,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
                 lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
-                if (!lspItem.Preselect &&
-                    !lspVSClientCapability &&
-                    typedText.Length == 0 &&
-                    item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                if (lspVSClientCapability)
                 {
-                    // VSCode does not have the concept of soft selection, the list is always hard selected.
-                    // In order to emulate soft selection behavior for things like argument completion, regex completion,
-                    // datetime completion, etc. we create a completion item without any specific commit characters.
-                    // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
-                    //
-                    // Note this only applies when user hasn't actually typed anything and completion provider does not request the item
-                    // to be hard-selected. Otherwise, we set its commit characters as normal. This also means we'd need to set IsIncomplete to true
+                    lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache);
+                    return lspItem;
+                }
+
+                // VSCode does not have the concept of soft selection, the list is always hard selected.
+                // In order to emulate soft selection behavior for things like suggestion mode, argument completion, regex completion,
+                // datetime completion, etc. we create a completion item without any specific commit characters.
+                // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
+                if (isSuggestionMode)
+                {
+                    lspItem.CommitCharacters = Array.Empty<string>();
+                }
+                else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                {
+                    // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
+                    // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true
                     // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
                     lspItem.CommitCharacters = Array.Empty<string>();
                     isIncomplete = true;
@@ -372,7 +379,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             Contract.ThrowIfTrue(item.IsComplexTextEdit);
             Contract.ThrowIfNull(lspItem.Label);
 
-            var completionChange = await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, item, cancellationToken).ConfigureAwait(false);
             var change = completionChange.TextChange;
 
             // If the change's span is different from default, then the item should be mark as IsComplexTextEdit.
@@ -388,8 +395,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             Debug.Assert(selectedItem.Flags.IsExpanded());
-            selectedItem = ImportCompletionItem.MarkItemToAlwaysAddMissingImport(selectedItem);
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var builder);
@@ -408,6 +414,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             return builder.ToArray();
         }
 
+        private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await completionService.GetChangeAsync(document, completionItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            {
+                // In case of exception, we simply return DisplayText with default span as the change.
+                return CompletionChange.Create(new TextChange(completionItem.Span, completionItem.DisplayText));
+            }
+        }
+
         public static async Task<(LSP.TextEdit edit, bool isSnippetString, int? newPosition)> GenerateComplexTextEditAsync(
             Document document,
             CompletionService completionService,
@@ -418,7 +437,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         {
             Debug.Assert(selectedItem.IsComplexTextEdit);
 
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
             var newText = completionChange.TextChange.NewText;
             Contract.ThrowIfNull(newText);

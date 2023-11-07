@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
+    using static InitializeParameterHelpersCore;
+
     internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         TTypeDeclarationSyntax,
         TParameterSyntax,

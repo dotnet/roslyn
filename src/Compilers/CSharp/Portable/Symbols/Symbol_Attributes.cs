@@ -162,6 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 kind = ObsoleteAttributeKind.Deprecated;
             }
+            else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.WindowsExperimentalAttribute))
+            {
+                kind = ObsoleteAttributeKind.WindowsExperimental;
+            }
             else if (CSharpAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute))
             {
                 kind = ObsoleteAttributeKind.Experimental;
@@ -928,15 +932,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        /// Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         /// </summary>
         internal void ForceCompleteObsoleteAttribute()
         {
-            if (this.ObsoleteState == ThreeState.Unknown)
+            if (this.ObsoleteKind == ObsoleteAttributeKind.Uninitialized)
             {
                 this.GetAttributes();
             }
             Debug.Assert(this.ObsoleteState != ThreeState.Unknown, "ObsoleteState should be true or false now.");
+            Debug.Assert(this.ExperimentalState != ThreeState.Unknown, "ExperimentalState should be true or false now.");
+
+            this.ContainingSymbol?.ForceCompleteObsoleteAttribute();
         }
     }
 }

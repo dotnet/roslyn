@@ -18,42 +18,28 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private class GenerateEqualsAndGetHashCodeWithDialogCodeAction : CodeActionWithOptions
+        private class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+            GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+            Document document,
+            SyntaxNode typeDeclaration,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> viableMembers,
+            ImmutableArray<PickMembersOption> pickMembersOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ILegacyGlobalOptionsWorkspaceService globalOptions,
+            bool generateEquals = false,
+            bool generateGetHashCode = false) : CodeActionWithOptions
         {
-            private readonly bool _generateEquals;
-            private readonly bool _generateGetHashCode;
-            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly SyntaxNode _typeDeclaration;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-            private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions;
-
-            public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
-                Document document,
-                SyntaxNode typeDeclaration,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
-                ILegacyGlobalOptionsWorkspaceService globalOptions,
-                bool generateEquals = false,
-                bool generateGetHashCode = false)
-            {
-                _service = service;
-                _document = document;
-                _typeDeclaration = typeDeclaration;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-                _pickMembersOptions = pickMembersOptions;
-                _fallbackOptions = fallbackOptions;
-                _generateEquals = generateEquals;
-                _generateGetHashCode = generateGetHashCode;
-                _globalOptions = globalOptions;
-            }
+            private readonly bool _generateEquals = generateEquals;
+            private readonly bool _generateGetHashCode = generateGetHashCode;
+            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly SyntaxNode _typeDeclaration = typeDeclaration;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
+            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions = pickMembersOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions = globalOptions;
 
             public override string EquivalenceKey => Title;
 

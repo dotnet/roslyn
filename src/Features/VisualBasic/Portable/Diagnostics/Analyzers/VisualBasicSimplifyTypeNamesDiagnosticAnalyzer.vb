@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Return simplifier.Diagnostics
         End Function
 
-        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, root As SyntaxNode, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)) As ImmutableArray(Of Diagnostic)
+        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, root As SyntaxNode, codeBlockIntervalTree As TextSpanIntervalTree) As ImmutableArray(Of Diagnostic)
             Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree)
             Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, context.SemanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, context.CancellationToken)

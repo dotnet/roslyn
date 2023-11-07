@@ -88,3 +88,11 @@ All `SymbolDisplayFormat`s (predefined and user-created) now include parameter n
 `IncrementalGeneratorRunStep.Outputs` previously contained `IncrementalStepRunReason.Modified` as `Reason`
 when the input to the step was modified in a way that produced a new output.
 Now the reason will be reported more accurately as `IncrementalStepRunReason.New`.
+
+# Version 4.8.0
+
+### Changed `Assembly.Location` behavior in non-Windows
+
+The value of `Assembly.Location` previously held the location on disk where an analyzer or source generator was loaded from. This could be either the original location or the shadow copy location. In 4.8 this will be `""` in certain cases when running on non Windows platforms. This is due the compiler server loading assemblies using `AssemblyLoadContext.LoadFromStream` instead of loading from disk. 
+
+This could already happen in other load scenarios but this change moves it into mainline build scenarios. 

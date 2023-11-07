@@ -28,7 +28,7 @@ sealed class NetSdkDownloader : IDisposable
         return new(archive, sdkVersion);
     }
 
-    public Version GetCodeAnalysisVersion()
+    public SemanticVersion GetCodeAnalysisVersion()
     {
         var codeAnalysisEntry = _archive.Entries.Single(entry => Regex.IsMatch(entry.FullName, "sdk/[^/]+/Roslyn/bincore/Microsoft.CodeAnalysis.dll"));
 
@@ -38,11 +38,24 @@ sealed class NetSdkDownloader : IDisposable
         var codeAnalysisMemoryStream = new MemoryStream();
         codeAnalysisStream.CopyTo(codeAnalysisMemoryStream);
 
-        var resolver = new PathAssemblyResolver(new[] { typeof(object).Assembly.Location });
+        var resolver = new PathAssemblyResolver(new[] { typeof(object).Assembly.Location, Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location)!, "System.Runtime.dll") });
         var mlc = new MetadataLoadContext(resolver, typeof(object).Assembly.GetName().Name);
         var assembly = mlc.LoadFromStream(codeAnalysisMemoryStream);
 
-        return assembly.GetName().Version!;
+        return SemanticVersion.Parse((string)assembly.GetCustomAttributesData().Single(a => GetTypeOrNull(a)?.FullName == typeof(AssemblyInformationalVersionAttribute).FullName).ConstructorArguments.Single().Value!);
+
+        static Type? GetTypeOrNull(CustomAttributeData attributeData)
+        {
+            try
+            {
+                return attributeData.AttributeType;
+            }
+            catch (FileNotFoundException)
+            {
+                // Could not load some dependent assembly, but we don't care about such attributes.
+                return null;
+            }
+        }
     }
 
     public IEnumerable<ZipArchiveEntry> GetAnalyzers()

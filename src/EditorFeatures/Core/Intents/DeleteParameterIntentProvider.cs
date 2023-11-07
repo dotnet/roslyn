@@ -20,16 +20,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 
 [IntentProvider(WellKnownIntents.DeleteParameter, LanguageNames.CSharp), Shared]
-internal sealed class DeleteParameterIntentProvider : IIntentProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalOptionService) : IIntentProvider
 {
-    private readonly IGlobalOptionService _globalOptionService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DeleteParameterIntentProvider(IGlobalOptionService globalOptionService)
-    {
-        _globalOptionService = globalOptionService;
-    }
+    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
 
     public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
         Document priorDocument,

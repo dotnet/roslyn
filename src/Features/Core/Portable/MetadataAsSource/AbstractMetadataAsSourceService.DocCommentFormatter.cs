@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             private const int s_indentSize = 2;
             private const int s_wrapLength = 80;
 
+            private static readonly string s_indent = new(' ', s_indentSize * 2);
+
             private static readonly string s_summaryHeader = FeaturesResources.Summary_colon;
             private static readonly string s_paramHeader = FeaturesResources.Parameters_colon;
             private const string s_labelFormat = "{0}:";
@@ -30,15 +34,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             internal static ImmutableArray<string> Format(IDocumentationCommentFormattingService docCommentFormattingService, DocumentationComment docComment)
             {
-                var formattedCommentLinesBuilder = ArrayBuilder<string>.GetInstance();
-                var lineBuilder = new StringBuilder();
+                using var _1 = ArrayBuilder<string>.GetInstance(out var formattedCommentLinesBuilder);
+                using var _2 = PooledStringBuilder.GetInstance(out var lineBuilder);
 
-                var formattedSummaryText = docCommentFormattingService.Format(docComment.SummaryText);
-                if (!string.IsNullOrWhiteSpace(formattedSummaryText))
-                {
-                    formattedCommentLinesBuilder.Add(s_summaryHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedSummaryText));
-                }
+                AddWrappedTextFromRawText(
+                    docCommentFormattingService.Format(docComment.SummaryText),
+                    formattedCommentLinesBuilder,
+                    prefix: s_summaryHeader);
 
                 var parameterNames = docComment.ParameterNames;
                 if (parameterNames.Length > 0)
@@ -58,12 +60,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         lineBuilder.Append(string.Format(s_labelFormat, parameterNames[i]));
                         formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
-                        var rawParameterText = docComment.GetParameterText(parameterNames[i]);
-                        var formattedParameterText = docCommentFormattingService.Format(rawParameterText);
-                        if (!string.IsNullOrWhiteSpace(formattedParameterText))
-                        {
-                            formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedParameterText));
-                        }
+                        AddWrappedTextFromRawText(
+                            docCommentFormattingService.Format(docComment.GetParameterText(parameterNames[i])),
+                            formattedCommentLinesBuilder);
                     }
                 }
 
@@ -85,30 +84,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         lineBuilder.Append(string.Format(s_labelFormat, typeParameterNames[i]));
                         formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
-                        var rawTypeParameterText = docComment.GetTypeParameterText(typeParameterNames[i]);
-                        var formattedTypeParameterText = docCommentFormattingService.Format(rawTypeParameterText);
-                        if (!string.IsNullOrWhiteSpace(formattedTypeParameterText))
-                        {
-                            formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedTypeParameterText));
-                        }
+                        AddWrappedTextFromRawText(
+                            docCommentFormattingService.Format(docComment.GetTypeParameterText(typeParameterNames[i])),
+                            formattedCommentLinesBuilder);
                     }
                 }
 
-                var formattedReturnsText = docCommentFormattingService.Format(docComment.ReturnsText);
-                if (!string.IsNullOrWhiteSpace(formattedReturnsText))
-                {
-                    formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(s_returnsHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedReturnsText));
-                }
+                AddWrappedTextFromRawText(
+                    docCommentFormattingService.Format(docComment.ReturnsText),
+                    formattedCommentLinesBuilder,
+                    prefix: s_returnsHeader);
 
-                var formattedValueText = docCommentFormattingService.Format(docComment.ValueText);
-                if (!string.IsNullOrWhiteSpace(formattedValueText))
-                {
-                    formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(s_valueHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedValueText));
-                }
+                AddWrappedTextFromRawText(
+                    docCommentFormattingService.Format(docComment.ValueText),
+                    formattedCommentLinesBuilder,
+                    prefix: s_valueHeader);
 
                 var exceptionTypes = docComment.ExceptionTypes;
                 if (exceptionTypes.Length > 0)
@@ -132,22 +122,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                             lineBuilder.Append(string.Format(s_labelFormat, exceptionTypes[i]));
                             formattedCommentLinesBuilder.Add(lineBuilder.ToString());
 
-                            var formattedExceptionText = docCommentFormattingService.Format(rawExceptionTexts[j]);
-                            if (!string.IsNullOrWhiteSpace(formattedExceptionText))
-                            {
-                                formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedExceptionText));
-                            }
+                            AddWrappedTextFromRawText(docCommentFormattingService.Format(rawExceptionTexts[j]), formattedCommentLinesBuilder);
                         }
                     }
                 }
 
-                var formattedRemarksText = docCommentFormattingService.Format(docComment.RemarksText);
-                if (!string.IsNullOrWhiteSpace(formattedRemarksText))
-                {
-                    formattedCommentLinesBuilder.Add(string.Empty);
-                    formattedCommentLinesBuilder.Add(s_remarksHeader);
-                    formattedCommentLinesBuilder.AddRange(CreateWrappedTextFromRawText(formattedRemarksText));
-                }
+                AddWrappedTextFromRawText(
+                    docCommentFormattingService.Format(docComment.RemarksText),
+                    formattedCommentLinesBuilder,
+                    prefix: s_remarksHeader);
 
                 // Eliminate any blank lines at the beginning.
                 while (formattedCommentLinesBuilder is [{ Length: 0 }, ..])
@@ -157,60 +140,99 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 while (formattedCommentLinesBuilder is [.., { Length: 0 }])
                     formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
 
-                return formattedCommentLinesBuilder.ToImmutableAndFree();
+                return formattedCommentLinesBuilder.ToImmutable();
             }
 
-            private static ImmutableArray<string> CreateWrappedTextFromRawText(string rawText)
+            private static void AddWrappedTextFromRawText(
+                string rawText, ArrayBuilder<string> result, string prefix = null)
             {
-                using var _ = ArrayBuilder<string>.GetInstance(out var lines);
+                if (string.IsNullOrWhiteSpace(rawText))
+                    return;
+
+                if (prefix != null)
+                {
+                    if (result.Count > 0)
+                        result.Add(string.Empty);
+
+                    result.Add(prefix);
+                }
 
                 // First split the string into constituent lines.
-                var split = rawText.Split(new[] { "\r\n" }, System.StringSplitOptions.None);
+                var split = Split(rawText.AsMemory(), "\r\n".AsSpan());
 
                 // Now split each line into multiple lines.
                 foreach (var item in split)
-                    SplitRawLineIntoFormattedLines(item, lines);
-
-                return lines.ToImmutable();
+                    SplitRawLineIntoFormattedLines(item, result);
             }
 
             private static void SplitRawLineIntoFormattedLines(
-                string line, ArrayBuilder<string> lines)
+                ReadOnlyMemory<char> line, ArrayBuilder<string> formattedLines)
             {
-                var indent = new StringBuilder().Append(' ', s_indentSize * 2).ToString();
-
-                var words = line.Split(' ');
                 var firstInLine = true;
 
-                var sb = new StringBuilder();
-                sb.Append(indent);
-                foreach (var word in words)
+                using var _ = PooledStringBuilder.GetInstance(out var sb);
+
+                var span = line.Span;
+
+                while (span.Length > 0)
                 {
+                    span = span.TrimStart(' ');
+
+                    if (span.Length == 0)
+                        break;
+
                     // We must always append at least one word to ensure progress.
                     if (firstInLine)
                     {
                         firstInLine = false;
+                        sb.Append(s_indent);
                     }
                     else
                     {
                         sb.Append(' ');
                     }
 
-                    sb.Append(word);
+                    var end = span.IndexOf(" ".AsSpan());
+
+                    if (end < 0)
+                        end = span.Length;
+
+                    foreach (var c in span.Slice(0, end))
+                        sb.Append(c);
 
                     if (sb.Length >= s_wrapLength)
                     {
-                        lines.Add(sb.ToString());
+                        formattedLines.Add(sb.ToString());
                         sb.Clear();
-                        sb.Append(indent);
                         firstInLine = true;
                     }
+
+                    span = span.Slice(end);
                 }
 
-                if (sb.ToString().Trim() != string.Empty)
+                formattedLines.Add(sb.ToString());
+            }
+
+            public static ImmutableArray<ReadOnlyMemory<char>> Split(
+                ReadOnlyMemory<char> source,
+                ReadOnlySpan<char> separator)
+            {
+                var result = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+
+                var index = source.Span.IndexOf(separator);
+                while (index >= 0)
                 {
-                    lines.Add(sb.ToString());
+                    var line = source.Slice(0, index);
+                    result.Add(line);
+
+                    source = source.Slice(index + separator.Length);
+                    index = source.Span.IndexOf(separator);
                 }
+
+                if (source.Length > 0)
+                    result.Add(source);
+
+                return result.ToImmutableAndFree();
             }
         }
     }

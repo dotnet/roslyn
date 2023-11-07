@@ -192,6 +192,11 @@
         <target state="translated">Использовать "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">Использовать выражение коллекции</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Использовать интерполированную буквальную строку</target>

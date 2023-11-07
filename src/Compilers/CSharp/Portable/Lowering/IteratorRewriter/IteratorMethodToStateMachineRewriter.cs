@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     <next_state_label>: ;
             //     <hidden sequence point>
             //     this.state = finalizeState;
-            AddResumableState(node.Syntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(node.Syntax, awaitId: default, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel);
             _currentFinallyFrame.AddState(stateNumber);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
@@ -464,12 +464,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeState) != true)
+            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
             }
 
-            AddStateDebugInfo(syntax, finalizeState);
+            AddStateDebugInfo(syntax, awaitId: default, finalizeState);
 
             var finallyMethod = MakeSynthesizedFinally(finalizeState);
             var newFrame = new IteratorFinallyFrame(_currentFinallyFrame, finalizeState, finallyMethod, _yieldsInTryAnalysis.Labels(statement));

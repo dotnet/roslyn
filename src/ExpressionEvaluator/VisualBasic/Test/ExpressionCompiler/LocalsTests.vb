@@ -879,6 +879,67 @@ End Class"
         End Sub
 
         <Fact>
+        Public Sub CapturedParameters()
+            Dim source = "
+Imports System
+
+Class C
+    Sub F(a As Integer, b As Byte, c As Boolean)
+        G(Function() a + b)
+    End Sub
+
+    Sub G(a As Func(Of Integer))
+    End Sub
+End Class
+"
+            Dim compilation0 = CreateCompilation(source, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(compilation0,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.F")
+                    Dim testData = New CompilationTestData()
+                    Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+                    Dim typeName As String = Nothing
+                    context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
+
+                    VerifyLocal(testData, typeName, locals(0), "<>m0", "Me", expectedILOpt:="
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}
+")
+                    VerifyLocal(testData, typeName, locals(1), "<>m1", "a", expectedILOpt:="
+ {
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""C._Closure$__1-0.$VB$Local_a As Integer""
+  IL_0006:  ret
+}")
+                    VerifyLocal(testData, typeName, locals(2), "<>m2", "b", expectedILOpt:="
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""C._Closure$__1-0.$VB$Local_b As Byte""
+  IL_0006:  ret
+}")
+                    VerifyLocal(testData, typeName, locals(3), "<>m3", "c", expectedILOpt:="
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (C._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  ldarg.3
+  IL_0001:  ret
+}")
+                End Sub)
+        End Sub
+
+        <Fact>
         Public Sub NestedLambdas()
             Const source = "
 Imports System

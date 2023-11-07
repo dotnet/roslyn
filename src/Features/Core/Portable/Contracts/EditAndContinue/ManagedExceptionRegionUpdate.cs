@@ -8,31 +8,25 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
     /// <summary>
     /// Exception region affected by a managed update.
     /// </summary>
+    /// <remarks>
+    /// Creates an ExceptionRegionUpdate.
+    /// </remarks>
+    /// <param name="method">Method information before the change was made.</param>
+    /// <param name="delta">Total of lines modified after the update.</param>
+    /// <param name="newSpan">Updated text span for the active statement.</param>
     [DataContract]
-    internal readonly struct ManagedExceptionRegionUpdate
+    internal readonly struct ManagedExceptionRegionUpdate(
+        ManagedModuleMethodId method,
+        int delta,
+        SourceSpan newSpan)
     {
-        /// <summary>
-        /// Creates an ExceptionRegionUpdate.
-        /// </summary>
-        /// <param name="method">Method information before the change was made.</param>
-        /// <param name="delta">Total of lines modified after the update.</param>
-        /// <param name="newSpan">Updated text span for the active statement.</param>
-        public ManagedExceptionRegionUpdate(
-            ManagedModuleMethodId method,
-            int delta,
-            SourceSpan newSpan)
-        {
-            Method = method;
-            Delta = delta;
-            NewSpan = newSpan;
-        }
 
         /// <summary>
         /// Method ID. It has the token for the method that contains the exception region
         /// and the version when the change was made.
         /// </summary>
         [DataMember(Name = "method")]
-        public ManagedModuleMethodId Method { get; }
+        public ManagedModuleMethodId Method { get; } = method;
 
         /// <summary>
         /// The delta is the total of lines modified after the update. This value is inverse:
@@ -43,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
         /// For example, if 2 new lines were added preceding the exception region, this value will be -2.
         /// </summary>
         [DataMember(Name = "delta")]
-        public int Delta { get; }
+        public int Delta { get; } = delta;
 
         /// <summary>
         /// Specifies where the exception region starts and ends after the update. This value is 0-based.
@@ -55,6 +49,6 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue
         /// The new span is expected to be: [PreviousExceptionRegionSpan] + [Delta of updated lines].
         /// </remarks>
         [DataMember(Name = "newSpan")]
-        public SourceSpan NewSpan { get; }
+        public SourceSpan NewSpan { get; } = newSpan;
     }
 }

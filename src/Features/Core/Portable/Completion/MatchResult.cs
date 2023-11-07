@@ -7,52 +7,42 @@ using Microsoft.CodeAnalysis.PatternMatching;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult
+    internal readonly struct MatchResult(
+        CompletionItem completionItem,
+        bool shouldBeConsideredMatchingFilterText,
+        PatternMatch? patternMatch,
+        int index,
+        string? matchedAdditionalFilterText,
+        int recentItemIndex = -1)
     {
         /// <summary>
         /// The CompletionItem used to create this MatchResult.
         /// </summary>
-        public readonly CompletionItem CompletionItem;
+        public readonly CompletionItem CompletionItem = completionItem;
 
-        public readonly PatternMatch? PatternMatch;
+        public readonly PatternMatch? PatternMatch = patternMatch;
 
         // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% reflect the actual PatternMatch result.
         // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
         // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
         // (e.g. when not a prefix match in deletion scenario).
-        public readonly bool ShouldBeConsideredMatchingFilterText;
+        public readonly bool ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
 
         public string FilterTextUsed => MatchedAdditionalFilterText ?? CompletionItem.FilterText;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
         // integer to achieve this.
-        public readonly int IndexInOriginalSortedOrder;
-        public readonly int RecentItemIndex;
+        public readonly int IndexInOriginalSortedOrder = index;
+        public readonly int RecentItemIndex = recentItemIndex;
 
         /// <summary>
         /// If `CompletionItem.AdditionalFilterTexts` was used to create this MatchResult, then this is set to the one that was used.
         /// Otherwise this is set to null.
         /// </summary>
-        public readonly string? MatchedAdditionalFilterText;
+        public readonly string? MatchedAdditionalFilterText = matchedAdditionalFilterText;
 
         public bool MatchedWithAdditionalFilterTexts => MatchedAdditionalFilterText is not null;
-
-        public MatchResult(
-            CompletionItem completionItem,
-            bool shouldBeConsideredMatchingFilterText,
-            PatternMatch? patternMatch,
-            int index,
-            string? matchedAdditionalFilterText,
-            int recentItemIndex = -1)
-        {
-            CompletionItem = completionItem;
-            ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
-            PatternMatch = patternMatch;
-            IndexInOriginalSortedOrder = index;
-            RecentItemIndex = recentItemIndex;
-            MatchedAdditionalFilterText = matchedAdditionalFilterText;
-        }
 
         public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
 

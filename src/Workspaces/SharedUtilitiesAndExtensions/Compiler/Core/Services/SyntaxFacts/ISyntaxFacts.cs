@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode statement);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
 
-        bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
+        bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
         SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
         SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -495,6 +496,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);

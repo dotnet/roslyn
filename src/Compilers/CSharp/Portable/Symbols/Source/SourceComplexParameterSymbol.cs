@@ -802,6 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute |
                 ReservedAttributes.IsReadOnlyAttribute |
+                ReservedAttributes.RequiresLocationAttribute |
                 ReservedAttributes.IsUnmanagedAttribute |
                 ReservedAttributes.IsByRefLikeAttribute |
                 ReservedAttributes.TupleElementNamesAttribute |
@@ -890,6 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!value.IsBad)
             {
                 VerifyParamDefaultValueMatchesAttributeIfAny(value, syntax, diagnostics);
+
+                if (this.RefKind == RefKind.RefReadOnlyParameter && this.IsOptional && this.CSharpSyntaxNode.Default is null)
+                {
+                    // A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    diagnostics.Add(ErrorCode.WRN_RefReadonlyParameterDefaultValue, syntax, this.Name);
+                }
             }
         }
 
@@ -1233,12 +1240,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.Attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) && arguments.Attribute.CommonConstructorArguments.Length == 1);
             Debug.Assert(arguments.AttributeSyntaxOpt is not null);
 
-            var errorLocation = arguments.AttributeSyntaxOpt.Location;
-
             if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true } handlerType)
             {
                 // '{0}' is not an interpolated string handler type.
-                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
+                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, arguments.AttributeSyntaxOpt.Location, Type);
                 setInterpolatedStringHandlerAttributeError(ref arguments);
                 return;
             }
@@ -1246,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this is LambdaParameterSymbol)
             {
                 // Lambda parameters will ignore this attribute at usage
-                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, errorLocation);
+                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, arguments.AttributeSyntaxOpt.Location);
             }
 
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
@@ -1354,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)parameter == this)
                 {
                     // InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
-                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, errorLocation);
+                    diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, arguments.AttributeSyntaxOpt.Location);
                     return null;
                 }
 
@@ -1363,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions.
                     // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
                     // string handler parameter after all arguments involved.
-                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this.Name);
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, arguments.AttributeSyntaxOpt.Location, parameter.Name, this.Name);
                 }
 
                 return (parameter.Ordinal, parameter);
@@ -1409,6 +1414,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // error CS8355: An in parameter cannot have the Out attribute.
                             diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.GetFirstLocation());
+                        }
+                        break;
+                    case RefKind.RefReadOnlyParameter:
+                        if (data.HasOutAttribute)
+                        {
+                            // error: A ref readonly parameter cannot have the Out attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefReadonlyParam, this.GetFirstLocation());
                         }
                         break;
                 }

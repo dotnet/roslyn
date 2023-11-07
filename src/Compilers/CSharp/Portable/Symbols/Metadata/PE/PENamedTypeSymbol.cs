@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private class UncommonProperties
+        private sealed class UncommonProperties
         {
             /// <summary>
             /// Need to import them for an enum from a linked assembly, when we are embedding it. These symbols are not included into lazyMembersInDeclarationOrder.  
@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
+            internal CollectionBuilderAttributeData lazyCollectionBuilderAttributeData = CollectionBuilderAttributeData.Uninitialized;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
@@ -164,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasEmbeddedAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+                    (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null;
             }
@@ -396,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal sealed override bool IsFileLocal => _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false }, lazyDisplayFileName: { } };
-        internal sealed override FileIdentifier? AssociatedFileIdentifier
+        internal sealed override FileIdentifier AssociatedFileIdentifier
         {
             get
             {
@@ -404,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Therefore we can use `_lazyUncommonProperties` directly to avoid additional computations.
                 // Also important, that computing full uncommon properties here may lead to stack overflow if there is a circular dependency between types in the metadata.
                 return _lazyUncommonProperties is { lazyFilePathChecksum: { IsDefault: false } checksum, lazyDisplayFileName: { } displayFileName }
-                    ? new FileIdentifier { FilePathChecksumOpt = checksum, DisplayFilePath = displayFileName }
+                    ? FileIdentifier.Create(checksum, displayFileName)
                     : null;
             }
         }
@@ -2467,6 +2469,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             length = 0;
             return false;
         }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            var uncommon = GetUncommonProperties();
+            if (uncommon == s_noUncommonProperties)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            if ((object)uncommon.lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized)
+            {
+                Interlocked.CompareExchange(
+                    ref uncommon.lazyCollectionBuilderAttributeData,
+                    getCollectionBuilderAttributeData(),
+                    CollectionBuilderAttributeData.Uninitialized);
+            }
+
+            var attributeData = uncommon.lazyCollectionBuilderAttributeData;
+            if (attributeData == null)
+            {
+                builderType = null;
+                methodName = null;
+                return false;
+            }
+
+            builderType = attributeData.BuilderType;
+            methodName = attributeData.MethodName;
+            return true;
+
+            CollectionBuilderAttributeData? getCollectionBuilderAttributeData()
+            {
+                if (ContainingPEModule.Module.HasCollectionBuilderAttribute(_handle, out string builderTypeName, out string methodName))
+                {
+                    var decoder = new MetadataDecoder(ContainingPEModule);
+                    return new CollectionBuilderAttributeData(decoder.GetTypeSymbolForSerializedType(builderTypeName), methodName);
+                }
+                return null;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Specialized PENamedTypeSymbol for types with no type parameters in

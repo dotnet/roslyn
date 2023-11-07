@@ -11,11 +11,14 @@
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             d:DataContext="{d:DesignInstance Type=self:DocumentOutlineViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="DocumentOutline"
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
-             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
+             FontFamily="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontFamilyKey}}"
+             FontSize="{StaticResource {x:Static vsshell:VsFonts.EnvironmentFontSizeKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -60,13 +63,9 @@
             <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0, 5, 0, 0" />
-                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
 
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" >
-                <Setter Property="FontFamily" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontFamilyKey}}" />
-                <Setter Property="FontSize" Value="{StaticResource {x:Static vsshell:VsFonts.CaptionFontSizeKey}}" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -94,8 +93,9 @@
                   AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
+                  SourceUpdated="SymbolTree_SourceUpdated"
                   TreeViewItem.Selected="SymbolTreeItem_Selected"
+                  Visibility="{Binding Visibility, Mode=OneWayToSource}"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">

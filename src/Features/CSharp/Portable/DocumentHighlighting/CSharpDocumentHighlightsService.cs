@@ -21,19 +21,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting
 {
     [ExportLanguageService(typeof(IDocumentHighlightsService), LanguageNames.CSharp), Shared]
-    internal class CSharpDocumentHighlightsService : AbstractDocumentHighlightsService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpDocumentHighlightsService(
+        [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services) : AbstractDocumentHighlightsService(LanguageNames.CSharp,
+              CSharpEmbeddedLanguagesProvider.Info,
+              CSharpSyntaxKinds.Instance,
+              services)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpDocumentHighlightsService(
-            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
-            : base(LanguageNames.CSharp,
-                  CSharpEmbeddedLanguagesProvider.Info,
-                  CSharpSyntaxKinds.Instance,
-                  services)
-        {
-        }
-
         protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {

@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             using var _ = ArrayBuilder<PositionalParameterInfo>.GetInstance(out var resultBuilder);
 
             // get all declared property symbols, put inherited property symbols first
-            var symbols = properties
-                .SelectAsArray(p => (IPropertySymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
+            var symbols = properties.SelectAsArray(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken));
 
             // add inherited properties from a potential base record first
             var inheritedProperties = GetInheritedPositionalParams(type, cancellationToken);

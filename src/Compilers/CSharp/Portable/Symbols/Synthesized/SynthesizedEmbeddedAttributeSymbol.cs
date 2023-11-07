@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MangleName => false;
 
         internal sealed override bool IsFileLocal => false;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
@@ -201,6 +201,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             length = 0;
             return false;
         }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
+#nullable disable
     }
 
     /// <summary>

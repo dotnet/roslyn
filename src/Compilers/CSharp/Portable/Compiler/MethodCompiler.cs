@@ -176,12 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 methodCompiler.WaitForWorkers();
 
-                var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
+                // all threads that were adding methods must be finished now, we can freeze the class:
+                var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
                 if (privateImplClass != null)
                 {
-                    // all threads that were adding methods must be finished now, we can freeze the class:
-                    privateImplClass.Freeze();
-
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
             }
@@ -673,7 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true)))
+            var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
@@ -1053,7 +1052,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol, processedInitializers.BoundInitializers, diagsForCurrentMethod);
+                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
+                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
+                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(

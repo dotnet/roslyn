@@ -140,16 +140,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             bool invokedAsExtensionMethod,
-            Location? interceptableLocation)
+            Syntax.SimpleNameSyntax? nameSyntax)
         {
+            var interceptableLocation = nameSyntax?.Location;
             if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
+            Debug.Assert(nameSyntax != null);
             Debug.Assert(interceptableLocation != null);
-            Debug.Assert(interceptor.Arity == 0);
+            Debug.Assert(interceptor.IsDefinition);
+            Debug.Assert(!interceptor.ContainingType.IsGenericType);
+
+            if (interceptor.Arity != 0)
+            {
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                method.ContainingType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArgumentsBuilder);
+                typeArgumentsBuilder.AddRange(method.TypeArgumentsWithAnnotations);
+
+                var netArity = typeArgumentsBuilder.Count;
+                if (netArity == 0)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, interceptor, method);
+                    typeArgumentsBuilder.Free();
+                    return;
+                }
+                else if (interceptor.Arity != netArity)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorArityNotCompatible, attributeLocation, interceptor, netArity, method);
+                    typeArgumentsBuilder.Free();
+                    return;
+                }
+
+                interceptor = interceptor.Construct(typeArgumentsBuilder.ToImmutableAndFree());
+                if (!interceptor.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this._compilation, this._compilation.Conversions, includeNullability: true, attributeLocation, this._diagnostics)))
+                {
+                    return;
+                }
+            }
+
+            if (method.MethodKind is not MethodKind.Ordinary)
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
+                return;
+            }
 
             var containingMethod = this._factory.CurrentFunction;
             Debug.Assert(containingMethod is not null);
@@ -264,14 +300,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenCall;
 
-            if (node.ReceiverOpt is BoundCall receiver1)
+            if (tryGetReceiver(node, out BoundCall? receiver1))
             {
+                // Handle long call chain of both instance and extension method invocations.
                 var calls = ArrayBuilder<BoundCall>.GetInstance();
 
                 calls.Push(node);
                 node = receiver1;
 
-                while (node.ReceiverOpt is BoundCall receiver2)
+                while (tryGetReceiver(node, out BoundCall? receiver2))
                 {
                     calls.Push(node);
                     node = receiver2;
@@ -298,23 +335,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenCall;
 
+            // Gets the instance or extension invocation receiver if any.
+            static bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
+            {
+                if (node.ReceiverOpt is BoundCall instanceReceiver)
+                {
+                    receiver = instanceReceiver;
+                    return true;
+                }
+
+                if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
+                {
+                    Debug.Assert(node.ReceiverOpt is null);
+                    receiver = extensionReceiver;
+                    return true;
+                }
+
+                receiver = null;
+                return false;
+            }
+
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
                 MethodSymbol method = node.Method;
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
                 ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+                ImmutableArray<BoundExpression> arguments = node.Arguments;
                 bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
+
+                // Rewritten receiver can be actually the first argument of an extension invocation.
+                BoundExpression? firstRewrittenArgument = null;
+                if (rewrittenReceiver is not null && node.ReceiverOpt is null)
+                {
+                    Debug.Assert(invokedAsExtensionMethod && !arguments.IsEmpty);
+                    firstRewrittenArgument = rewrittenReceiver;
+                    rewrittenReceiver = null;
+                }
 
                 ArrayBuilder<LocalSymbol>? temps = null;
                 var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
                     captureReceiverMode: ReceiverCaptureMode.Default,
-                    node.Arguments,
+                    arguments,
                     method,
                     argsToParamsOpt,
                     argRefKindsOpt,
                     storesOpt: null,
-                    ref temps);
+                    ref temps,
+                    firstRewrittenArgument: firstRewrittenArgument);
 
                 rewrittenArguments = MakeArguments(
                     node.Syntax,
@@ -326,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableLocation);
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)
@@ -475,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenBoundCall = new BoundCall(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -491,6 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = node.Update(
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
                     rewrittenArguments,
                     argumentNamesOpt: default(ImmutableArray<string>),
@@ -657,7 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ArrayBuilder<BoundExpression>? storesOpt,
-            ref ArrayBuilder<LocalSymbol>? tempsOpt)
+            ref ArrayBuilder<LocalSymbol>? tempsOpt,
+            BoundExpression? firstRewrittenArgument = null)
         {
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
             var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor } and not FunctionPointerMethodSymbol;
@@ -745,7 +816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ref tempsOpt,
                         ref argumentsAssignedToTemp);
 
-                    visitedArgumentsBuilder.Add(VisitExpression(argument));
+                    visitedArgumentsBuilder.Add(i == 0 && firstRewrittenArgument is not null
+                        ? firstRewrittenArgument
+                        : VisitExpression(argument));
 
                     foreach (var placeholder in argumentPlaceholders)
                     {
@@ -869,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     RefKind argRefKind = argumentRefKindsOpt.RefKinds(argIndex);
                                     RefKind paramRefKind = parameters[paramIndex].RefKind;
                                     var visitedArgument = visitedArgumentsBuilder[argIndex];
-                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
                                     tempsOpt.Add(local.LocalSymbol);
                                     visitedArgumentsBuilder[argIndex] = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
                                     argumentsAssignedToTemp[argIndex] = true;
@@ -1113,12 +1186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Patch refKinds for arguments that match 'In' or 'Ref' parameters to have effective RefKind.
+        /// Patch refKinds for arguments that match 'in', 'ref', or 'ref readonly' parameters to have effective RefKind.
         /// For the purpose of further analysis we will mark the arguments as -
-        /// - In        if was originally passed as None
-        /// - StrictIn  if was originally passed as In
-        /// - Ref       if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
-        ///             are patched here.
+        /// - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+        /// - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
+        /// - Ref                   if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
+        ///                         are patched here.
         /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
         /// Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
         /// </summary>
@@ -1128,11 +1201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var paramRefKind = parameters[i].RefKind;
-                if (paramRefKind == RefKind.In)
+                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                 {
                     var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
                     fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
-                    refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                    refKindsBuilder[i] = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
                 else if (paramRefKind == RefKind.Ref)
                 {
@@ -1343,20 +1416,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var temp = _factory.StoreToTemp(
                         argument,
                         out BoundAssignmentOperator assignment,
-                        refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
+                        refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                            ? (argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn)
+                            : argRefKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
 
-                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
+                // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
                 // For the purpose of further analysis we will mark the arguments as -
-                // - In        if was originally passed as None
-                // - StrictIn  if was originally passed as In
+                // - In                    if was originally passed as None and matches an 'in' or 'ref readonly' parameter
+                // - StrictIn              if was originally passed as In or Ref and matches an 'in' or 'ref readonly' parameter
                 // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
                 // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                if (paramRefKind == RefKind.In)
+                if (paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter)
                 {
-                    Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
+                    Debug.Assert(argRefKind is RefKind.None or RefKind.In or RefKind.Ref);
                     argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
                 }
 
@@ -1510,36 +1585,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
             // point of which is just to represent the semantics of an operation, and we don't know that all consumers
             // of expression lambdas will appropriately understand Array.Empty<T>().
-            // We disable it for pointer types as well, since they cannot be used as Type Arguments.
             if (arrayArgs.Length == 0
                 && !_inExpressionLambda
-                && paramArrayType is ArrayTypeSymbol ats // could be false if there's a semantic error, e.g. the params parameter type isn't an array
-                && !ats.ElementType.IsPointerOrFunctionPointer())
+                && paramArrayType is ArrayTypeSymbol ats) // could be false if there's a semantic error, e.g. the params parameter type isn't an array
             {
-                MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
-                if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+                BoundExpression? arrayEmpty = CreateArrayEmptyCallIfAvailable(syntax, ats.ElementType);
+                if (arrayEmpty is { })
                 {
-                    _diagnostics.ReportUseSite(arrayEmpty, syntax);
-                    // return an invocation of "Array.Empty<T>()"
-                    arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
-                    return new BoundCall(
-                        syntax,
-                        null,
-                        arrayEmpty,
-                        ImmutableArray<BoundExpression>.Empty,
-                        default(ImmutableArray<string>),
-                        default(ImmutableArray<RefKind>),
-                        isDelegateCall: false,
-                        expanded: false,
-                        invokedAsExtensionMethod: false,
-                        argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArguments: default(BitVector),
-                        resultKind: LookupResultKind.Viable,
-                        type: arrayEmpty.ReturnType);
+                    return arrayEmpty;
                 }
             }
 
             return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+        }
+
+        private BoundExpression CreateEmptyArray(SyntaxNode syntax, ArrayTypeSymbol arrayType)
+        {
+            BoundExpression? arrayEmpty = CreateArrayEmptyCallIfAvailable(syntax, arrayType.ElementType);
+            if (arrayEmpty is { })
+            {
+                return arrayEmpty;
+            }
+            // new T[0]
+            return new BoundArrayCreation(
+                syntax,
+                ImmutableArray.Create<BoundExpression>(
+                    new BoundLiteral(
+                        syntax,
+                        ConstantValue.Create(0),
+                        _compilation.GetSpecialType(SpecialType.System_Int32))),
+                initializerOpt: null,
+                arrayType)
+            { WasCompilerGenerated = true };
+        }
+
+        private BoundExpression? CreateArrayEmptyCallIfAvailable(SyntaxNode syntax, TypeSymbol elementType)
+        {
+            if (elementType.IsPointerOrFunctionPointer())
+            {
+                // Pointer types cannot be used as type arguments.
+                return null;
+            }
+
+            MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+            if (arrayEmpty is null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
+            {
+                return null;
+            }
+
+            _diagnostics.ReportUseSite(arrayEmpty, syntax);
+            // return an invocation of "Array.Empty<T>()"
+            arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
+            return new BoundCall(
+                syntax,
+                receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                arrayEmpty,
+                ImmutableArray<BoundExpression>.Empty,
+                default(ImmutableArray<string>),
+                default(ImmutableArray<RefKind>),
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
+                resultKind: LookupResultKind.Viable,
+                type: arrayEmpty.ReturnType);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,

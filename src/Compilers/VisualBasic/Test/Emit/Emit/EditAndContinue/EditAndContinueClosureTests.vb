@@ -1761,7 +1761,7 @@ End Class
                 generation0,
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Insert, Nothing, b1),
-                    New SemanticEdit(SemanticEditKind.Insert, Nothing, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Insert, Nothing, ctor1)))
 
             Const bug2504IsFixed = False
 

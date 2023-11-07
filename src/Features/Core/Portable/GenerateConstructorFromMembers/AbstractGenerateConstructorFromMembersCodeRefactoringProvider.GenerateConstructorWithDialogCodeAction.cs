@@ -21,39 +21,27 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
-        private class GenerateConstructorWithDialogCodeAction : CodeActionWithOptions
+        private class GenerateConstructorWithDialogCodeAction(
+            AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            Accessibility? desiredAccessibility,
+            ImmutableArray<ISymbol> viableMembers,
+            ImmutableArray<PickMembersOption> pickMembersOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly Accessibility? _desiredAccessibility;
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly TextSpan _textSpan;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+            private readonly Document _document = document;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
-            internal ImmutableArray<ISymbol> ViableMembers { get; }
-            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; }
+            internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
+            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
 
             public override string Title => FeaturesResources.Generate_constructor;
-
-            public GenerateConstructorWithDialogCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                Accessibility? desiredAccessibility,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions,
-                CleanCodeGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _textSpan = textSpan;
-                _containingType = containingType;
-                _desiredAccessibility = desiredAccessibility;
-                ViableMembers = viableMembers;
-                PickMembersOptions = pickMembersOptions;
-                _fallbackOptions = fallbackOptions;
-            }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string MethodKey = nameof(MethodKey);
         private const string ReceiverKey = nameof(ReceiverKey);
         private const string OverloadCountKey = nameof(OverloadCountKey);
-        private const string AlwaysAddMissingImportKey = nameof(AlwaysAddMissingImportKey);
+        private const string AlwaysFullyQualifyKey = nameof(AlwaysFullyQualifyKey);
 
         public static CompletionItem Create(
             string name,
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return (compilation.GetTypeByMetadataName(fullyQualifiedName), 0);
         }
 
-        public static CompletionItem MarkItemToAlwaysAddMissingImport(CompletionItem item) => item.WithProperties(item.Properties.Add(AlwaysAddMissingImportKey, AlwaysAddMissingImportKey));
+        public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item) => item.WithProperties(item.Properties.Add(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
 
-        public static bool ShouldAlwaysAddMissingImport(CompletionItem item) => item.Properties.ContainsKey(AlwaysAddMissingImportKey);
+        public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.Properties.ContainsKey(AlwaysFullyQualifyKey);
     }
 }

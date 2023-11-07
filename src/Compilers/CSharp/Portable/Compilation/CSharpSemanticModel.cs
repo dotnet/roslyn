@@ -2183,22 +2183,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversion = Conversion.Identity;
                     }
                 }
-                else if (boundExpr is BoundCollectionLiteralExpression convertedCollection)
+                else if (boundExpr is BoundCollectionExpression convertedCollection)
                 {
                     type = null;
-                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionLiteral or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.CollectionExpression or ConversionKind.NoConversion, Conversion: var convertedCollectionConversion })
                     {
                         convertedType = highestBoundExpr.Type;
                         convertedNullability = convertedCollection.TopLevelNullability;
                         conversion = convertedCollectionConversion;
                     }
+                    else if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Conversion.UnderlyingConversions: [{ Kind: ConversionKind.CollectionExpression }] } boundConversion)
+                    {
+                        convertedType = highestBoundExpr.Type;
+                        convertedNullability = convertedCollection.TopLevelNullability;
+                        conversion = boundConversion.Conversion;
+                    }
                     else
                     {
-                        // There was an explicit cast on top of this.
-                        (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
-                        conversion = convertedCollection.CollectionTypeKind == CollectionLiteralTypeKind.None
-                            ? Conversion.NoConversion
-                            : Conversion.CollectionLiteral;
+                        // Explicit cast or error scenario like `object x = [];`
+                        convertedNullability = nullability;
+                        convertedType = null;
+                        conversion = Conversion.Identity;
                     }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
@@ -2403,6 +2408,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This is used by other binding APIs to invoke the right binder API
         internal virtual BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.TestOnlyCompilationData is MemberSemanticModel.MemberSemanticBindingCounter counter)
+            {
+                counter.BindCount++;
+            }
+
             switch (node)
             {
                 case ExpressionSyntax expression:
@@ -4707,8 +4717,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref LookupResultKind resultKind,
             CSharpCompilation compilation)
         {
-            Debug.Assert(singleResult.Kind != LookupResultKind.Empty);
-            Debug.Assert((object)singleResult.Symbol != null);
+            if (singleResult.Symbol is null)
+            {
+                return;
+            }
+
             Debug.Assert(singleResult.Symbol.Kind == SymbolKind.Method);
 
             var singleKind = singleResult.Kind;

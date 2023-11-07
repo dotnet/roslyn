@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasAwait)
             {
                 // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                originalBinder.ReportBadAwaitDiagnostics(awaitKeyword, diagnostics, ref hasErrors);
 
                 if (awaitableTypeOpt is null)
                 {

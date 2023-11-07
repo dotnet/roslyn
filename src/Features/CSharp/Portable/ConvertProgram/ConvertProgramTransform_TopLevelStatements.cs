@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,6 +10,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -52,16 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             // if we have a file scoped namespace after converting to top-level-statements, then convert it to a
             // block-namespace.  Top level statements and file-scoped-namespaces are not allowed together.
-            document = await ConvertFileScopedNamespaceAsync(document, cancellationToken).ConfigureAwait(false);
+            document = await ConvertFileScopedNamespaceAsync(document, cleanupOptions, cancellationToken).ConfigureAwait(false);
 
             return document;
         }
 
-        private static async Task<Document> ConvertFileScopedNamespaceAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<Document> ConvertFileScopedNamespaceAsync(Document document, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
         {
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return root.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault() is { } fileScopedNamespace
-                ? await ConvertNamespaceTransform.ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken).ConfigureAwait(false)
+                ? await ConvertNamespaceTransform.ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, (CSharpSyntaxFormattingOptions)cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false)
                 : document;
         }
 

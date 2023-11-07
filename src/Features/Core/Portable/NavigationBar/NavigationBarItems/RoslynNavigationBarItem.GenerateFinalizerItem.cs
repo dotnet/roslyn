@@ -8,13 +8,8 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateFinalizer : AbstractGenerateCodeItem, IEquatable<GenerateFinalizer>
+        public class GenerateFinalizer(string text, SymbolKey destinationTypeSymbolKey) : AbstractGenerateCodeItem(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodProtected, destinationTypeSymbolKey), IEquatable<GenerateFinalizer>
         {
-            public GenerateFinalizer(string text, SymbolKey destinationTypeSymbolKey)
-                : base(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodProtected, destinationTypeSymbolKey)
-            {
-            }
-
             protected internal override SerializableNavigationBarItem Dehydrate()
                 => SerializableNavigationBarItem.GenerateFinalizer(Text, DestinationTypeSymbolKey);
 

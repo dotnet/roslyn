@@ -2947,7 +2947,7 @@ class C
                 """;
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
@@ -2961,7 +2961,7 @@ class C
                 """;
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();

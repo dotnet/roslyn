@@ -19,30 +19,20 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 {
     internal partial class GenerateOverridesCodeRefactoringProvider
     {
-        private sealed class GenerateOverridesWithDialogCodeAction : CodeActionWithOptions
+        private sealed class GenerateOverridesWithDialogCodeAction(
+            GenerateOverridesCodeRefactoringProvider service,
+            Document document,
+            TextSpan textSpan,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> viableMembers,
+            CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
         {
-            private readonly GenerateOverridesCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly TextSpan _textSpan;
-            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateOverridesWithDialogCodeAction(
-                GenerateOverridesCodeRefactoringProvider service,
-                Document document,
-                TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers,
-                CodeAndImportGenerationOptionsProvider fallbackOptions)
-            {
-                _service = service;
-                _document = document;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-                _textSpan = textSpan;
-                _fallbackOptions = fallbackOptions;
-            }
+            private readonly GenerateOverridesCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
+            private readonly TextSpan _textSpan = textSpan;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string Title => FeaturesResources.Generate_overrides;
 
@@ -106,12 +96,9 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     cancellationToken: cancellationToken);
             }
 
-            private sealed class ChangeOptionValueOperation : CodeActionOperation
+            private sealed class ChangeOptionValueOperation(bool selectedAll) : CodeActionOperation
             {
-                private readonly bool _selectedAll;
-
-                public ChangeOptionValueOperation(bool selectedAll)
-                    => _selectedAll = selectedAll;
+                private readonly bool _selectedAll = selectedAll;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {

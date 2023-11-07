@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // force resolution of bases in containing type
                     // to make base resolution errors more deterministic
-                    if ((object)ContainingType != null)
+                    if ((object)ContainingType != null &&
+                        TypeKind is not (TypeKind.Enum or TypeKind.Delegate or TypeKind.Submission))
                     {
                         var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                     }
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (singleDeclaration != null)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var location = singleDeclaration.NameLocation;
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (singleDeclaration != null)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var location = singleDeclaration.NameLocation;
 
                 foreach (var pair in interfaces)

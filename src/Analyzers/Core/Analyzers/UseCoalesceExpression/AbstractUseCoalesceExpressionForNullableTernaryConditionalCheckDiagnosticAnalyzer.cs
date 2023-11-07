@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract bool IsTargetTyped(SemanticModel semanticModel, TConditionalExpressionSyntax conditional, System.Threading.CancellationToken cancellationToken);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
@@ -74,53 +75,45 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             }
 
             if (conditionNode is not TMemberAccessExpression conditionMemberAccess)
-            {
                 return;
-            }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(conditionMemberAccess, out var conditionExpression, out var conditionSimpleName);
             syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out _);
 
             if (conditionName != nameof(Nullable<int>.HasValue))
-            {
                 return;
-            }
 
             var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
             if (whenPartToCheck is not TMemberAccessExpression whenPartMemberAccess)
-            {
                 return;
-            }
 
             syntaxFacts.GetPartsOfMemberAccessExpression(whenPartMemberAccess, out var whenPartExpression, out var whenPartSimpleName);
             syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out _);
 
             if (whenPartName != nameof(Nullable<int>.Value))
-            {
                 return;
-            }
 
             if (!syntaxFacts.AreEquivalent(conditionExpression, whenPartExpression))
-            {
                 return;
-            }
+
+            // Coalesce expression cannot be target typed.  So if we had a ternary that was target typed
+            // that means the individual parts themselves had no best common type, which would not work
+            // for a coalesce expression.
+            var semanticModel = context.SemanticModel;
+            if (IsTargetTyped(semanticModel, conditionalExpression, cancellationToken))
+                return;
 
             // Syntactically this looks like something we can simplify.  Make sure we're 
             // actually looking at something Nullable (and not some type that uses a similar 
             // syntactic pattern).
-            var semanticModel = context.SemanticModel;
             var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName!);
             if (nullableType == null)
-            {
                 return;
-            }
 
             var type = semanticModel.GetTypeInfo(conditionExpression, cancellationToken);
 
             if (!nullableType.Equals(type.Type?.OriginalDefinition))
-            {
                 return;
-            }
 
             var whenPartToKeep = notHasValueExpression ? whenTrueNodeHigh : whenFalseNodeHigh;
             var locations = ImmutableArray.Create(

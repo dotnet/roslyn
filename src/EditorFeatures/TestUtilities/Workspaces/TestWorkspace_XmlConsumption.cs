@@ -18,7 +18,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -346,7 +346,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
-                var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
+                var markupCode = (bool?)sourceGeneratedDocumentElement.Attribute(NormalizeAttributeName) is false
+                    ? sourceGeneratedDocumentElement.Value
+                    : sourceGeneratedDocumentElement.NormalizedValue();
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 

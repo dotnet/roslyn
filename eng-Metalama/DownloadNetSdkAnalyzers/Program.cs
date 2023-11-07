@@ -1,6 +1,7 @@
 ﻿using DownloadNetSdkAnalyzers;
+using NuGet.Versioning;
 
-using var sdkDownloader = await NetSdkReleaseInfo.GetLatestStableSdkForRoslynVersionAsync(Version.Parse(args[0]));
+using var sdkDownloader = await NetSdkReleaseInfo.GetLatestSdkForRoslynVersionAsync(SemanticVersion.Parse(args[0]));
 
 var directory = Path.Combine(Path.GetTempPath(), "Metalama", "SdkAnalyzers", sdkDownloader.SdkVersion.ToString());
 

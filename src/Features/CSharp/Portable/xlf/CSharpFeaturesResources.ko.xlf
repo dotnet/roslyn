@@ -432,6 +432,16 @@
         <target state="translated">switch 문 case 절</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="top_level_code">
+        <source>top-level code</source>
+        <target state="translated">최상위 코드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="top_level_statement">
+        <source>top-level statement</source>
+        <target state="translated">최상위 문</target>
+        <note />
+      </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
         <target state="translated">try 블록</target>
@@ -576,11 +586,6 @@
         <source>ref local or expression</source>
         <target state="translated">ref 지역 또는 식</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="global_statement">
-        <source>global statement</source>
-        <target state="translated">global 문</target>
-        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

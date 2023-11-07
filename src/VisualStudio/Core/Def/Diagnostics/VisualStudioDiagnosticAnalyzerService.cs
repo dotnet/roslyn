@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
 
         private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
-            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
             => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFiles);
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 command.Text = GetBackgroundAnalysisScope(_workspace.CurrentSolution, _globalOptions) switch
                 {
-                    BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
+                    BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => ServicesVSResources.Default_Current_Document,
                     BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
                     BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
                     BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             => OnSetAnalysisScope(scope: null);
 
         private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
-            => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
+            => OnSetAnalysisScope(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
 
         private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
             => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFiles);

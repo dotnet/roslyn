@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
             var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
-            if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
+            if (localFunction != null && !localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
             }

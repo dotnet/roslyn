@@ -181,8 +181,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
                     currentTypeDeclaration, constructorDeclaration, constructor, properties, removedMembers);
 
                 return currentTypeDeclaration
-                    .WithLeadingTrivia(finalTrivia)
                     .WithAttributeLists(finalAttributeLists)
+                    .WithLeadingTrivia(finalTrivia)
                     .WithIdentifier(typeParameterList != null ? currentTypeDeclaration.Identifier : currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
                     .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
                     .WithParameterList(parameterList

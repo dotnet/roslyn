@@ -525,9 +525,9 @@ IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '[0]')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // (6,27): error CS9176: There is no target type for the collection literal.
+                // (6,27): error CS9176: There is no target type for the collection expression.
                 //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CollectionLiteralNoTargetType, "[0]").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[0]").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CollectionExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

@@ -30,7 +30,7 @@ public class InterceptorsTests : CSharpTestBase
         }
         """, "attributes.cs");
 
-    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreview");
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global");
 
     [Fact]
     public void FeatureFlag()
@@ -53,27 +53,222 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
+        var sadCaseDiagnostics = new[]
+        {
+            // Program.cs(13,6): error CS9206: An interceptor cannot be declared in the global namespace.
             //     [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorGlobalNamespace, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6)
+        };
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource });
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
 
         comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview-experimental"));
-        comp.VerifyEmitDiagnostics(
-            // Program.cs(13,6): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<Features>InterceptorsPreview</Features>' to your project.
-            //     [InterceptsLocation("Program.cs", 4, 3)]
-            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "false"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreview"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "Global"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "global.a"));
+        comp.VerifyEmitDiagnostics(sadCaseDiagnostics);
 
         var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
         verifier.VerifyDiagnostics();
+    }
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview", "false"), expectedOutput: "1");
+    [Fact]
+    public void FeatureFlag_Granular_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace NS1
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+
+        comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1.NS2"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreview"), expectedOutput: "1");
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "NS1;NS2"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace NS1.NS2
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        sadCase("NS2");
+        sadCase("true");
+        sadCase(" NS1");
+        sadCase(";");
+        sadCase("");
+        sadCase("NS1 ;");
+        sadCase("NS1..NS2;");
+        sadCase("ns1");
+        sadCase("NS2.NS1");
+        sadCase("$NS1&");
+
+        happyCase("NS1");
+        happyCase("NS1;");
+        happyCase(";NS1");
+        happyCase("NS1.NS2");
+        happyCase("NS2;NS1.NS2");
+
+        void sadCase(string featureValue)
+        {
+            var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue));
+            comp.VerifyEmitDiagnostics(
+                // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>' to your project.
+                //         [InterceptsLocation("Program.cs", 4, 3)]
+                Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);NS1.NS2</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
+        }
+
+        void happyCase(string featureValue)
+        {
+            var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", featureValue), expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_03()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)]
+                public static void M() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", ""));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS9206: An interceptor cannot be declared in the global namespace.
+            //     [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorGlobalNamespace, @"InterceptsLocation(""Program.cs"", 4, 3)").WithLocation(13, 6));
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_04()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
+        verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("interceptorspreviewnamespaces", "global"), expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FeatureFlag_Granular_05()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            namespace global.B
+            {
+                class D
+                {
+                    [InterceptsLocation("Program.cs", 4, 3)]
+                    public static void M() => Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global.A"));
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 4, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);global.B</InterceptorsPreviewNamespaces>").WithLocation(15, 10));
     }
 
     [Fact]
@@ -1081,13 +1276,14 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void InterceptableDelegateInvocation()
+    public void InterceptableDelegateInvocation_01()
     {
         var source = """
             using System.Runtime.CompilerServices;
             using System;
 
             C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
 
             static class C
             {
@@ -1095,17 +1291,68 @@ public class InterceptorsTests : CSharpTestBase
                 {
                     action();
                 }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action();
+                }
             }
 
             static class D
             {
-                [InterceptsLocation("Program.cs", 10, 9)]
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
                 public static void Interceptor1(this Action action) { action(); Console.Write(2); }
             }
             """;
-        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "12");
-        verifier.VerifyDiagnostics(
-            );
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9207: Cannot intercept 'action' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
+    }
+
+    [Fact]
+    public void InterceptableDelegateInvocation_02()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.M(() => Console.Write(1));
+            C.M1((() => Console.Write(1), 0));
+
+            static class C
+            {
+                public static void M(Action action)
+                {
+                    action!();
+                }
+
+                public static void M1((Action action, int) pair)
+                {
+                    pair.action!();
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 9)]
+                [InterceptsLocation("Program.cs", 16, 14)]
+                public static void Interceptor1(this Action action) { action(); Console.Write(2); }
+            }
+            """;
+        var compilation = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        compilation.VerifyEmitDiagnostics(
+            // Program.cs(22,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("action").WithLocation(22, 6),
+            // Program.cs(23,6): error CS9151: Possible method name 'action' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 16, 14)]
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 16, 14)").WithArguments("action").WithLocation(23, 6));
     }
 
     [Fact]
@@ -1539,6 +1786,91 @@ public class InterceptorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InterceptableMethod_BadMethodKind_01()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // property
+                    _ = Prop;
+
+                    // constructor
+                    new Program();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 8, 13)] // 1
+                [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+                [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics(
+            // Program.cs(16,6): error CS9151: Possible method name 'Prop' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 8, 13)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 8, 13)").WithArguments("Prop").WithLocation(16, 6),
+            // Program.cs(17,6): error CS9141: The provided line and character number does not refer to an interceptable method name, but rather to token 'new'.
+            //     [InterceptsLocation("Program.cs", 11, 9)] // 2, 'new'
+            Diagnostic(ErrorCode.ERR_InterceptorPositionBadToken, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("new").WithLocation(17, 6),
+            // Program.cs(18,6): error CS9151: Possible method name 'Program' cannot be intercepted because it is not being invoked.
+            //     [InterceptsLocation("Program.cs", 11, 13)] // 3, 'Program'
+            Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 11, 13)").WithArguments("Program").WithLocation(18, 6)
+            );
+    }
+
+    [Fact]
+    public void InterceptableMethod_BadMethodKind_02()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            class Program
+            {
+                public static unsafe void Main()
+                {
+                    // delegate
+                    Action a = () => throw null!;
+                    a();
+
+                    // local function
+                    void local() => throw null!;
+                    local();
+
+                    // fnptr invoke
+                    delegate*<void> fnptr = &Interceptor1;
+                    fnptr();
+                }
+
+                public static int Prop { get; }
+
+                [InterceptsLocation("Program.cs", 10, 9)] // 1
+                [InterceptsLocation("Program.cs", 14, 9)] // 2
+                [InterceptsLocation("Program.cs", 18, 9)] // 3
+                static void Interceptor1() { }
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(23,6): error CS9207: Cannot intercept 'a' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 10, 9)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 10, 9)").WithArguments("a").WithLocation(23, 6),
+            // Program.cs(24,6): error CS9207: Cannot intercept 'local' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 14, 9)] // 2
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 14, 9)").WithArguments("local").WithLocation(24, 6),
+            // Program.cs(25,6): error CS9207: Cannot intercept 'fnptr' because it is not an invocation of an ordinary member method.
+            //     [InterceptsLocation("Program.cs", 18, 9)] // 3
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, @"InterceptsLocation(""Program.cs"", 18, 9)").WithArguments("fnptr").WithLocation(25, 6)
+            );
+    }
+
+    [Fact]
     public void InterceptorCannotBeGeneric_01()
     {
         var source = """
@@ -1569,9 +1901,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-                // Program.cs(22,6): error CS9138: Method 'D.Interceptor1<T>(I1, string)' cannot be used as an interceptor because it or its containing type has type parameters.
-                //     [InterceptsLocation("Program.cs", 16, 11)]
-                Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 16, 11)").WithArguments("D.Interceptor1<T>(I1, string)").WithLocation(22, 6));
+            // Program.cs(22,6): error CS9138: Method 'D.Interceptor1<T>(I1, string)' must be non-generic to match 'C.InterceptableMethod(string)'.
+            //     [InterceptsLocation("Program.cs", 16, 11)]
+            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 16, 11)").WithArguments("D.Interceptor1<T>(I1, string)", "C.InterceptableMethod(string)").WithLocation(22, 6));
     }
 
     [Fact]
@@ -1604,9 +1936,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // Program.cs(21,6): error CS9138: Method 'D<T>.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
+            // Program.cs(21,6): error CS9138: Method 'D<T>.Interceptor1(string)' cannot be used as an interceptor because its containing type has type parameters.
             //     [InterceptsLocation("Program.cs", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D<T>.Interceptor1(string)").WithLocation(21, 6));
+            Diagnostic(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D<T>.Interceptor1(string)").WithLocation(21, 6));
     }
 
     [Fact]
@@ -1642,9 +1974,9 @@ public class InterceptorsTests : CSharpTestBase
             """;
         var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
         comp.VerifyEmitDiagnostics(
-            // Program.cs(23,10): error CS9138: Method 'Outer<T>.D.Interceptor1(string)' cannot be used as an interceptor because it or its containing type has type parameters.
+            // Program.cs(23,10): error CS9138: Method 'Outer<T>.D.Interceptor1(string)' cannot be used as an interceptor because its containing type has type parameters.
             //         [InterceptsLocation("Program.cs", 15, 11)]
-            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("Outer<T>.D.Interceptor1(string)").WithLocation(23, 10)
+            Diagnostic(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("Outer<T>.D.Interceptor1(string)").WithLocation(23, 10)
             );
     }
 
@@ -1758,8 +2090,6 @@ public class InterceptorsTests : CSharpTestBase
     [Fact]
     public void InterceptableGeneric_04()
     {
-        // No interceptor can satisfy a signature like `void InterceptableMethod<T2>(T2 t2)` where `T2` is a method type argument.
-        // We would need to re-examine arity limitations and devise method type argument inference rules for interceptors to make this work.
         var source = """
             using System.Runtime.CompilerServices;
             using System;
@@ -1797,6 +2127,392 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 15, 11)] // 2
             Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("C.InterceptableMethod<T2>(T2)", "D.Interceptor1(object)").WithLocation(23, 6)
             );
+    }
+
+    [Fact]
+    public void InterceptableGeneric_05()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.Usage(1);
+            C.Usage(2);
+
+            class C
+            {
+                public static void InterceptableMethod<T1>(T1 t) => throw null!;
+
+                public static void Usage<T2>(T2 t)
+                {
+                    C.InterceptableMethod(t);
+                    C.InterceptableMethod<T2>(t);
+                    C.InterceptableMethod<object>(t);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 13, 11)]
+                [InterceptsLocation("Program.cs", 14, 11)]
+                [InterceptsLocation("Program.cs", 15, 11)]
+                public static void Interceptor1<T>(T t) { Console.Write(t); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "111222");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_06()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void InterceptableMethod<T1>(T1 t) => throw null!;
+
+                public static void Usage()
+                {
+                    C.InterceptableMethod("abc");
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 10, 11)] // 1
+                public static void Interceptor1<T>(T t) where T : struct => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(16,6): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'D.Interceptor1<T>(T)'
+            //     [InterceptsLocation("Program.cs", 10, 11)] // 1
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, @"InterceptsLocation(""Program.cs"", 10, 11)").WithArguments("D.Interceptor1<T>(T)", "T", "string").WithLocation(16, 6));
+    }
+
+    [Fact]
+    public void InterceptableGeneric_07()
+    {
+        // original containing type is generic
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            D.Usage(1);
+            D.Usage(2);
+
+            class C<T1>
+            {
+                public static void InterceptableMethod(T1 t) => throw null!;
+            }
+
+            static class D
+            {
+                public static void Usage<T2>(T2 t)
+                {
+                    C<T2>.InterceptableMethod(t);
+                    C<object>.InterceptableMethod(t);
+                }
+
+                [InterceptsLocation("Program.cs", 16, 15)]
+                [InterceptsLocation("Program.cs", 17, 19)]
+                public static void Interceptor1<T>(T t) { Console.Write(t); }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1122");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_09()
+    {
+        // original containing type and method are generic
+        // interceptor has arity 2
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            D.Usage(1, "a");
+            D.Usage(2, "b");
+
+            class C<T1>
+            {
+                public static void InterceptableMethod<T2>(T1 t1, T2 t2) => throw null!;
+            }
+
+            static class D
+            {
+                public static void Usage<T1, T2>(T1 t1, T2 t2)
+                {
+                    C<T1>.InterceptableMethod(t1, t2);
+                    C<object>.InterceptableMethod<object>(t1, t2);
+                }
+
+                [InterceptsLocation("Program.cs", 16, 15)]
+                [InterceptsLocation("Program.cs", 17, 19)]
+                public static void Interceptor1<T1, T2>(T1 t1, T2 t2)
+                {
+                    Console.Write(t1);
+                    Console.Write(t2);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1a1a2b2b");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_10()
+    {
+        // original containing type and method are generic
+        // interceptor has arity 1
+
+        // Note: the behavior in this scenario might push us toward using a "unification" model for generic interceptors.
+        // All the cases supported in our current design would also be supported by unification, so we should be able to add it later.
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            class C<T1>
+            {
+                public static void InterceptableMethod<T2>(T1 t1, T2 t2) => throw null!;
+            }
+
+            static class D
+            {
+                public static void Usage<T>(object obj, T t)
+                {
+                    C<object>.InterceptableMethod(obj, t);
+                }
+
+                [InterceptsLocation("Program.cs", 12, 19)] // 1
+                public static void Interceptor1<T>(object obj, T t) => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(15,6): error CS9177: Method 'D.Interceptor1<T>(object, T)' must be non-generic or have arity 2 to match 'C<object>.InterceptableMethod<T>(object, T)'.
+            //     [InterceptsLocation("Program.cs", 12, 19)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorArityNotCompatible, @"InterceptsLocation(""Program.cs"", 12, 19)").WithArguments("D.Interceptor1<T>(object, T)", "2", "C<object>.InterceptableMethod<T>(object, T)").WithLocation(15, 6));
+    }
+
+    [Fact]
+    public void InterceptableGeneric_11()
+    {
+        // original containing type and method are generic
+        // interceptor has arity 0
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C<T1>
+            {
+                public static void InterceptableMethod<T2>(T1 t1, T2 t2) => throw null!;
+            }
+
+            static class D
+            {
+                public static void Main()
+                {
+                    C<int>.InterceptableMethod(1, "a");
+                    C<int>.InterceptableMethod<string>(2, "b");
+                }
+
+                [InterceptsLocation("Program.cs", 13, 16)]
+                [InterceptsLocation("Program.cs", 14, 16)]
+                public static void Interceptor1(int i, string s)
+                {
+                    Console.Write(i);
+                    Console.Write(s);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1a2b");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_12()
+    {
+        // original grandparent type and method are generic
+        // interceptor has arity 2
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            D.Usage(1, "a");
+            D.Usage(2, "b");
+
+            class Outer<T1>
+            {
+                public class C
+                {
+                    public static void InterceptableMethod<T2>(T1 t1, T2 t2) => throw null!;
+                }
+            }
+
+            static class D
+            {
+                public static void Usage<T1, T2>(T1 t1, T2 t2)
+                {
+                    Outer<T1>.C.InterceptableMethod(t1, t2);
+                    Outer<object>.C.InterceptableMethod<object>(t1, t2);
+                }
+
+                [InterceptsLocation("Program.cs", 19, 21)]
+                [InterceptsLocation("Program.cs", 20, 25)]
+                public static void Interceptor1<T1, T2>(T1 t1, T2 t2)
+                {
+                    Console.Write(t1);
+                    Console.Write(t2);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1a1a2b2b");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_13()
+    {
+        // original grandparent type, containing type, and method are generic
+        // interceptor has arity 3
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            D.Usage(1, 2, 3);
+            D.Usage(4, 5, 6);
+
+            class Outer<T1>
+            {
+                public class C<T2>
+                {
+                    public static void InterceptableMethod<T3>(T1 t1, T2 t2, T3 t3) => throw null!;
+                }
+            }
+
+            static class D
+            {
+                public static void Usage<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+                {
+                    Outer<T1>.C<T2>.InterceptableMethod(t1, t2, t3);
+                    Outer<object>.C<object>.InterceptableMethod<object>(t1, t2, t3);
+                }
+
+                [InterceptsLocation("Program.cs", 19, 25)]
+                [InterceptsLocation("Program.cs", 20, 33)]
+                public static void Interceptor1<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+                {
+                    Console.Write(t1);
+                    Console.Write(t2);
+                    Console.Write(t3);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "123123456456");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_14()
+    {
+        // containing type has 2 type parameters, method is generic
+        // interceptor has arity 3
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            D.Usage(1, 2, 3);
+            D.Usage(4, 5, 6);
+
+            class C<T1, T2>
+            {
+                public static void InterceptableMethod<T3>(T1 t1, T2 t2, T3 t3) => throw null!;
+            }
+
+            static class D
+            {
+                public static void Usage<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+                {
+                    C<T1, T2>.InterceptableMethod(t1, t2, t3);
+                    C<object, object>.InterceptableMethod<object>(t1, t2, t3);
+                }
+
+                [InterceptsLocation("Program.cs", 16, 19)]
+                [InterceptsLocation("Program.cs", 17, 27)]
+                public static void Interceptor1<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+                {
+                    Console.Write(t1);
+                    Console.Write(t2);
+                    Console.Write(t3);
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "123123456456");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterceptableGeneric_15()
+    {
+        // original method is non-generic, interceptor is generic
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            C.Original();
+
+            class C
+            {
+                public static void Original() => throw null!;
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 4, 3)] // 1
+                public static void Interceptor1<T>() => throw null!;
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(13,6): error CS9178: Method 'D.Interceptor1<T>()' must be non-generic to match 'C.Original()'.
+            //     [InterceptsLocation("Program.cs", 4, 3)] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorCannotBeGeneric, @"InterceptsLocation(""Program.cs"", 4, 3)").WithArguments("D.Interceptor1<T>()", "C.Original()").WithLocation(13, 6));
+    }
+
+    [Fact]
+    public void InterceptableGeneric_16()
+    {
+        var source = """
+            #nullable enable
+
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public static void InterceptableMethod<T1>(T1 t) => throw null!;
+
+                public static void Main()
+                {
+                    C.InterceptableMethod<string?>(null);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 12, 11)] // 1
+                public static void Interceptor1<T>(T t) where T : notnull => Console.Write(1);
+            }
+            """;
+        var verifier = CompileAndVerify(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics(
+            // Program.cs(18,6): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'D.Interceptor1<T>(T)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //     [InterceptsLocation("Program.cs", 12, 11)] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, @"InterceptsLocation(""Program.cs"", 12, 11)").WithArguments("D.Interceptor1<T>(T)", "T", "string?").WithLocation(18, 6));
     }
 
     [Fact]
@@ -2674,6 +3390,37 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(30,6): warning CS9154: Intercepting a call to 'C.Method2(IntPtr)' with interceptor 'D.Interceptor2(C, nint)', but the signatures do not match.
             //     [InterceptsLocation("Program.cs", 19, 11)] // 2
             Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 19, 11)").WithArguments("C.Method2(System.IntPtr)", "D.Interceptor2(C, nint)").WithLocation(30, 6));
+    }
+
+    [Fact]
+    public void SignatureMismatch_09()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class Program
+            {
+                public static void InterceptableMethod(ref readonly int x) => Console.Write("interceptable " + x);
+
+                public static void Main()
+                {
+                    int x = 5;
+                    InterceptableMethod(in x);
+                }
+            }
+
+            static class D
+            {
+                [InterceptsLocation("Program.cs", 11, 9)]
+                public static void Interceptor(in int x) => Console.Write("interceptor " + x);
+            }
+            """;
+        var comp = CreateCompilation(new[] { (source, "Program.cs"), s_attributesSource }, parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(17,6): error CS9144: Cannot intercept method 'Program.InterceptableMethod(ref readonly int)' with interceptor 'D.Interceptor(in int)' because the signatures do not match.
+            //     [InterceptsLocation("Program.cs", 11, 9)]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, @"InterceptsLocation(""Program.cs"", 11, 9)").WithArguments("Program.InterceptableMethod(ref readonly int)", "D.Interceptor(in int)").WithLocation(17, 6));
     }
 
     [Fact]

@@ -50,15 +50,15 @@ record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                    // (2,12): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // class Point(int x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 12),
-                    // (2,17): warning CS9113: Parameter 'x' is unread.
-                    // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
-                    // (2,24): warning CS9113: Parameter 'y' is unread.
-                    // class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
+                // (2,12): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 12),
+                // (2,17): warning CS9113: Parameter 'x' is unread.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 17),
+                // (2,24): warning CS9113: Parameter 'y' is unread.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 24)
                 );
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
@@ -143,15 +143,15 @@ class E
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 16),
-                    // (4,21): warning CS9113: Parameter 'x' is unread.
-                    //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
-                    // (4,28): warning CS9113: Parameter 'y' is unread.
-                    //     class Point(int x, int y);
-                    Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
+                // (4,16): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(4, 16),
+                // (4,21): warning CS9113: Parameter 'x' is unread.
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 21),
+                // (4,28): warning CS9113: Parameter 'y' is unread.
+                //     class Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(4, 28)
                 );
 
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
@@ -199,12 +199,12 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
                 // (2,1): error CS8805: Program using top-level statements must be an executable.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record ").WithLocation(2, 1),
+                // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record ").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
@@ -214,9 +214,9 @@ record class Point(int x, int y);
                 // (2,8): error CS1002: ; expected
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(2, 8),
-                // (2,19): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,19): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 19),
                 // (2,24): warning CS9113: Parameter 'x' is unread.
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 24),
@@ -13220,24 +13220,27 @@ public record D(int J) : C(1)
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 42) (10, 20, 42)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
-            verifier.VerifyIL("D..ctor(D)", @"
- {
-      // Code size       33 (0x21)
-      .maxstack  2
-      IL_0000:  ldarg.0
-      IL_0001:  ldarg.1
-      IL_0002:  call       ""C..ctor(C)""
-      IL_0007:  nop
-      IL_0008:  ldarg.0
-      IL_0009:  ldarg.1
-      IL_000a:  ldfld      ""int D.<J>k__BackingField""
-      IL_000f:  stfld      ""int D.<J>k__BackingField""
-      IL_0014:  ldarg.0
-      IL_0015:  ldarg.1
-      IL_0016:  ldfld      ""int D.field""
-      IL_001b:  stfld      ""int D.field""
-      IL_0020:  ret
-    }
+            verifier.VerifyMethodBody("D..ctor(D)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C..ctor(C)""
+  IL_0007:  nop
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  ldfld      ""int D.<J>k__BackingField""
+  IL_000f:  stfld      ""int D.<J>k__BackingField""
+  IL_0014:  ldarg.0
+  IL_0015:  ldarg.1
+  IL_0016:  ldfld      ""int D.field""
+  IL_001b:  stfld      ""int D.field""
+  // sequence point: D
+  IL_0020:  nop
+  IL_0021:  ret
+}
 ");
         }
 

@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
@@ -1612,6 +1612,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+#nullable enable
+        internal abstract bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+#nullable disable
 
         /// <summary>
         /// Requires less computation than <see cref="TypeSymbol.TypeKind"/> == <see cref="TypeKind.Interface"/>.

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             AddReferencesToCommandLine(commandLine, References);
+            AddInterceptorsPreviewNamespaces(commandLine, InterceptorsPreviewNamespaces);
 
             base.AddResponseFileCommands(commandLine);
 
@@ -278,6 +279,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
+
+        /// <param name="interceptorsNamespaces">
+        /// The value of the &lt;InterceptorsPreviewNamespaces&gt; property.
+        /// </param>
+        internal static void AddInterceptorsPreviewNamespaces(CommandLineBuilderExtension commandLine, string? interceptorsNamespaces)
+        {
+            if (string.IsNullOrEmpty(interceptorsNamespaces))
+            {
+                return;
+            }
+
+            commandLine.AppendSwitchIfNotNull("/features:", $"InterceptorsPreviewNamespaces={interceptorsNamespaces}");
+        }
+
+        public string? InterceptorsPreviewNamespaces
+        {
+            set { _store[nameof(InterceptorsPreviewNamespaces)] = value; }
+            get { return (string?)_store[nameof(InterceptorsPreviewNamespaces)]; }
+        }
 
         /// <summary>
         /// The C# compiler (starting with Whidbey) supports assembly aliasing for references.

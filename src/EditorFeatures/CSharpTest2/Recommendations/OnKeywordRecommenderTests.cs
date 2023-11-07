@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,72 +73,90 @@ $$");
         public async Task TestAfterJoinInExpr1()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a in e $$"));
+                """
+                var q = from x in y
+                          join a in e $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterJoinInExpr2()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e $$"));
+                """
+                var q = from x in y
+                          join a.b c in e $$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn1()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on $$"));
+                """
+                var q = from x in y
+                          join a.b c in e on $$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on o$$"));
+                """
+                var q = from x in y
+                          join a.b c in e on o$$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn3()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on o1 $$"));
+                """
+                var q = from x in y
+                          join a.b c in e on o1 $$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn4()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on o1 e$$"));
+                """
+                var q = from x in y
+                          join a.b c in e on o1 e$$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn5()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on o1 equals $$"));
+                """
+                var q = from x in y
+                          join a.b c in e on o1 equals $$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterOn6()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in e on o1 equals o$$"));
+                """
+                var q = from x in y
+                          join a.b c in e on o1 equals o$$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterIn()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          join a.b c in $$"));
+                """
+                var q = from x in y
+                          join a.b c in $$
+                """));
         }
     }
 }

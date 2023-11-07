@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and
@@ -777,8 +777,12 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(
+                method,
+                in args,
+                diagnosticsBuilder,
+                nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
+                ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {

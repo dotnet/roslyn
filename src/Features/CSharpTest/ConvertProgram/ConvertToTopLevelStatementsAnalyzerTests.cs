@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
 
     public class ConvertToTopLevelStatementsAnalyzerTests
     {
+        public static IEnumerable<object[]> EndOfDocumentSequences
+        {
+            get
+            {
+                yield return new object[] { "" };
+                yield return new object[] { "\r\n" };
+            }
+        }
+
         [Fact]
         public async Task NotOfferedWhenUserPrefersProgramMain()
         {
@@ -1347,39 +1357,39 @@ namespace X.Y
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestInTopLevelNamespaceWithOtherType()
+        [Theory]
+        [MemberData(nameof(EndOfDocumentSequences))]
+        public async Task TestInTopLevelNamespaceWithOtherType(string endOfDocumentSequence)
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
+                TestCode = $@"
 using System.Threading.Tasks;
 
 namespace X.Y;
 
 class Program
-{
-    static async Task {|IDE0210:Main|}(string[] args)
-    {
+{{
+    static async Task {{|IDE0210:Main|}}(string[] args)
+    {{
         await Task.CompletedTask;
-    }
-}
+    }}
+}}
 
 class Other
-{
-}
-",
-                FixedCode = @"
+{{
+}}{endOfDocumentSequence}",
+                FixedCode = $@"
 using System.Threading.Tasks;
 
 await Task.CompletedTask;
 
 namespace X.Y
-{
+{{
     class Other
-    {
-    }
-}",
+    {{
+    }}
+}}{endOfDocumentSequence}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
@@ -1428,40 +1438,40 @@ namespace X.Y
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced()
+        [Theory]
+        [MemberData(nameof(EndOfDocumentSequences))]
+        public async Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced(string endOfDocumentSequence)
         {
             await new VerifyCS.Test
             {
-                TestCode = @"
+                TestCode = $@"
 using System.Threading.Tasks;
 
 namespace X.Y;
 
 class Program
-{
-    static void {|IDE0210:Main|}(string[] args)
-    {
+{{
+    static void {{|IDE0210:Main|}}(string[] args)
+    {{
         System.Console.WriteLine(typeof(Other));
-    }
-}
+    }}
+}}
 
 class Other
-{
-}
-",
-                FixedCode = @"
+{{
+}}{endOfDocumentSequence}",
+                FixedCode = $@"
 using System.Threading.Tasks;
 using X.Y;
 
 System.Console.WriteLine(typeof(Other));
 
 namespace X.Y
-{
+{{
     class Other
-    {
-    }
-}",
+    {{
+    }}
+}}{endOfDocumentSequence}",
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },

@@ -9,6 +9,7 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
-        Protected Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
+        Friend Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
 
         Protected Shared ReadOnly ValueTupleRefs As MetadataReference() = {SystemRuntimeFacadeRef, ValueTupleRef}
 
@@ -45,6 +46,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function GetSyntaxMapFromMarkers(source0 As SourceWithMarkedNodes, source1 As SourceWithMarkedNodes) As Func(Of SyntaxNode, SyntaxNode)
             Return SourceWithMarkedNodes.GetSyntaxMap(source0, source1)
+        End Function
+
+        Friend Shared Function Edit(
+            kind As SemanticEditKind,
+            symbolProvider As Func(Of Compilation, ISymbol),
+            Optional newSymbolProvider As Func(Of Compilation, ISymbol) = Nothing,
+            Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
+            Return New SemanticEditDescription(kind, symbolProvider, newSymbolProvider, preserveLocalVariables)
         End Function
 
         Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
@@ -197,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
             AssertEx.Equal(
                 rows.Where(Function(r) r.Handle <> Nothing),
-                reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
+                reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EditAndContinueTestUtilities.EncLogRowToString)
         End Sub
 
         ''' <summary>
@@ -207,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
             AssertEx.Equal(
                 rows.Where(Function(r) r.Handle <> Nothing),
-                reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EncLogRowToString)
+                reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry.Handle.Kind)), itemInspector:=AddressOf EditAndContinueTestUtilities.EncLogRowToString)
         End Sub
 
         ''' <summary>
@@ -217,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal(
                 [handles].Where(Function(h) h <> Nothing),
-                reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
+                reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EditAndContinueTestUtilities.EncMapRowToString)
         End Sub
 
         ''' <summary>
@@ -227,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Sub CheckEncMapDefinitions(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal(
                 [handles].Where(Function(h) h <> Nothing),
-                reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EncMapRowToString)
+                reader.GetEditAndContinueMapEntries().Where(Function(e) IsDefinition(e.Kind)), itemInspector:=AddressOf EditAndContinueTestUtilities.EncMapRowToString)
         End Sub
 
         Friend Shared Sub CheckNames(reader As MetadataReader, [handles] As IEnumerable(Of StringHandle), ParamArray expectedNames As String())
@@ -292,34 +301,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return New MetadataAggregator(readers(0), readers.Skip(1).ToArray())
         End Function
 
-        Friend Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
-            Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(row.Handle.Kind, index)
-            Return String.Format(
-                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                MetadataTokens.GetRowNumber(row.Handle),
-                index,
-                row.Operation)
-        End Function
-
-        Friend Shared Function EncMapRowToString(handle As EntityHandle) As String
-            Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(handle.Kind, index)
-            Return String.Format(
-                "Handle({0}, TableIndex.{1})",
-                MetadataTokens.GetRowNumber(handle),
-                index)
-        End Function
-
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
-                Nothing,
                 fromCompilation.SourceAssembly,
-                Nothing,
+                sourceContext:=Nothing,
                 toCompilation.SourceAssembly,
-                Nothing,
-                Nothing,
-                Nothing)
+                otherContext:=Nothing,
+                synthesizedTypes:=SynthesizedTypeMaps.Empty,
+                otherSynthesizedMembersOpt:=Nothing,
+                otherDeletedMembersOpt:=Nothing)
         End Function
     End Class
 

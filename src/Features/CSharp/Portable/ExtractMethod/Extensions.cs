@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            if (!modifiersGetter(decl).Any(t => t.Kind() == SyntaxKind.ConstKeyword))
+            if (!modifiersGetter(decl).Any(SyntaxKind.ConstKeyword))
             {
                 return false;
             }

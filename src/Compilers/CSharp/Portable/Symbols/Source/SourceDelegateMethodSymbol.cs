@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers declarationModifiers)
             : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false,
                    (declarationModifiers, MakeFlags(
-                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), isExpressionBodied: false,
+                                                    methodKind, refKind, declarationModifiers, returnType.IsVoidType(), returnsVoidIsSet: true, isExpressionBodied: false,
                                                     isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: false, isExplicitInterfaceImplementation: false)))
         {
             _returnType = returnType;
@@ -241,6 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override bool HasSetsRequiredMembersImpl => false;
         }
 
+        // Note that `in`/`ref readonly` parameters currently don't have `modreq(In)`
+        // even though the `Invoke` method is virtual. https://github.com/dotnet/roslyn/issues/69079
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
@@ -314,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {

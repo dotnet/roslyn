@@ -10,7 +10,7 @@ class SemanticVersionConverter : JsonConverter<SemanticVersion>
         => SemanticVersion.Parse(reader.GetString()!);
 
     public override void Write(Utf8JsonWriter writer, SemanticVersion value, JsonSerializerOptions options)
-        => throw new NotImplementedException();
+        => writer.WriteStringValue(value.ToString());
 }
 
 class SemanticVersionDictionaryKeyConverterFactory : JsonConverterFactory

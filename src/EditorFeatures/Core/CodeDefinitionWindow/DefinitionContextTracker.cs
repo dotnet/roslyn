@@ -38,32 +38,23 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
     [Export(typeof(DefinitionContextTracker))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class DefinitionContextTracker : ITextViewConnectionListener
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DefinitionContextTracker(
+        IMetadataAsSourceFileService metadataAsSourceFileService,
+        ICodeDefinitionWindowService codeDefinitionWindowService,
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : ITextViewConnectionListener
     {
         private readonly HashSet<ITextView> _subscribedViews = new HashSet<ITextView>();
-        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly ICodeDefinitionWindowService _codeDefinitionWindowService;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService = metadataAsSourceFileService;
+        private readonly ICodeDefinitionWindowService _codeDefinitionWindowService = codeDefinitionWindowService;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         private CancellationTokenSource? _currentUpdateCancellationToken;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefinitionContextTracker(
-            IMetadataAsSourceFileService metadataAsSourceFileService,
-            ICodeDefinitionWindowService codeDefinitionWindowService,
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _metadataAsSourceFileService = metadataAsSourceFileService;
-            _codeDefinitionWindowService = codeDefinitionWindowService;
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
-        }
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
@@ -86,9 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             if (reason == ConnectionReason.TextViewLifetime ||
                 !textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType)).Any())
             {
-                if (_subscribedViews.Contains(textView))
+                if (_subscribedViews.Remove(textView))
                 {
-                    _subscribedViews.Remove(textView);
                     textView.Caret.PositionChanged -= OnTextViewCaretPositionChanged;
                 }
             }

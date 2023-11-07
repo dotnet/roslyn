@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 var expr = _syntax.Expression;
-                ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = false;
             var expr = _syntax.Expression;
-            ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+            ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
 
             var placeholder = new BoundAwaitableValuePlaceholder(expr, awaitableType);
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
@@ -711,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(
                         syntax: exprSyntax,
                         receiverOpt: collectionExpr,
+                        initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(collectionExpr, nullableValueGetter),
                         method: nullableValueGetter);
                 }
                 else
@@ -795,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             EnumeratorResult result;
 
-            if (!isAsync && collectionExpr.Type?.HasInlineArrayAttribute(out _) == true && collectionExpr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField)
+            if (!isAsync && collectionExpr.Type?.HasInlineArrayAttribute(out _) == true && collectionExpr.Type.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
             {
                 WellKnownType wellKnownSpan;
                 bool usedAsValue = false;
@@ -824,6 +825,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 spanType = spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations));
                 spanType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, collectionExpr.Syntax.GetLocation(), diagnostics));
+
+                if (!TypeSymbol.IsInlineArrayElementFieldSupported(elementField))
+                {
+                    diagnostics.Add(ErrorCode.ERR_InlineArrayForEachNotSupported, collectionExpr.Syntax.GetLocation(), collectionExpr.Type);
+                    builder = new ForEachEnumeratorInfo.Builder();
+                    return EnumeratorResult.FailedAndReported;
+                }
 
                 var enumeratorInfoDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                 BoundExpression span = new BoundValuePlaceholder(collectionExpr.Syntax, spanType).MakeCompilerGenerated();
@@ -865,6 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 enumeratorInfoDiagnostics.Free();
+
+                diagnostics.Add(ErrorCode.ERR_InlineArrayForEachNotSupported, collectionExpr.Syntax.GetLocation(), collectionExpr.Type);
+                builder = new ForEachEnumeratorInfo.Builder();
+                return EnumeratorResult.FailedAndReported;
             }
 
 #if DEBUG

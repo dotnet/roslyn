@@ -15,18 +15,12 @@ namespace Microsoft.CodeAnalysis
     /// very stale <see cref="Solution"/> snapshot that may keep around a lot of memory in a host.
     /// </summary>
     [DataContract]
-    internal readonly struct DocumentIdSpan
+    internal readonly struct DocumentIdSpan(DocumentId documentId, TextSpan sourceSpan)
     {
         [DataMember(Order = 0)]
-        public readonly DocumentId DocumentId;
+        public readonly DocumentId DocumentId = documentId;
         [DataMember(Order = 1)]
-        public readonly TextSpan SourceSpan;
-
-        public DocumentIdSpan(DocumentId documentId, TextSpan sourceSpan)
-        {
-            DocumentId = documentId;
-            SourceSpan = sourceSpan;
-        }
+        public readonly TextSpan SourceSpan = sourceSpan;
 
         public static implicit operator DocumentIdSpan(DocumentSpan documentSpan)
             => new(documentSpan.Document.Id, documentSpan.SourceSpan);

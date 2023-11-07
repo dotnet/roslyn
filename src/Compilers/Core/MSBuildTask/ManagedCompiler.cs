@@ -485,15 +485,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        // ToolExe delegates back to ToolName if the override is not
-        // set.  So, if ToolExe == ToolName, we know ToolExe is not
-        // explicitly overridden.  So, if both ToolPath is unset and
-        // ToolExe == ToolName, we know nothing is overridden, and
-        // we can use our own csc.
-        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
-
-        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
-
         /// <summary>
         /// Method for testing only
         /// </summary>
@@ -501,10 +492,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             return GenerateFullPathToTool();
         }
-
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
-
-        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -516,8 +503,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (ProvideCommandLineArgs)
             {
-                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
-                    .Select(arg => new TaskItem(arg)).ToArray();
+                CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
             }
 
             if (SkipCompilerExecution)
@@ -534,7 +520,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
-                    HasToolBeenOverridden ||
+                    !IsManagedTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
@@ -558,7 +544,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    GetArguments(ToolArguments, responseFileCommands).ToList(),
+                    GenerateCommandLineArgsList(responseFileCommands),
                     workingDirectory: workingDirectory,
                     tempDirectory: tempDirectory,
                     keepAlive: null,
@@ -812,58 +798,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public string GenerateResponseFileContents()
-        {
-            return GenerateResponseFileCommands();
-        }
-
-        /// <summary>
-        /// Get the command line arguments to pass to the compiler.
-        /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
-        {
-            var commandLineArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
-            var responseFileArguments =
-                CommandLineUtilities.SplitCommandLineIntoArguments(responseFileCommands, removeHashComments: true);
-            return commandLineArguments.Concat(responseFileArguments).ToArray();
-        }
-
-        /// <summary>
-        /// Returns the command line switch used by the tool executable to specify the response file
-        /// Will only be called if the task returned a non empty string from GetResponseFileCommands
-        /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
-        /// </summary>
-        protected override string GenerateResponseFileCommands()
-        {
-            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-            AddResponseFileCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
-        }
-
-        /// <summary>
-        /// Method for testing only
-        /// </summary>
-        public string GenerateCommandLine()
-        {
-            return GenerateCommandLineCommands();
-        }
-
-        protected sealed override string ToolArguments
-        {
-            get
-            {
-                var builder = new CommandLineBuilderExtension();
-                AddCommandLineCommands(builder);
-                return builder.ToString();
-            }
-        }
-
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can't go into a response file and
         /// must go directly onto the command line.
         /// </summary>
-        protected internal virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendWhenTrue("/noconfig", _store, nameof(NoConfig));
         }
@@ -871,7 +810,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        protected internal virtual void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             // If outputAssembly is not specified, then an "/out: <name>" option won't be added to
             // overwrite the one resulting from the OutputAssembly member of the CompilerParameters class.

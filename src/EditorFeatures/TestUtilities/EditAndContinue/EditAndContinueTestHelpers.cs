@@ -280,10 +280,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             SyntaxNode newRoot,
             string? message = null)
         {
+            // sort expected and actual edits to ignore differences in order, which are insignificant:
+            expectedSemanticEdits = expectedSemanticEdits.Sort((x, y) => CompareEdits(CreateSymbolKey(x), x.Kind, CreateSymbolKey(y), y.Kind));
+            actualSemanticEdits = actualSemanticEdits.Sort((x, y) => CompareEdits(x.Symbol, x.Kind, y.Symbol, y.Kind));
+
+            static int CompareEdits(SymbolKey leftKey, SemanticEditKind leftKind, SymbolKey rightKey, SemanticEditKind rightKind)
+                => leftKey.ToString().CompareTo(rightKey.ToString()) is not 0 and var result ? result : leftKind.CompareTo(rightKind);
+
+            SymbolKey CreateSymbolKey(SemanticEditDescription edit)
+                => SymbolKey.Create(edit.SymbolProvider((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
+
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
                 expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
+                actualSemanticEdits.Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -455,8 +465,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
-            Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
+            Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
+            var map = analyzer.GetTestAccessor().IncludeLambdaBodyMaps(BidirectionalMap<SyntaxNode>.FromMatch(bodyMatch), new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

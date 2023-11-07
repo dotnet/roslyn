@@ -90,34 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics, out bool hasExplicitAccessMod)
         {
             (DeclarationModifiers declarationModifiers, hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
-            Flags flags = MakeFlags(
+            Flags flags = new Flags(
                                     methodKind, refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                                     declarationModifiers,
                                     returnsVoid: false, // The correct value will be computed lazily later and then the flags will be fixed up.
+                                    returnsVoidIsSet: false,
                                     hasAnyBody: syntax.HasAnyBody(), isExpressionBodied: syntax.IsExpressionBodied(),
                                     isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                                        !firstParam.IsArgList &&
                                                        firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: syntax.IsVarArg(),
+                                    isVararg: syntax.IsVarArg(),
                                     isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
 
             return (declarationModifiers, flags);
-        }
-
-        private static Flags MakeFlags(
-            MethodKind methodKind,
-            RefKind refKind,
-            DeclarationModifiers declarationModifiers,
-            bool returnsVoid,
-            bool hasAnyBody,
-            bool isExpressionBodied,
-            bool isExtensionMethod,
-            bool isNullableAnalysisEnabled,
-            bool isVarArg,
-            bool isExplicitInterfaceImplementation)
-        {
-            return new Flags(methodKind, refKind, declarationModifiers, returnsVoid, hasAnyBody, isExpressionBodied, isExtensionMethod, isNullableAnalysisEnabled, isVarArg, isExplicitInterfaceImplementation);
         }
 
         private bool HasAnyBody => flags.HasAnyBody;
@@ -231,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
-                else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameter0Type.TypeKind != TypeKind.Struct)
                 {
                     diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }

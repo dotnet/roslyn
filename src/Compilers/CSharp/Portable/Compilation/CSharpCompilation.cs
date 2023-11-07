@@ -4158,7 +4158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Dynamic built-in operators allow virtually all operations with all types.  So we do no further checking here.
                 if (csharpReturnType.TypeKind is TypeKind.Dynamic ||
                     csharpLeftType.TypeKind is TypeKind.Dynamic ||
-                    csharpReturnType.TypeKind is TypeKind.Dynamic)
+                    csharpRightType.TypeKind is TypeKind.Dynamic)
                 {
                     return;
                 }
