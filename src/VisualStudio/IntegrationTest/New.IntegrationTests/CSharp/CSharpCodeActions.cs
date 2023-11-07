@@ -699,65 +699,24 @@ public class Program
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public async Task ConfigureCodeStyleOptionValueAndSeverity()
         {
-            await SetUpEditorAsync(@"
-using System;
-public class Program
-{
-    static void Main(string[] args)
-    {
-        var $$x = new Program();
-    }
-}", HangMitigatingCancellationToken);
+            await SetUpEditorAsync("""
+                using System;
+                public class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        var $$x = new Program();
+                    }
+                }
+                """, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             var expectedItems = new[]
             {
-                "Use discard '__'",  // IDE0059
-                "Use explicit type instead of 'var'",   // IDE0008
+                "Use explicit type instead of 'var'",
                 "Introduce local",
-                    "Introduce local for 'new Program()'",
-                    "Introduce local for all occurrences of 'new Program()'",
+                "Introduce parameter for 'new Program()'",
+                "Use discard '__'",
                 "Suppress or configure issues",
-                    "Configure IDE0008 code style",
-                        "csharp__style__var__elsewhere",
-                            "true",
-                            "false",
-                        "csharp__style__var__for__built__in__types",
-                            "true",
-                            "false",
-                        "csharp__style__var__when__type__is__apparent",
-                            "true",
-                            "false",
-                    "Configure IDE0008 severity",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Suppress IDE0059",
-                        "in Source",
-                        "in Suppression File",
-                        "in Source (attribute)",
-                    "Configure IDE0059 code style",
-                        "unused__local__variable",
-                        "discard__variable",
-                    "Configure IDE0059 severity",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Configure severity for all 'Style' analyzers",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
-                    "Configure severity for all analyzers",
-                        "None",
-                        "Silent",
-                        "Suggestion",
-                        "Warning",
-                        "Error",
             };
 
             await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);

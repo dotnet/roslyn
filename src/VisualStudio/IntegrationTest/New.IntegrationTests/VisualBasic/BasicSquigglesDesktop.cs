@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+[Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+public class BasicSquigglesDesktop : BasicSquigglesCommon
 {
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-    public class BasicSquigglesDesktop : BasicSquigglesCommon
+    public BasicSquigglesDesktop()
+        : base(WellKnownProjectTemplates.ClassLibrary)
     {
-        public BasicSquigglesDesktop()
-            : base(WellKnownProjectTemplates.ClassLibrary)
-        {
-        }
     }
 }

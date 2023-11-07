@@ -7,25 +7,19 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+[Trait(Traits.Feature, Traits.Features.NetCore)]
+public class CSharpSquigglesNetCore() : CSharpSquigglesCommon(WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
 {
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-    [Trait(Traits.Feature, Traits.Features.NetCore)]
-    public class CSharpSquigglesNetCore : CSharpSquigglesCommon
+    protected override bool SupportsGlobalUsings => true;
+
+    public override async Task InitializeAsync()
     {
-        protected override bool SupportsGlobalUsings => true;
+        await base.InitializeAsync().ConfigureAwait(false);
 
-        public CSharpSquigglesNetCore()
-            : base(WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
-        {
-        }
-
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(false);
-
-            // The CSharpNetCoreClassLibrary template does not open a file automatically.
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, WellKnownProjectTemplates.CSharpNetCoreClassLibraryClassFileName, HangMitigatingCancellationToken);
-        }
+        // The CSharpNetCoreClassLibrary template does not open a file automatically.
+        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, WellKnownProjectTemplates.CSharpNetCoreClassLibraryClassFileName, HangMitigatingCancellationToken);
     }
 }

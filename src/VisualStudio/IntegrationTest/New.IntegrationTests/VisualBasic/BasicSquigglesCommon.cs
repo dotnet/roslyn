@@ -21,7 +21,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
     protected override string LanguageName => LanguageNames.VisualBasic;
 
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
-    public virtual async Task VerifySyntaxErrorSquiggles()
+    public async Task VerifySyntaxErrorSquiggles()
     {
         await TestServices.Editor.SetTextAsync("""
             Class A
@@ -38,7 +38,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
 
     [WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
-    public virtual async Task VerifySemanticErrorSquiggles()
+    public async Task VerifySemanticErrorSquiggles()
     {
         await TestServices.Editor.SetTextAsync("""
             Class A
