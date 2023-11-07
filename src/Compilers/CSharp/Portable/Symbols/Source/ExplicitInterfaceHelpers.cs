@@ -76,21 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
             return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier);
         }
-#nullable disable
 
-        public static string GetMemberMetadataName(
-            Binder binder,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
-            string name)
-        {
-            TypeSymbol discardedExplicitInterfaceType;
-            string discardedAliasOpt;
-            string methodName = GetMemberMetadataNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
-
-            return methodName;
-        }
-
-#nullable enable
         public static string? GetExplicitInterfaceMemberInfo(
             Binder binder,
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
