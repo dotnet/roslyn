@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             for (var current = parameterNode; current != null; current = current.Parent)
             {
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(current);
+
                 if (declaredSymbol is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction })
                     return current;
             }

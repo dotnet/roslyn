@@ -43,6 +43,7 @@
     <!--
       Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
       impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
+      Enable code style analyzers for design time builds for live background analysis while typing (see https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build).
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true' OR '$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">true</RoslynCheckCodeStyle>
