@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -17,6 +18,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class WorkaroundsInProcess
     {
+        public async Task WaitForCompilationAvailableAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
+
+            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            foreach (var project in workspace.CurrentSolution.Projects)
+            {
+                await project.GetCompilationAsync(cancellationToken);
+            }
+        }
+
         public async Task WaitForNavigationAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.NavigateTo], cancellationToken);

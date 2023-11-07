@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -95,6 +94,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 await TestServices.Workspace.SetPrettyListingAsync(LanguageName, originalValue, cancellationToken);
             }
+
+            await TestServices.Workarounds.WaitForCompilationAvailableAsync(cancellationToken);
         }
     }
 }
