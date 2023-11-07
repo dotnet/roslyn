@@ -438,8 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Get the name of the method so that it can be looked up in the containing type.
             /// </summary>
             /// <param name="baseMethodDeclarationSyntax">Non-null declaration syntax.</param>
-            /// <param name="outerBinder">Binder for the scope around the method (may be null for operators, constructors, and destructors).</param>
-            private static string GetMethodName(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
+            private static string GetMethodName(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax)
             {
                 switch (baseMethodDeclarationSyntax.Kind())
                 {
@@ -465,8 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Get the name of the property, indexer, or event so that it can be looked up in the containing type.
             /// </summary>
             /// <param name="basePropertyDeclarationSyntax">Non-null declaration syntax.</param>
-            /// <param name="outerBinder">Non-null binder for the scope around the member.</param>
-            private static string GetPropertyOrEventName(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
+            private static string GetPropertyOrEventName(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax)
             {
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax = basePropertyDeclarationSyntax.ExplicitInterfaceSpecifier;
 
@@ -500,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                string methodName = GetMethodName(baseMethodDeclarationSyntax, outerBinder);
+                string methodName = GetMethodName(baseMethodDeclarationSyntax);
                 return (SourceMemberMethodSymbol)GetMemberSymbol(methodName, baseMethodDeclarationSyntax.FullSpan, container, SymbolKind.Method);
             }
 
@@ -519,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                string propertyName = GetPropertyOrEventName(basePropertyDeclarationSyntax, outerBinder);
+                string propertyName = GetPropertyOrEventName(basePropertyDeclarationSyntax);
                 return (SourcePropertySymbol)GetMemberSymbol(propertyName, basePropertyDeclarationSyntax.Span, container, SymbolKind.Property);
             }
 
@@ -536,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                string eventName = GetPropertyOrEventName(eventDeclarationSyntax, outerBinder);
+                string eventName = GetPropertyOrEventName(eventDeclarationSyntax);
                 return (SourceEventSymbol)GetMemberSymbol(eventName, eventDeclarationSyntax.Span, container, SymbolKind.Event);
             }
 

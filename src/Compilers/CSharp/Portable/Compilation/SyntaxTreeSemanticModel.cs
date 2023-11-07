@@ -1622,25 +1622,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MethodDeclaration:
                     {
                         var methodDecl = (MethodDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, methodDecl.ExplicitInterfaceSpecifier, methodDecl.Identifier.ValueText);
+                        return GetDeclarationName(methodDecl.ExplicitInterfaceSpecifier, methodDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.PropertyDeclaration:
                     {
                         var propertyDecl = (PropertyDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, propertyDecl.ExplicitInterfaceSpecifier, propertyDecl.Identifier.ValueText);
+                        return GetDeclarationName(propertyDecl.ExplicitInterfaceSpecifier, propertyDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.IndexerDeclaration:
                     {
                         var indexerDecl = (IndexerDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, indexerDecl.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
+                        return GetDeclarationName(indexerDecl.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
                     }
 
                 case SyntaxKind.EventDeclaration:
                     {
                         var eventDecl = (EventDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, eventDecl.ExplicitInterfaceSpecifier, eventDecl.Identifier.ValueText);
+                        return GetDeclarationName(eventDecl.ExplicitInterfaceSpecifier, eventDecl.Identifier.ValueText);
                     }
 
                 case SyntaxKind.DelegateDeclaration:
@@ -1676,13 +1676,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OperatorDeclaration:
                     {
                         var operatorDecl = (OperatorDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                        return GetDeclarationName(operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
                     {
                         var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
-                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                        return GetDeclarationName(operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private string GetDeclarationName(CSharpSyntaxNode declaration, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt, string memberName)
+        private string GetDeclarationName(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt, string memberName)
         {
             if (explicitInterfaceSpecifierOpt == null)
             {
