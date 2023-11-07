@@ -321,11 +321,23 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                     (current, _) =>
                     {
                         var currentTypeDeclaration = (TypeDeclarationSyntax)current;
-                        if (currentTypeDeclaration.BaseList is null or { Types.Count: 0 })
-                            return currentTypeDeclaration.AddBaseListTypes(baseTypeSyntax);
+                        if (currentTypeDeclaration.BaseList is null)
+                        {
+                            var typeParameterList = currentTypeDeclaration.TypeParameterList;
+                            var triviaAfterName = typeParameterList != null
+                                ? typeParameterList.GetTrailingTrivia()
+                                : currentTypeDeclaration.Identifier.GetAllTrailingTrivia();
 
-                        return currentTypeDeclaration.WithBaseList(
-                            currentTypeDeclaration.BaseList.WithTypes(currentTypeDeclaration.BaseList.Types.Insert(0, baseTypeSyntax)));
+                            return currentTypeDeclaration
+                                .WithIdentifier(currentTypeDeclaration.Identifier.WithoutTrailingTrivia())
+                                .WithTypeParameterList(typeParameterList?.WithoutTrailingTrivia())
+                                .WithBaseList(BaseList(SingletonSeparatedList<BaseTypeSyntax>(baseTypeSyntax)).WithLeadingTrivia(Space).WithTrailingTrivia(triviaAfterName));
+                        }
+                        else
+                        {
+                            return currentTypeDeclaration.WithBaseList(
+                                currentTypeDeclaration.BaseList.WithTypes(currentTypeDeclaration.BaseList.Types.Insert(0, baseTypeSyntax)));
+                        }
                     });
             }
         }
