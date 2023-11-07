@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Debug.Assert(explicitInterfaceMemberInfo is { });
-                _name = _lazySourceName = explicitInterfaceMemberInfo.Name;
+                _name = _lazySourceName = explicitInterfaceMemberInfo.MemberName;
             }
 
             if (hasGetAccessor)
