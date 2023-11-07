@@ -36,40 +36,25 @@ namespace Roslyn.Utilities
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of serialized object's reference ids.  The object-reference-map uses reference equality
-        /// for performance.  While the string-reference-map uses value-equality for greater cache hits
+        /// Map of serialized string reference ids.  The string-reference-map uses value-equality for greater cache hits
         /// and reuse.
         ///
-        /// These are not readonly because they're structs and we mutate them.
+        /// This is a mutable struct, and as such is not readonly.
         ///
-        /// When we write out objects/strings we give each successive, unique, item a monotonically
-        /// increasing integral ID starting at 0.  I.e. the first object gets ID-0, the next gets
-        /// ID-1 and so on and so forth.  We do *not* include these IDs with the object when it is
-        /// written out.  We only include the ID if we hit the object *again* while writing.
+        /// When we write out strings we give each successive, unique, item a monotonically increasing integral ID
+        /// starting at 0.  I.e. the first string gets ID-0, the next gets ID-1 and so on and so forth.  We do *not*
+        /// include these IDs with the object when it is written out.  We only include the ID if we hit the object
+        /// *again* while writing.
         ///
-        /// During reading, the reader knows to give each object it reads the same monotonically
-        /// increasing integral value.  i.e. the first object it reads is put into an array at position
-        /// 0, the next at position 1, and so on.  Then, when the reader reads in an object-reference
-        /// it can just retrieved it directly from that array.
+        /// During reading, the reader knows to give each string it reads the same monotonically increasing integral
+        /// value.  i.e. the first string it reads is put into an array at position 0, the next at position 1, and so
+        /// on.  Then, when the reader reads in a string-reference it can just retrieved it directly from that array.
         ///
-        /// In other words, writing and reading take advantage of the fact that they know they will
-        /// write and read objects in the exact same order.  So they only need the IDs for references
-        /// and not the objects themselves because the ID is inferred from the order the object is
-        /// written or read in.
+        /// In other words, writing and reading take advantage of the fact that they know they will write and read
+        /// strings in the exact same order.  So they only need the IDs for references and not the strings themselves
+        /// because the ID is inferred from the order the object is written or read in.
         /// </summary>
-        private WriterReferenceMap _objectReferenceMap;
         private WriterReferenceMap _stringReferenceMap;
-
-        /// <summary>
-        /// Copy of the global binder data that maps from Types to the appropriate reading-function
-        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but
-        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us
-        /// local copy we can work with without needing to worry about anyone else mutating.
-        /// </summary>
-        private readonly ObjectBinderSnapshot _binderSnapshot;
-
-        private int _recursionDepth;
-        internal const int MaxRecursionDepth = 50;
 
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
@@ -87,13 +72,8 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
-            _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
-            _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
+            _stringReferenceMap = new WriterReferenceMap();
             _cancellationToken = cancellationToken;
-
-            // Capture a copy of the current static binder state.  That way we don't have to
-            // access any locks while we're doing our processing.
-            _binderSnapshot = ObjectBinder.GetSnapshot();
 
             WriteVersion();
         }
@@ -107,9 +87,7 @@ namespace Roslyn.Utilities
         public void Dispose()
         {
             _writer.Dispose();
-            _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-            _recursionDepth = 0;
         }
 
         public void WriteBoolean(bool value) => _writer.Write(value);
@@ -268,7 +246,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(instance: value, instanceAsWritable: null);
+                throw new InvalidOperationException($"Unsupported object type: {value.GetType()}");
             }
         }
 
@@ -279,7 +257,7 @@ namespace Roslyn.Utilities
         /// <param name="span">The array data.</param>
         public void WriteValue(ReadOnlySpan<byte> span)
         {
-            int length = span.Length;
+            var length = span.Length;
             switch (length)
             {
                 case 0:
@@ -312,24 +290,13 @@ namespace Roslyn.Utilities
             // arrays of data. The buffer is chosen to be no larger than 8K, which avoids allocations in the large
             // object heap.
             var buffer = new byte[Math.Min(length, 8192)];
-            for (int offset = 0; offset < length; offset += buffer.Length)
+            for (var offset = 0; offset < length; offset += buffer.Length)
             {
                 var segmentLength = Math.Min(buffer.Length, length - offset);
                 span.Slice(offset, segmentLength).CopyTo(buffer.AsSpan());
                 _writer.Write(buffer, 0, segmentLength);
             }
 #endif
-        }
-
-        public void WriteValue(IObjectWritable? value)
-        {
-            if (value == null)
-            {
-                _writer.Write((byte)TypeCode.Null);
-                return;
-            }
-
-            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -386,39 +353,29 @@ namespace Roslyn.Utilities
             // PERF: Use segmented collection to avoid Large Object Heap allocations during serialization.
             // https://github.com/dotnet/roslyn/issues/43401
             private readonly SegmentedDictionary<object, int> _valueToIdMap;
-            private readonly bool _valueEquality;
             private int _nextId;
-
-            private static readonly ObjectPool<SegmentedDictionary<object, int>> s_referenceDictionaryPool =
-                new(() => new SegmentedDictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<SegmentedDictionary<object, int>> s_valueDictionaryPool =
                 new(() => new SegmentedDictionary<object, int>(128));
 
-            public WriterReferenceMap(bool valueEquality)
+            public WriterReferenceMap()
             {
-                _valueEquality = valueEquality;
-                _valueToIdMap = GetDictionaryPool(valueEquality).Allocate();
+                _valueToIdMap = s_valueDictionaryPool.Allocate();
                 _nextId = 0;
             }
 
-            private static ObjectPool<SegmentedDictionary<object, int>> GetDictionaryPool(bool valueEquality)
-                => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
-
             public void Dispose()
             {
-                var pool = GetDictionaryPool(_valueEquality);
-
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    pool.ForgetTrackedObject(_valueToIdMap);
+                    s_valueDictionaryPool.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {
                     _valueToIdMap.Clear();
-                    pool.Free(_valueToIdMap);
+                    s_valueDictionaryPool.Free(_valueToIdMap);
                 }
             }
 
@@ -444,8 +401,8 @@ namespace Roslyn.Utilities
             }
             else if (value <= (ushort.MaxValue >> 2))
             {
-                byte byte0 = (byte)(((value >> 8) & 0xFFu) | Byte2Marker);
-                byte byte1 = (byte)(value & 0xFFu);
+                var byte0 = (byte)(((value >> 8) & 0xFFu) | Byte2Marker);
+                var byte1 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
                 _writer.Write(byte0);
@@ -453,10 +410,10 @@ namespace Roslyn.Utilities
             }
             else if (value <= (uint.MaxValue >> 2))
             {
-                byte byte0 = (byte)(((value >> 24) & 0xFFu) | Byte4Marker);
-                byte byte1 = (byte)((value >> 16) & 0xFFu);
-                byte byte2 = (byte)((value >> 8) & 0xFFu);
-                byte byte3 = (byte)(value & 0xFFu);
+                var byte0 = (byte)(((value >> 24) & 0xFFu) | Byte4Marker);
+                var byte1 = (byte)((value >> 16) & 0xFFu);
+                var byte2 = (byte)((value >> 8) & 0xFFu);
+                var byte3 = (byte)(value & 0xFFu);
 
                 // high-bytes to low-bytes
                 _writer.Write(byte0);
@@ -478,7 +435,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                if (_stringReferenceMap.TryGetReferenceId(value, out int id))
+                if (_stringReferenceMap.TryGetReferenceId(value, out var id))
                 {
                     Debug.Assert(id >= 0);
                     if (id <= byte.MaxValue)
@@ -514,7 +471,7 @@ namespace Roslyn.Utilities
                         _writer.Write((byte)TypeCode.StringUtf16);
 
                         // This is rare, just allocate UTF16 bytes for simplicity.
-                        byte[] bytes = new byte[(uint)value.Length * sizeof(char)];
+                        var bytes = new byte[(uint)value.Length * sizeof(char)];
                         fixed (char* valuePtr = value)
                         {
                             Marshal.Copy((IntPtr)valuePtr, bytes, 0, bytes.Length);
@@ -529,7 +486,7 @@ namespace Roslyn.Utilities
 
         private void WriteArray(Array array)
         {
-            int length = array.GetLength(0);
+            var length = array.GetLength(0);
 
             switch (length)
             {
@@ -560,49 +517,13 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // emit header up front
-                this.WriteKnownType(elementType);
-
-                // recursive: write elements now
-                var oldDepth = _recursionDepth;
-                _recursionDepth++;
-
-                if (_recursionDepth % MaxRecursionDepth == 0)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
-                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
-                        a =>
-                        {
-                            WriteArrayValues((Array)a!);
-                            return null;
-                        },
-                        array);
-
-                    // We must not proceed until the additional task completes. After returning from a write, the underlying
-                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                    // completes its write then an access violation can occur attempting to write to unmapped memory.
-                    //
-                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                    // so the wait can complete.
-                    task.GetAwaiter().GetResult();
-                }
-                else
-                {
-                    WriteArrayValues(array);
-                }
-
-                _recursionDepth--;
-                Debug.Assert(_recursionDepth == oldDepth);
+                throw new InvalidOperationException($"Unsupported array element type: {elementType}");
             }
         }
 
         private void WriteArrayValues(Array array)
         {
-            for (int i = 0; i < array.Length; i++)
+            for (var i = 0; i < array.Length; i++)
             {
                 this.WriteValue(array.GetValue(i));
             }
@@ -789,12 +710,6 @@ namespace Roslyn.Utilities
             this.WriteString(type.AssemblyQualifiedName);
         }
 
-        private void WriteKnownType(Type type)
-        {
-            _writer.Write((byte)TypeCode.Type);
-            this.WriteInt32(_binderSnapshot.GetTypeId(type));
-        }
-
         public void WriteEncoding(Encoding? encoding)
         {
             if (encoding == null)
@@ -815,104 +730,6 @@ namespace Roslyn.Utilities
                 WriteByte((byte)TypeCode.EncodingName);
                 WriteString(encoding.WebName);
             }
-        }
-
-        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
-        {
-            RoslynDebug.Assert(instance != null);
-            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
-
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            // write object ref if we already know this instance
-            if (_objectReferenceMap.TryGetReferenceId(instance, out var id))
-            {
-                Debug.Assert(id >= 0);
-                if (id <= byte.MaxValue)
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_1Byte);
-                    _writer.Write((byte)id);
-                }
-                else if (id <= ushort.MaxValue)
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_2Bytes);
-                    _writer.Write((ushort)id);
-                }
-                else
-                {
-                    _writer.Write((byte)TypeCode.ObjectRef_4Bytes);
-                    _writer.Write(id);
-                }
-            }
-            else
-            {
-                var writable = instanceAsWritable;
-                if (writable == null)
-                {
-                    writable = instance as IObjectWritable;
-                    if (writable == null)
-                    {
-                        throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
-                    }
-                }
-
-                var oldDepth = _recursionDepth;
-                _recursionDepth++;
-
-                if (_recursionDepth % MaxRecursionDepth == 0)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-
-                    // If we're recursing too deep, move the work to another thread to do so we
-                    // don't blow the stack.
-                    var task = SerializationThreadPool.RunOnBackgroundThreadAsync(
-                        obj =>
-                        {
-                            WriteObjectWorker((IObjectWritable)obj!);
-                            return null;
-                        },
-                        writable);
-
-                    // We must not proceed until the additional task completes. After returning from a write, the underlying
-                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                    // completes its write then an access violation can occur attempting to write to unmapped memory.
-                    //
-                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                    // so the wait can complete.
-                    task.GetAwaiter().GetResult();
-                }
-                else
-                {
-                    WriteObjectWorker(writable);
-                }
-
-                _recursionDepth--;
-                Debug.Assert(_recursionDepth == oldDepth);
-            }
-        }
-
-        private void WriteObjectWorker(IObjectWritable writable)
-        {
-            _objectReferenceMap.Add(writable, writable.ShouldReuseInSerialization);
-
-            // emit object header up front
-            _writer.Write((byte)TypeCode.Object);
-
-            // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
-            // tag since we just wrote out the 'Object' tag
-            this.WriteInt32(_binderSnapshot.GetTypeId(writable.GetType()));
-            writable.WriteTo(this);
-        }
-
-        private static Exception NoSerializationTypeException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
-        }
-
-        private static Exception NoSerializationWriterException(string typeName)
-        {
-            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
@@ -986,26 +803,6 @@ namespace Roslyn.Utilities
             /// A type
             /// </summary>
             Type,
-
-            /// <summary>
-            /// An object with member values encoded as variants
-            /// </summary>
-            Object,
-
-            /// <summary>
-            /// An object reference with the id encoded as 1 byte.
-            /// </summary>
-            ObjectRef_1Byte,
-
-            /// <summary>
-            /// An object reference with the id encode as 2 bytes.
-            /// </summary>
-            ObjectRef_2Bytes,
-
-            /// <summary>
-            /// An object reference with the id encoded as 4 bytes.
-            /// </summary>
-            ObjectRef_4Bytes,
 
             /// <summary>
             /// A string encoded as UTF-8 (using BinaryWriter.Write(string))

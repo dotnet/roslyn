@@ -13,18 +13,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
+#pragma warning disable IDE0060 // Remove unused parameter
+
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public sealed class ObjectSerializationTests
     {
-        static ObjectSerializationTests()
-        {
-            // Register appropriate deserialization methods.
-            new PrimitiveArrayMemberTest();
-            new PrimitiveMemberTest();
-            new PrimitiveValueTest();
-        }
-
         [Fact]
         public void TestInvalidStreamVersion()
         {
@@ -38,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Null(reader);
         }
 
-        private void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
+        private static void RoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction, bool recursive)
         {
             using var stream = new MemoryStream();
 
@@ -52,13 +46,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             readAction(reader);
         }
 
-        private void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
+        private static void TestRoundTrip(Action<ObjectWriter> writeAction, Action<ObjectReader> readAction)
         {
             RoundTrip(writeAction, readAction, recursive: true);
             RoundTrip(writeAction, readAction, recursive: false);
         }
 
-        private T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private static T RoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             using var stream = new MemoryStream();
 
@@ -72,19 +66,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return readAction(reader);
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
+        private static void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction, bool recursive)
         {
             var newValue = RoundTrip(value, writeAction, readAction, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
-        private void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
+        private static void TestRoundTrip<T>(T value, Action<ObjectWriter, T> writeAction, Func<ObjectReader, T> readAction)
         {
             TestRoundTrip(value, writeAction, readAction, recursive: true);
             TestRoundTrip(value, writeAction, readAction, recursive: false);
         }
 
-        private T RoundTripValue<T>(T value, bool recursive)
+        private static T RoundTripValue<T>(T value, bool recursive)
         {
             return RoundTrip(value,
                 (w, v) =>
@@ -103,13 +97,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     : (T)r.ReadValue(), recursive);
         }
 
-        private void TestRoundTripValue<T>(T value, bool recursive)
+        private static void TestRoundTripValue<T>(T value, bool recursive)
         {
             var newValue = RoundTripValue(value, recursive);
             Assert.True(Equalish(value, newValue));
         }
 
-        private void TestRoundTripValue<T>(T value)
+        private static void TestRoundTripValue<T>(T value)
         {
             TestRoundTripValue(value, recursive: true);
             TestRoundTripValue(value, recursive: false);
@@ -137,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return false;
             }
 
-            for (int i = 0; i < seq1.Length; i++)
+            for (var i = 0; i < seq1.Length; i++)
             {
                 if (!Equalish(seq1.GetValue(i), seq2.GetValue(i)))
                 {
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return true;
         }
 
-        private class TypeWithOneMember<T> : IObjectWritable, IEquatable<TypeWithOneMember<T>>
+        private class TypeWithOneMember<T> : IEquatable<TypeWithOneMember<T>>
         {
             private readonly T _member;
 
@@ -157,16 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _member = value;
             }
 
-            private TypeWithOneMember(ObjectReader reader)
-            {
-                _member = typeof(T).IsEnum
-                    ? (T)Enum.ToObject(typeof(T), reader.ReadInt64())
-                    : (T)reader.ReadValue();
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
+            public void WriteTo(ObjectWriter writer)
             {
                 if (typeof(T).IsEnum)
                 {
@@ -176,11 +161,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     writer.WriteValue(_member);
                 }
-            }
-
-            static TypeWithOneMember()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithOneMember<T>), r => new TypeWithOneMember<T>(r));
             }
 
             public override Int32 GetHashCode()
@@ -206,193 +186,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private class TypeWithTwoMembers<T, S> : IObjectWritable, IEquatable<TypeWithTwoMembers<T, S>>
-        {
-            private readonly T _member1;
-            private readonly S _member2;
-
-            public TypeWithTwoMembers(T value1, S value2)
-            {
-                _member1 = value1;
-                _member2 = value2;
-            }
-
-            private TypeWithTwoMembers(ObjectReader reader)
-            {
-                _member1 = (T)reader.ReadValue();
-                _member2 = (S)reader.ReadValue();
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                writer.WriteValue(_member1);
-                writer.WriteValue(_member2);
-            }
-
-            static TypeWithTwoMembers()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithTwoMembers<T, S>), r => new TypeWithTwoMembers<T, S>(r));
-            }
-
-            public override int GetHashCode()
-            {
-                if (_member1 == null)
-                {
-                    return 0;
-                }
-                else
-                {
-                    return _member1.GetHashCode();
-                }
-            }
-
-            public override Boolean Equals(Object obj)
-            {
-                return Equals(obj as TypeWithTwoMembers<T, S>);
-            }
-
-            public bool Equals(TypeWithTwoMembers<T, S> other)
-            {
-                return other != null
-                    && Equalish(_member1, other._member1)
-                    && Equalish(_member2, other._member2);
-            }
-        }
-
-        // this type simulates a class with many members.. 
-        // it serializes each member individually, not as an array.
-        private class TypeWithManyMembers<T> : IObjectWritable, IEquatable<TypeWithManyMembers<T>>
-        {
-            private readonly T[] _members;
-
-            public TypeWithManyMembers(T[] values)
-            {
-                _members = values;
-            }
-
-            private TypeWithManyMembers(ObjectReader reader)
-            {
-                var count = reader.ReadInt32();
-                _members = new T[count];
-
-                for (int i = 0; i < count; i++)
-                {
-                    _members[i] = (T)reader.ReadValue();
-                }
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                writer.WriteInt32(_members.Length);
-
-                for (int i = 0; i < _members.Length; i++)
-                {
-                    writer.WriteValue(_members[i]);
-                }
-            }
-
-            static TypeWithManyMembers()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(TypeWithManyMembers<T>), r => new TypeWithManyMembers<T>(r));
-            }
-
-            public override int GetHashCode()
-            {
-                return _members.Length;
-            }
-
-            public override Boolean Equals(Object obj)
-            {
-                return Equals(obj as TypeWithManyMembers<T>);
-            }
-
-            public bool Equals(TypeWithManyMembers<T> other)
-            {
-                if (other == null)
-                {
-                    return false;
-                }
-
-                if (_members.Length != other._members.Length)
-                {
-                    return false;
-                }
-
-                return Equalish(_members, other._members);
-            }
-        }
-
-        private void TestRoundTripMember<T>(T value)
-        {
-            TestRoundTripValue(new TypeWithOneMember<T>(value));
-        }
-
-        private void TestRoundTripMembers<T, S>(T value1, S value2)
-        {
-            TestRoundTripValue(new TypeWithTwoMembers<T, S>(value1, value2));
-        }
-
-        private void TestRoundTripMembers<T>(params T[] values)
-        {
-            TestRoundTripValue(new TypeWithManyMembers<T>(values));
-        }
-
         [Fact]
         public void TestValueInt32()
         {
             TestRoundTripValue(123);
-        }
-
-        [Fact]
-        public void TestMemberInt32()
-        {
-            TestRoundTripMember(123);
-        }
-
-        [Fact]
-        public void TestMemberIntString()
-        {
-            TestRoundTripMembers(123, "Hello");
-        }
-
-        [Fact]
-        public void TestManyMembersInt32()
-        {
-            TestRoundTripMembers(Enumerable.Range(0, 1000).ToArray());
-        }
-
-        [Fact]
-        public void TestSmallArrayMember()
-        {
-            TestRoundTripMember(Enumerable.Range(0, 3).ToArray());
-        }
-
-        [Fact]
-        public void TestEmptyArrayMember()
-        {
-            TestRoundTripMember(new int[] { });
-        }
-
-        [Fact]
-        public void TestNullArrayMember()
-        {
-            TestRoundTripMember<int[]>(null);
-        }
-
-        [Fact]
-        public void TestLargeArrayMember()
-        {
-            TestRoundTripMember(Enumerable.Range(0, 1000).ToArray());
-        }
-
-        [Fact]
-        public void TestEnumMember()
-        {
-            TestRoundTripMember(EByte.Value);
         }
 
         [Fact]
@@ -425,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
-        private void TestRoundTripType(Type type)
+        private static void TestRoundTripType(Type type)
         {
             TestRoundTrip(type, (w, v) => w.WriteType(v), r => r.ReadType());
         }
@@ -438,7 +235,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripType(typeof(ObjectSerializationTests));
         }
 
-        private void TestRoundTripCompressedUint(uint value)
+        private static void TestRoundTripCompressedUint(uint value)
         {
             TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
         }
@@ -478,15 +275,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestArrayValues<double>(1.0, 2.0, 3.0, 4.0, 5.0);
             TestArrayValues<char>('1', '2', '3', '4', '5');
             TestArrayValues<string>("1", "2", "3", "4", "5");
-            TestArrayValues(
-                new TypeWithOneMember<int>(1),
-                new TypeWithOneMember<int>(2),
-                new TypeWithOneMember<int>(3),
-                new TypeWithOneMember<int>(4),
-                new TypeWithOneMember<int>(5));
         }
 
-        private void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
+        private static void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
         {
             TestRoundTripValue((T[])null);
             TestRoundTripValue(new T[] { });
@@ -508,42 +299,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
         {
             var data = new byte[size];
-            for (int i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++)
             {
                 data[i] = (byte)i;
             }
 
             TestRoundTrip(w => TestWritingByteSpan(data, w), r => TestReadingByteSpan(data, r));
-        }
-
-        [Fact]
-        public void TestPrimitiveArrayMembers()
-        {
-            TestRoundTrip(w => w.WriteValue(new PrimitiveArrayMemberTest()), r => r.ReadValue());
-        }
-
-        public class PrimitiveArrayMemberTest : IObjectWritable
-        {
-            public PrimitiveArrayMemberTest()
-            {
-            }
-
-            private PrimitiveArrayMemberTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveArrays(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                TestWritingPrimitiveArrays(writer);
-            }
-
-            static PrimitiveArrayMemberTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveArrayMemberTest), r => new PrimitiveArrayMemberTest(r));
-            }
         }
 
         private static void TestWritingPrimitiveArrays(ObjectWriter writer)
@@ -635,7 +396,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 TestRoundTripValue(inputBool);
-                TestRoundTripMember(inputBool);
             }
         }
 
@@ -644,7 +404,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var inputBool = Enumerable.Repeat<bool>(false, 1000).ToArray();
             TestRoundTripValue(inputBool);
-            TestRoundTripMember(inputBool);
         }
 
         private static readonly DateTime _testNow = DateTime.Now;
@@ -780,75 +539,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestPrimitiveMemberValues()
-        {
-            TestRoundTripMember(true);
-            TestRoundTripMember(false);
-            TestRoundTripMember(Byte.MaxValue);
-            TestRoundTripMember(SByte.MaxValue);
-            TestRoundTripMember(Int16.MaxValue);
-            TestRoundTripMember(Int32.MaxValue);
-            TestRoundTripMember(Byte.MaxValue);
-            TestRoundTripMember(Int16.MaxValue);
-            TestRoundTripMember(Int64.MaxValue);
-            TestRoundTripMember(UInt16.MaxValue);
-            TestRoundTripMember(UInt32.MaxValue);
-            TestRoundTripMember(UInt64.MaxValue);
-            TestRoundTripMember(Decimal.MaxValue);
-            TestRoundTripMember(Double.MaxValue);
-            TestRoundTripMember(Single.MaxValue);
-            TestRoundTripMember('X');
-            TestRoundTripMember("YYY");
-            TestRoundTripMember("\uD800\uDC00"); // valid surrogate pair
-            TestRoundTripMember("\uDC00\uD800"); // invalid surrogate pair
-            TestRoundTripMember("\uD800"); // incomplete surrogate pair
-            TestRoundTripMember<object>(null);
-            TestRoundTripMember(ConsoleColor.Cyan);
-            TestRoundTripMember(EByte.Value);
-            TestRoundTripMember(ESByte.Value);
-            TestRoundTripMember(EShort.Value);
-            TestRoundTripMember(EUShort.Value);
-            TestRoundTripMember(EInt.Value);
-            TestRoundTripMember(EUInt.Value);
-            TestRoundTripMember(ELong.Value);
-            TestRoundTripMember(EULong.Value);
-            TestRoundTripMember(_testNow);
-        }
-
-        [Fact]
         public void TestPrimitiveAPIs()
         {
             TestRoundTrip(w => TestWritingPrimitiveAPIs(w), r => TestReadingPrimitiveAPIs(r));
-        }
-
-        [Fact]
-        public void TestPrimitiveMemberAPIs()
-        {
-            TestRoundTrip(w => w.WriteValue(new PrimitiveMemberTest()), r => r.ReadValue());
-        }
-
-        public class PrimitiveMemberTest : IObjectWritable
-        {
-            public PrimitiveMemberTest()
-            {
-            }
-
-            private PrimitiveMemberTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveAPIs(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                TestWritingPrimitiveAPIs(writer);
-            }
-
-            static PrimitiveMemberTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveMemberTest), r => new PrimitiveMemberTest(r));
-            }
         }
 
         private static void TestWritingPrimitiveAPIs(ObjectWriter writer)
@@ -905,36 +598,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingPrimitiveValues(w), r => TestReadingPrimitiveValues(r));
         }
 
-        [Fact]
-        public void TestPrimitiveValueAPIs()
-        {
-            TestRoundTrip(w => w.WriteValue(new PrimitiveValueTest()), r => r.ReadValue());
-        }
-
-        public class PrimitiveValueTest : IObjectWritable
-        {
-            public PrimitiveValueTest()
-            {
-            }
-
-            private PrimitiveValueTest(ObjectReader reader)
-            {
-                TestReadingPrimitiveValues(reader);
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                TestWritingPrimitiveValues(writer);
-            }
-
-            static PrimitiveValueTest()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(PrimitiveValueTest), r => new PrimitiveValueTest(r));
-            }
-        }
-
         private static void TestWritingPrimitiveValues(ObjectWriter writer)
         {
             writer.WriteValue(true);
@@ -963,7 +626,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue((object)"\uD800"); // incomplete surrogate pair
 
             writer.WriteValue((object)null);
-            writer.WriteValue((IObjectWritable)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);
@@ -1001,7 +663,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
             Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
             Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
-            Assert.Null(reader.ReadValue());
             Assert.Null(reader.ReadValue());
 
             unchecked
@@ -1070,7 +731,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestRoundTripChar(Char ch)
+        private static void TestRoundTripChar(Char ch)
         {
             TestRoundTrip(ch, (w, v) => w.WriteChar(v), r => r.ReadChar());
         }
@@ -1087,7 +748,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             test(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
             test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
             test(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 test(Guid.NewGuid());
             }
@@ -1112,12 +773,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripString(sb.ToString());
         }
 
-        private void TestRoundTripString(string text)
+        private static void TestRoundTripString(string text)
         {
             TestRoundTrip(text, (w, v) => w.WriteString(v), r => r.ReadString());
         }
 
-        private void TestRoundTripStringCharacter(ushort code)
+        private static void TestRoundTripStringCharacter(ushort code)
         {
             TestRoundTripString(new String((char)code, 1));
         }
@@ -1134,7 +795,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripArray(new string[] { "hello", null, "world" });
         }
 
-        private void TestRoundTripArray<T>(T[] values)
+        private static void TestRoundTripArray<T>(T[] values)
         {
             TestRoundTripValue(values);
         }
@@ -1159,198 +820,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(reader);
             var deserialized = (Encoding)reader.ReadValue();
             EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
-        }
-
-        [Fact]
-        public void TestObjectMapLimits()
-        {
-            using var stream = new MemoryStream();
-            var instances = new List<TypeWithTwoMembers<int, string>>();
-
-            // We need enough items to exercise all sizes of ObjectRef
-            for (int i = 0; i < ushort.MaxValue + 1; i++)
-            {
-                instances.Add(new TypeWithTwoMembers<int, string>(i, i.ToString()));
-            }
-
-            using (var writer = new ObjectWriter(stream, leaveOpen: true))
-            {
-                // Write each instance twice. The second time around, they'll become ObjectRefs
-                for (int pass = 0; pass < 2; pass++)
-                {
-                    foreach (var instance in instances)
-                    {
-                        writer.WriteValue(instance);
-                    }
-                }
-            }
-
-            stream.Position = 0;
-            using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: true))
-            {
-                for (int pass = 0; pass < 2; pass++)
-                {
-                    foreach (var instance in instances)
-                    {
-                        var obj = reader.ReadValue();
-                        Assert.NotNull(obj);
-                        Assert.True(Equalish(obj, instance));
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public void TestObjectGraph()
-        {
-            var oneNode = new Node("one");
-            TestRoundTripValue(oneNode);
-            TestRoundTripValue(new Node("a", new Node("b"), new Node("c")));
-            TestRoundTripValue(new Node("x", oneNode, oneNode, oneNode, oneNode));
-        }
-
-        [Fact]
-        public void TestReuse()
-        {
-            var oneNode = new Node("one");
-            var n1 = new Node("x", oneNode, oneNode, oneNode, oneNode);
-            var n2 = RoundTripValue(n1, recursive: true);
-
-            Assert.Same(n2.Children[0], n2.Children[1]);
-            Assert.Same(n2.Children[1], n2.Children[2]);
-            Assert.Same(n2.Children[2], n2.Children[3]);
-        }
-
-        [Fact]
-        public void TestReuseNegative()
-        {
-            var oneNode = new Node("one", isReusable: false);
-            var n1 = new Node("x", oneNode, oneNode, oneNode, oneNode);
-            var n2 = RoundTripValue(n1, recursive: true);
-
-            Assert.NotSame(n2.Children[0], n2.Children[1]);
-            Assert.NotSame(n2.Children[1], n2.Children[2]);
-            Assert.NotSame(n2.Children[2], n2.Children[3]);
-        }
-
-        [Fact]
-        public void TestWideObjectGraph()
-        {
-            int id = 0;
-            var graph = ConstructGraph(ref id, 5, 3);
-            TestRoundTripValue(graph);
-        }
-
-        [Fact]
-        public void TestDeepObjectGraph_RecursiveSucceeds()
-        {
-            int id = 0;
-            var graph = ConstructGraph(ref id, 1, 1000);
-            TestRoundTripValue(graph);
-        }
-
-        [Fact]
-        public void TestDeepObjectGraph_NonRecursiveSucceeds()
-        {
-            int id = 0;
-            var graph = ConstructGraph(ref id, 1, 1000);
-            TestRoundTripValue(graph, recursive: false);
-        }
-
-        private Node ConstructGraph(ref int id, int width, int depth)
-        {
-            var name = "node" + (id++);
-
-            Node[] children;
-
-            if (depth > 0)
-            {
-                children = new Node[width];
-
-                for (int i = 0; i < width; i++)
-                {
-                    children[i] = ConstructGraph(ref id, width, depth - 1);
-                }
-            }
-            else
-            {
-                children = Array.Empty<Node>();
-            }
-
-            return new Node(name, children);
-        }
-
-        private class Node : IObjectWritable, IEquatable<Node>
-        {
-            internal readonly string Name;
-            internal readonly Node[] Children;
-            private readonly bool _isReusable = true;
-
-            public Node(string name, params Node[] children)
-            {
-                this.Name = name;
-                this.Children = children;
-            }
-
-            public Node(string name, bool isReusable)
-                : this(name)
-            {
-                this._isReusable = isReusable;
-            }
-
-            private Node(ObjectReader reader)
-            {
-                this.Name = reader.ReadString();
-                this.Children = (Node[])reader.ReadValue();
-            }
-
-            private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
-
-            bool IObjectWritable.ShouldReuseInSerialization => _isReusable;
-
-            public void WriteTo(ObjectWriter writer)
-            {
-                writer.WriteString(this.Name);
-                writer.WriteValue(this.Children);
-            }
-
-            static Node()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(Node), r => new Node(r));
-            }
-
-            public override Int32 GetHashCode()
-            {
-                return this.Name != null ? this.Name.GetHashCode() : 0;
-            }
-
-            public override Boolean Equals(Object obj)
-            {
-                return Equals(obj as Node);
-            }
-
-            public bool Equals(Node node)
-            {
-                if (node == null || this.Name != node.Name)
-                {
-                    return false;
-                }
-
-                if (this.Children.Length != node.Children.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < this.Children.Length; i++)
-                {
-                    if (!this.Children[i].Equals(node.Children[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
         }
 
         // keep these around for analyzing perf issues
@@ -1399,3 +868,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
     }
 }
+
+#pragma warning restore IDE0060 // Remove unused parameter

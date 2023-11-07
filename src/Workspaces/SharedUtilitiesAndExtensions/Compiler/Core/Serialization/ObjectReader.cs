@@ -45,20 +45,9 @@ namespace Roslyn.Utilities
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Map of reference id's to deserialized objects.
+        /// Map of reference id's to deserialized strings.
         /// </summary>
-        private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
-
-        /// <summary>
-        /// Copy of the global binder data that maps from Types to the appropriate reading-function
-        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
-        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
-        /// local copy we can work with without needing to worry about anyone else mutating.
-        /// </summary>
-        private readonly ObjectBinderSnapshot _binderSnapshot;
-
-        private int _recursionDepth;
 
         /// <summary>
         /// Creates a new instance of a <see cref="ObjectReader"/>.
@@ -76,12 +65,7 @@ namespace Roslyn.Utilities
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
-            _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
-
-            // Capture a copy of the current static binder state.  That way we don't have to 
-            // access any locks while we're doing our processing.
-            _binderSnapshot = ObjectBinder.GetSnapshot();
 
             _cancellationToken = cancellationToken;
         }
@@ -162,9 +146,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
-            _recursionDepth = 0;
         }
 
         public bool ReadBoolean() => _reader.ReadBoolean();
@@ -195,40 +177,6 @@ namespace Roslyn.Utilities
         }
 
         public object ReadValue()
-        {
-            var oldDepth = _recursionDepth;
-            _recursionDepth++;
-
-            object value;
-            if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                // If we're recursing too deep, move the work to another thread to do so we
-                // don't blow the stack.
-                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
-
-                // We must not proceed until the additional task completes. After returning from a read, the underlying
-                // stream providing access to raw memory will be closed; if this occurs before the separate thread
-                // completes its read then an access violation can occur attempting to read from unmapped memory.
-                //
-                // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
-                // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
-                // so the wait can complete.
-                value = task.GetAwaiter().GetResult();
-            }
-            else
-            {
-                value = ReadValueWorker();
-            }
-
-            _recursionDepth--;
-            Debug.Assert(oldDepth == _recursionDepth);
-
-            return value;
-        }
-
-        private object ReadValueWorker()
         {
             var code = (TypeCode)_reader.ReadByte();
             switch (code)
@@ -284,11 +232,8 @@ namespace Roslyn.Utilities
                 case TypeCode.StringRef_1Byte:
                 case TypeCode.StringRef_2Bytes:
                     return ReadStringValue(code);
-                case TypeCode.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
-                case TypeCode.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
-                case TypeCode.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
-                case TypeCode.Object: return ReadObject();
-                case TypeCode.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
+                case TypeCode.DateTime:
+                    return DateTime.FromBinary(_reader.ReadInt64());
                 case TypeCode.Array:
                 case TypeCode.Array_0:
                 case TypeCode.Array_1:
@@ -353,8 +298,8 @@ namespace Roslyn.Utilities
         internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
-            byte marker = (byte)(info & ObjectWriter.ByteMarkerMask);
-            byte byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
+            var marker = (byte)(info & ObjectWriter.ByteMarkerMask);
+            var byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
             if (marker == ObjectWriter.Byte1Marker)
             {
@@ -417,8 +362,8 @@ namespace Roslyn.Utilities
             else
             {
                 // This is rare, just allocate UTF-16 bytes for simplicity.
-                int characterCount = (int)ReadCompressedUInt();
-                byte[] bytes = _reader.ReadBytes(characterCount * sizeof(char));
+                var characterCount = (int)ReadCompressedUInt();
+                var bytes = _reader.ReadBytes(characterCount * sizeof(char));
                 fixed (byte* bytesPtr = bytes)
                 {
                     value = new string((char*)bytesPtr, 0, characterCount);
@@ -461,19 +406,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                // custom type case
-                elementType = this.ReadTypeAfterTag();
-
-                // recursive: create instance and read elements next in stream
-                Array array = Array.CreateInstance(elementType, length);
-
-                for (int i = 0; i < length; ++i)
-                {
-                    var value = this.ReadValue();
-                    array.SetValue(value, i);
-                }
-
-                return array;
+                throw ExceptionUtilities.UnexpectedValue(elementKind);
             }
         }
 
@@ -482,13 +415,17 @@ namespace Roslyn.Utilities
             Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
 
             // optimizations for supported array type by binary reader
-            if (type == typeof(byte)) { return _reader.ReadBytes(length); }
-            if (type == typeof(char)) { return _reader.ReadChars(length); }
+            if (type == typeof(byte))
+                return _reader.ReadBytes(length);
+            if (type == typeof(char))
+                return _reader.ReadChars(length);
 
             // optimizations for string where object reader/writer has its own mechanism to
             // reduce duplicated strings
-            if (type == typeof(string)) { return ReadStringArrayElements(CreateArray<string>(length)); }
-            if (type == typeof(bool)) { return ReadBooleanArrayElements(CreateArray<bool>(length)); }
+            if (type == typeof(string))
+                return ReadStringArrayElements(CreateArray<string>(length));
+            if (type == typeof(bool))
+                return ReadBooleanArrayElements(CreateArray<bool>(length));
 
             // otherwise, read elements directly from underlying binary writer
             switch (kind)
@@ -661,29 +598,6 @@ namespace Roslyn.Utilities
         {
             _reader.ReadByte();
             return Type.GetType(ReadString());
-        }
-
-        private Type ReadTypeAfterTag()
-            => _binderSnapshot.GetTypeFromId(this.ReadInt32());
-
-        private object ReadObject()
-        {
-            var objectId = _objectReferenceMap.GetNextObjectId();
-
-            // reading an object may recurse.  So we need to grab our ID up front as we'll
-            // end up making our sub-objects before we make this object.
-
-            var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
-
-            // recursive: read and construct instance immediately from member elements encoding next in the stream
-            var instance = typeReader(this);
-
-            if (instance.ShouldReuseInSerialization)
-            {
-                _objectReferenceMap.AddValue(objectId, instance);
-            }
-
-            return instance;
         }
 
         private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
