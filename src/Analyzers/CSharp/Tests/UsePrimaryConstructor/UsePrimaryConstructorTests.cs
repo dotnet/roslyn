@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UsePrimaryConstructor;
@@ -3093,6 +3094,46 @@ public partial class UsePrimaryConstructorTests
                         /// </summary>
                         public int ILOffset { get; } = ilOffset;
                     }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Base
+                {
+                    public Base(int i) { }
+                }
+
+                partial class C
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base
+                {
+                    public Base(int i) { }
+                }
+                
+                partial class C(int i) : Base(i)
+                {
+                }
+                
+                partial class C : Base
+                {
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
