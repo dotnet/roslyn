@@ -782,6 +782,8 @@ class C
             },
             HangMitigatingCancellationToken);
 
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
         // Verify CS0168 is now reported as an error.
         await VerifyDiagnosticInErrorListAsync("error", TestServices, HangMitigatingCancellationToken);
 
@@ -856,6 +858,8 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
                 FeatureAttribute.ErrorSquiggles,
             },
             HangMitigatingCancellationToken);
+
+        await Task.Delay(TimeSpan.FromSeconds(5));
 
         // Verify CS0168 is now reported as an error.
         await VerifyDiagnosticInErrorListAsync("error", TestServices, HangMitigatingCancellationToken);
@@ -947,6 +951,8 @@ dotnet_diagnostic.IDE0059.severity = error", HangMitigatingCancellationToken);
             },
             HangMitigatingCancellationToken);
 
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
         // Verify compiler and analyzer diagnostics are now reported as errors.
         await VerifyDiagnosticsInErrorListAsync("error", "error", TestServices, HangMitigatingCancellationToken);
 
@@ -965,6 +971,8 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
                 FeatureAttribute.ErrorSquiggles,
             },
             HangMitigatingCancellationToken);
+
+        await Task.Delay(TimeSpan.FromSeconds(5));
 
         // Verify compiler and analyzer diagnostics are now cleared.
         await VerifyDiagnosticsInErrorListAsync("none", "none", TestServices, HangMitigatingCancellationToken);
