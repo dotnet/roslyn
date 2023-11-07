@@ -9641,5 +9641,83 @@ class Context
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70565")]
+        public async Task GenerateInsideStaticLambda1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = static () =>
+                        {
+                            [|Goo|]();
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = static () =>
+                        {
+                            Goo();
+                        };
+                    }
+
+                    private static void Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70565")]
+        public async Task GenerateInsideStaticLocalFunction1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        static void X()
+                        {
+                            [|Goo|]();
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        static void X()
+                        {
+                            Goo();
+                        };
+                    }
+
+                    private static void Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
     }
 }
