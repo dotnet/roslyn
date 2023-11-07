@@ -2280,6 +2280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionImmutableArray = 9210,
 
         ERR_InvalidExperimentalDiagID = 9211,
+        ERR_SpreadMissingMember = 9212,
 
         #endregion
 
