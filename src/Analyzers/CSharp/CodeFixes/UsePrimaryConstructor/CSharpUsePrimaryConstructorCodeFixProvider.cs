@@ -109,12 +109,11 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
     {
         var solution = document.Project.Solution;
 
-        var semanticModels = new HashSet<SemanticModel>();
-        var constructorDeclarationSemanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var typeDeclaration = (TypeDeclarationSyntax)constructorDeclaration.GetRequiredParent();
 
-        var namedType = constructorDeclarationSemanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
-        var constructor = constructorDeclarationSemanticModel.GetRequiredDeclaredSymbol(constructorDeclaration, cancellationToken);
+        var namedType = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
+        var constructor = semanticModel.GetRequiredDeclaredSymbol(constructorDeclaration, cancellationToken);
 
         // If we're removing members, first go through and update all references to that member to use the parameter name.
         var typeDeclarationNodes = namedType.DeclaringSyntaxReferences.Select(r => (TypeDeclarationSyntax)r.GetSyntax(cancellationToken));
@@ -126,7 +125,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
         await MoveBaseConstructorArgumentsAsync().ConfigureAwait(false);
 
         // Then take all the assignments in the constructor, and place them directly on the field/property initializers.
-        await ProcessConstructorAssignmentsAsync(constructorDeclarationSemanticModel, constructorDeclaration).ConfigureAwait(false);
+        await ProcessConstructorAssignmentsAsync().ConfigureAwait(false);
 
         // Then remove the constructor itself.
         var constructorDocumentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
@@ -134,7 +133,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
 
         // When moving the parameter list from the constructor to the type, we will no longer have nested types or
         // member constants in scope.  So rewrite references to them if that's the case.
-        var updatedParameterList = GenerateFinalParameterList(constructorDeclarationSemanticModel, constructorDeclaration);
+        var updatedParameterList = GenerateFinalParameterList();
 
         // Finally move the constructors parameter list to the type declaration.
         constructorDocumentEditor.ReplaceNode(
@@ -170,23 +169,11 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
 
         return;
 
-        async Task<SemanticModel> GetSemanticModelAsync(Document document)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            // Ensure that once we get a semantic model we keep it alive for future requests for it.
-            semanticModels.Add(semanticModel);
-
-            return semanticModel;
-        }
-
-        ParameterListSyntax GenerateFinalParameterList(
-            SemanticModel semanticModel, ConstructorDeclarationSyntax constructorDeclaration)
+        ParameterListSyntax GenerateFinalParameterList()
         {
             // Note: we can use constructorDeclarationSemanticModel as we're only touching nodes within the constructor
             // declaration itself.
-            var updatedParameterList = UpdateReferencesToNestedMembers(
-                semanticModel, constructorDeclaration.ParameterList);
+            var updatedParameterList = UpdateReferencesToNestedMembers(constructorDeclaration.ParameterList);
 
             updatedParameterList = RemoveElementIndentation(
                 typeDeclaration, constructorDeclaration, updatedParameterList,
@@ -218,8 +205,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 });
         }
 
-        ParameterListSyntax UpdateReferencesToNestedMembers(
-            SemanticModel semanticModel, ParameterListSyntax parameterList)
+        ParameterListSyntax UpdateReferencesToNestedMembers(ParameterListSyntax parameterList)
         {
             return parameterList.ReplaceNodes(
                 parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
@@ -291,8 +277,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
         static string GetLeadingWhitespace(SyntaxNode node)
             => node.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace] ? whitespace.ToString() : "";
 
-        async ValueTask MoveBaseConstructorArgumentsAsync(
-            SemanticModel semanticModel)
+        async ValueTask MoveBaseConstructorArgumentsAsync()
         {
             if (constructorDeclaration.Initializer is null)
                 return;
@@ -345,7 +330,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
             }
         }
 
-        async ValueTask ProcessConstructorAssignmentsAsync(SemanticModel semanticModel, ConstructorDeclarationSyntax constructorDeclaration)
+        async ValueTask ProcessConstructorAssignmentsAsync()
         {
             if (constructorDeclaration.ExpressionBody is not null)
             {
