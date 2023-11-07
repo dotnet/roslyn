@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
-        private readonly bool _hasDiagnosticSuppressors;
+        internal readonly bool HasDiagnosticSuppressors;
 
         /// <summary>
         /// Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.
@@ -376,9 +376,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.AnalyzerManager = analyzerManager;
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _severityFilter = severityFilter;
-            _hasDiagnosticSuppressors = this.Analyzers.Any(static a => a is DiagnosticSuppressor);
-            _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
-            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
+            HasDiagnosticSuppressors = this.Analyzers.Any(static a => a is DiagnosticSuppressor);
+            _programmaticSuppressions = HasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
+            _diagnosticsProcessedForProgrammaticSuppressions = HasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
             _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
         }
 
@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ApplyProgrammaticSuppressions(DiagnosticBag reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
             Debug.Assert(!reportedDiagnostics.IsEmptyWithoutResolution);
-            if (!_hasDiagnosticSuppressors)
+            if (!HasDiagnosticSuppressors)
             {
                 return;
             }
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<Diagnostic> ApplyProgrammaticSuppressions(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
             if (reportedDiagnostics.IsEmpty ||
-                !_hasDiagnosticSuppressors)
+                !HasDiagnosticSuppressors)
             {
                 return reportedDiagnostics;
             }
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsCore(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
-            Debug.Assert(_hasDiagnosticSuppressors);
+            Debug.Assert(HasDiagnosticSuppressors);
             Debug.Assert(!reportedDiagnostics.IsEmpty);
             Debug.Assert(_programmaticSuppressions != null);
             Debug.Assert(_diagnosticsProcessedForProgrammaticSuppressions != null);

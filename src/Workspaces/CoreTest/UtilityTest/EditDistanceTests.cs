@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static readonly string[] Top1000 =
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
             [
                 "a","able","about","above","act","add","afraid","after","again","against","age","ago","agree","air","all",
                 "allow","also","always","am","among","an","and","anger","animal","answer","any","appear","apple","are",
@@ -212,6 +213,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "wish","with","woman","women","wonder","wont","wood","word","work","world","would","write","written",
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
             ];
+#pragma warning restore format
 
         [Fact]
         public void Top1000Test()

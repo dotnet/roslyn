@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
                 await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(
                 [
-                        ContentTypeNames.CSharpContentType,
-                        ContentTypeNames.VisualBasicContentType,
-                        ContentTypeNames.FSharpContentType
+                    ContentTypeNames.CSharpContentType,
+                    ContentTypeNames.VisualBasicContentType,
+                    ContentTypeNames.FSharpContentType
                 ]), _languageClient).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
