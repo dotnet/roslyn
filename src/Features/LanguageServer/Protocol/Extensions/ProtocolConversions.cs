@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var content = markdownBuilder.Build();
+            var content = markdownBuilder.Build(Environment.NewLine);
 
             return new LSP.MarkupContent
             {

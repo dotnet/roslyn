@@ -5,50 +5,49 @@
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal static partial class ProtocolConversions
 {
-    internal static partial class ProtocolConversions
+    private readonly ref struct MarkdownContentBuilder
     {
-        private readonly struct MarkdownContentBuilder : IDisposable
+        private readonly ArrayBuilder<string> _linesBuilder;
+
+        public MarkdownContentBuilder()
         {
-            private readonly ArrayBuilder<string> _linesBuilder;
+            _linesBuilder = ArrayBuilder<string>.GetInstance();
+        }
 
-            public MarkdownContentBuilder()
-            {
-                _linesBuilder = ArrayBuilder<string>.GetInstance();
-            }
-
-            public void Append(string text)
-            {
-                if (_linesBuilder.Count == 0)
-                {
-                    _linesBuilder.Add(text);
-                }
-                else
-                {
-                    _linesBuilder[^1] = _linesBuilder[^1] + text;
-                }
-            }
-
-            public void AppendLine(string text = "")
+        public void Append(string text)
+        {
+            if (_linesBuilder.Count == 0)
             {
                 _linesBuilder.Add(text);
             }
-
-            public bool IsLineEmpty()
+            else
             {
-                return _linesBuilder.Count == 0 ? true : string.IsNullOrEmpty(_linesBuilder[^1]);
+                _linesBuilder[^1] = _linesBuilder[^1] + text;
             }
+        }
 
-            public string Build()
-            {
-                return string.Join(Environment.NewLine, _linesBuilder);
-            }
+        public void AppendLine(string text = "")
+        {
+            _linesBuilder.Add(text);
+        }
 
-            public void Dispose()
-            {
-                _linesBuilder.Free();
-            }
+        public bool IsLineEmpty()
+        {
+            return _linesBuilder is [] or [.., ""];
+        }
+
+        public string Build(string newLine)
+        {
+            return string.Join(newLine, _linesBuilder);
+        }
+
+        public void Dispose()
+        {
+            _linesBuilder.Free();
         }
     }
 }
