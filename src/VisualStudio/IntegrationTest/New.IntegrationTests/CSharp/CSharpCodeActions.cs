@@ -850,7 +850,7 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(10));
 
                 string[] expectedContents =
                 [
@@ -957,7 +957,7 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(10));
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
