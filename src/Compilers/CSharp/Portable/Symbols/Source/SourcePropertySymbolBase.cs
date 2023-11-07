@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly DeclarationModifiers _modifiers;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 #nullable enable
-        private string? _lazyName;
+        private readonly string _name;
         private string? _lazySourceName;
         private SynthesizedBackingFieldSymbol? _lazyBackingField;
         private readonly ExplicitInterfaceMemberInfo? _explicitInterfaceMemberInfo;
@@ -141,14 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(memberName == DefaultIndexerName);
                 }
 
-                if (explicitInterfaceMemberInfo is null)
-                {
-                    _lazyName = WellKnownMemberNames.Indexer;
-                }
+                _name = WellKnownMemberNames.Indexer;
+            }
+            else if (memberName is { })
+            {
+                _name = _lazySourceName = memberName;
             }
             else
             {
-                _lazyName = _lazySourceName = memberName;
+                Debug.Assert(explicitInterfaceMemberInfo is { });
+                _name = _lazySourceName = explicitInterfaceMemberInfo.Name;
             }
 
             if (hasGetAccessor)
@@ -365,13 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyName is null)
-                {
-                    Debug.Assert(_explicitInterfaceMemberInfo is not null);
-                    return InterlockedOperations.Initialize(ref _lazyName, _explicitInterfaceMemberInfo.MemberName);
-                }
-
-                return _lazyName;
+                return _name;
             }
         }
 
@@ -432,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Explicit implementation names may have spaces if the interface
                 // is generic (between the type arguments).
-                return SourceName.Replace(" ", "");
+                return _explicitInterfaceMemberInfo?.MemberMetadataName ?? SourceName.Replace(" ", "");
             }
         }
 

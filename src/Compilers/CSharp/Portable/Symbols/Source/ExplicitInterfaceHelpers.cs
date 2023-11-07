@@ -18,12 +18,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
 #nullable enable
-    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
+    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
     {
         private TypeSymbol? _lazyExplicitInterfaceType;
-        private string? _lazyMemberName;
+        private string? _lazyMemberMetadataName;
 
-        public string? AliasQualifier { get; } = explicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
+        public required string Name { get; init; }
+
+        public required string? AliasQualifier { get; init; }
+
+        public required string MemberName { get; init; }
 
         public TypeSymbol? ExplicitInterfaceType
         {
@@ -44,17 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public string MemberName
+        public string MemberMetadataName
         {
             get
             {
-                if (_lazyMemberName is null)
+                if (_lazyMemberMetadataName is null)
                 {
-                    var memberName = ExplicitInterfaceHelpers.GetMemberName(name, ExplicitInterfaceType, AliasQualifier);
-                    return InterlockedOperations.Initialize(ref _lazyMemberName, memberName);
+                    var memberMetadataName = ExplicitInterfaceHelpers.GetMemberName(Name, ExplicitInterfaceType, AliasQualifier);
+                    return InterlockedOperations.Initialize(ref _lazyMemberMetadataName, memberMetadataName);
                 }
 
-                return _lazyMemberName;
+                return _lazyMemberMetadataName;
             }
         }
     }
@@ -88,7 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return name;
             }
 
-            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier, name);
+            string? aliasQualifier = explicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
+            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier)
+            {
+                Name = name,
+                AliasQualifier = aliasQualifier,
+                MemberName = GetMemberName(name, explicitInterfaceSpecifier.Name.ToString(), aliasQualifier),
+            };
             return null;
         }
 #nullable disable
@@ -120,7 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static string GetMemberName(string name, TypeSymbol explicitInterfaceTypeOpt, string aliasQualifierOpt)
         {
-            if ((object)explicitInterfaceTypeOpt == null)
+            string interfaceName = explicitInterfaceTypeOpt?.ToDisplayString(SymbolDisplayFormat.ExplicitInterfaceImplementationFormat);
+            return GetMemberName(name, interfaceName, aliasQualifierOpt);
+        }
+
+#nullable enable
+        public static string GetMemberName(string name, string? explicitInterfaceName, string? aliasQualifier)
+        {
+            if (explicitInterfaceName is null)
             {
                 return name;
             }
@@ -128,18 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: Revisit how explicit interface implementations are named.
             // CONSIDER (vladres): we should never generate identical names for different methods.
 
-            string interfaceName = explicitInterfaceTypeOpt.ToDisplayString(SymbolDisplayFormat.ExplicitInterfaceImplementationFormat);
-
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
 
-            if (!string.IsNullOrEmpty(aliasQualifierOpt))
+            if (!string.IsNullOrEmpty(aliasQualifier))
             {
-                builder.Append(aliasQualifierOpt);
+                builder.Append(aliasQualifier);
                 builder.Append("::");
             }
 
-            foreach (char ch in interfaceName)
+            foreach (char ch in explicitInterfaceName)
             {
                 // trim spaces to match metadata name (more closely - could still be truncated)
                 if (ch != ' ')
@@ -153,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return pooled.ToStringAndFree();
         }
+#nullable disable
 
         public static string GetMethodNameWithoutInterfaceName(this MethodSymbol method)
         {

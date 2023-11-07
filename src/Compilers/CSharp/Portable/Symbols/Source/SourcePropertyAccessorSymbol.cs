@@ -659,22 +659,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (IsExplicitInterfaceImplementation)
                     {
-                        PropertySymbol? explicitlyImplementedPropertyOpt = _property.ExplicitInterfaceImplementations.FirstOrDefault();
+                        string accessorName = GetAccessorName(_property.Name,
+                                isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
 
-                        if (explicitlyImplementedPropertyOpt is object)
-                        {
-                            MethodSymbol? implementedAccessor = isGetMethod
-                                ? explicitlyImplementedPropertyOpt.GetMethod
-                                : explicitlyImplementedPropertyOpt.SetMethod;
-
-                            string accessorName = (object)implementedAccessor != null
-                                ? implementedAccessor.Name
-                                : GetAccessorName(explicitlyImplementedPropertyOpt.MetadataName,
-                                    isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
-
-                            string? aliasQualifierOpt = _property.GetExplicitInterfaceSpecifier()?.Name.GetAliasQualifierOpt();
-                            name = ExplicitInterfaceHelpers.GetMemberName(accessorName, explicitlyImplementedPropertyOpt.ContainingType, aliasQualifierOpt);
-                        }
+                        var explicitInterfaceSpecifier = _property.GetExplicitInterfaceSpecifier();
+                        string? aliasQualifierOpt = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
+                        name = ExplicitInterfaceHelpers.GetMemberName(accessorName, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifierOpt);
                     }
                     else if (IsOverride)
                     {
