@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             binder = binder.WithUnsafeRegionIfNecessary(modifiersTokenList);
             ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo;
-            string? memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceMemberInfo);
+            string memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceMemberInfo);
 
             return new SourcePropertySymbol(
                 containingType,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
-            string? memberName,
+            string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
             : base(

@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodKind methodKind,
                 bool isNullableAnalysisEnabled,
                 BindingDiagnosticBag diagnostics)
-                : base(containingType, name ?? explicitInterfaceMemberInfo.MemberName, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
+                : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
             {
                 _explicitInterfaceMemberInfo = explicitInterfaceMemberInfo;
 

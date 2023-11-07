@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier);
         }
 
-        public static string? GetExplicitInterfaceMemberInfo(
+        public static string GetExplicitInterfaceMemberInfo(
             Binder binder,
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             string name,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AliasQualifier = aliasQualifier,
                 MemberName = GetMemberName(explicitInterfaceSpecifier, name),
             };
-            return null;
+            return explicitInterfaceMemberInfo.MemberName;
         }
 #nullable disable
 

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             RefKind refKind,
-            string? memberName,
+            string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -143,14 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceMemberInfo?.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
             }
-            else if (memberName is { })
-            {
-                _name = _lazySourceName = memberName;
-            }
             else
             {
-                Debug.Assert(explicitInterfaceMemberInfo is { });
-                _name = _lazySourceName = explicitInterfaceMemberInfo.MemberName;
+                _name = _lazySourceName = memberName;
             }
 
             if (hasGetAccessor)
@@ -380,39 +375,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(IsIndexer);
 
+                    var indexerNameAttributeLists = ((IndexerDeclarationSyntax)CSharpSyntaxNode).AttributeLists;
+                    Debug.Assert(indexerNameAttributeLists.Count != 0);
+                    Debug.Assert(!IsExplicitInterfaceImplementation);
+
                     string? sourceName = null;
 
-                    var indexerNameAttributeLists = ((IndexerDeclarationSyntax)CSharpSyntaxNode).AttributeLists;
+                    // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
 
-                    if (IsExplicitInterfaceImplementation)
+                    // CONSIDER: none of the information from this early binding pass is cached.  Everything will
+                    // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
+                    // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
+                    // handle partially filled bags.
+                    CustomAttributesBag<CSharpAttributeData>? temp = null;
+                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
+                    if (temp != null)
                     {
-                        Debug.Assert(_explicitInterfaceMemberInfo is not null);
-                        sourceName = _explicitInterfaceMemberInfo.MemberName;
-                    }
-                    else
-                    {
-                        Debug.Assert(indexerNameAttributeLists.Count != 0);
-
-                        // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
-
-                        // CONSIDER: none of the information from this early binding pass is cached.  Everything will
-                        // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
-                        // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
-                        // handle partially filled bags.
-                        CustomAttributesBag<CSharpAttributeData>? temp = null;
-                        LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
-                        if (temp != null)
+                        Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
+                        var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
+                        if (propertyData != null)
                         {
-                            Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                            var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                            if (propertyData != null)
-                            {
-                                sourceName = propertyData.IndexerName;
-                            }
+                            sourceName = propertyData.IndexerName;
                         }
-
-                        sourceName = sourceName ?? DefaultIndexerName;
                     }
+
+                    sourceName = sourceName ?? DefaultIndexerName;
 
                     InterlockedOperations.Initialize(ref _lazySourceName, sourceName);
                 }
