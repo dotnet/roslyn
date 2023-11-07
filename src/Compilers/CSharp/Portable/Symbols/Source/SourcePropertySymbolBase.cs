@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(memberName == DefaultIndexerName);
                 }
 
-                _name = WellKnownMemberNames.Indexer;
+                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceMemberInfo?.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
             }
             else if (memberName is { })
             {

@@ -18,10 +18,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
 #nullable enable
-    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics)
     {
         private TypeSymbol? _lazyExplicitInterfaceType;
         private string? _lazyMemberMetadataName;
+
+        public required ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get; init; }
 
         public required string Name { get; init; }
 
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // that might result in a recursive attempt to bind the containing class.
                     var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
-                    NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
+                    NameSyntax explicitInterfaceName = ExplicitInterfaceSpecifier.Name;
                     TypeSymbol? explicitInterfaceType = binder.BindType(explicitInterfaceName, diagnostics).Type;
                     return InterlockedOperations.Initialize(ref _lazyExplicitInterfaceType, explicitInterfaceType);
                 }
@@ -103,8 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             string? aliasQualifier = explicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier)
+            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics)
             {
+                ExplicitInterfaceSpecifier = explicitInterfaceSpecifier,
                 Name = name,
                 AliasQualifier = aliasQualifier,
                 MemberName = GetMemberName(explicitInterfaceSpecifier, name),
