@@ -366,8 +366,6 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
         async ValueTask ProcessConstructorAssignmentAsync(
             AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
         {
-            // We can use constructorDeclarationSemanticModel because we're only processing the assignments in the
-            // constructor itself.
             var member = semanticModel.GetSymbolInfo(assignmentExpression.Left, cancellationToken).GetAnySymbol()?.OriginalDefinition;
 
             // Validated by analyzer.
