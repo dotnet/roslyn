@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create(string value)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
-            Contract.ThrowIfFalse(XxHash128.TryHash(MemoryMarshal.AsBytes(value.AsSpan()), destination, out _));
+            XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), destination);
             return From(destination);
         }
 
@@ -78,9 +78,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create(ReadOnlySpan<Checksum.HashData> hashes)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
-
-            Contract.ThrowIfFalse(XxHash128.TryHash(MemoryMarshal.AsBytes(hashes), destination, out _));
-
+            XxHash128.Hash(MemoryMarshal.AsBytes(hashes), destination);
             return From(destination);
         }
 
