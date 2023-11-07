@@ -348,7 +348,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
             {
                 // Validated by analyzer.
                 await ProcessConstructorAssignmentAsync(
-                    semanticModel, (AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression, expressionStatement: null).ConfigureAwait(false);
+                    (AssignmentExpressionSyntax)constructorDeclaration.ExpressionBody.Expression, expressionStatement: null).ConfigureAwait(false);
             }
             else
             {
@@ -358,13 +358,13 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                     // Validated by analyzer.
                     var expressionStatement = (ExpressionStatementSyntax)statement;
                     await ProcessConstructorAssignmentAsync(
-                        semanticModel, (AssignmentExpressionSyntax)expressionStatement.Expression, expressionStatement).ConfigureAwait(false);
+                        (AssignmentExpressionSyntax)expressionStatement.Expression, expressionStatement).ConfigureAwait(false);
                 }
             }
         }
 
         async ValueTask ProcessConstructorAssignmentAsync(
-            SemanticModel semanticModel, AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
+            AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
         {
             // We can use constructorDeclarationSemanticModel because we're only processing the assignments in the
             // constructor itself.
