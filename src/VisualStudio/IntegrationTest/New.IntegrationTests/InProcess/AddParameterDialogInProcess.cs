@@ -66,8 +66,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         public async Task<bool> CloseWindowAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            if (await TryGetDialogAsync(cancellationToken) is not { } dialog)
+            if (await TryGetDialogAsync(cancellationToken) is not { })
                 return false;
 
             await ClickCancelAsync(cancellationToken);
