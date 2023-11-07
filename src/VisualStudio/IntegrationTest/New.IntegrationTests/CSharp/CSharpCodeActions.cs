@@ -782,14 +782,14 @@ class C
             },
             HangMitigatingCancellationToken);
 
-        await Task.Delay(TimeSpan.FromSeconds(5));
-
         // Verify CS0168 is now reported as an error.
         await VerifyDiagnosticInErrorListAsync("error", TestServices, HangMitigatingCancellationToken);
 
         static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
         {
             await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
             string[] expectedContents =
             {
                 $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
@@ -867,6 +867,8 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
         static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
         {
             await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+
             string[] expectedContents =
             {
                 $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
@@ -980,6 +982,8 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
         static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
         {
             await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+
+            await Task.Delay(TimeSpan.FromSeconds(5));
 
             using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
