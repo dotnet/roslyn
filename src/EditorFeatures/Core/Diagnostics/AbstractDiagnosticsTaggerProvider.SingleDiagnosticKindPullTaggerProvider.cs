@@ -44,12 +44,24 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         ITextBufferVisibilityTracker? visibilityTracker,
         IAsynchronousOperationListener listener) : AsynchronousTaggerProvider<TTag>(threadingContext, globalOptions, visibilityTracker, listener)
     {
-        private static readonly object s_initialDiagnosticRequestInfoKey = new();
-        private const string SyntaxSquiggleCountPropertyName = "syntax-squiggle-count";
-
         private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
         private readonly IDiagnosticService _diagnosticService = diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
+
+        // The following three fields are used to help calculate diagnostic performance for syntax errors upon file open.
+        // During TagsChanged notification for syntax errors, VSPlatform will check the buffer's property bag for a 
+        // key with name "syntax-squiggle-count". If found, it will determine that there were syntax errors in the document and
+        // fire telemetry with timing information.
+        //
+        // From Roslyn's perspective, we need to put the "syntax-squiggle-count" entry in the property bag directly prior to
+        // invoking TagsChanged when these conditions hold:
+        // 1) This tagger provides compiler syntax diagnostics and is tagging IErrorTag tags.
+        // 2) The diagnostic request yielded at least one appropriate diagnostic.
+        // 3) This is in response to the initial pull diagnostic request. This property should only be set when there
+        //    is an appropriate diagnostic upon opening the file. If there are no such diagnostics upon file open but one
+        //    is later found after modification, then we do *not* add the entry to the property bag.
+        private static readonly object s_initialDiagnosticRequestInfoKey = new();
+        private const string SyntaxSquiggleCountPropertyName = "syntax-squiggle-count";
         private readonly bool _requiresBeforeTagsChangedNotification = diagnosticKind == DiagnosticKind.CompilerSyntax && typeof(TTag).IsAssignableFrom(typeof(IErrorTag));
 
         private readonly AbstractDiagnosticsTaggerProvider<TTag> _callback = callback;
@@ -74,35 +86,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition, CancellationToken cancellationToken)
         {
             return ProduceTagsAsync(context, spanToTag, cancellationToken);
-        }
-
-        protected override void BeforeTagsChanged(ITextSnapshot snapshot)
-        {
-            if (!_requiresBeforeTagsChangedNotification)
-                return;
-
-            var properties = snapshot.TextBuffer.Properties;
-
-            // Verify this is the initial diagnostic result
-            if (properties.GetProperty<int>(s_initialDiagnosticRequestInfoKey) != snapshot.Version.VersionNumber)
-                return;
-
-            // Verify we haven't already set the property used to determine time taken to first error calculated
-            if (properties.ContainsProperty(SyntaxSquiggleCountPropertyName))
-                return;
-
-            // Set the property value to -1 indicating there were syntax errors
-            properties[SyntaxSquiggleCountPropertyName] = -1;
-        }
-
-        private void CacheInitialDiagnosticRequestInfo(ITextSnapshot snapshot)
-        {
-            if (!_requiresBeforeTagsChangedNotification)
-                return;
-
-            var properties = snapshot.TextBuffer.Properties;
-            if (!properties.ContainsProperty(s_initialDiagnosticRequestInfoKey))
-                properties[s_initialDiagnosticRequestInfoKey] = snapshot.Version.VersionNumber;
         }
 
         private async Task ProduceTagsAsync(
@@ -174,6 +157,35 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                 // occasions
                 return;
             }
+        }
+
+        private void CacheInitialDiagnosticRequestInfo(ITextSnapshot snapshot)
+        {
+            if (!_requiresBeforeTagsChangedNotification)
+                return;
+
+            var properties = snapshot.TextBuffer.Properties;
+            if (!properties.ContainsProperty(s_initialDiagnosticRequestInfoKey))
+                properties[s_initialDiagnosticRequestInfoKey] = snapshot.Version.VersionNumber;
+        }
+
+        protected override void BeforeTagsChanged(ITextSnapshot snapshot)
+        {
+            if (!_requiresBeforeTagsChangedNotification)
+                return;
+
+            var properties = snapshot.TextBuffer.Properties;
+
+            // Verify this is the initial diagnostic result
+            if (properties.GetProperty<int>(s_initialDiagnosticRequestInfoKey) != snapshot.Version.VersionNumber)
+                return;
+
+            // Verify we haven't already set the property used to determine time taken to first error calculated
+            if (properties.ContainsProperty(SyntaxSquiggleCountPropertyName))
+                return;
+
+            // Set the property value to -1 indicating there were syntax errors
+            properties[SyntaxSquiggleCountPropertyName] = -1;
         }
 
         private static bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)

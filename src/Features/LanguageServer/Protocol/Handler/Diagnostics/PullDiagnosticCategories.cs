@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         // Fine-grained document pull categories to allow diagnostics to more quickly reach the user.
 
-        // alternatively, VSInternalDiagnosticKind.Syntax.Value
+        // VSLanguageServerClient's RemoteDocumentDiagnosticBroker uses this exact string to determine
+        // when syntax errors are being provided via pull diagnostics. Alternatively when 17.9 preview 1 packages
+        // are consumable by Roslyn, this could be updated to reference VSInternalDiagnosticKind.Syntax.Value directly.
         public const string DocumentCompilerSyntax = "syntax";
 
         public const string DocumentCompilerSemantic = nameof(DocumentCompilerSemantic);
