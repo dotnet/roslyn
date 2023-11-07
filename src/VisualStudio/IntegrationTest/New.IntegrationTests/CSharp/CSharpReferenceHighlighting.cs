@@ -150,11 +150,11 @@ class C
             await TestServices.Editor.PlaceCaretAsync(marker, charsOffset: -1, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 [
-                FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawlerLegacy,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification,
-                FeatureAttribute.ReferenceHighlighting,
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.Classification,
+                    FeatureAttribute.ReferenceHighlighting,
                 ],
                 cancellationToken);
 

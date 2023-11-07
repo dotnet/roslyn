@@ -15,6 +15,8 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
+#pragma warning disable format // We want to force explicit column spacing within the collection literals in this file, so we disable formatting.
+
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
     public class SemanticTokensRangeTests : AbstractSemanticTokensTests
