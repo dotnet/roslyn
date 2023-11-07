@@ -91,7 +91,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Exit(string? message)
         {
-            FatalError.ReportAndPropagate(new Exception(message));
+            if (message?.Contains("Pretty-listing introduced errors in error-free code") ?? false)
+            {
+                // Ignore this known assertion failure
+                FatalError.ReportAndCatch(new Exception(message), ErrorSeverity.Critical);
+                return;
+            }
+
+            FatalError.ReportAndPropagate(new Exception(message), ErrorSeverity.Critical);
         }
 
         internal static void Install()

@@ -48,6 +48,7 @@
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
     <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="InputSimulatorPlus" Version="$(InputSimulatorPlusVersion)" />

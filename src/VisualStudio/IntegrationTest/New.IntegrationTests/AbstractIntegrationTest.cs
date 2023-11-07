@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,8 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         static AbstractIntegrationTest()
         {
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ThrowingTraceListener());
+            TestTraceListener.Install();
 
             IdeStateCollector.RegisterCustomState(
                 "Pending asynchronous operations",
