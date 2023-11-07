@@ -21,11 +21,15 @@ internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationSer
     public WorkspaceConfigurationService(IGlobalOptionService globalOptions)
     {
         _globalOptions = globalOptions;
+        _globalOptions.AddOptionChangedHandler(target: _globalOptions, OnOptionsChangedHandler);
+    }
+
+    private void OnOptionsChangedHandler(object? sender, OptionChangedEventArgs e)
+    {
+        if (e.OptionKey == WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace)
+            _lazyOptions = null;
     }
 
     public WorkspaceConfigurationOptions Options
         => _lazyOptions ??= _globalOptions.GetWorkspaceConfigurationOptions();
-
-    internal void Clear()
-        => _lazyOptions = null;
 }

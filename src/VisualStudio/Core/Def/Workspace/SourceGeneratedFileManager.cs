@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly ITextBuffer _textBuffer;
             private readonly Workspace _workspace;
             private readonly SourceGeneratedDocumentIdentity _documentIdentity;
-            private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
+            private readonly IWorkspaceConfigurationService _workspaceConfigurationService;
 
             /// <summary>
             /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _textBuffer = textBuffer;
                 _workspace = workspace;
                 _documentIdentity = documentIdentity;
-                _workspaceConfigurationService = _workspace.Services.GetService<IWorkspaceConfigurationService>();
+                _workspaceConfigurationService = _workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
                 // while we're doing edits.
@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
+                        var connectToWorkspace = _workspaceConfigurationService.Options.EnableOpeningSourceGeneratedFiles;
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {

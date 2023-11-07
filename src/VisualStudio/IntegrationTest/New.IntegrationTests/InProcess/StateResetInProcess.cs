@@ -46,11 +46,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
-            // clear configuration options, so that the workspace configuration global option update below is effective:
-            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
-            var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
-            configurationService.Clear();
-
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             ResetOption(globalOptions, CSharpCodeStyleOptions.NamespaceDeclarations);
             ResetOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);

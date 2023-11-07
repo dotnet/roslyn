@@ -402,9 +402,9 @@
         <target state="translated">Razor 'pull' 診断を有効にする (試験段階、再起動が必要)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">ソース ジェネレーターから開いたファイル内のすべての機能を有効にする (試験段階)</target>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators">
+        <source>Enable all features in opened files from source generators</source>
+        <target state="new">Enable all features in opened files from source generators</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">

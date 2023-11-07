@@ -13,8 +13,7 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
             CacheStorage: globalOptions.GetOption(CloudCacheFeatureFlag) ? StorageDatabase.CloudCache : globalOptions.GetOption(Database),
-            EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
-                                               globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
+            EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace),
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
@@ -39,12 +38,9 @@ internal static class WorkspaceConfigurationOptionsStorage
         "dotnet_run_source_generators_in_same_process_only", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsInSameProcessOnly);
 
     /// <summary>
-    /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
-    /// surprised by this and we want some time to work through those issues.
+    /// This option allows the user to disable this, in case they have some extension that breaks with this on. The expectation is to remove
+    /// this in 17.9 or so.
     /// </summary>
-    public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
-        "dotnet_enable_opening_source_generated_files_in_workspace", defaultValue: null);
-
-    public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
-        "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
+    public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspace = new(
+        "dotnet_enable_opening_source_generated_files_in_workspace", defaultValue: true);
 }

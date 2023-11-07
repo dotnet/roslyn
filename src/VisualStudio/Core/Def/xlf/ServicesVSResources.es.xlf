@@ -402,9 +402,9 @@
         <target state="translated">Habilitar diagnósticos "pull" de Razor (experimental, requiere reiniciar)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">Habilitar todas las características de los archivos abiertos de los generadores de origen (experimental)</target>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators">
+        <source>Enable all features in opened files from source generators</source>
+        <target state="new">Enable all features in opened files from source generators</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">

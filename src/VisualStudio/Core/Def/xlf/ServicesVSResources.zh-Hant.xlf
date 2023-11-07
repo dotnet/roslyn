@@ -402,9 +402,9 @@
         <target state="translated">啟用 Razor 'pull' 診斷 (實驗性，需要重新啟動)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">從來源產生器中，啟用已開啟檔案中的所有功能 (實驗性)</target>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators">
+        <source>Enable all features in opened files from source generators</source>
+        <target state="new">Enable all features in opened files from source generators</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
