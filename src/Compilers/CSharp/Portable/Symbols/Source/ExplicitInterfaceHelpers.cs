@@ -17,6 +17,49 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+#nullable enable
+    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
+    {
+        private TypeSymbol? _lazyExplicitInterfaceType;
+        private string? _lazyMemberName;
+
+        public string? AliasQualifier { get; } = explicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
+
+        public TypeSymbol? ExplicitInterfaceType
+        {
+            get
+            {
+                if (_lazyExplicitInterfaceType is null)
+                {
+                    // Avoid checking constraints context when binding explicit interface type since
+                    // that might result in a recursive attempt to bind the containing class.
+                    var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+
+                    NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
+                    TypeSymbol? explicitInterfaceType = binder.BindType(explicitInterfaceName, diagnostics).Type;
+                    return InterlockedOperations.Initialize(ref _lazyExplicitInterfaceType, explicitInterfaceType);
+                }
+
+                return _lazyExplicitInterfaceType;
+            }
+        }
+
+        public string MemberName
+        {
+            get
+            {
+                if (_lazyMemberName is null)
+                {
+                    var memberName = ExplicitInterfaceHelpers.GetMemberName(name, ExplicitInterfaceType, AliasQualifier);
+                    return InterlockedOperations.Initialize(ref _lazyMemberName, memberName);
+                }
+
+                return _lazyMemberName;
+            }
+        }
+    }
+#nullable disable
+
     internal static class ExplicitInterfaceHelpers
     {
         public static string GetMemberName(
@@ -30,6 +73,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return methodName;
         }
+
+#nullable enable
+        public static string? GetExplicitInterfaceMemberInfo(
+            Binder binder,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
+            string name,
+            BindingDiagnosticBag diagnostics,
+            out ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo)
+        {
+            if (explicitInterfaceSpecifier is null)
+            {
+                explicitInterfaceMemberInfo = null;
+                return name;
+            }
+
+            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier, name);
+            return null;
+        }
+#nullable disable
 
         public static string GetMemberNameAndInterfaceSymbol(
             Binder binder,

@@ -60,9 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
             binder = binder.WithUnsafeRegionIfNecessary(modifiersTokenList);
-            TypeSymbol? explicitInterfaceType;
-            string? aliasQualifierOpt;
-            string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
+            ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo;
+            string? memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceMemberInfo);
 
             return new SourcePropertySymbol(
                 containingType,
@@ -70,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor: getSyntax != null || isExpressionBodied,
                 hasSetAccessor: setSyntax != null,
                 isExplicitInterfaceImplementation,
-                explicitInterfaceType,
-                aliasQualifierOpt,
+                explicitInterfaceMemberInfo,
                 modifiers,
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
@@ -87,13 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasGetAccessor,
             bool hasSetAccessor,
             bool isExplicitInterfaceImplementation,
-            TypeSymbol? explicitInterfaceType,
-            string? aliasQualifierOpt,
+            ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo,
             DeclarationModifiers modifiers,
             bool isAutoProperty,
             bool isExpressionBodied,
             bool isInitOnly,
-            string memberName,
+            string? memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
             : base(
@@ -102,8 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor,
                 hasSetAccessor,
                 isExplicitInterfaceImplementation,
-                explicitInterfaceType,
-                aliasQualifierOpt,
+                explicitInterfaceMemberInfo,
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
                 isAutoProperty: isAutoProperty,
