@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var checksumA = Checksum.Create(checksum1, checksum2);
 
             // Running this test on multiple target frameworks with the same expectation ensures the results match
-            Assert.Equal(Checksum.FromBase64String("N30m5jwVeMZzWpy9cbQbtSYHoXU="), checksumA);
+            Assert.Equal(Checksum.FromBase64String("RRbspG+E4ziBC5hOWyrfCQ=="), checksumA);
 
             Assert.NotEqual(checksum1, checksum2);
             Assert.NotEqual(checksum1, checksumA);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var checksumA = Checksum.Create(checksum1, checksum2, checksum3);
 
             // Running this test on multiple target frameworks with the same expectation ensures the results match
-            Assert.Equal(Checksum.FromBase64String("NEfIznmqkIqi4VJl12KxycWt7uo="), checksumA);
+            Assert.Equal(Checksum.FromBase64String("DvHp7gyz/hBKY1/Q7A1NCg=="), checksumA);
 
             Assert.NotEqual(checksum1, checksum2);
             Assert.NotEqual(checksum2, checksum3);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var checksumA = Checksum.Create(checksums.Select(c => c.Hash).ToArray().AsSpan());
 
             // Running this test on multiple target frameworks with the same expectation ensures the results match
-            Assert.Equal(Checksum.FromBase64String("yOnAG9SVuhK/+wCM/WlpTl5e7h8="), checksumA);
+            Assert.Equal(Checksum.FromBase64String("umt6tOdNsvIArs4OY7MFCg=="), checksumA);
 
             for (var i = 0; i < max; i++)
             {
