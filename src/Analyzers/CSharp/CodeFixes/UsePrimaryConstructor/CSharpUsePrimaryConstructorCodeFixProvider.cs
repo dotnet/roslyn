@@ -291,39 +291,57 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
         static string GetLeadingWhitespace(SyntaxNode node)
             => node.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace] ? whitespace.ToString() : "";
 
-        async ValueTask MoveBaseConstructorArgumentsAsync()
+        async ValueTask MoveBaseConstructorArgumentsAsync(
+            SemanticModel semanticModel)
         {
             if (constructorDeclaration.Initializer is null)
                 return;
 
-            foreach (var group in typeDeclarationNodes.GroupBy(t => t.SyntaxTree))
+            // Note: the primary constructor parameters can only be passed to the base class on the same type
+            // declaration that the primary constructor is on.
+            var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
+
+            var argumentList = RemoveElementIndentation(
+                typeDeclaration, constructorDeclaration, constructorDeclaration.Initializer.ArgumentList,
+                static list => list.Arguments);
+
+            if (typeDeclaration.BaseList is { Types: [SimpleBaseTypeSyntax baseType, ..] } &&
+                semanticModel.GetSymbolInfo(baseType.Type, cancellationToken).GetAnySymbol() is INamedTypeSymbol { TypeKind: TypeKind.Class })
             {
-                var tree = group.Key;
-                var currentDocument = solution.GetRequiredDocument(tree);
-                var semanticModel = await GetSemanticModelAsync(currentDocument).ConfigureAwait(false);
+                // Case 1: The type already explicitly lists the base type on the current type decl.  If so, move the arguments to it.
+                // For example:
+                //
+                //      `class C : B, I` becomes `class C(int i) : B(i), I`
 
-                foreach (var currentTypeDeclarationNode in group)
-                {
-                    // only need to check the first type in the list, the rest must be interfaces.
-                    if (currentTypeDeclarationNode.BaseList is not { Types: [SimpleBaseTypeSyntax baseType, ..] })
-                        continue;
-
-                    if (semanticModel.GetSymbolInfo(baseType.Type, cancellationToken).GetAnySymbol() is not INamedTypeSymbol { TypeKind: TypeKind.Class })
-                        continue;
-
-                    var document = solution.GetRequiredDocument(baseType.SyntaxTree);
-                    var documentEditor = await solutionEditor.GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
-
-                    var argumentList = RemoveElementIndentation(
-                        typeDeclaration, constructorDeclaration, constructorDeclaration.Initializer.ArgumentList,
-                        static list => list.Arguments);
-
-                    documentEditor.ReplaceNode(
-                        baseType,
-                        PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), argumentList.WithoutLeadingTrivia())
-                            .WithTrailingTrivia(baseType.GetTrailingTrivia()));
+                documentEditor.ReplaceNode(
+                    baseType,
+                    PrimaryConstructorBaseType(baseType.Type.WithoutTrailingTrivia(), argumentList.WithoutLeadingTrivia())
+                        .WithTrailingTrivia(baseType.GetTrailingTrivia()));
+            }
+            else
+            {
+                // Case 2: The type doesn't have the base type on this declaration.  We'll have to synthesize it and add it to the base list.
+                // For example:
+                //
+                //      `class C : I` becomes `class C(int i) : B(i), I`
+                var baseTypeSymbol = namedType.BaseType;
+                if (baseTypeSymbol is null)
                     return;
-                }
+
+                var synthesizedTypeNode = baseTypeSymbol.GenerateNameSyntax(allowVar: false);
+                var baseTypeSyntax = PrimaryConstructorBaseType(synthesizedTypeNode, argumentList);
+
+                documentEditor.ReplaceNode(
+                    typeDeclaration,
+                    (current, _) =>
+                    {
+                        var currentTypeDeclaration = (TypeDeclarationSyntax)current;
+                        if (currentTypeDeclaration.BaseList is null or { Types.Count: 0 })
+                            return currentTypeDeclaration.AddBaseListTypes(baseTypeSyntax);
+
+                        return currentTypeDeclaration.WithBaseList(
+                            currentTypeDeclaration.BaseList.WithTypes(currentTypeDeclaration.BaseList.Types.Insert(0, baseTypeSyntax)));
+                    });
             }
         }
 

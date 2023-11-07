@@ -3101,7 +3101,7 @@ public partial class UsePrimaryConstructorTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
-    public async Task TestPartialType()
+    public async Task TestPartialType1()
     {
         await new VerifyCS.Test
         {
@@ -3130,6 +3130,51 @@ public partial class UsePrimaryConstructorTests
                 
                 partial class C(int i) : Base(i)
                 {
+                }
+                
+                partial class C : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Base
+                {
+                    public Base(int i) { }
+                }
+
+                partial class C : IDisposable
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+
+                    public void Dispose() { }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base
+                {
+                    public Base(int i) { }
+                }
+                
+                partial class C(int i) : Base(i), IDisposable
+                {
+                    public void Dispose() { }
                 }
                 
                 partial class C : Base
