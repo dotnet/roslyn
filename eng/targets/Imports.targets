@@ -45,7 +45,7 @@
       impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
-    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true' OR '$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">true</RoslynCheckCodeStyle>
   </PropertyGroup>
 
   <!--
