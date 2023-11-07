@@ -216,12 +216,9 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                     if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax || qualifiedNameSyntax.Right != nameSyntax)
                     {
                         var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
-                        if (symbol is INamedTypeSymbol { ContainingType: not null } &&
-                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
-                        {
-                            // reference to a nested type in an unqualified fashion.  Have to qualify this.
-                            return QualifiedName(namedType.GenerateNameSyntax(), currentNameSyntax);
-                        }
+                        // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                        if (symbol is INamedTypeSymbol { ContainingType: { } containingType })
+                            return QualifiedName(containingType.GenerateNameSyntax(), currentNameSyntax);
                     }
 
                     if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression || memberAccessExpression.Name != nameSyntax)

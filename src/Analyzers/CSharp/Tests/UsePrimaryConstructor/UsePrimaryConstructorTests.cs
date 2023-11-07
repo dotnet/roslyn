@@ -2535,6 +2535,36 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70586")]
+    public async Task TestReferenceToNestedType5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+
+                public class C : B
+                {
+                    public [|C|](A a) : base(a) { }
+                }
+                """,
+            FixedCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+                
+                public class C(B.A a) : B(a)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task TestNotWithNonAutoProperty()
     {
