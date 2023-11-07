@@ -72,8 +72,8 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
                 Arguments =
                 [
                     resolveData.TextDocument.Uri,
-                    request.Range.Start
-                ]
+                    request.Range.Start,
+                ],
             };
 
         }
