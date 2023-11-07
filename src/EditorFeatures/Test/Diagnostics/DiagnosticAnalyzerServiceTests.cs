@@ -358,7 +358,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -896,11 +896,11 @@ class A
             if (isSourceGenerated)
             {
                 files = Array.Empty<string>();
-                sourceGeneratedFiles = new[] { code };
+                sourceGeneratedFiles = [code];
             }
             else
             {
-                files = new[] { code };
+                files = [code];
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 

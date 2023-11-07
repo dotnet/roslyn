@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private class NavigateToSearchResult : INavigateToSearchResult, INavigableItem
         {
-            private static readonly char[] s_dotArray = { '.' };
+            private static readonly char[] s_dotArray = ['.'];
 
             private readonly RoslynNavigateToItem _item;
 

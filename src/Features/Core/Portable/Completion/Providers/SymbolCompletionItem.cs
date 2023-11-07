@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
         private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-        private static readonly char[] s_projectSeperators = new[] { ';' };
+        private static readonly char[] s_projectSeperators = [';'];
 
         private static CompletionItem CreateWorker(
             string displayText,
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static bool HasSymbols(CompletionItem item)
             => item.TryGetProperty("Symbols", out var _);
 
-        private static readonly char[] s_symbolSplitters = new[] { '|' };
+        private static readonly char[] s_symbolSplitters = ['|'];
 
         public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
