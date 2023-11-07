@@ -32,7 +32,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.ErrorTagsAsync(
-            [("syntax error", new TextSpan(48, 0), "", "BC30201: Expression expected.")],
+            [("syntax error", new TextSpan(50, 0), "", "BC30201: Expression expected.")],
             HangMitigatingCancellationToken);
     }
 
