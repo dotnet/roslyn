@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
+using System.IO.Hashing;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        public const int HashSize = 20;
+        public const int HashSize = 16;
 
         public static readonly Checksum Null = new(Hash: default);
 
@@ -119,29 +120,24 @@ namespace Microsoft.CodeAnalysis
         [DataContract, StructLayout(LayoutKind.Explicit, Size = HashSize)]
         public readonly record struct HashData(
             [field: FieldOffset(0)][property: DataMember(Order = 0)] long Data1,
-            [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2,
-            [field: FieldOffset(16)][property: DataMember(Order = 2)] int Data3)
+            [field: FieldOffset(8)][property: DataMember(Order = 1)] long Data2)
         {
             public void WriteTo(ObjectWriter writer)
             {
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
-                writer.WriteInt32(Data3);
             }
 
             public void WriteTo(Span<byte> span)
             {
-                Contract.ThrowIfFalse(span.Length >= HashSize);
+                Contract.ThrowIfTrue(span.Length < HashSize);
 #pragma warning disable CS9191 // The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in this)));
 #pragma warning restore CS9191
             }
 
-            public static unsafe HashData FromPointer(HashData* hash)
-                => new(hash->Data1, hash->Data2, hash->Data3);
-
             public static HashData ReadFrom(ObjectReader reader)
-                => new(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt32());
+                => new(reader.ReadInt64(), reader.ReadInt64());
 
             public override int GetHashCode()
             {
@@ -152,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
             // standard calls to EqualityComparer<long>.Default.Equals
             public bool Equals(HashData other)
-                => this.Data1 == other.Data1 && this.Data2 == other.Data2 && this.Data3 == other.Data3;
+                => this.Data1 == other.Data1 && this.Data2 == other.Data2;
         }
     }
 
