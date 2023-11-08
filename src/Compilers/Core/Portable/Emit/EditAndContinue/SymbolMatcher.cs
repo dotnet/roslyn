@@ -133,15 +133,15 @@ namespace Microsoft.CodeAnalysis.Emit
             return builder.ToImmutable();
         }
 
-        private ImmutableSegmentedDictionary<string, AnonymousTypeValue> MapAnonymousDelegatesWithIndexedNames(IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegates)
+        private ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> MapAnonymousDelegatesWithIndexedNames(
+            IReadOnlyDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> anonymousDelegates)
         {
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>>();
 
-            foreach (var (key, value) in anonymousDelegates)
+            foreach (var (key, values) in anonymousDelegates)
             {
-                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
-                Debug.Assert(type != null);
-                builder.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
+                builder.Add(key, values.SelectAsArray(value => new AnonymousTypeValue(
+                    value.Name, value.UniqueIndex, (Cci.ITypeDefinition?)MapDefinition(value.Type) ?? throw ExceptionUtilities.UnexpectedValue(value.Type))));
             }
 
             return builder.ToImmutable();

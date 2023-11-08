@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             MyBase.New(verification)
 
-            _options = If(options, EditAndContinueTestBase.ComSafeDebugDll)
+            _options = If(options, TestOptions.DebugDll).WithConcurrentBuild(False)
             _parseOptions = If(parseOptions, TestOptions.Regular)
             _targetFramework = targetFramework
         End Sub

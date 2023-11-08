@@ -597,5 +597,23 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return nextIndex;
         }
+
+        internal int GetNextAnonymousDelegateIndex()
+        {
+            int nextIndex = 0;
+            foreach (var (typeKey, typeValues) in SynthesizedTypes.AnonymousDelegatesWithIndexedNames)
+            {
+                foreach (var typeValue in typeValues)
+                {
+                    int index = typeValue.UniqueIndex;
+                    if (index >= nextIndex)
+                    {
+                        nextIndex = index + 1;
+                    }
+                }
+            }
+
+            return nextIndex;
+        }
     }
 }

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal static SynthesizedTypeMaps GetSynthesizedTypesFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
             var anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
-            var anonymousDelegatesWithIndexedNames = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var anonymousDelegatesWithIndexedNames = new Dictionary<AnonymousDelegateWithIndexedNamePartialKey, ArrayBuilder<AnonymousTypeValue>>();
             var anonymousDelegates = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var handle in reader.TypeDefinitions)
@@ -178,14 +178,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                         var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
-                        anonymousDelegatesWithIndexedNames.Add(name, value);
+                        int parameterCount = -1;
+
+                        foreach (var methodHandle in def.GetMethods())
+                        {
+                            var methodDef = reader.GetMethodDefinition(methodHandle);
+                            if (reader.StringComparer.Equals(methodDef.Name, "Invoke"))
+                            {
+                                try
+                                {
+                                    metadataDecoder.DecodeMethodSignatureParameterCountsOrThrow(methodHandle, out int invokeMethodParameterCount, out _);
+                                    parameterCount = invokeMethodParameterCount;
+                                    break;
+                                }
+                                catch (BadImageFormatException)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (parameterCount >= 0)
+                        {
+                            anonymousDelegatesWithIndexedNames.AddPooled(new AnonymousDelegateWithIndexedNamePartialKey(type.Arity, parameterCount), value);
+                        }
                     }
 
                     continue;
                 }
             }
 
-            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutable());
+            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutableSegmentedDictionaryAndFree());
         }
 
         private static bool TryGetAnonymousTypeKey(
@@ -256,14 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal override int GetNextAnonymousTypeIndex()
-        {
-            return PreviousGeneration.GetNextAnonymousTypeIndex();
-        }
+            => PreviousGeneration.GetNextAnonymousTypeIndex();
 
-        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
+        internal override int GetNextAnonymousDelegateIndex()
+            => PreviousGeneration.GetNextAnonymousDelegateIndex();
+
+        internal override bool TryGetPreviousAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
         {
-            Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+            return _previousDefinitions.TryGetAnonymousTypeValue(template, out typeValue);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

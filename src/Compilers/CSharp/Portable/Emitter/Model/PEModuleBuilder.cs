@@ -513,12 +513,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return 0;
         }
 
-        internal virtual bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
+        internal virtual int GetNextAnonymousDelegateIndex()
+        {
+            return 0;
+        }
+
+        internal virtual bool TryGetPreviousAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
         {
             Debug.Assert(Compilation == template.DeclaringCompilation);
 
-            name = null;
-            index = -1;
+            typeValue = default;
+            return false;
+        }
+
+        internal virtual bool TryGetAnonymousDelegateValue(AnonymousTypeManager.AnonymousDelegateTemplateSymbol template, out SynthesizedDelegateValue delegateValue)
+        {
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+
+            delegateValue = default;
             return false;
         }
 
