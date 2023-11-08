@@ -411,7 +411,7 @@ function TestUsingRunTests() {
       $args += " --include '\.UnitTests'"
     }
   }
-  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
+  elseif ($testDesktop -or $testIOperation) {
     $args += " --tfm net472"
     $args += " --timeout 90"
 

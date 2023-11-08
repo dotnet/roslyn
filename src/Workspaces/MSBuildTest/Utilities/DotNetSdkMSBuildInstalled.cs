@@ -7,6 +7,8 @@ using Microsoft.Build.Locator;
 using Roslyn.Test.Utilities;
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.VisualStudio.RpcContracts.RemoteUI;
 #if NETCOREAPP
 using System.Text.Json.Nodes;
 #endif
@@ -22,37 +24,58 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         static DotNetSdkMSBuildInstalled()
         {
-            var solutionFolder = GetSolutionFolder();
-
-            if (!TryGetSDKVersion(solutionFolder, out var version))
+            if (TryGetSDKVersion(out var version, out var rootPath))
             {
-                return;
+                VersionString = version;
+
+                if (TryGetSdkPath(rootPath, version, out var sdkPath, out var msbuildPath))
+                {
+                    MSBuildLocator.RegisterMSBuildPath(msbuildPath);
+                    SdkPath = sdkPath;
+                }
+            }
+            else
+            {
+                // We don't have a global.json at all, but if we can find exactly one SDK version, we'll use that. This supports running in Helix.
+                var instance = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions { DiscoveryTypes = DiscoveryType.DotNetSdk }).SingleOrDefault();
+
+                if (instance != null)
+                {
+                    MSBuildLocator.RegisterInstance(instance);
+                }
             }
 
-            if (TryGetSdkPath(solutionFolder, version, out var sdkPath, out var msbuildPath))
-            {
-                MSBuildLocator.RegisterMSBuildPath(msbuildPath);
-                SdkPath = sdkPath;
-            }
-
-            VersionString = version;
             return;
 
             static bool TryGetSDKVersion(
-                string solutionFolder,
-                [NotNullWhen(true)] out string? version)
+                [NotNullWhen(true)] out string? version,
+                [NotNullWhen(true)] out DirectoryInfo? rootPath)
             {
-                var globalJsonPath = Path.Combine(solutionFolder, "global.json");
-                var globalJsonString = File.ReadAllText(globalJsonPath);
-                version = JsonNode.Parse(globalJsonString)
-                    ?["sdk"]
-                    ?["version"]
-                    ?.GetValue<string>();
-                return version is not null;
+                var parentDirectory = new DirectoryInfo(Path.GetDirectoryName(typeof(DotNetSdkMSBuildInstalled).Assembly.Location)!);
+                while (parentDirectory != null)
+                {
+                    var globalJsonPath = Path.Combine(parentDirectory.FullName, "global.json");
+                    if (File.Exists(globalJsonPath))
+                    {
+                        var globalJsonString = File.ReadAllText(globalJsonPath);
+                        version = JsonNode.Parse(globalJsonString)
+                            ?["sdk"]
+                            ?["version"]
+                            ?.GetValue<string>();
+                        rootPath = parentDirectory;
+                        return version is not null;
+                    }
+
+                    parentDirectory = parentDirectory.Parent;
+                }
+
+                version = null;
+                rootPath = null;
+                return false;
             }
 
             static bool TryGetSdkPath(
-                string solutionFolder,
+                DirectoryInfo rootDirectory,
                 string version,
                 [NotNullWhen(true)] out string? sdkPath,
                 [NotNullWhen(true)] out string? msbuildPath)
@@ -61,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 msbuildPath = null;
 
                 // use the local SDK if its there
-                var sdkFolder = Path.Combine(solutionFolder, ".dotnet");
+                var sdkFolder = Path.Combine(rootDirectory.FullName, ".dotnet");
                 var localSDK = Path.Combine(sdkFolder, "sdk", version);
                 if (Directory.Exists(localSDK))
                 {
@@ -98,17 +121,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 }
 
                 return false;
-            }
-
-            static string GetSolutionFolder()
-            {
-                // Expected assembly path:
-                //  <solutionFolder>\artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests\<Configuration>\<TFM>\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll
-                var assemblyLocation = typeof(DotNetSdkMSBuildInstalled).Assembly.Location;
-                var solutionFolder = Directory.GetParent(assemblyLocation)
-                    ?.Parent?.Parent?.Parent?.Parent?.Parent?.FullName;
-                Assumes.NotNull(solutionFolder);
-                return solutionFolder;
             }
         }
 #endif
