@@ -562,11 +562,6 @@
         <target state="translated">'else'로 문을 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">유추된 대리자 형식이 변경되었으므로 업데이트할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">애플리케이션 진입점에는 'UnmanagedCallersOnly' 특성을 지정할 수 없습니다.</target>

@@ -562,11 +562,6 @@
         <target state="translated">'else' ne peut pas démarrer d'instruction.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Mise à jour impossible, car un type délégué déduit a changé.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Les points d'entrée d'application ne peuvent pas être attribués avec 'UnmanagedCallersOnly'.</target>
