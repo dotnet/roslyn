@@ -1926,7 +1926,6 @@ endRegion:
                         // Will be removed when CFG support for interpolated string handlers is implemented, tracked by
                         // https://github.com/dotnet/roslyn/issues/54718
                         instanceReference.ReferenceKind == InstanceReferenceKind.InterpolatedStringHandler ||
-                        instanceReference.ReferenceKind == InstanceReferenceKind.IteratorValue ||
                         (instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                          n.Type.IsAnonymousType &&
                          n.Parent is IPropertyReferenceOperation propertyReference &&

@@ -5938,6 +5938,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid C# compound assignment operation</value>
   </data>
+  <data name="ISpreadOperationIsNotCSharpSpread" xml:space="preserve">
+    <value>{0} is not a valid C# spread operation</value>
+  </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
     <value>Filter expression is a constant 'false', consider removing the catch clause</value>
   </data>

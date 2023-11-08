@@ -4382,40 +4382,16 @@ oneMoreTime:
 
         public override IOperation? VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
-            var info = ((ForEachLoopOperation)operation).Info;
-            Debug.Assert(info is null || info.IsAsynchronous == operation.IsAsynchronous);
-
-            return RewriteForEachLoop(
-                operation,
-                operation.LoopControlVariable,
-                operation.Collection,
-                info,
-                operation.IsAsynchronous,
-                () => VisitStatement(operation.Body),
-                operation.Locals,
-                operation.ContinueLabel,
-                operation.ExitLabel);
-        }
-
-        private IOperation? RewriteForEachLoop(
-            IOperation operation,
-            IOperation loopControlVariable,
-            IOperation loopCollection,
-            ForEachLoopOperationInfo? info,
-            bool isAsynchronous,
-            Action visitBody, // PROTOTYPE: Avoid closure class.
-            ImmutableArray<ILocalSymbol> locals,
-            ILabelSymbol continueLabel,
-            ILabelSymbol exitLabel)
-        {
             StartVisitingStatement(operation);
 
             var enumeratorCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
             EnterRegion(enumeratorCaptureRegion);
 
+            ForEachLoopOperationInfo? info = ((ForEachLoopOperation)operation).Info;
+
             RegionBuilder? regionForCollection = null;
 
-            if (!locals.IsEmpty && loopControlVariable.Kind == OperationKind.VariableDeclarator)
+            if (!operation.Locals.IsEmpty && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
             {
                 // VB has rather interesting scoping rules for control variable.
                 // It is in scope in the collection expression. However, it is considered to be
@@ -4426,10 +4402,10 @@ oneMoreTime:
                 // Rather than introducing a separate local symbol, we will simply add another
                 // lifetime region for that local around the collection expression.
 
-                var declarator = (IVariableDeclaratorOperation)loopControlVariable;
+                var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                 ILocalSymbol local = declarator.Symbol;
 
-                foreach (IOperation op in loopCollection.DescendantsAndSelf())
+                foreach (IOperation op in operation.Collection.DescendantsAndSelf())
                 {
                     if (op is ILocalReferenceOperation l && l.Local.Equals(local))
                     {
@@ -4454,8 +4430,8 @@ oneMoreTime:
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
             }
 
-            var @continue = GetLabeledOrNewBlock(continueLabel);
-            var @break = GetLabeledOrNewBlock(exitLabel);
+            var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            var @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             AppendNewBlock(@continue);
 
@@ -4464,14 +4440,14 @@ oneMoreTime:
             _currentBasicBlock = null;
             PopStackFrameAndLeaveRegion(frame);
 
-            var localsRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
+            var localsRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
             EnterRegion(localsRegion);
 
             frame = PushStackFrame();
             AddStatement(getLoopControlVariableAssignment(applyConversion(info?.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info?.ElementType)));
             PopStackFrameAndLeaveRegion(frame);
 
-            visitBody();
+            VisitStatement(operation.Body);
             Debug.Assert(localsRegion == _currentRegion);
             UnconditionalBranch(@continue);
 
@@ -4487,6 +4463,7 @@ oneMoreTime:
 
                 LeaveRegion();
 
+                bool isAsynchronous = info.IsAsynchronous;
                 var iDisposable = isAsynchronous
                     ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable).GetITypeSymbol()
                     : _compilation.GetSpecialType(SpecialType.System_IDisposable);
@@ -4527,7 +4504,7 @@ oneMoreTime:
 
                 if (info?.GetEnumeratorMethod != null)
                 {
-                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(loopCollection);
+                    IOperation? collection = info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection);
 
                     if (collection is not null && info.InlineArrayConversion is { } inlineArrayConversion)
                     {
@@ -4535,29 +4512,29 @@ oneMoreTime:
                         {
                             // We cannot convert a value to a span, need to make a local copy and convert that.
                             int localCopyCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
-                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, loopCollection.Syntax, collection));
+                            AddStatement(new FlowCaptureOperation(localCopyCaptureId, operation.Collection.Syntax, collection));
 
-                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, loopCollection.Syntax, collection.Type, constantValue: null);
+                            collection = new FlowCaptureReferenceOperation(localCopyCaptureId, operation.Collection.Syntax, collection.Type, constantValue: null);
                         }
 
                         collection = applyConversion(inlineArrayConversion, collection, info.GetEnumeratorMethod.ContainingType);
                     }
 
-                    IOperation invocation = makeInvocation(loopCollection.Syntax,
+                    IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
                                                            collection,
                                                            info.GetEnumeratorArguments);
 
                     int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
-                    AddStatement(new FlowCaptureOperation(enumeratorCaptureId, loopCollection.Syntax, invocation));
+                    AddStatement(new FlowCaptureOperation(enumeratorCaptureId, operation.Collection.Syntax, invocation));
 
-                    result = new FlowCaptureReferenceOperation(enumeratorCaptureId, loopCollection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: null);
+                    result = new FlowCaptureReferenceOperation(enumeratorCaptureId, operation.Collection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: null);
                 }
                 else
                 {
                     // This must be an error case
-                    AddStatement(MakeInvalidOperation(type: null, VisitRequired(loopCollection)));
-                    result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, loopCollection.Syntax,
+                    AddStatement(MakeInvalidOperation(type: null, VisitRequired(operation.Collection)));
+                    result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
                                                   type: null, constantValue: null, isImplicit: true);
                 }
 
@@ -4570,7 +4547,7 @@ oneMoreTime:
                 if (info?.MoveNextMethod != null)
                 {
                     var moveNext = makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
-                    if (isAsynchronous)
+                    if (operation.IsAsynchronous)
                     {
                         return new AwaitOperation(moveNext, semanticModel: null, operation.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), isImplicit: true);
                     }
@@ -4594,7 +4571,7 @@ oneMoreTime:
                                                           visitedArguments,
                                                           instance,
                                                           semanticModel: null,
-                                                          loopControlVariable.Syntax,
+                                                          operation.LoopControlVariable.Syntax,
                                                           info.CurrentProperty.Type, isImplicit: true);
                 }
                 else
@@ -4606,10 +4583,10 @@ oneMoreTime:
 
             IOperation getLoopControlVariableAssignment(IOperation current)
             {
-                switch (loopControlVariable.Kind)
+                switch (operation.LoopControlVariable.Kind)
                 {
                     case OperationKind.VariableDeclarator:
-                        var declarator = (IVariableDeclaratorOperation)loopControlVariable;
+                        var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                         ILocalSymbol local = declarator.Symbol;
                         current = applyConversion(info?.ElementConversion, current, local.Type);
 
@@ -4632,15 +4609,15 @@ oneMoreTime:
                     case OperationKind.DeclarationExpression:
                         Debug.Assert(info?.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
-                        return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(loopControlVariable),
+                        return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(operation.LoopControlVariable),
                                                                      current, semanticModel: null,
-                                                                     loopControlVariable.Syntax, loopControlVariable.Type,
+                                                                     operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
                                                                      isImplicit: true);
                     default:
                         return new SimpleAssignmentOperation(isRef: false, // In C# this is an error case and VB doesn't support ref locals
-                            VisitRequired(loopControlVariable),
-                            current, semanticModel: null, loopControlVariable.Syntax,
-                            loopControlVariable.Type,
+                            VisitRequired(operation.LoopControlVariable),
+                            current, semanticModel: null, operation.LoopControlVariable.Syntax,
+                            operation.LoopControlVariable.Type,
                             constantValue: null, isImplicit: true);
                 }
             }
@@ -6393,71 +6370,32 @@ oneMoreTime:
 
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
-            Debug.Assert(operation.Type is { });
-
             EvalStackFrame frame = PushStackFrame();
-
-            IOperation instance = VisitAndCapture(operation.CreateInstance);
-
-            var previousImplicitInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(instance);
-
-            foreach (var element in operation.Elements)
-            {
-                AddCollectionExpressionElement(element);
-            }
-
-            instance = Visit(operation.ConvertToCollection)!;
-
-            _currentImplicitInstance = previousImplicitInstance;
-
-            return PopStackFrame(frame, instance);
-        }
-
-        private void AddCollectionExpressionElement(IOperation element)
-        {
-            // PROTOTYPE: What is _currentStatement used for, and is saving, setting, restoring _currentStatement necessary?
-            IOperation? saveCurrentStatement = _currentStatement;
-            _currentStatement = element;
-
-            EvalStackFrame frame = PushStackFrame();
-            IOperation? statement = Visit(element);
-            AddStatement(statement);
-            PopStackFrameAndLeaveRegion(frame);
-
-            _currentStatement = saveCurrentStatement;
+            var elements = VisitArray(operation.Elements);
+            PopStackFrame(frame);
+            return new CollectionExpressionOperation(
+                operation.ConstructMethod,
+                elements,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
         }
 
         public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
         {
-            return RewriteSpread((SpreadOperation)operation);
-        }
-
-        private IOperation? RewriteSpread(SpreadOperation operation)
-        {
-            if (operation.IteratorBody is null)
-            {
-                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, constantValue: null, operation.IsImplicit);
-            }
-
-            var variable = operation.IteratorVariable;
-            return RewriteForEachLoop(
-                operation,
-                variable,
-                operation.Collection,
-                operation.ForEachInfo,
-                isAsynchronous: false,
-                () =>
-                {
-                    EvalStackFrame frame = PushStackFrame();
-                    var statement = VisitAndCapture(operation.IteratorBody);
-                    Debug.Assert(statement is { });
-                    AddStatement(statement);
-                    PopStackFrameAndLeaveRegion(frame);
-                },
-                locals: ImmutableArray.Create(variable.Symbol),
-                operation.ContinueLabel,
-                operation.ExitLabel);
+            EvalStackFrame frame = PushStackFrame();
+            var operand = Visit(operation.Operand);
+            Debug.Assert(operand is { });
+            PopStackFrame(frame);
+            return new SpreadOperation(
+                operand,
+                itemType: operation.ItemType,
+                itemConversion: ((SpreadOperation)operation).ItemConversionConvertible,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)

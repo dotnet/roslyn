@@ -1628,21 +1628,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
         {
             LogString(nameof(ICollectionExpressionOperation));
-            LogString($" ({operation.Elements.Length} elements)");
+            LogString($" ({operation.Elements.Length} elements");
+            LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.CreateInstance, "CreateInstance");
-            Visit(operation.ConvertToCollection, "ConvertToCollection");
-            VisitArray(operation.Elements, "Elements", logElementCount: true);
+            VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
         }
 
         public override void VisitSpread(ISpreadOperation operation)
         {
             LogString(nameof(ISpreadOperation));
+            LogSymbol(operation.ItemType, $" ({nameof(operation.ItemType)}");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Collection, "Collection");
-            Visit(operation.IteratorBody, "IteratorBody");
+            Visit(operation.Operand, nameof(operation.Operand));
+            Indent();
+            LogConversion(operation.ItemConversion, nameof(operation.ItemConversion));
+            LogNewLine();
+            Indent();
+            LogString($"({((SpreadOperation)operation).ItemConversionConvertible})");
+            Unindent();
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)

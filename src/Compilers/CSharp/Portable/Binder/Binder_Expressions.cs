@@ -4798,8 +4798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: lengthOrCount,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false)
-                { WasCompilerGenerated = true };
+                    hasErrors: false);
             }
         }
 #nullable disable
@@ -5968,7 +5967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            var addElementPlaceholder = new BoundCollectionExpressionSpreadIteratorPlaceholder(syntax, enumeratorInfo.ElementType);
+            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
             var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
                 syntax,
                 implicitReceiver,

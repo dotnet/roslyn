@@ -722,7 +722,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
-                elementType,
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderMethod,
@@ -737,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(enumeratorInfo is { });
                 Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
-                var elementPlaceholder = new BoundCollectionExpressionSpreadIteratorPlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
                 var convertElement = CreateConversion(
                     element.Syntax,
                     elementPlaceholder,
@@ -788,7 +787,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
-                elementType: null,
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderMethod: null,

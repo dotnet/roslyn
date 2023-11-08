@@ -1890,8 +1890,6 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
-    <!-- Collection element type if applicable. -->
-    <Field Name="ElementType" Type="TypeSymbol?" Null="allow"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Constructor call to create the empty collection type. -->
@@ -1906,8 +1904,6 @@
 
   <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>
 
-  <Node Name="BoundCollectionExpressionSpreadIteratorPlaceholder" Base="BoundValuePlaceholderBase"/>
-
   <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundNode">
     <!-- Collection being spread. -->
     <Field Name="Expression" Type="BoundExpression"/>
@@ -1920,7 +1916,7 @@
     <!-- Collection Length or Count property value. -->
     <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Collection element placeholder, used in IteratorBody. -->
-    <Field Name="ElementPlaceholder" Type="BoundCollectionExpressionSpreadIteratorPlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Statement executed for each collection element. -->
     <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>

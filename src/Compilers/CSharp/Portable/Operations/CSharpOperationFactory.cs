@@ -102,12 +102,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
                 case BoundKind.CollectionExpression:
                     return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
-                case BoundKind.CollectionExpressionSpreadElement:
-                    return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
-                case BoundKind.CollectionExpressionSpreadIteratorPlaceholder:
-                    return CreateBoundCollectionExpressionSpreadIteratorPlaceholder((BoundCollectionExpressionSpreadIteratorPlaceholder)boundNode);
-                case BoundKind.ValuePlaceholder:
-                    return CreateBoundValuePlaceholder((BoundValuePlaceholder)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -1227,300 +1221,101 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
-            var collectionTypeKind = expr.CollectionTypeKind;
-            if (collectionTypeKind == CollectionExpressionTypeKind.None)
-            {
-                return CreateInvalidCollectionExpressionOperation(expr);
-            }
-
             SyntaxNode syntax = expr.Syntax;
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
-
-            IOperation createInstance;
-            IOperation convertToCollection;
-            ImmutableArray<IOperation> elements;
-
-            bool useList;
-
-            switch (collectionTypeKind)
-            {
-                case CollectionExpressionTypeKind.Array:
-                case CollectionExpressionTypeKind.Span:
-                case CollectionExpressionTypeKind.ReadOnlySpan:
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                case CollectionExpressionTypeKind.ImmutableArray:
-                    useList = expr.Elements.Any(e => e is BoundCollectionExpressionSpreadElement);
-                    break;
-                case CollectionExpressionTypeKind.List:
-                case CollectionExpressionTypeKind.ArrayInterface:
-                    useList = true;
-                    break;
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    useList = false;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
-            }
-
-            // PROTOTYPE: Array, span, and builder cases should use an array initializer if there are no spreads.
-            switch (collectionTypeKind)
-            {
-                case CollectionExpressionTypeKind.Array:
-                case CollectionExpressionTypeKind.Span:
-                case CollectionExpressionTypeKind.ReadOnlySpan:
-                case CollectionExpressionTypeKind.List:
-                case CollectionExpressionTypeKind.ArrayInterface:
-                case CollectionExpressionTypeKind.ImmutableArray:
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                    {
-                        Debug.Assert(expr.ElementType is { });
-                        var compilation = (CSharpCompilation)_semanticModel.Compilation;
-                        if (useList)
-                        {
-                            // PROTOTYPE: Test with missing well-known type.
-                            var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(expr.ElementType);
-                            var constructor = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))?.AsMember(listType).GetPublicSymbol();
-                            var addMethod = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add))?.AsMember(listType).GetPublicSymbol();
-                            // PROTOTYPE: Test with missing well-known members.
-                            if (constructor is null || addMethod is null)
-                            {
-                                return CreateInvalidCollectionExpressionOperation(expr);
-                            }
-                            var instanceType = constructor.ContainingType;
-                            createInstance = new ObjectCreationOperation(
-                                constructor,
-                                initializer: null,
-                                arguments: ImmutableArray<IArgumentOperation>.Empty,
-                                _semanticModel,
-                                syntax,
-                                instanceType,
-                                constantValue: null,
-                                isImplicit: true);
-                            elements = expr.Elements.SelectAsArray(
-                                element =>
-                                {
-                                    if (element is BoundCollectionExpressionSpreadElement spread)
-                                    {
-                                        Debug.Assert(spread.IteratorBody is { });
-                                        return CreateBoundCollectionExpressionSpreadElement(
-                                            spread,
-                                            CreateListAddInvocation(syntax, instanceType, addMethod, ((BoundExpressionStatement)spread.IteratorBody).Expression));
-                                    }
-                                    else
-                                    {
-                                        return CreateListAddInvocation(syntax, instanceType, addMethod, (BoundExpression)element);
-                                    }
-                                });
-                        }
-                        else
-                        {
-                            createInstance = new ArrayCreationOperation(
-                                ImmutableArray.Create<IOperation>(
-                                    new LiteralOperation(
-                                        _semanticModel,
-                                        syntax,
-                                        compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol(),
-                                        constantValue: ConstantValue.Create(expr.Elements.Length),
-                                        isImplicit: true)),
-                                initializer: null,
-                                _semanticModel,
-                                syntax,
-                                ArrayTypeSymbol.CreateSZArray(compilation.Assembly, TypeWithAnnotations.Create(expr.ElementType)).GetPublicSymbol(),
-                                isImplicit: true);
-                            elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
-                        }
-                    }
-                    break;
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    Debug.Assert(expr.CollectionCreation is { });
-                    createInstance = Create(expr.CollectionCreation);
-                    elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
-            }
-
-            switch (collectionTypeKind)
-            {
-                case CollectionExpressionTypeKind.Array:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.List:
-                case CollectionExpressionTypeKind.ArrayInterface:
-                    // PROTOTYPE: This is not right if we're using an intermediate List<T>.
-                    convertToCollection = new InstanceReferenceOperation(
-                        InstanceReferenceKind.ImplicitReceiver,
-                        _semanticModel,
-                        syntax,
-                        collectionType,
-                        isImplicit: true);
-                    break;
-                case CollectionExpressionTypeKind.Span:
-                case CollectionExpressionTypeKind.ReadOnlySpan:
-                    {
-                        Debug.Assert(expr.Type is { });
-                        // PROTOTYPE: Test with missing well-known member.
-                        var constructor = ((MethodSymbol?)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(
-                            collectionTypeKind == CollectionExpressionTypeKind.Span ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array))?.AsMember((NamedTypeSymbol)expr.Type).GetPublicSymbol();
-                        if (constructor is null)
-                        {
-                            return CreateInvalidCollectionExpressionOperation(expr);
-                        }
-                        IArgumentOperation argument = new ArgumentOperation(
-                            ArgumentKind.Explicit,
-                            constructor.Parameters[0],
-                            new InstanceReferenceOperation(
-                                InstanceReferenceKind.ImplicitReceiver,
-                                _semanticModel,
-                                syntax,
-                                createInstance.Type,
-                                isImplicit: true),
-                            inConversion: OperationFactory.IdentityConversion,
-                            outConversion: OperationFactory.IdentityConversion,
-                            _semanticModel,
-                            syntax,
-                            isImplicit: true);
-                        convertToCollection = new ObjectCreationOperation(
-                            constructor,
-                            initializer: null,
-                            ImmutableArray.Create(argument),
-                            _semanticModel,
-                            syntax,
-                            constructor.ContainingType,
-                            constantValue: null,
-                            isImplicit: true);
-                    }
-                    break;
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                    Debug.Assert(expr.CollectionBuilderInvocationConversion is { });
-                    convertToCollection = Create(expr.CollectionBuilderInvocationConversion);
-                    break;
-                case CollectionExpressionTypeKind.ImmutableArray:
-                    {
-                        Debug.Assert(expr.ElementType is { });
-                        var elementType = expr.ElementType;
-                        // PROTOTYPE: Test with missing well-known member.
-                        var asImmutableArray = ((MethodSymbol?)((CSharpCompilation)_semanticModel.Compilation).GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T))?.Construct(elementType).GetPublicSymbol();
-                        if (asImmutableArray is null)
-                        {
-                            return CreateInvalidCollectionExpressionOperation(expr);
-                        }
-                        IArgumentOperation argument = new ArgumentOperation(
-                            ArgumentKind.Explicit,
-                            asImmutableArray.Parameters[0],
-                            new InstanceReferenceOperation(
-                                InstanceReferenceKind.ImplicitReceiver,
-                                _semanticModel,
-                                syntax,
-                                createInstance.Type,
-                                isImplicit: true),
-                            inConversion: OperationFactory.IdentityConversion,
-                            outConversion: OperationFactory.IdentityConversion,
-                            _semanticModel,
-                            syntax,
-                            isImplicit: true);
-                        convertToCollection = new InvocationOperation(
-                            asImmutableArray,
-                            constrainedToType: null,
-                            instance: null,
-                            isVirtual: false,
-                            arguments: ImmutableArray.Create(argument),
-                            _semanticModel,
-                            syntax,
-                            asImmutableArray.ReturnType,
-                            isImplicit: true);
-                    }
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
-            }
-
+            IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(e => CreateBoundCollectionExpressionElement(expr, e));
             return new CollectionExpressionOperation(
-                createInstance,
-                convertToCollection,
+                constructMethod,
                 elements,
                 _semanticModel,
                 syntax,
                 collectionType,
                 isImplicit);
+
+            static MethodSymbol? getConstructMethod(CSharpCompilation compilation, BoundCollectionExpression expr)
+            {
+                switch (expr.CollectionTypeKind)
+                {
+                    case CollectionExpressionTypeKind.None:
+                    case CollectionExpressionTypeKind.Array:
+                    case CollectionExpressionTypeKind.ArrayInterface:
+                    case CollectionExpressionTypeKind.ReadOnlySpan:
+                    case CollectionExpressionTypeKind.Span:
+                        return null;
+                    case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                        return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
+                    case CollectionExpressionTypeKind.CollectionBuilder:
+                        return expr.CollectionBuilderMethod;
+                    case CollectionExpressionTypeKind.ImmutableArray:
+                        // PROTOTYPE: Return the [CollectionBuilder] method?
+                        return null;
+                    case CollectionExpressionTypeKind.List:
+                        Debug.Assert(expr.Type is { });
+                        return ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))?.AsMember((NamedTypeSymbol)expr.Type);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
+                }
+            }
         }
 
-        private IInvalidOperation CreateInvalidCollectionExpressionOperation(BoundCollectionExpression expr)
+        private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
-            SyntaxNode syntax = expr.Syntax;
-            ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
-            bool isImplicit = expr.WasCompilerGenerated;
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(
-                element => Create(element is BoundCollectionExpressionSpreadElement spread ? spread.Expression : (BoundExpression)element));
-            return new InvalidOperation(elements, _semanticModel, syntax, collectionType, constantValue: null, isImplicit);
+            switch (expr.CollectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                    return element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(spreadElement, getAddArgument(getIteratorBody(spreadElement))),
+                        BoundCollectionElementInitializer collectionInitializer => Create(collectionInitializer.Arguments[0]),
+                        BoundDynamicCollectionElementInitializer dynamicInitializer => Create(dynamicInitializer.Arguments[0]),
+                        _ => Create(element),
+                    };
+                default:
+                    return element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(spreadElement, getIteratorBody(spreadElement)),
+                        _ => Create(element),
+                    };
+            }
+
+            static BoundExpression? getIteratorBody(BoundCollectionExpressionSpreadElement spreadElement)
+            {
+                return ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
+            }
+
+            [return: NotNullIfNotNull("expr")] static BoundExpression? getAddArgument(BoundExpression? expr)
+            {
+                return expr switch
+                {
+                    // PROTOTYPE: This is not robust. What if there is no applicable Add() method and
+                    // the expression is actually an invocation, and perhaps with no arguments?
+                    BoundCall call => call.Arguments[0],
+                    BoundDynamicInvocation dynamicInvocation => dynamicInvocation.Arguments[0],
+                    // PROTOTYPE: We should look for specific BoundExpression kinds rather than just allowing any.
+                    _ => expr,
+                };
+            }
         }
 
-        private IOperation CreateListAddInvocation(SyntaxNode syntax, ITypeSymbol instanceType, IMethodSymbol addMethod, BoundExpression convertedElement)
-        {
-            IOperation e = Create(convertedElement);
-            IArgumentOperation argument = new ArgumentOperation(
-                ArgumentKind.Explicit,
-                addMethod.Parameters[0],
-                e,
-                inConversion: OperationFactory.IdentityConversion,
-                outConversion: OperationFactory.IdentityConversion,
-                _semanticModel,
-                e.Syntax,
-                isImplicit: true);
-            return new InvocationOperation(
-                addMethod,
-                constrainedToType: null,
-                instance: new InstanceReferenceOperation(
-                    InstanceReferenceKind.ImplicitReceiver,
-                    _semanticModel,
-                    syntax,
-                    instanceType,
-                    isImplicit: true),
-                isVirtual: false,
-                arguments: ImmutableArray.Create(argument),
-                _semanticModel,
-                e.Syntax,
-                addMethod.ReturnType,
-                isImplicit: true);
-        }
-
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
-        {
-            var iteratorBody = Create(((BoundExpressionStatement?)element.IteratorBody)?.Expression);
-            return CreateBoundCollectionExpressionSpreadElement(element, iteratorBody);
-        }
-
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, IOperation? iteratorBody)
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, BoundExpression? iteratorItem)
         {
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
-            // PROTOTYPE: Test with error case where boundSpreadElement.EnumeratorInfoOpt is null.
-            var enumeratorInfo = element.EnumeratorInfoOpt;
-            if (enumeratorInfo is null)
-            {
-                return new InvalidOperation(ImmutableArray.Create(collection), _semanticModel, syntax, type: null, constantValue: null, isImplicit);
-            }
-
-            var exprSyntax = element.Expression.Syntax;
-            var continueLabel = (new GeneratedLabelSymbol("continue")).GetPublicSymbol();
-            var breakLabel = (new GeneratedLabelSymbol("break")).GetPublicSymbol();
-            var forEachInfo = GetForEachLoopOperatorInfo(
+            var itemType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
+            var itemConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            return new SpreadOperation(
+                collection,
+                itemType: itemType,
+                itemConversion,
+                _semanticModel,
                 syntax,
-                exprSyntax,
-                enumeratorInfo,
-                elementPlaceholder: null,
-                elementConversion: null);
-            var iteratorVariable = new SynthesizedLocal(
-                containingMethodOpt: null,
-                enumeratorInfo.ElementTypeWithAnnotations,
-                SynthesizedLocalKind.ForEachEnumerator,
-                exprSyntax).GetPublicSymbol();
-            var iteratorVariableDeclarator = new VariableDeclaratorOperation(iteratorVariable, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, _semanticModel, exprSyntax, isImplicit: true);
-            return new SpreadOperation(collection, forEachInfo, continueLabel, breakLabel, iteratorVariableDeclarator, iteratorBody, _semanticModel, syntax, type: null, isImplicit);
+                type: null,
+                isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
@@ -2097,13 +1892,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ForLoopOperation(before, conditionLocals, condition, atLoopBottom, body, locals, continueLabel, exitLabel, _semanticModel, syntax, isImplicit);
         }
 
-        internal ForEachLoopOperationInfo? GetForEachLoopOperatorInfo(
-            SyntaxNode syntax,
-            SyntaxNode expressionSyntax,
-            ForEachEnumeratorInfo? enumeratorInfoOpt,
-            BoundValuePlaceholder? elementPlaceholder,
-            BoundExpression? elementConversion)
+        internal ForEachLoopOperationInfo? GetForEachLoopOperatorInfo(BoundForEachStatement boundForEachStatement)
         {
+            ForEachEnumeratorInfo? enumeratorInfoOpt = boundForEachStatement.EnumeratorInfoOpt;
             ForEachLoopOperationInfo? info;
 
             if (enumeratorInfoOpt != null)
@@ -2131,11 +1922,11 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
-                                                    BoundNode.GetConversion(elementConversion, elementPlaceholder),
-                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, expressionSyntax),
-                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, expressionSyntax),
+                                                    BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
+                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
+                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, syntax)
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
             }
             else
@@ -2199,12 +1990,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
-            ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(
-                boundForEachStatement.Syntax,
-                boundForEachStatement.Expression.Syntax,
-                boundForEachStatement.EnumeratorInfoOpt,
-                boundForEachStatement.ElementPlaceholder,
-                boundForEachStatement.ElementConversion);
+            ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
 
             ImmutableArray<ILocalSymbol> locals = boundForEachStatement.IterationVariables.GetPublicSymbols();
 
@@ -2724,27 +2510,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new InstanceReferenceOperation(
                 InstanceReferenceKind.InterpolatedStringHandler,
-                _semanticModel,
-                placeholder.Syntax,
-                placeholder.GetPublicTypeSymbol(),
-                isImplicit: placeholder.WasCompilerGenerated);
-        }
-
-        private IOperation CreateBoundCollectionExpressionSpreadIteratorPlaceholder(BoundCollectionExpressionSpreadIteratorPlaceholder placeholder)
-        {
-            return new InstanceReferenceOperation(
-                InstanceReferenceKind.IteratorValue,
-                _semanticModel,
-                placeholder.Syntax,
-                placeholder.GetPublicTypeSymbol(),
-                isImplicit: placeholder.WasCompilerGenerated);
-        }
-
-        // PROTOTYPE: Should we have a specific BoundCollectionExpressionBuilderArgumentPlaceholder?
-        private IOperation CreateBoundValuePlaceholder(BoundValuePlaceholder placeholder)
-        {
-            return new InstanceReferenceOperation(
-                InstanceReferenceKind.ImplicitReceiver,
                 _semanticModel,
                 placeholder.Syntax,
                 placeholder.GetPublicTypeSymbol(),

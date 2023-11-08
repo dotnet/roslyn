@@ -3664,31 +3664,19 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ICollectionExpressionOperation : IOperation
     {
         /// <summary>
-        /// Construct the collection instance.
+        /// Method used to construct the collection.
         /// <para>
-        ///   If the collection type has a [CollectionBuilder] attribute, the operation is a call to the builder
-        ///   method with an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver as the
-        ///   span argument, and with the result converted to the collection type.
-        ///   Otherwise, the operation is a call to the collection constructor.
+        ///   If the collection type is an array, span, array interface, or type parameter, the method is null;
+        ///   if the collection type has a [CollectionBuilder] attribute, the method is the builder method;
+        ///   otherwise, the method is the collection type constructor.
         /// </para>
         /// </summary>
-        IOperation CreateInstance { get; }
-        /// <summary>
-        /// Convert instance to target collection type.
-        /// <para>
-        ///   The instance is an IInstanceReferenceOperation with ReferenceKind.ImplicitReceiver.
-        /// </para>
-        /// </summary>
-        IOperation ConvertToCollection { get; }
+        IMethodSymbol? ConstructMethod { get; }
         /// <summary>
         /// Collection expression elements.
         /// <para>
-        ///   If the element is not an ISpreadOperation then if the collection expression has a target type
-        ///   that uses Add methods for construction, the element is a call to the applicable Add method
-        ///   with the original element expression as the converted argument; otherwise, the element is
-        ///   the original element expression converted to the target element type. If the element is an
-        ///   ISpreadOperation, the call to Add or the conversion to the target element type is included
-        ///   in the ISpreadOperation.IteratorBody instead.
+        ///   If the element is an expression, the entry is converted to the target element type;
+        ///   otherwise, the entry is an ISpreadOperation.
         /// </para>
         /// </summary>
         ImmutableArray<IOperation> Elements { get; }
@@ -3713,14 +3701,16 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Collection being spread.
         /// </summary>
-        IOperation Collection { get; }
+        IOperation Operand { get; }
         /// <summary>
-        /// Iterator body for each collection element.
-        /// <para>
-        ///   Contains an IInstanceReferenceOperation with ReferenceKind.IteratorValue for the current iterator value.
-        /// </para>
+        /// Type of the collection iterator item.
         /// </summary>
-        IOperation? IteratorBody { get; }
+        ITypeSymbol? ItemType { get; }
+        /// <summary>
+        /// Conversion from the type of the iterator item to the target element type
+        /// of the containing collection expression.
+        /// </summary>
+        CommonConversion ItemConversion { get; }
     }
     #endregion
 
@@ -10397,29 +10387,21 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
     {
-        internal CollectionExpressionOperation(IOperation createInstance, IOperation convertToCollection, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
-            CreateInstance = SetParentOperation(createInstance, this);
-            ConvertToCollection = SetParentOperation(convertToCollection, this);
+            ConstructMethod = constructMethod;
             Elements = SetParentOperation(elements, this);
             Type = type;
         }
-        public IOperation CreateInstance { get; }
-        public IOperation ConvertToCollection { get; }
+        public IMethodSymbol? ConstructMethod { get; }
         public ImmutableArray<IOperation> Elements { get; }
         internal override int ChildOperationsCount =>
-            (CreateInstance is null ? 0 : 1) +
-            (ConvertToCollection is null ? 0 : 1) +
             Elements.Length;
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when CreateInstance != null
-                    => CreateInstance,
-                1 when ConvertToCollection != null
-                    => ConvertToCollection,
-                2 when index < Elements.Length
+                0 when index < Elements.Length
                     => Elements[index],
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
@@ -10428,19 +10410,13 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (CreateInstance != null) return (true, 0, 0);
+                    if (!Elements.IsEmpty) return (true, 0, 0);
                     else goto case 0;
+                case 0 when previousIndex + 1 < Elements.Length:
+                    return (true, 0, previousIndex + 1);
                 case 0:
-                    if (ConvertToCollection != null) return (true, 1, 0);
-                    else goto case 1;
                 case 1:
-                    if (!Elements.IsEmpty) return (true, 2, 0);
-                    else goto case 2;
-                case 2 when previousIndex + 1 < Elements.Length:
-                    return (true, 2, previousIndex + 1);
-                case 2:
-                case 3:
-                    return (false, 3, 0);
+                    return (false, 1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10450,16 +10426,10 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (!Elements.IsEmpty) return (true, 2, Elements.Length - 1);
-                    else goto case 2;
-                case 2 when previousIndex > 0:
-                    return (true, 2, previousIndex - 1);
-                case 2:
-                    if (ConvertToCollection != null) return (true, 1, 0);
-                    else goto case 1;
-                case 1:
-                    if (CreateInstance != null) return (true, 0, 0);
+                    if (!Elements.IsEmpty) return (true, 0, Elements.Length - 1);
                     else goto case 0;
+                case 0 when previousIndex > 0:
+                    return (true, 0, previousIndex - 1);
                 case 0:
                 case -1:
                     return (false, -1, 0);
@@ -10475,33 +10445,25 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SpreadOperation : Operation, ISpreadOperation
     {
-        internal SpreadOperation(IOperation collection, ForEachLoopOperationInfo? forEachInfo, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IVariableDeclaratorOperation iteratorVariable, IOperation? iteratorBody, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal SpreadOperation(IOperation operand, ITypeSymbol? itemType, IConvertibleConversion itemConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
-            Collection = SetParentOperation(collection, this);
-            ForEachInfo = forEachInfo;
-            ContinueLabel = continueLabel;
-            ExitLabel = exitLabel;
-            IteratorVariable = SetParentOperation(iteratorVariable, this);
-            IteratorBody = SetParentOperation(iteratorBody, this);
+            Operand = SetParentOperation(operand, this);
+            ItemType = itemType;
+            ItemConversionConvertible = itemConversion;
             Type = type;
         }
-        public IOperation Collection { get; }
-        public ForEachLoopOperationInfo? ForEachInfo { get; }
-        public ILabelSymbol ContinueLabel { get; }
-        public ILabelSymbol ExitLabel { get; }
-        public IVariableDeclaratorOperation IteratorVariable { get; }
-        public IOperation? IteratorBody { get; }
+        public IOperation Operand { get; }
+        public ITypeSymbol? ItemType { get; }
+        internal IConvertibleConversion ItemConversionConvertible { get; }
+        public CommonConversion ItemConversion => ItemConversionConvertible.ToCommonConversion();
         internal override int ChildOperationsCount =>
-            (Collection is null ? 0 : 1) +
-            (IteratorBody is null ? 0 : 1);
+            (Operand is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when Collection != null
-                    => Collection,
-                1 when IteratorBody != null
-                    => IteratorBody,
+                0 when Operand != null
+                    => Operand,
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
@@ -10509,14 +10471,11 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (Collection != null) return (true, 0, 0);
+                    if (Operand != null) return (true, 0, 0);
                     else goto case 0;
                 case 0:
-                    if (IteratorBody != null) return (true, 1, 0);
-                    else goto case 1;
                 case 1:
-                case 2:
-                    return (false, 2, 0);
+                    return (false, 1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10526,10 +10485,7 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (IteratorBody != null) return (true, 1, 0);
-                    else goto case 1;
-                case 1:
-                    if (Collection != null) return (true, 0, 0);
+                    if (Operand != null) return (true, 0, 0);
                     else goto case 0;
                 case 0:
                 case -1:
@@ -11160,12 +11116,12 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
         {
             var internalOperation = (CollectionExpressionOperation)operation;
-            return new CollectionExpressionOperation(Visit(internalOperation.CreateInstance), Visit(internalOperation.ConvertToCollection), VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {
             var internalOperation = (SpreadOperation)operation;
-            return new SpreadOperation(Visit(internalOperation.Collection), internalOperation.ForEachInfo, internalOperation.ContinueLabel, internalOperation.ExitLabel, Visit(internalOperation.IteratorVariable), Visit(internalOperation.IteratorBody), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ItemType, internalOperation.ItemConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion

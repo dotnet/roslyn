@@ -852,6 +852,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying item <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// </summary>
+        /// <remarks>
+        /// This spread operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetSpreadItemConversion(this ISpreadOperation spread)
+        {
+            if (spread == null)
+            {
+                throw new ArgumentNullException(nameof(spread));
+            }
+
+            if (spread.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((SpreadOperation)spread).ItemConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ISpreadOperationIsNotCSharpSpread, nameof(spread)), nameof(spread));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel? semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;

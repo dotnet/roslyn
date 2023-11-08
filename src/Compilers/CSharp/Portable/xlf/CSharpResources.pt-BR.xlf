@@ -2347,6 +2347,11 @@
         <target state="new">string escape character</target>
         <note />
       </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="new">{0} is not a valid C# spread operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">O operador '&amp;' não deve ser usado em parâmetros ou variáveis locais em métodos assíncronos.</target>
