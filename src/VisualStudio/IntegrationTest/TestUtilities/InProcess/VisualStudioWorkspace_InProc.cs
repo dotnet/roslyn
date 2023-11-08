@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 LoadRoslynPackage();
 
-                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkpacePartialSolutionsTestHook>();
+                var hook = _visualStudioWorkspace.Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
                 hook.IsPartialSolutionDisabled = true;
             });
 

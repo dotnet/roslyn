@@ -95,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual bool CancelOnNewWork { get; }
 
+        protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
+        {
+        }
+
         /// <summary>
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
