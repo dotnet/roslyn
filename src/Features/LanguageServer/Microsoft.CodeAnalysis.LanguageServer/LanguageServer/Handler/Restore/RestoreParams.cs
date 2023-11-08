@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [DataContract]
 internal sealed record RestoreParams(
-    [property: DataMember(Name = "projectFilePath"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] string? ProjectFilePath
+    [property: DataMember(Name = "projectFilePaths")] string[] ProjectFilePaths
 ) : IPartialResultParams<RestorePartialResult>
 {
     [DataMember(Name = Methods.PartialResultTokenName)]
