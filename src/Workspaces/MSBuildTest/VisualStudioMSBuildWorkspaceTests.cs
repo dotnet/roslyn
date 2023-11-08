@@ -30,6 +30,7 @@ using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -921,10 +922,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await workspace.OpenSolutionAsync(solutionFilePath);
-            });
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1021,7 +1019,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1184,7 +1182,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
