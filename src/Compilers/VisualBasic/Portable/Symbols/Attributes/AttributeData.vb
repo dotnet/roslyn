@@ -58,29 +58,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend MustOverride Overrides ReadOnly Property HasErrors As Boolean
+
+        Friend MustOverride ReadOnly Property ErrorInfo As DiagnosticInfo
+
+        Friend MustOverride Overrides ReadOnly Property IsConditionallyOmitted As Boolean
+
         ''' <summary>
         ''' Compares the namespace and type name with the attribute's namespace and type name.  Returns true if they are the same.
         ''' </summary>
-        Friend Overridable Function IsTargetAttribute(
+        Friend MustOverride Function IsTargetAttribute(
             namespaceName As String,
             typeName As String,
             Optional ignoreCase As Boolean = False
         ) As Boolean
-            If AttributeClass.IsErrorType() AndAlso Not TypeOf AttributeClass Is MissingMetadataTypeSymbol Then
-                ' Can't guarantee complete name information.
-                Return False
-            End If
 
-            Dim options As StringComparison = If(ignoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
-            Return AttributeClass.HasNameQualifier(namespaceName, options) AndAlso
-                AttributeClass.Name.Equals(typeName, options)
+        Friend Function IsTargetAttribute(description As AttributeDescription) As Boolean
+            Return GetTargetAttributeSignatureIndex(description) <> -1
         End Function
 
-        Friend Function IsTargetAttribute(targetSymbol As Symbol, description As AttributeDescription) As Boolean
-            Return GetTargetAttributeSignatureIndex(targetSymbol, description) <> -1
-        End Function
-
-        Friend MustOverride Function GetTargetAttributeSignatureIndex(targetSymbol As Symbol, description As AttributeDescription) As Integer
+        Friend MustOverride Function GetTargetAttributeSignatureIndex(description As AttributeDescription) As Integer
 
         ''' <summary>
         ''' Checks if an applied attribute with the given attributeType matches the namespace name and type name of the given early attribute's description
@@ -196,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
                 securityData.SetSecurityAttribute(arguments.Index, action, arguments.AttributesCount)
 
-                If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PermissionSetAttribute) Then
+                If Me.IsTargetAttribute(AttributeDescription.PermissionSetAttribute) Then
                     Dim resolvedPathForFixup As String = Me.DecodePermissionSetAttribute(compilation, arguments)
                     If resolvedPathForFixup IsNot Nothing Then
                         securityData.SetPathForPermissionSetAttributeFixup(arguments.Index, resolvedPathForFixup, arguments.AttributesCount)
@@ -229,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' attribute argument to have the above mentioned behavior, even though the comment clearly mentions that this behavior was intended only for the HostProtectionAttribute.
                 ' We currently allow this case only for the HostProtectionAttribute. In future if need arises, we can exactly match native compiler's behavior.
 
-                If Me.IsTargetAttribute(targetSymbol, AttributeDescription.HostProtectionAttribute) Then
+                If Me.IsTargetAttribute(AttributeDescription.HostProtectionAttribute) Then
                     Return DeclarativeSecurityAction.LinkDemand
                 End If
             Else
@@ -294,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case DeclarativeSecurityAction.InheritanceDemand,
                      DeclarativeSecurityAction.LinkDemand
 
-                    If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
+                    If Me.IsTargetAttribute(AttributeDescription.PrincipalPermissionAttribute) Then
                         ' BC31215: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
                         Dim displayAndLocation As (ArgumentDisplay As String, Location As Location) = GetFirstArgumentDisplayAndLocation(nodeOpt, securityAction)
                         diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction, displayAndLocation.Location, displayAndLocation.ArgumentDisplay)
@@ -490,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), Cci.TypeLibTypeFlags))
         End Function
 
-        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
+        Friend Function DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag) As String
             Debug.Assert(Not Me.HasErrors)
 
             Dim guidString As String = Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)
@@ -500,8 +497,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
                 Dim location As Location = GetFirstArgumentLocation(nodeOpt)
                 diagnostics.Add(ERRID.ERR_BadAttributeUuid2, location, Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
+                guidString = String.Empty
             End If
-        End Sub
+
+            Return guidString
+        End Function
 
         Friend Function DecodeDefaultMemberAttribute() As String
             Debug.Assert(Not Me.HasErrors)
@@ -530,10 +530,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean) As Boolean
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse TypeOf target.ContainingAssembly Is SourceAssemblySymbol)
 
-            If HasErrors Then
-                Throw ExceptionUtilities.Unreachable
-            End If
-
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND
             '  (b) None of conditional symbols are true at the attribute source location.
@@ -550,71 +546,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case target.Kind
                 Case SymbolKind.Assembly
                     If (Not emittingAssemblyAttributesInNetModule AndAlso
-                            (IsTargetAttribute(target, AttributeDescription.AssemblyCultureAttribute) OrElse
-                             IsTargetAttribute(target, AttributeDescription.AssemblyVersionAttribute) OrElse
-                             IsTargetAttribute(target, AttributeDescription.AssemblyFlagsAttribute) OrElse
-                             IsTargetAttribute(target, AttributeDescription.AssemblyAlgorithmIdAttribute))) OrElse
-                       (IsTargetAttribute(target, AttributeDescription.CLSCompliantAttribute) AndAlso
+                            (IsTargetAttribute(AttributeDescription.AssemblyCultureAttribute) OrElse
+                             IsTargetAttribute(AttributeDescription.AssemblyVersionAttribute) OrElse
+                             IsTargetAttribute(AttributeDescription.AssemblyFlagsAttribute) OrElse
+                             IsTargetAttribute(AttributeDescription.AssemblyAlgorithmIdAttribute))) OrElse
+                       (IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) AndAlso
                             target.DeclaringCompilation.Options.OutputKind = OutputKind.NetModule) OrElse
-                       IsTargetAttribute(target, AttributeDescription.TypeForwardedToAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.TypeForwardedToAttribute) OrElse
                        Me.IsSecurityAttribute(target.DeclaringCompilation) Then
                         Return False
                     End If
 
                 Case SymbolKind.Event
-                    If IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.NonSerializedAttribute) Then
+                    If IsTargetAttribute(AttributeDescription.SpecialNameAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.NonSerializedAttribute) Then
                         Return False
                     End If
 
                 Case SymbolKind.Field
-                    If IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.NonSerializedAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.FieldOffsetAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.MarshalAsAttribute) Then
+                    If IsTargetAttribute(AttributeDescription.SpecialNameAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.NonSerializedAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.FieldOffsetAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                         Return False
                     End If
 
                 Case SymbolKind.Method
                     If isReturnType Then
-                        If IsTargetAttribute(target, AttributeDescription.MarshalAsAttribute) Then
+                        If IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                             Return False
                         End If
                     Else
-                        If IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) OrElse
-                           IsTargetAttribute(target, AttributeDescription.MethodImplAttribute) OrElse
-                           IsTargetAttribute(target, AttributeDescription.DllImportAttribute) OrElse
-                           IsTargetAttribute(target, AttributeDescription.PreserveSigAttribute) OrElse
+                        If IsTargetAttribute(AttributeDescription.SpecialNameAttribute) OrElse
+                           IsTargetAttribute(AttributeDescription.MethodImplAttribute) OrElse
+                           IsTargetAttribute(AttributeDescription.DllImportAttribute) OrElse
+                           IsTargetAttribute(AttributeDescription.PreserveSigAttribute) OrElse
                            Me.IsSecurityAttribute(target.DeclaringCompilation) Then
                             Return False
                         End If
                     End If
 
                 Case SymbolKind.NetModule
-                    If (IsTargetAttribute(target, AttributeDescription.CLSCompliantAttribute) AndAlso
+                    If (IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) AndAlso
                             target.DeclaringCompilation.Options.OutputKind <> OutputKind.NetModule) Then
                         Return False
                     End If
                 Case SymbolKind.NamedType
-                    If IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.ComImportAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.SerializableAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.StructLayoutAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.WindowsRuntimeImportAttribute) OrElse
+                    If IsTargetAttribute(AttributeDescription.SpecialNameAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.ComImportAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.SerializableAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.StructLayoutAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.WindowsRuntimeImportAttribute) OrElse
                        Me.IsSecurityAttribute(target.DeclaringCompilation) Then
                         Return False
                     End If
 
                 Case SymbolKind.Parameter
-                    If IsTargetAttribute(target, AttributeDescription.OptionalAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.MarshalAsAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.InAttribute) OrElse
-                       IsTargetAttribute(target, AttributeDescription.OutAttribute) Then
+                    If IsTargetAttribute(AttributeDescription.OptionalAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.MarshalAsAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.InAttribute) OrElse
+                       IsTargetAttribute(AttributeDescription.OutAttribute) Then
                         Return False
                     End If
 
                 Case SymbolKind.Property
-                    If IsTargetAttribute(target, AttributeDescription.SpecialNameAttribute) Then
+                    If IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                         Return False
                     End If
             End Select
@@ -625,9 +621,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend Module AttributeDataExtensions
         <System.Runtime.CompilerServices.Extension()>
-        Public Function IndexOfAttribute(attributes As ImmutableArray(Of VisualBasicAttributeData), targetSymbol As Symbol, description As AttributeDescription) As Integer
+        Public Function IndexOfAttribute(attributes As ImmutableArray(Of VisualBasicAttributeData), description As AttributeDescription) As Integer
             For i As Integer = 0 To attributes.Length - 1
-                If attributes(i).IsTargetAttribute(targetSymbol, description) Then
+                If attributes(i).IsTargetAttribute(description) Then
                     Return i
                 End If
             Next

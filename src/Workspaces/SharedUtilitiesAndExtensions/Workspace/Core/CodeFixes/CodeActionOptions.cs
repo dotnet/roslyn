@@ -181,9 +181,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new()
             {
                 CodeGenerationOptions = codeActionOptions.CodeGenerationOptions,
+                CodeCleanupOptions = codeActionOptions.CleanupOptions,
                 ExtractOptions = codeActionOptions.ExtractMethodOptions,
-                AddImportOptions = codeActionOptions.CleanupOptions.AddImportOptions,
-                LineFormattingOptions = codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting
             };
         }
 #endif

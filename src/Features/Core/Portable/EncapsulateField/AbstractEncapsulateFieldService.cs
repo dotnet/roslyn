@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 ImmutableArray.Create(body));
         }
 
-        private static readonly char[] s_underscoreCharArray = new[] { '_' };
+        private static readonly char[] s_underscoreCharArray = ['_'];
 
         protected static string GeneratePropertyName(string fieldName)
         {

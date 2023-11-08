@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
+    internal partial class AbstractSyntaxIndex<TIndex>
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
         private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("38");
@@ -180,8 +180,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return false;
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public abstract void WriteTo(ObjectWriter writer);
     }

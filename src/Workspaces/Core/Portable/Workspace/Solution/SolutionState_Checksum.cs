@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -21,6 +22,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
+        private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
+
+        public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
+            => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
+
         public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
             => _lazyChecksums.TryGetValue(out stateChecksums);
 
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // get states by id order to have deterministic checksum.  Limit expensive computation to the
                     // requested set of projects if applicable.
-                    var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
+                    var orderedProjectIds = GetOrCreateSortedProjectIds(ProjectIds);
                     var projectChecksumTasks = orderedProjectIds
                         .Select(id => (state: ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
                         .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
@@ -129,21 +135,21 @@ namespace Microsoft.CodeAnalysis
                             // if it's a project that's specifically in the sync'ed cone, include this checksum so that
                             // this project definitely syncs over.
                             if (t.mustCompute)
-                                return await t.state.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                                return await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
                             // If it's a project that is not in the cone, still try to get the latest checksum for it if
                             // we have it.  That way we don't send over a checksum *without* that project, causing the
                             // OOP side to throw that project away (along with all the compilation info stored with it).
                             if (t.state.TryGetStateChecksums(out var stateChecksums))
-                                return stateChecksums.Checksum;
+                                return stateChecksums;
 
                             // We have never computed the checksum for this project.  Don't send anything for it.
-                            return (Checksum?)null;
+                            return null;
                         })
                         .ToArray();
 
                     var serializer = Services.GetRequiredService<ISerializerService>();
-                    var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
+                    var attributesChecksum = this.SolutionAttributes.Checksum;
 
                     var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
                     var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
@@ -154,17 +160,23 @@ namespace Microsoft.CodeAnalysis
                         frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
                     }
 
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
-                        _ => new ChecksumCollection(AnalyzerReferences.SelectAsArray(r => serializer.CreateChecksum(r, cancellationToken))));
+                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
 
-                    var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    using var _ = ArrayBuilder<Checksum>.GetInstance(projectChecksums.Length, out var nonNullChecksums);
-                    foreach (var checksum in projectChecksums)
-                        nonNullChecksums.AddIfNotNull(checksum);
+                    var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                    using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
+                    using var _2 = ArrayBuilder<Checksum>.GetInstance(allResults.Length, out var projectChecksums);
+                    foreach (var projectStateChecksums in allResults)
+                    {
+                        if (projectStateChecksums != null)
+                        {
+                            projectIds.Add(projectStateChecksums.ProjectId);
+                            projectChecksums.Add(projectStateChecksums.Checksum);
+                        }
+                    }
 
                     return new SolutionStateChecksums(
                         attributesChecksum,
-                        new ChecksumCollection(nonNullChecksums.ToImmutableAndClear()),
+                        new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
                         analyzerReferenceChecksums,
                         frozenSourceGeneratedDocumentIdentityChecksum,
                         frozenSourceGeneratedDocumentTextChecksum);

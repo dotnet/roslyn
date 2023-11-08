@@ -4025,8 +4025,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(elementType is { });
-                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType);
+                case CollectionExpressionTypeKind.ImmutableArray: // Error case.
+                    Debug.Assert(elementType.Type is { });
+                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
                 case CollectionExpressionTypeKind.Span:
                     return true;
                 case CollectionExpressionTypeKind.CollectionBuilder:
@@ -4050,6 +4051,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return false;
                     }
+                    return true;
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                    // Error cases. Restrict the collection to local scope.
                     return true;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind

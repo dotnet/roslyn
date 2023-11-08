@@ -162,10 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
 #nullable enable
         /// <summary>
@@ -1154,6 +1151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets a value indicating whether this type has an EmbeddedAttribute or not.
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
+
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
 
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
