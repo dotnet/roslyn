@@ -1475,7 +1475,7 @@ class Customer2
 }}
 ";
 
-        private static readonly string[] s_usingDirectivePlacement = [ $@"
+        private static readonly string[] s_usingDirectivePlacement = [$@"
 //[
     namespace Namespace
     {{
@@ -1500,7 +1500,7 @@ class Customer2
         }}
     }}
 //]
-" ];
+"];
 
         private static readonly string s_preferReadOnlyStruct = $@"
 //[

@@ -30,11 +30,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal static class ProtocolConversions
+    internal static partial class ProtocolConversions
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
         private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
+        private const string BlockCodeFence = "```";
+        private const string InlineCodeFence = "`";
 
 #pragma warning disable RS0030 // Do not use banned APIs
         private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
@@ -844,40 +846,65 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
             }
 
-            var builder = new StringBuilder();
-            var isInCodeBlock = false;
+            using var markdownBuilder = new MarkdownContentBuilder();
+            string? codeFence = null;
             foreach (var taggedText in tags)
             {
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        var codeBlockLanguageName = GetCodeBlockLanguageName(language);
-                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = true;
+                        if (markdownBuilder.IsLineEmpty())
+                        {
+                            // If the current line is empty, we can append a code block.
+                            codeFence = BlockCodeFence;
+                            var codeBlockLanguageName = GetCodeBlockLanguageName(language);
+                            markdownBuilder.AppendLine($"{codeFence}{codeBlockLanguageName}");
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else
+                        {
+                            // There is text on the line already - we should append an in-line code block.
+                            codeFence = InlineCodeFence;
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
                         break;
                     case TextTags.CodeBlockEnd:
-                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = false;
+                        if (codeFence == BlockCodeFence)
+                        {
+                            markdownBuilder.AppendLine(codeFence);
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else if (codeFence == InlineCodeFence)
+                        {
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(codeFence);
+                        }
+
+                        codeFence = null;
+
                         break;
                     case TextTags.LineBreak:
                         // A line ending with double space and a new line indicates to markdown
                         // to render a single-spaced line break.
-                        builder.Append("  ");
-                        builder.Append(Environment.NewLine);
+                        markdownBuilder.Append("  ");
+                        markdownBuilder.AppendLine();
                         break;
                     default:
-                        var styledText = GetStyledText(taggedText, isInCodeBlock);
-                        builder.Append(styledText);
+                        var styledText = GetStyledText(taggedText, codeFence != null);
+                        markdownBuilder.Append(styledText);
                         break;
                 }
             }
 
+            var content = markdownBuilder.Build(Environment.NewLine);
+
             return new LSP.MarkupContent
             {
                 Kind = LSP.MarkupKind.Markdown,
-                Value = builder.ToString(),
+                Value = content,
             };
 
             static string GetCodeBlockLanguageName(string language)

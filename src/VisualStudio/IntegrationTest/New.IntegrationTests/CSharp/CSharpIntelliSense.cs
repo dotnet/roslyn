@@ -383,8 +383,8 @@ class Class1
 
             await TestServices.Input.SendAsync(
                 [
-                        'M',
-                        (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT),
+                    'M',
+                    (VirtualKeyCode.RETURN, VirtualKeyCode.SHIFT),
                 ],
                 HangMitigatingCancellationToken);
 

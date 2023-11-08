@@ -149,8 +149,7 @@ dotnet_public_api_analyzer.require_api_files = true
 
 # IDE0055: Fix formatting
 # Workaround for https://github.com/dotnet/roslyn/issues/70570
-# Disabled because the current SDK warns on collection expressions
-dotnet_diagnostic.IDE0055.severity = none
+dotnet_diagnostic.IDE0055.severity = warning
 
 # CSharp code style settings:
 [*.cs]

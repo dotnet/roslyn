@@ -54,20 +54,32 @@ class Q
 
             DkmCustomUIVisualizerInfo[] customUIVisualizerInfo =
             [
-                new DkmCustomUIVisualizerInfo { Id = 0, Description = "P", MenuName = "P", Metric = "ClrCustomVisualizerVSHost",
+                new DkmCustomUIVisualizerInfo
+                {
+                    Id = 0,
+                    Description = "P",
+                    MenuName = "P",
+                    Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeP.FullName,
                     UISideVisualizerAssemblyName = typeP.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
                     DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
-                    ExtensionPartId = Guid.Empty},
-                new DkmCustomUIVisualizerInfo { Id = 1, Description = "Q Visualizer", MenuName = "Q Visualizer",  Metric = "ClrCustomVisualizerVSHost",
+                    ExtensionPartId = Guid.Empty
+                },
+                new DkmCustomUIVisualizerInfo
+                {
+                    Id = 1,
+                    Description = "Q Visualizer",
+                    MenuName = "Q Visualizer",
+                    Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeQ.FullName,
                     UISideVisualizerAssemblyName = typeQ.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
                     DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
-                    ExtensionPartId = Guid.Empty}
+                    ExtensionPartId = Guid.Empty
+                }
             ];
 
             Verify(evalResult,
