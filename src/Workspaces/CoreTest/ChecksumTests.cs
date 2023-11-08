@@ -53,7 +53,7 @@ public class ChecksumTests
         const int max = 10;
         var checksums = Enumerable.Range(0, max).Select(i => Checksum.Create($"{i}")).ToArray();
 
-        var checksumA = Checksum.Create(checksums.Select(c => c.Hash).ToArray().AsSpan());
+        var checksumA = Checksum.Create(checksums.AsSpan());
 
         // Running this test on multiple target frameworks with the same expectation ensures the results match
         Assert.Equal(Checksum.FromBase64String("umt6tOdNsvIArs4OY7MFCg=="), checksumA);

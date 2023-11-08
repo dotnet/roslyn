@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (Services.GetService<IWorkpacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                    if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
                         return this;
                     }

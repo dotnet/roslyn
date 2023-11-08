@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     // various factory methods. all these are just helper methods
-    internal partial record class Checksum
+    internal readonly partial record struct Checksum
     {
         // https://github.com/dotnet/runtime/blob/f2db6d6093c54e5eeb9db2d8dcbe15b2db92ad8c/src/libraries/System.Security.Cryptography.Algorithms/src/System/Security/Cryptography/SHA256.cs#L18-L19
         private const int XXHash128SizeBytes = 128 / 8;
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2)
-            => Create(stackalloc[] { checksum1.Hash, checksum2.Hash });
+            => Create(stackalloc[] { checksum1, checksum2 });
 
         public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
-            => Create(stackalloc[] { checksum1.Hash, checksum2.Hash, checksum3.Hash });
+            => Create(stackalloc[] { checksum1, checksum2, checksum3 });
 
-        public static Checksum Create(ReadOnlySpan<Checksum.HashData> hashes)
+        public static Checksum Create(ReadOnlySpan<Checksum> hashes)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
             XxHash128.Hash(MemoryMarshal.AsBytes(hashes), destination);

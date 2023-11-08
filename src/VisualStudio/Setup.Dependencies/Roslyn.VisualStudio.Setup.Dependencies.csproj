@@ -32,6 +32,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Configuration.ConfigurationManager" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Drawing.Common" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Hashing" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" PkgDefEntry="BindingRedirect" />
@@ -75,6 +76,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemDrawingCommonVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.IO.Hashing" Version="$(SystemIOHashingVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
