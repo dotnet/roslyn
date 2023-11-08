@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -105,10 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var project = solution.GetRequiredProject(projectId);
                     var diagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-                    if (diagnostics.IsEmpty)
-                        return ImmutableArray<DiagnosticData>.Empty;
-
-                    using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+                    using var builder = TemporaryArray<DiagnosticData>.Empty;
                     foreach (var diagnostic in diagnostics)
                     {
                         var document = solution.GetDocument(diagnostic.Location.SourceTree);
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         builder.Add(data);
                     }
 
-                    return builder.ToImmutable();
+                    return builder.ToImmutableAndClear();
                 }, cancellationToken).ConfigureAwait(false);
         }
 
