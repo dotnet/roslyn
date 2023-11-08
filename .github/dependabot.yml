@@ -10,4 +10,4 @@ updates:
   ignore:
   # This package has unlisted versions on nuget.org that are not supported. Avoid them.
   - dependency-name: dotnet-format
-    versions: ["6.x", "7.x", "8.x"]
+    versions: ["6.x", "7.x", "8.x", "9.x"]
