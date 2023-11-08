@@ -1241,6 +1241,29 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation convertToCollection;
             ImmutableArray<IOperation> elements;
 
+            bool useList;
+
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.Array:
+                case CollectionExpressionTypeKind.Span:
+                case CollectionExpressionTypeKind.ReadOnlySpan:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                case CollectionExpressionTypeKind.ImmutableArray:
+                    useList = expr.Elements.Any(e => e is BoundCollectionExpressionSpreadElement);
+                    break;
+                case CollectionExpressionTypeKind.List:
+                case CollectionExpressionTypeKind.ArrayInterface:
+                    useList = true;
+                    break;
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    useList = false;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+            }
+
             // PROTOTYPE: Array, span, and builder cases should use an array initializer if there are no spreads.
             switch (collectionTypeKind)
             {
@@ -1254,40 +1277,60 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         Debug.Assert(expr.ElementType is { });
                         var compilation = (CSharpCompilation)_semanticModel.Compilation;
-                        // PROTOTYPE: Test with missing well-known type.
-                        var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(expr.ElementType);
-                        var constructor = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))?.AsMember(listType).GetPublicSymbol();
-                        var addMethod = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add))?.AsMember(listType).GetPublicSymbol();
-                        // PROTOTYPE: Test with missing well-known members.
-                        if (constructor is null || addMethod is null)
+                        if (useList)
                         {
-                            return CreateInvalidCollectionExpressionOperation(expr);
-                        }
-                        var instanceType = constructor.ContainingType;
-                        createInstance = new ObjectCreationOperation(
-                            constructor,
-                            initializer: null,
-                            arguments: ImmutableArray<IArgumentOperation>.Empty,
-                            _semanticModel,
-                            syntax,
-                            instanceType,
-                            constantValue: null,
-                            isImplicit: true);
-                        elements = expr.Elements.SelectAsArray(
-                            element =>
+                            // PROTOTYPE: Test with missing well-known type.
+                            var listType = compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(expr.ElementType);
+                            var constructor = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))?.AsMember(listType).GetPublicSymbol();
+                            var addMethod = ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add))?.AsMember(listType).GetPublicSymbol();
+                            // PROTOTYPE: Test with missing well-known members.
+                            if (constructor is null || addMethod is null)
                             {
-                                if (element is BoundCollectionExpressionSpreadElement spread)
+                                return CreateInvalidCollectionExpressionOperation(expr);
+                            }
+                            var instanceType = constructor.ContainingType;
+                            createInstance = new ObjectCreationOperation(
+                                constructor,
+                                initializer: null,
+                                arguments: ImmutableArray<IArgumentOperation>.Empty,
+                                _semanticModel,
+                                syntax,
+                                instanceType,
+                                constantValue: null,
+                                isImplicit: true);
+                            elements = expr.Elements.SelectAsArray(
+                                element =>
                                 {
-                                    Debug.Assert(spread.IteratorBody is { });
-                                    return CreateBoundCollectionExpressionSpreadElement(
-                                        spread,
-                                        CreateListAddInvocation(syntax, instanceType, addMethod, ((BoundExpressionStatement)spread.IteratorBody).Expression));
-                                }
-                                else
-                                {
-                                    return CreateListAddInvocation(syntax, instanceType, addMethod, (BoundExpression)element);
-                                }
-                            });
+                                    if (element is BoundCollectionExpressionSpreadElement spread)
+                                    {
+                                        Debug.Assert(spread.IteratorBody is { });
+                                        return CreateBoundCollectionExpressionSpreadElement(
+                                            spread,
+                                            CreateListAddInvocation(syntax, instanceType, addMethod, ((BoundExpressionStatement)spread.IteratorBody).Expression));
+                                    }
+                                    else
+                                    {
+                                        return CreateListAddInvocation(syntax, instanceType, addMethod, (BoundExpression)element);
+                                    }
+                                });
+                        }
+                        else
+                        {
+                            createInstance = new ArrayCreationOperation(
+                                ImmutableArray.Create<IOperation>(
+                                    new LiteralOperation(
+                                        _semanticModel,
+                                        syntax,
+                                        compilation.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol(),
+                                        constantValue: ConstantValue.Create(expr.Elements.Length),
+                                        isImplicit: true)),
+                                initializer: null,
+                                _semanticModel,
+                                syntax,
+                                ArrayTypeSymbol.CreateSZArray(compilation.Assembly, TypeWithAnnotations.Create(expr.ElementType)).GetPublicSymbol(),
+                                isImplicit: true);
+                            elements = CreateFromArray<BoundNode, IOperation>(expr.Elements);
+                        }
                     }
                     break;
                 case CollectionExpressionTypeKind.ImplementsIEnumerableT:
@@ -1307,6 +1350,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.List:
                 case CollectionExpressionTypeKind.ArrayInterface:
+                    // PROTOTYPE: This is not right if we're using an intermediate List<T>.
                     convertToCollection = new InstanceReferenceOperation(
                         InstanceReferenceKind.ImplicitReceiver,
                         _semanticModel,
