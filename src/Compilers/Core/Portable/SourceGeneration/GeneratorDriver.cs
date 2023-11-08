@@ -225,14 +225,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(pipelineContext);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
                     {
-                        if (compilation.FeatureDebugAnalyzers)
-                        {
-                            Debug.Assert(false);
-                            Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, e, isInit: true).ToString());
-                        }
-
                         ex = e;
                     }
 
@@ -247,14 +241,8 @@ namespace Microsoft.CodeAnalysis
                             IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, new GeneratorRunStateTable.Builder(false), cancellationToken);
                             postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
                         }
-                        catch (UserFunctionException e)
+                        catch (UserFunctionException e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
                         {
-                            if (compilation.FeatureDebugAnalyzers)
-                            {
-                                Debug.Assert(false);
-                                Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, e, isInit: true).ToString());
-                            }
-
                             ex = e.InnerException;
                         }
                     }
@@ -313,22 +301,26 @@ namespace Microsoft.CodeAnalysis
 
                     stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
                 }
-                catch (UserFunctionException ufe)
+                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    ISourceGenerator sourceGenerator = state.Generators[i];
-
-                    if (compilation.FeatureDebugAnalyzers)
-                    {
-                        Debug.Assert(false);
-                        Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, ufe.InnerException, isInit: false).ToString());
-                    }
-
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, sourceGenerator, ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
                 }
             }
 
             state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed, parseOptionsChanged: false);
             return state;
+
+            static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)
+            {
+                if (compilation.FeatureDebugAnalyzers)
+                {
+                    Debug.Assert(false);
+                    Environment.FailFast(CreateGeneratorExceptionDiagnostic(messageProvider, sourceGenerator, e, isInit).ToString());
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)

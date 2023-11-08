@@ -1184,14 +1184,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
-            catch (Exception ex) when (this.Compilation.FeatureDebugAnalyzers)
+            catch (Exception ex) when (HandleAnalyzerException(analyzer, ex, info) &&
+                HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
+            {
+            }
+        }
+
+        private bool HandleAnalyzerException(DiagnosticAnalyzer analyzer, Exception ex, in AnalysisContextInfo? info)
+        {
+            if (this.Compilation.FeatureDebugAnalyzers)
             {
                 Debug.Assert(false);
                 Environment.FailFast(CreateAnalyzerExceptionDiagnostic(analyzer, ex, info).ToString());
+                return false;
             }
-            catch (Exception ex) when (HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
-            {
-            }
+
+            return true;
         }
 
         internal static bool HandleAnalyzerException(
