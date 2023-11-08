@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             using var _ = PooledStringBuilder.GetInstance(out var builder);
             foreach (var documentId in _documentIds)
             {
-                builder.AppendLine($"{documentId.GetDebuggerDisplay()}, IsSourcedGeneratedDocument: {documentId.IsSourceGenerated}");
+                builder.AppendLine($"{documentId.GetDebuggerDisplay()}, IsSourceGeneratedDocument: {documentId.IsSourceGenerated}");
             }
 
             return builder.ToString();
