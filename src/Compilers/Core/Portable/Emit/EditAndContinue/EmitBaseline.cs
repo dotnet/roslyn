@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.Emit
             public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
         }
 
-        [Obsolete("This overload is no longer supported")]
+        [Obsolete("This overload is no longer supported", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
             => throw new NotSupportedException();
 
-        [Obsolete("This overload is no longer supported")]
+        [Obsolete("This overload is no longer supported", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static EmitBaseline CreateInitialBaseline(
             ModuleMetadata module,
