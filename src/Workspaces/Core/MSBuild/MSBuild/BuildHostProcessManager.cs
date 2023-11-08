@@ -153,7 +153,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         AddArgument(processStartInfo, "--roll-forward");
         AddArgument(processStartInfo, "LatestMajor");
 
-        var netCoreBuildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net6.0", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
+        // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
+        var netCoreBuildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
 
         AddArgument(processStartInfo, netCoreBuildHostPath);
 
@@ -191,6 +192,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static string GetPathToDotNetFrameworkBuildHost()
     {
+        // The .NET Framework build host is deployed as a content folder next to the application into the BuildHost-net472 path
         var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
         Contract.ThrowIfFalse(File.Exists(netFrameworkBuildHost), $"Unable to locate the .NET Framework build host at {netFrameworkBuildHost}");
         return netFrameworkBuildHost;
@@ -245,6 +247,12 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static BuildHostProcessKind GetKindForProject(string projectFilePath)
     {
+        // In Source Build builds, we don't have a net472 host at all, so the answer is simple. We unfortunately can't create a net472 build because there's no
+        // reference assemblies to build against.
+#if DOTNET_BUILD_FROM_SOURCE
+        return BuildHostProcessKind.NetCore;
+#else
+
         // This implements the algorithm as stated in https://github.com/dotnet/project-system/blob/9a761848e0f330a45e349685a266fea00ac3d9c5/docs/opening-with-new-project-system.md;
         // we'll load the XML of the project directly, and inspect for certain elements.
         XDocument document;
@@ -293,6 +301,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         // Nothing that indicates it's an SDK-style project, so use our .NET framework host
         return frameworkHostType;
+
+#endif
     }
 
     public enum BuildHostProcessKind

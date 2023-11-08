@@ -96,12 +96,23 @@
     property that we could hook but we can't in this case.
   -->
   <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
+    <!-- When we're not doing source build we package two variants: net6.0 and net472 for the broadest compability. -->
+    <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
+        <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net6.0</TargetFramework>
+        <ContentFolderName>BuildHost-netcore</ContentFolderName>
+      </_NetFrameworkBuildHostProjectReference>
+    </ItemGroup>
+
+    <!-- For source build, we just build the SourceBuild targeted version -->
+    <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>$(NetPrevious)</TargetFramework>
+        <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
@@ -116,8 +127,8 @@
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
                Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               TargetPath="BuildHost-%(NetFrameworkBuildHostAssets.TargetFramework)\%(NetFrameworkBuildHostAssets.TargetPath)"
-               PackagePath="contentFiles\any\any\BuildHost-%(NetFrameworkBuildHostAssets.TargetFramework)\%(NetFrameworkBuildHostAssets.TargetPath)"
+               TargetPath="%(NetFrameworkBuildHostAssets.ContentFolderName)\%(NetFrameworkBuildHostAssets.TargetPath)"
+               PackagePath="contentFiles\any\any\%(NetFrameworkBuildHostAssets.ContentFolderName)\%(NetFrameworkBuildHostAssets.TargetPath)"
                CopyToOutputDirectory="PreserveNewest"
                PackageCopyToOutput="true" />
     </ItemGroup>
