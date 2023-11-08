@@ -776,17 +776,17 @@ class C
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                string[] expectedContents = [$"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used"];
 
-                string[] expectedContents =
-                [
-                    $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                ];
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
 
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                    var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
+                    if (string.Join(Environment.NewLine, expectedContents) == string.Join(Environment.NewLine, actualContents))
+                        return;
+                }
             }
         }
 
@@ -850,17 +850,17 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(10));
+                string[] expectedContents = [$"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used"];
 
-                string[] expectedContents =
-                [
-                    $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used",
-                ];
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
 
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                    var actualContents = await testServices.ErrorList.GetErrorsAsync(cancellationToken);
+                    if (string.Join(Environment.NewLine, expectedContents) == string.Join(Environment.NewLine, actualContents))
+                        return;
+                }
             }
         }
 
@@ -957,7 +957,6 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(10));
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
@@ -974,11 +973,16 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
                 }
 
                 var expectedContents = expectedContentsBuilder.ToImmutable().Sort();
-                var actualContents = await testServices.ErrorList.GetErrorsAsync(ErrorSource.Other, Microsoft.VisualStudio.Shell.Interop.__VSERRORCATEGORY.EC_MESSAGE, cancellationToken);
 
-                AssertEx.EqualOrDiff(
-                    string.Join(Environment.NewLine, expectedContents),
-                    string.Join(Environment.NewLine, actualContents));
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+
+                    var actualContents = await testServices.ErrorList.GetErrorsAsync(ErrorSource.Other, Microsoft.VisualStudio.Shell.Interop.__VSERRORCATEGORY.EC_MESSAGE, cancellationToken);
+                    if (string.Join(Environment.NewLine, expectedContents) == string.Join(Environment.NewLine, actualContents))
+                        return;
+                }
             }
         }
 
