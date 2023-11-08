@@ -1184,6 +1184,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
+            catch (Exception ex) when (this.Compilation.FeatureDebugAnalyzers)
+            {
+                Debug.Assert(false);
+                Environment.FailFast(CreateAnalyzerExceptionDiagnostic(analyzer, ex, info).ToString());
+            }
             catch (Exception ex) when (HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
             {
             }

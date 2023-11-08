@@ -227,6 +227,12 @@ namespace Microsoft.CodeAnalysis
                     }
                     catch (Exception e)
                     {
+                        if (compilation.FeatureDebugAnalyzers)
+                        {
+                            Debug.Assert(false);
+                            Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, e, isInit: true).ToString());
+                        }
+
                         ex = e;
                     }
 
@@ -243,6 +249,12 @@ namespace Microsoft.CodeAnalysis
                         }
                         catch (UserFunctionException e)
                         {
+                            if (compilation.FeatureDebugAnalyzers)
+                            {
+                                Debug.Assert(false);
+                                Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, e, isInit: true).ToString());
+                            }
+
                             ex = e.InnerException;
                         }
                     }
@@ -253,7 +265,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (state.ParseOptionsChanged && generatorState.PostInitTrees.Length > 0)
                 {
-                    // the generator is initalized, but we need to reparse the post-init trees as the parse options have changed
+                    // the generator is initialized, but we need to reparse the post-init trees as the parse options have changed
                     var reparsedInitSources = ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken);
                     generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes);
                 }
@@ -303,7 +315,15 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (UserFunctionException ufe)
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
+                    ISourceGenerator sourceGenerator = state.Generators[i];
+
+                    if (compilation.FeatureDebugAnalyzers)
+                    {
+                        Debug.Assert(false);
+                        Environment.FailFast(CreateGeneratorExceptionDiagnostic(MessageProvider, sourceGenerator, ufe.InnerException, isInit: false).ToString());
+                    }
+
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, sourceGenerator, ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
                 }
             }
 
@@ -346,6 +366,19 @@ namespace Microsoft.CodeAnalysis
                 CodeAnalysisEventSource.Log.GeneratorException(generator.GetGeneratorType().Name, e.ToString());
             }
 
+            var diagnostic = CreateGeneratorExceptionDiagnostic(provider, generator, e, isInit);
+            var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
+
+            if (filtered is not null)
+            {
+                diagnosticBag?.Add(filtered);
+                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero);
+            }
+            return generatorState;
+        }
+
+        private static Diagnostic CreateGeneratorExceptionDiagnostic(CommonMessageProvider provider, ISourceGenerator generator, Exception e, bool isInit)
+        {
             var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
 
             // ISSUE: We should not call `e.CreateDiagnosticDescription()`, and instead pass formattable parts like `StackTrace`.
@@ -361,15 +394,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message, e.CreateDiagnosticDescription());
-            var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
-
-            if (filtered is not null)
-            {
-                diagnosticBag?.Add(filtered);
-                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero);
-            }
-            return generatorState;
+            return Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message, e.CreateDiagnosticDescription());
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)

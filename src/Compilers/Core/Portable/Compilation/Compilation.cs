@@ -3468,6 +3468,16 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        #region Features
+
+        /// <summary>
+        /// True when the "debug-analyzers" feature flag is set.
+        /// When this flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// </summary>
+        internal bool FeatureDebugAnalyzers => Feature("debug-analyzers") != null;
+
+        #endregion
+
         private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts>? _lazyTreeToUsedImportDirectivesMap;
         private static readonly Func<SyntaxTree, SmallConcurrentSetOfInts> s_createSetCallback = t => new SmallConcurrentSetOfInts();
 
