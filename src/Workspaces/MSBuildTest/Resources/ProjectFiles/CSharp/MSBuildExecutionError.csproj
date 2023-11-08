@@ -42,11 +42,8 @@
     <Compile Include="CSharpClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <PropertyGroup>
-    <CompileDependsOn>TestError;$(CompileDependsOn)</CompileDependsOn>
-  </PropertyGroup>
   <Target Name="TestError" BeforeTargets="CoreCompile">
-    <Error Text="This is a test of the msbuild error system. This is only a test." />
+    <Error Text="This is a test of our handling of errors from execution." />
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

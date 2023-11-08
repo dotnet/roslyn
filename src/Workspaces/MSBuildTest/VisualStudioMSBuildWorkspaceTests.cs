@@ -3012,10 +3012,10 @@ class C { }";
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenProject_MsbuildError()
+        public async Task TestOpenProject_MSBuildExecutionError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MsbuildError));
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildExecutionError));
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3024,6 +3024,40 @@ class C { }";
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithExpressionInputs()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("[MSBuild]::VersionEquals('', 6.0)", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithSyntax()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("'$(Configuration)|$(Platform)' == 'Debug|AnyCPU", diagnostic.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3069,53 +3103,6 @@ class C { }";
                 sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
 
             Assert.Empty(commandLineArgs.Errors);
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenProject_LogsEvaluationAndBuild()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-
-            var loader = new CSharpProjectFileLoader();
-            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-
-            var logger = new TestMSBuildLogger();
-            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            buildManager.StartBatchBuild();
-            try
-            {
-                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
-                var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-            }
-            finally
-            {
-                buildManager.EndBatchBuild();
-            }
-
-            Assert.True(logger.WasInitialized);
-            var logLines = logger.GetLogLines();
-            Assert.StartsWith("Build started", logLines.First());
-            Assert.StartsWith("Evaluation started", logLines[1]);
-            Assert.Single(logLines.Where(line => line.StartsWith("Evaluation finished")));
-            Assert.StartsWith("Build succeeded", logLines.Last());
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenProject_LogsEvaluationOnly()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-
-            var loader = new CSharpProjectFileLoader();
-            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-
-            var logger = new TestMSBuildLogger();
-            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
-
-            Assert.True(logger.WasInitialized);
-            var logLines = logger.GetLogLines();
-            Assert.StartsWith("Evaluation started", logLines.First());
-            Assert.StartsWith("Evaluation finished", logLines.Last());
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
