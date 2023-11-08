@@ -13,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using System.IO.Hashing;
 
 namespace Microsoft.CodeAnalysis
 {
