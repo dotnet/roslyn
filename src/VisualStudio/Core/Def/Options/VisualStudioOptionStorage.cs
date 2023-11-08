@@ -240,7 +240,8 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"dotnet_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"dotnet_lightbulb_skip_executing_deprioritized_analyzers", new FeatureFlagStorage(@"Roslyn.LightbulbSkipExecutingDeprioritizedAnalyzers")},
-        {"dotnet_enable_pull_diagnostics", new FeatureFlagStorage(@"Roslyn.EnablePullDiagnostics")},
+        // Do not change Lsp.PullDiagnostics.  It is a shared feature flag between us and CPS.
+        {"dotnet_enable_pull_diagnostics", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
