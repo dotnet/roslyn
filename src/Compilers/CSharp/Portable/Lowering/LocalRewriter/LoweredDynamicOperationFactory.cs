@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredReceiver,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             bool hasImplicitReceiver,
             bool resultDiscarded)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicInvocation(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             bool resultDiscarded)
         {
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeSymbol type,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             _factory.Syntax = syntax;
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicGetIndex(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             _factory.Syntax = loweredReceiver.Syntax;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicSetIndex(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression MakeCallSiteArgumentInfos(
             MethodSymbol argumentInfoFactory,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames = default(ImmutableArray<string>),
+            ImmutableArray<string?> argumentNames = default(ImmutableArray<string?>),
             ImmutableArray<RefKind> refKinds = default(ImmutableArray<RefKind>),
             BoundExpression? loweredReceiver = null,
             RefKind receiverRefKind = RefKind.None,
