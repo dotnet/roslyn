@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
 
             // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
             // occurred while switching to the main thread.
@@ -108,9 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
 
             // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
             // occurred while switching to the main thread.
