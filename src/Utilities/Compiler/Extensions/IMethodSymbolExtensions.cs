@@ -288,16 +288,28 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)".
+        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)" or "override Task DisposeAsyncCore(bool)".
         /// </summary>
         private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
         {
-            return method.Name == "DisposeCoreAsync" &&
+            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
                 method.MethodKind == MethodKind.Ordinary &&
                 method.IsOverride &&
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, task) &&
                 method.Parameters.Length == 1 &&
                 method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "virtual ValueTask DisposeCoreAsync()" or "virtual ValueTask DisposeAsyncCore()".
+        /// </summary>
+        private static bool HasVirtualDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTask)
+        {
+            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.IsVirtual &&
+                SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) &&
+                method.Parameters.Length == 0;
         }
 
         /// <summary>
@@ -348,6 +360,10 @@ namespace Analyzer.Utilities.Extensions
                     return DisposeMethodKind.DisposeAsync;
                 }
                 else if (method.HasOverriddenDisposeCoreAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeCoreAsync;
+                }
+                else if (method.HasVirtualDisposeCoreAsyncMethodSignature(valueTask))
                 {
                     return DisposeMethodKind.DisposeCoreAsync;
                 }
