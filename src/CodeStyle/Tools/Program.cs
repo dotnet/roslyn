@@ -210,6 +210,22 @@ $@"<Project>{GetTargetContents(language)}
             {
                 return $"""
 
+                      <!-- Handle 'EnforceCodeStyleSeverityInBuild' - this property determines if code style severity set in 'option_name = option_value:severity' is respected on build. -->
+                      <Target Name="HandleEnforceCodeStyleSeverityInBuild"
+                              BeforeTargets="GenerateMSBuildEditorConfigFileCore;CoreCompile">
+                        <!-- Set default value for 'EnforceCodeStyleSeverityInBuild'. -->
+                        <PropertyGroup Condition="'$(EnforceCodeStyleSeverityInBuild)' == ''">
+                          <!-- Enable 'EnforceCodeStyleSeverityInBuild' by default for AnalysisLevel greater than or equals '9.0'. Otherwise, disable it by default. -->
+                          <EnforceCodeStyleSeverityInBuild Condition="'$(EffectiveAnalysisLevel)' != '' AND $([MSBuild]::VersionGreaterThanOrEquals($(EffectiveAnalysisLevel), '9.0'))">true</EnforceCodeStyleSeverityInBuild>
+                          <EnforceCodeStyleSeverityInBuild Condition="'$(EnforceCodeStyleSeverityInBuild)' == ''">false</EnforceCodeStyleSeverityInBuild>
+                        </PropertyGroup>
+
+                        <!-- Pass the MSBuild property value for 'EnforceCodeStyleSeverityInBuild' to the analyzers via analyzer config options. -->
+                        <ItemGroup>
+                          <CompilerVisibleProperty Include="EnforceCodeStyleSeverityInBuild" />
+                        </ItemGroup>
+                      </Target>
+
                       <Target Name="AddGlobalAnalyzerConfigForPackage_MicrosoftCodeAnalysis{language}CodeStyle" BeforeTargets="CoreCompile" Condition="'$(SkipGlobalAnalyzerConfigForPackage)' != 'true'">
                         <!-- PropertyGroup to compute global analyzer config file to be used -->
                         <PropertyGroup>
