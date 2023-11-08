@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         project.Solution,
                         invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
-                    
+
                     if (!result.HasValue)
                         return ImmutableArray<Diagnostic>.Empty;
 
