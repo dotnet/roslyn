@@ -253,11 +253,6 @@ namespace System
             var source = """
                 namespace System
                 {
-                    public struct ValueTuple<T1>
-                    {
-                        public T1 Item1;
-                        public ValueTuple(T1 item1) { }
-                    }
                     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
                         System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
                         System.Runtime.CompilerServices.ITuple
@@ -288,11 +283,6 @@ namespace System
             var source = """
                 namespace System
                 {
-                    public struct ValueTuple<T1>
-                    {
-                        public T1 Item1;
-                        public ValueTuple(T1 item1) { }
-                    }
                     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
                         System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
                         System.Runtime.CompilerServices.ITuple
@@ -314,6 +304,66 @@ namespace System
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Event()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        public int Length => throw null;
+                        public object this[int index] => throw null;
+                        public bool Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => throw null;
+                        event D System.Runtime.CompilerServices.ITuple.Tupled
+                        {
+                            add => throw null;
+                            remove => throw null;
+                        }
+                    }
+
+                    public interface IEquatable<T>
+                    {
+                        bool Equals(T other);
+                    }
+
+                    public class Object { }
+                    public class ValueType { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public class Exception { }
+                    public struct ValueTuple<T> { }
+                
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface ITuple
+                        {
+                            event D Tupled;
+                            int Length { get; }
+                            object this[int index] { get; }
+                        }
+                    }
+
+                    public delegate void D();
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics();
         }
     }
