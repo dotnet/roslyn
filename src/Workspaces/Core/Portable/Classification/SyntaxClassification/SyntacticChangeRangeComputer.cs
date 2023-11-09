@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Classification
     internal static class SyntacticChangeRangeComputer
     {
         private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_pool = new(() => new());
+        private static readonly ObjectPool<Stack<object>> s_testPool = new(() => new());
 
         public static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
@@ -116,46 +117,65 @@ namespace Microsoft.CodeAnalysis.Classification
 
             int? ComputeCommonLeftWidth()
             {
-                using var leftOldStack = s_pool.GetPooledObject();
-                using var leftNewStack = s_pool.GetPooledObject();
+                using var leftOldStack = s_testPool.GetPooledObject();
+                using var leftNewStack = s_testPool.GetPooledObject();
 
                 var oldStack = leftOldStack.Object;
                 var newStack = leftNewStack.Object;
 
-                oldStack.Push(oldRoot);
-                newStack.Push(newRoot);
+                oldStack.Push((SyntaxNodeOrToken)oldRoot);
+                newStack.Push((SyntaxNodeOrToken)newRoot);
 
                 while (oldStack.Count > 0 && newStack.Count > 0)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var currentOld = oldStack.Pop();
-                    var currentNew = newStack.Pop();
-                    Contract.ThrowIfFalse(currentOld.FullSpan.Start == currentNew.FullSpan.Start);
 
-                    // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew))
+                    var currentOld = oldStack.Peek();
+                    if (currentOld is IEnumerator<SyntaxNodeOrToken> oldEnumerator)
+                    {
+                        ExpandAndEnqueueEnumerator(oldEnumerator, oldStack);
                         continue;
+                    }
 
-                    // if we reached a token for either of these, then we can't break things down any further, and we hit
-                    // the furthest point they are common.
-                    if (currentOld.IsToken || currentNew.IsToken)
-                        return currentOld.FullSpan.Start;
+                    var currentNew = newStack.Peek();
+                    if (currentNew is IEnumerator<SyntaxNodeOrToken> newEnumerator)
+                    {
+                        ExpandAndEnqueueEnumerator(newEnumerator, newStack);
+                        continue;
+                    }
 
-                    // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
-                    // we could be.  But the caller wants the results asap.
-                    if (stopwatch.Elapsed > timeout)
-                        return currentOld.FullSpan.Start;
+                    oldStack.Pop();
+                    newStack.Pop();
+                    if (currentOld is SyntaxNodeOrToken currentOldNodeOrToken && currentNew is SyntaxNodeOrToken currentNewNodeOrToken)
+                    {
+                        Contract.ThrowIfFalse(currentOldNodeOrToken.FullSpan.Start == currentNewNodeOrToken.FullSpan.Start);
 
-                    // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                    // class, the class node would be new, but there might be many member nodes that were the same that we'd
-                    // want to see and skip.  Crumble the node and deal with its left side.
-                    //
-                    // Reverse so that we process the leftmost child first and walk left to right.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens().Reverse())
-                        oldStack.Push(nodeOrToken);
+                        // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
+                        if (currentOldNodeOrToken.IsIncrementallyIdenticalTo(currentNewNodeOrToken))
+                            continue;
 
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens().Reverse())
-                        newStack.Push(nodeOrToken);
+                        // if we reached a token for either of these, then we can't break things down any further, and we hit
+                        // the furthest point they are common.
+                        if (currentOldNodeOrToken.IsToken || currentNewNodeOrToken.IsToken)
+                            return currentOldNodeOrToken.FullSpan.Start;
+
+                        // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
+                        // we could be.  But the caller wants the results asap.
+                        if (stopwatch.Elapsed > timeout)
+                            return currentOldNodeOrToken.FullSpan.Start;
+
+                        // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
+                        // class, the class node would be new, but there might be many member nodes that were the same that we'd
+                        // want to see and skip.  Crumble the node and deal with its left side.
+                        //
+                        // Reverse so that we process the leftmost child first and walk left to right.
+                        oldStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentOldNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
+                        newStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentNewNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -240,6 +260,15 @@ namespace Microsoft.CodeAnalysis.Classification
                 // different). We should never get here.  If we were the same, then walking from the left should have
                 // consumed everything and already bailed out.
                 throw ExceptionUtilities.Unreachable();
+            }
+
+            static void ExpandAndEnqueueEnumerator(IEnumerator<SyntaxNodeOrToken> enumerator, Stack<object> stack)
+            {
+                stack.Pop();
+                while (enumerator.MoveNext())
+                {
+                    stack.Push(enumerator.Current);
+                }
             }
         }
     }
