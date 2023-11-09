@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     {
         public async Task WaitForNavigationAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.NavigateTo], cancellationToken);
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
 
             // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Wait for workspace (including project system, file change notifications, and EditorPackage operations),
             // as well as Roslyn's solution crawler and diagnostic service that report light bulb session changes.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService },
+                [FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService],
                 cancellationToken);
 
             // Wait for operations dispatched to the main thread without other tracking

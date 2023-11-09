@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_LowerCaseTypeName = 8981,
         ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
         ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
-        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+        // ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
         ERR_ScopedMismatchInParameterOfTarget = 8986,

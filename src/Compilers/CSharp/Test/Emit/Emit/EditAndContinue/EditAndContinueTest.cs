@@ -19,7 +19,7 @@ internal sealed class EditAndContinueTest(
     Verification? verification = null)
     : EditAndContinueTest<EditAndContinueTest>(verification)
 {
-    private readonly CSharpCompilationOptions _compilationOptions = options ?? EditAndContinueTestBase.ComSafeDebugDll;
+    private readonly CSharpCompilationOptions _compilationOptions = (options ?? TestOptions.DebugDll).WithConcurrentBuild(false);
     private readonly CSharpParseOptions _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
     protected override Compilation CreateCompilation(SyntaxTree tree)

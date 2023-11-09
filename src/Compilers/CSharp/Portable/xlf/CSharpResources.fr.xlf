@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">Cette version de « {0} » ne peut pas être utilisée avec des expressions de collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -560,11 +560,6 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' ne peut pas démarrer d'instruction.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Mise à jour impossible, car un type délégué déduit a changé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -959,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">La méthode '{0}' ne doit pas être générique pour correspondre à '{1}'.</target>
+        <target state="translated">La méthode « {0} » doit être non générique pour correspondre à « {1} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">

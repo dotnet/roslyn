@@ -52,7 +52,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.Main");
             var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
             var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             v0.VerifyIL("C.Main", @"
 {
@@ -246,7 +246,7 @@ public class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), symReader.GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), symReader.GetEncMethodDebugInfo);
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -430,7 +430,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), m => methodData0.GetEncDebugInfo());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), m => methodData0.GetEncDebugInfo());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -537,7 +537,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, symReader.GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -649,7 +649,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, symReader.GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -759,7 +759,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, symReader.GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -850,7 +850,7 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, symReader.GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -930,7 +930,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -1024,7 +1024,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -1085,7 +1085,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -1193,7 +1193,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -1357,7 +1357,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -1615,7 +1615,7 @@ class C
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -1725,7 +1725,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -1885,7 +1885,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -1918,7 +1918,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -2069,7 +2069,7 @@ class C
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -2293,7 +2293,7 @@ class C
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
             var diff1 = compilation1.EmitDifference(
@@ -2475,7 +2475,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -2613,7 +2613,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 methodData0.EncDebugInfoProvider());
 
@@ -2791,7 +2791,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2927,7 +2927,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3090,7 +3090,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3254,7 +3254,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3363,7 +3363,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3473,7 +3473,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3564,7 +3564,7 @@ class C
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3661,7 +3661,7 @@ class C
 #if TODO // identify the lambda in a semantic edit
             var methodData0 = v0.TestData.GetMethodData("C.<M>b__0");
             var method0 = compilation0.GetMember<MethodSymbol>("C.<M>b__0");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0, 
                 ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), m => GetLocalNames(methodData0));
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.<M>b__0");
@@ -3768,7 +3768,7 @@ class C
 
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3920,7 +3920,7 @@ class C
 #if TODO 
             var methodData0 = v0.TestData.GetMethodData("?");
             var method0 = compilation0.GetMember<MethodSymbol>("?");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0, 
                 ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), m => GetLocalNames(methodData0));
 
             var method1 = compilation1.GetMember<MethodSymbol>("?");
@@ -4080,7 +4080,7 @@ class C
 #if TODO
             var methodData0 = v0.TestData.GetMethodData("?");
             var method0 = compilation0.GetMember<MethodSymbol>("?");
-            var generation0 = EmitBaseline.CreateInitialBaseline(
+            var generation0 = CreateInitialBaseline(compilation0, 
                 ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), m => GetLocalNames(methodData0));
 
             var method1 = compilation1.GetMember<MethodSymbol>("?");
@@ -4110,7 +4110,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4157,7 +4157,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4213,7 +4213,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4268,7 +4268,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4320,7 +4320,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4376,7 +4376,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.F");
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
             var diff1 = compilation1.EmitDifference(
@@ -4445,7 +4445,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4525,7 +4525,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4620,7 +4620,7 @@ class C
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4679,7 +4679,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4739,7 +4739,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4828,7 +4828,7 @@ class C
             var bytes0 = compilation0.EmitToArray(testData: testData0);
             var methodData0 = testData0.GetMethodData("C.G");
             var method0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
 
             var method1 = compilation1.GetMember<MethodSymbol>("C.G");
             var diff1 = compilation1.EmitDifference(
@@ -4984,7 +4984,7 @@ class C
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(

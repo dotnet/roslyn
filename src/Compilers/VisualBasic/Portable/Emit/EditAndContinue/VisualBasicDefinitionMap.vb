@@ -21,11 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits DefinitionMap
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
+        Private ReadOnly _previousSourceToMetadata As VisualBasicSymbolMatcher
         Private ReadOnly _mapToMetadata As VisualBasicSymbolMatcher
         Private ReadOnly _mapToPrevious As VisualBasicSymbolMatcher
 
         Public Sub New(edits As IEnumerable(Of SemanticEdit),
                        metadataDecoder As MetadataDecoder,
+                       previousSourceToMetadata As VisualBasicSymbolMatcher,
                        mapToMetadata As VisualBasicSymbolMatcher,
                        mapToPrevious As VisualBasicSymbolMatcher,
                        baseline As EmitBaseline)
@@ -36,19 +38,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(mapToMetadata IsNot Nothing)
 
             _metadataDecoder = metadataDecoder
+            _previousSourceToMetadata = previousSourceToMetadata
             _mapToMetadata = mapToMetadata
             _mapToPrevious = If(mapToPrevious, mapToMetadata)
         End Sub
 
-        Protected Overrides ReadOnly Property MapToMetadataSymbolMatcher As SymbolMatcher
+        Public Overrides ReadOnly Property SourceToMetadataSymbolMatcher As SymbolMatcher
             Get
                 Return _mapToMetadata
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property MapToPreviousSymbolMatcher As SymbolMatcher
+        Public Overrides ReadOnly Property SourceToPreviousSymbolMatcher As SymbolMatcher
             Get
                 Return _mapToPrevious
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property PreviousSourceToMetadataSymbolMatcher As SymbolMatcher
+            Get
+                Return _previousSourceToMetadata
             End Get
         End Property
 
@@ -77,6 +86,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             Return Nothing
+        End Function
+
+        Protected Overrides Function GetMethodSymbol(methodHandle As MethodDefinitionHandle) As IMethodSymbolInternal
+            Return DirectCast(_metadataDecoder.GetSymbolForILToken(methodHandle), IMethodSymbolInternal)
         End Function
 
         Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbolInternal,
@@ -197,5 +210,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return ImmutableArray.Create(result)
         End Function
 
+        Protected Overrides Function TryParseDisplayClassOrLambdaName(name As String, <Out> ByRef suffixIndex As Integer, <Out> ByRef idSeparator As Char, <Out> ByRef isDisplayClass As Boolean, <Out> ByRef hasDebugIds As Boolean) As Boolean
+            idSeparator = GeneratedNameConstants.IdSeparator
+
+            isDisplayClass = name.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal)
+            If isDisplayClass Then
+                suffixIndex = GeneratedNameConstants.DisplayClassPrefix.Length
+                hasDebugIds = name.Length > suffixIndex
+                Return True
+            End If
+
+            If name.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                suffixIndex = GeneratedNameConstants.LambdaMethodNamePrefix.Length
+                hasDebugIds = name.Length > suffixIndex
+                Return True
+            End If
+
+            Return False
+        End Function
     End Class
 End Namespace

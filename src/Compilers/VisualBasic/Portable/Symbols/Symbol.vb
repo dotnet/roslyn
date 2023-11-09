@@ -72,6 +72,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public ReadOnly Property MetadataVisibility As Microsoft.Cci.TypeMemberVisibility Implements ISymbolInternal.MetadataVisibility
+            Get
+                '
+                ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                '
+                ' Top-level:
+                '   private                       -> public
+                '   family                        -> public (compiles with a warning)
+                '   public
+                '   friend                        -> public
+                '
+                ' In a nested class:
+                '
+                '   private
+                '   family
+                '   public
+                '   friend                        -> public
+                '
+                Select Case DeclaredAccessibility
+                    Case Accessibility.Public
+                        Return Microsoft.Cci.TypeMemberVisibility.Public
+
+                    Case Accessibility.Private
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Private
+                        End If
+
+                    Case Accessibility.Friend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Assembly
+                        End If
+
+                    Case Accessibility.Protected
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Family
+                        End If
+
+                    Case Accessibility.ProtectedAndFriend
+                        Debug.Assert(ContainingType.TypeKind <> TypeKind.Submission)
+                        Return Microsoft.Cci.TypeMemberVisibility.FamilyAndAssembly
+
+                    Case Accessibility.ProtectedOrFriend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.FamilyOrAssembly
+                        End If
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility)
+                End Select
+            End Get
+        End Property
+
         ''' <summary>
         ''' Set the metadata name for this symbol.
         ''' Called from <see cref="OverloadingHelper.SetMetadataNameForAllOverloads"/> for each symbol of the same name in a type.
@@ -1276,7 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Display.ToMinimalDisplayParts(Me, semanticModel, position, format)
         End Function
 
-        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern
+        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern, ISymbolInternal.IsExtern
             Get
                 Return False
             End Get

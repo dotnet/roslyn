@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// The information is emitted to PDB in Custom Debug Information record for a method containing the lambda.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct LambdaDebugInfo : IEquatable<LambdaDebugInfo>
+    internal readonly struct LambdaDebugInfo : IEquatable<LambdaDebugInfo>
     {
         /// <summary>
         /// The syntax offset of the syntax node declaring the lambda (lambda expression) or its body (lambda in a query).
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal string GetDebuggerDisplay()
         {
             return
-                ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, static)" :
-                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId.GetDebuggerDisplay()} @{SyntaxOffset}, this)" :
-                $"({LambdaId.GetDebuggerDisplay()} @{SyntaxOffset} in {ClosureOrdinal})";
+                ClosureOrdinal == StaticClosureOrdinal ? $"({LambdaId} @{SyntaxOffset}, static)" :
+                ClosureOrdinal == ThisOnlyClosureOrdinal ? $"(#{LambdaId} @{SyntaxOffset}, this)" :
+                $"({LambdaId} @{SyntaxOffset} in {ClosureOrdinal})";
         }
     }
 }

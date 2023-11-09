@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">このバージョンの '{0}' は、コレクション式では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -560,11 +560,6 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' でステートメントを開始することはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">推定デリゲート型が変更されたため、更新できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">

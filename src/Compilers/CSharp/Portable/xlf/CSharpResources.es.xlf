@@ -562,11 +562,6 @@
         <target state="translated">“else” no puede iniciar una instrucción.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">No se puede actualizar porque ha cambiado un tipo delegado inferido.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Los puntos de entrada de la aplicación no se pueden atribuir con "UnmanagedCallersOnly".</target>
@@ -959,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">El método '{0}' no debe ser genérico para que coincida con '{1}'.</target>
+        <target state="translated">El método "{0}" no debe ser genérico para que coincida con "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">

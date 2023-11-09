@@ -273,6 +273,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
 #nullable disable
 
+        bool Cci.IDefinition.IsEncDeleted => false;
+
         /// <summary>
         /// Number of debug documents in the module.
         /// Used to determine capacities of lists and indices when emitting debug info.
@@ -304,13 +306,14 @@ namespace Microsoft.CodeAnalysis.Emit
             // a healthy amount of room based on compiling Roslyn.
             => (int)(_methodBodyMap.Count * 1.5);
 
-        internal Cci.IMethodBody GetMethodBody(IMethodSymbolInternal methodSymbol)
+#nullable enable
+        internal Cci.IMethodBody? GetMethodBody(IMethodSymbolInternal methodSymbol)
         {
             Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
             Debug.Assert(methodSymbol.IsDefinition);
             Debug.Assert(((IMethodSymbol)methodSymbol.GetISymbol()).PartialDefinitionPart == null); // Must be definition.
 
-            Cci.IMethodBody body;
+            Cci.IMethodBody? body;
 
             if (_methodBodyMap.TryGetValue(methodSymbol, out body))
             {
@@ -319,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return null;
         }
+#nullable disable
 
         public void SetMethodBody(IMethodSymbolInternal methodSymbol, Cci.IMethodBody body)
         {
@@ -534,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (PreviousGeneration != null)
             {
                 var symbolChanges = EncSymbolChanges!;
-                if (symbolChanges.IsReplaced(typeDef))
+                if (symbolChanges.IsReplacedDef(typeDef))
                 {
                     // Type emitted with Replace semantics in this delta, it's name should have the current generation ordinal suffix.
                     return CurrentGenerationOrdinal;

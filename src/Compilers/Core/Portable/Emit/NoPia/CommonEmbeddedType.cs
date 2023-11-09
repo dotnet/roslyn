@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingNamedType = underlyingNamedType;
             }
 
+            public bool IsEncDeleted
+                => false;
+
             protected abstract int GetAssemblyRefIndex();
 
             protected abstract IEnumerable<TFieldSymbol> GetFieldsToEmit();
