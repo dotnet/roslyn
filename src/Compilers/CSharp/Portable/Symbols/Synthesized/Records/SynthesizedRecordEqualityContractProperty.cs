@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable();
         }
 
+        protected override Binder CreateBinderForExplicitInterfaceType()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
         protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
         {
             return (TypeWithAnnotations.Create(Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Type, diagnostics, Location), NullableAnnotation.NotAnnotated),

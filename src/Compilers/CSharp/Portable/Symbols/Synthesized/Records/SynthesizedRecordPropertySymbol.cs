@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -80,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ((ParameterSyntax)syntax).Identifier.GetLocation(),
                 syntax,
                 diagnostics);
+        }
+
+        protected override Binder CreateBinderForExplicitInterfaceType()
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)

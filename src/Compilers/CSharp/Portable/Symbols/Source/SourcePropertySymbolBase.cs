@@ -165,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
+            _explicitInterfaceMemberInfo?.Bind(CreateBinderForExplicitInterfaceType(), diagnostics);
+
             PropertySymbol? explicitlyImplementedProperty = null;
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
@@ -1551,6 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
 #nullable enable
+        protected abstract Binder CreateBinderForExplicitInterfaceType();
 
         protected abstract (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics);
 

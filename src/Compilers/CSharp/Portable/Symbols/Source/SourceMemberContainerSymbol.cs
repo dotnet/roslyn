@@ -4775,7 +4775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(methodSyntax.Identifier));
                             }
 
-                            var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, bodyBinder, methodSyntax, compilation.IsNullableAnalysisEnabledIn(methodSyntax), diagnostics);
+                            var method = SourceOrdinaryMethodSymbol.CreateMethodSymbol(this, methodSyntax, compilation.IsNullableAnalysisEnabledIn(methodSyntax), diagnostics);
                             builder.NonTypeMembers.Add(method);
                         }
                         break;
@@ -4826,7 +4826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(propertySyntax.Identifier));
                             }
 
-                            var property = SourcePropertySymbol.Create(this, bodyBinder, propertySyntax, diagnostics);
+                            var property = SourcePropertySymbol.Create(this, propertySyntax, diagnostics);
                             builder.NonTypeMembers.Add(property);
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
@@ -4951,7 +4951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(indexerSyntax.ThisKeyword));
                             }
 
-                            var indexer = SourcePropertySymbol.Create(this, bodyBinder, indexerSyntax, diagnostics);
+                            var indexer = SourcePropertySymbol.Create(this, indexerSyntax, diagnostics);
                             builder.HaveIndexers = true;
                             builder.NonTypeMembers.Add(indexer);
                             AddAccessorIfAvailable(builder.NonTypeMembers, indexer.GetMethod);

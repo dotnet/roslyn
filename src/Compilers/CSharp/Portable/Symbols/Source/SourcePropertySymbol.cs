@@ -13,22 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
             var location = nameToken.GetLocation();
-            return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
+            return Create(containingType, syntax, nameToken.ValueText, location, diagnostics);
         }
 
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
-            return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
+            return Create(containingType, syntax, DefaultIndexerName, location, diagnostics);
         }
 
         private static SourcePropertySymbol Create(
             SourceMemberContainerTypeSymbol containingType,
-            Binder binder,
             BasePropertyDeclarationSyntax syntax,
             string name,
             Location location,
@@ -59,9 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
-            binder = binder.WithUnsafeRegionIfNecessary(modifiersTokenList);
             ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo;
-            string memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceMemberInfo);
+            string memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(explicitInterfaceSpecifier, name, out explicitInterfaceMemberInfo);
 
             return new SourcePropertySymbol(
                 containingType,
@@ -430,6 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             binder = binder.WithUnsafeRegionIfNecessary(modifiers);
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
+
+        protected override Binder CreateBinderForExplicitInterfaceType()
+            => CreateBinderForTypeAndParameters();
 
         protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
         {

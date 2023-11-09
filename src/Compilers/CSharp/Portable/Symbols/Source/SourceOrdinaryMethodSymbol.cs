@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
-            Binder bodyBinder,
             MethodDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nameToken = syntax.Identifier;
 
             ExplicitInterfaceMemberInfo explicitInterfaceMemberInfo;
-            var name = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceMemberInfo);
+            var name = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(interfaceSpecifier, nameToken.ValueText, out explicitInterfaceMemberInfo);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -108,10 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool HasAnyBody => flags.HasAnyBody;
 
+        protected abstract void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics);
+
         private (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
+
+            BindExplicitInterfaceType(withTypeParamsBinder, diagnostics);
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -945,6 +948,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
             {
             }
+
+            protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
+            {
+            }
         }
 
         /// <summary>
@@ -1081,6 +1088,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
                     explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
                 }
+            }
+
+            protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
+            {
+                _explicitInterfaceMemberInfo?.Bind(binder, diagnostics);
             }
 
             private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
