@@ -94,6 +94,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
 
             await base.DisposeAsync();
+
+            TestTraceListener.Instance.VerifyNoErrorsAndReset();
         }
     }
 }
