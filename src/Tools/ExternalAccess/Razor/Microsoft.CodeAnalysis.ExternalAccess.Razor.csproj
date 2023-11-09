@@ -10,7 +10,7 @@
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor</PackageId>
     <PackageDescription>
       A supporting package for Razor:
-      https://github.com/aspnet/AspNetCore-Tooling
+      https://github.com/dotnet/razor
     </PackageDescription>
   </PropertyGroup>
 
@@ -31,7 +31,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Key="$(RazorKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Mac.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
   </ItemGroup>
 
@@ -41,6 +40,10 @@
     <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

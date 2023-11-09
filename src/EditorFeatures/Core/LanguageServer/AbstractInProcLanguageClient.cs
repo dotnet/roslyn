@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
         /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
         /// </summary>
-        public object? CustomMessageTarget => null;
+        public virtual object? CustomMessageTarget => null;
 
         /// <summary>
         /// An enum representing this server instance.
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
+        public virtual async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1261421
