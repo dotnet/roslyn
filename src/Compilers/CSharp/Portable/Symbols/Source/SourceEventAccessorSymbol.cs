@@ -6,6 +6,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SourceEventSymbol _event;
         private readonly string _name;
-        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
+        private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
 
@@ -25,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
             Location location,
-            EventSymbol explicitlyImplementedEventOpt,
-            string aliasQualifierOpt,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             bool isAdder,
             bool isIterator,
             bool isNullableAnalysisEnabled,
@@ -46,24 +47,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _event = @event;
 
-            string name;
-            ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
-            if ((object)explicitlyImplementedEventOpt == null)
+            if (GetOverriddenAccessorName(@event, isAdder) is { } name)
             {
-                name = SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
-                explicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+                _name = name;
+            }
+            else if (!@event.IsExplicitInterfaceImplementation)
+            {
+                _name = SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
             }
             else
             {
-                MethodSymbol implementedAccessor = isAdder ? explicitlyImplementedEventOpt.AddMethod : explicitlyImplementedEventOpt.RemoveMethod;
-                string accessorName = (object)implementedAccessor != null ? implementedAccessor.Name : SourceEventSymbol.GetAccessorName(explicitlyImplementedEventOpt.Name, isAdder);
-
-                name = ExplicitInterfaceHelpers.GetMemberMetadataName(accessorName, explicitlyImplementedEventOpt.ContainingType, aliasQualifierOpt);
-                explicitInterfaceImplementations = (object)implementedAccessor == null ? ImmutableArray<MethodSymbol>.Empty : ImmutableArray.Create<MethodSymbol>(implementedAccessor);
+                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierOpt, @event.Name);
             }
-
-            _explicitInterfaceImplementations = explicitInterfaceImplementations;
-            _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
 
         public override string Name
@@ -78,7 +73,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            get { return _explicitInterfaceImplementations; }
+            get
+            {
+                if (_lazyExplicitInterfaceImplementations.IsDefault)
+                {
+                    ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+                    EventSymbol explicitlyImplementedEventOpt = IsExplicitInterfaceImplementation ? _event.ExplicitInterfaceImplementations.FirstOrDefault() : null;
+
+                    if (explicitlyImplementedEventOpt is null)
+                    {
+                        explicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+                    }
+                    else
+                    {
+                        MethodSymbol implementedAccessor = this.MethodKind == MethodKind.EventAdd
+                            ? explicitlyImplementedEventOpt.AddMethod
+                            : explicitlyImplementedEventOpt.RemoveMethod;
+
+                        explicitInterfaceImplementations = (object)implementedAccessor == null
+                            ? ImmutableArray<MethodSymbol>.Empty
+                            : ImmutableArray.Create<MethodSymbol>(implementedAccessor);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyExplicitInterfaceImplementations, explicitInterfaceImplementations);
+                }
+
+                return _lazyExplicitInterfaceImplementations;
+            }
         }
 
         public sealed override bool AreLocalsZeroed

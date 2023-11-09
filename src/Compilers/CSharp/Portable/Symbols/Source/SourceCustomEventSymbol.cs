@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -16,14 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceCustomEventSymbol : SourceEventSymbol
     {
-        private readonly TypeWithAnnotations _type;
         private readonly string _name;
         private readonly SourceEventAccessorSymbol? _addMethod;
         private readonly SourceEventAccessorSymbol? _removeMethod;
-        private readonly TypeSymbol _explicitInterfaceType;
-        private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
+        private readonly ExplicitInterfaceMemberInfo? _explicitInterfaceMemberInfo;
 
-        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
+        private TypeWithAnnotations _lazyType;
+        private TypeSymbol? _lazyExplicitInterfaceType;
+        private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
+
+        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
             base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
                  interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
                  nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
@@ -32,46 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken nameToken = syntax.Identifier;
             bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
 
-            string? aliasQualifierOpt;
-            _name = ExplicitInterfaceHelpers.GetMemberMetadataNameAndInterfaceSymbol(binder, interfaceSpecifier, nameToken.ValueText, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
-
-            _type = BindEventType(binder, syntax.Type, diagnostics);
-
-            var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_explicitInterfaceType, nameToken.ValueText, interfaceSpecifier, diagnostics);
-            this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
-
-            // The runtime will not treat the accessors of this event as overrides or implementations
-            // of those of another event unless both the signatures and the custom modifiers match.
-            // Hence, in the case of overrides and *explicit* implementations, we need to copy the custom
-            // modifiers that are in the signatures of the overridden/implemented event accessors.
-            // (From source, we know that there can only be one overridden/implemented event, so there
-            // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
-            // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
-            // that delegate to the implicit implementations) with the correct custom modifiers
-            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
-
-            // Note: we're checking if the syntax indicates explicit implementation rather,
-            // than if explicitInterfaceType is null because we don't want to look for an
-            // overridden event if this is supposed to be an explicit implementation.
-            if (!isExplicitInterfaceImplementation)
-            {
-                // If this event is an override, we may need to copy custom modifiers from
-                // the overridden event (so that the runtime will recognize it as an override).
-                // We check for this case here, while we can still modify the parameters and
-                // return type without losing the appearance of immutability.
-                if (this.IsOverride)
-                {
-                    EventSymbol? overriddenEvent = this.OverriddenEvent;
-                    if ((object?)overriddenEvent != null)
-                    {
-                        CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
-                    }
-                }
-            }
-            else if ((object)explicitlyImplementedEvent != null)
-            {
-                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly);
-            }
+            _name = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(interfaceSpecifier, nameToken.ValueText, out _explicitInterfaceMemberInfo);
 
             AccessorDeclarationSyntax? addSyntax = null;
             AccessorDeclarationSyntax? removeSyntax = null;
@@ -155,24 +119,92 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                 }
 
-                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
-                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false, explicitlyImplementedEvent, aliasQualifierOpt);
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false, interfaceSpecifier);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false, interfaceSpecifier);
             }
             else
             {
-                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, interfaceSpecifier, diagnostics);
+                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, interfaceSpecifier, diagnostics);
+            }
+        }
+
+        private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
+        {
+            var syntax = (EventDeclarationSyntax)CSharpSyntaxNode;
+            var binder = DeclaringCompilation.GetBinder(syntax);
+
+            _lazyType = BindEventType(binder, syntax.Type, diagnostics);
+
+            _explicitInterfaceMemberInfo?.Bind(binder, diagnostics);
+
+            _lazyExplicitInterfaceType = _explicitInterfaceMemberInfo?.ExplicitInterfaceType;
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier = _explicitInterfaceMemberInfo?.ExplicitInterfaceSpecifier;
+            bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier != null;
+
+            var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_lazyExplicitInterfaceType, syntax.Identifier.ValueText, explicitInterfaceSpecifier, diagnostics);
+            this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
+
+            // The runtime will not treat the accessors of this event as overrides or implementations
+            // of those of another event unless both the signatures and the custom modifiers match.
+            // Hence, in the case of overrides and *explicit* implementations, we need to copy the custom
+            // modifiers that are in the signatures of the overridden/implemented event accessors.
+            // (From source, we know that there can only be one overridden/implemented event, so there
+            // are no conflicts.)  This is unnecessary for implicit implementations because, if the custom
+            // modifiers don't match, we'll insert bridge methods for the accessors (explicit implementations 
+            // that delegate to the implicit implementations) with the correct custom modifiers
+            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
+
+            // Note: we're checking if the syntax indicates explicit implementation rather,
+            // than if explicitInterfaceType is null because we don't want to look for an
+            // overridden event if this is supposed to be an explicit implementation.
+            if (!isExplicitInterfaceImplementation)
+            {
+                // If this event is an override, we may need to copy custom modifiers from
+                // the overridden event (so that the runtime will recognize it as an override).
+                // We check for this case here, while we can still modify the parameters and
+                // return type without losing the appearance of immutability.
+                if (this.IsOverride)
+                {
+                    EventSymbol? overriddenEvent = this.OverriddenEvent;
+                    if ((object?)overriddenEvent != null)
+                    {
+                        CopyEventCustomModifiers(overriddenEvent, ref _lazyType, ContainingAssembly);
+                    }
+                }
+            }
+            else if ((object)explicitlyImplementedEvent != null)
+            {
+                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _lazyType, ContainingAssembly);
             }
 
-            _explicitInterfaceImplementations =
+            _lazyExplicitInterfaceImplementations =
                 (object?)explicitlyImplementedEvent == null ?
                     ImmutableArray<EventSymbol>.Empty :
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
+        private void EnsureSignature()
+        {
+            if (_lazyType.IsDefault)
+            {
+                lock (_name)
+                {
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    EnsureSignatureGuarded(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
+                    diagnostics.Free();
+                }
+            }
+        }
+
         public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _type; }
+            get
+            {
+                EnsureSignature();
+                return _lazyType;
+            }
         }
 
         public override string Name
@@ -207,38 +239,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
         {
-            get { return _explicitInterfaceImplementations; }
+            get
+            {
+                EnsureSignature();
+                return _lazyExplicitInterfaceImplementations;
+            }
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
+            EnsureSignature();
+
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if ((object)_explicitInterfaceType != null)
+            if (_lazyExplicitInterfaceType is not null)
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 RoslynDebug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _lazyExplicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
 
-            if (!_explicitInterfaceImplementations.IsEmpty)
+            if (!_lazyExplicitInterfaceImplementations.IsEmpty)
             {
                 // Note: we delayed nullable-related checks that could pull on NonNullTypes
-                EventSymbol explicitlyImplementedEvent = _explicitInterfaceImplementations[0];
+                EventSymbol explicitlyImplementedEvent = _lazyExplicitInterfaceImplementations[0];
                 TypeSymbol.CheckModifierMismatchOnImplementingMember(this.ContainingType, this, explicitlyImplementedEvent, isExplicit: true, diagnostics);
             }
         }
 
         [return: NotNullIfNotNull(parameterName: nameof(syntaxOpt))]
         private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
-            EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, BindingDiagnosticBag diagnostics)
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, BindingDiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
             {
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitInterfaceSpecifier, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }

@@ -4931,7 +4931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(eventSyntax.Identifier));
                             }
 
-                            var @event = new SourceCustomEventSymbol(this, bodyBinder, eventSyntax, diagnostics);
+                            var @event = new SourceCustomEventSymbol(this, eventSyntax, diagnostics);
 
                             builder.NonTypeMembers.Add(@event);
 

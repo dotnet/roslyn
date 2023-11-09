@@ -307,7 +307,7 @@ namespace System
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "StackOverflowException"), WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
         public void ExplicitInterfaceImplementation_Event()
         {
             var source = """
@@ -346,7 +346,9 @@ namespace System
                     public struct Void { }
                     public struct Boolean { }
                     public struct Int32 { }
+                    public struct IntPtr { }
                     public class Exception { }
+                    public class MulticastDelegate { }
                     public struct ValueTuple<T> { }
                 
                     namespace Runtime.CompilerServices
