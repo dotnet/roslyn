@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedGenericParameter : DeletedDefinition<IGenericMethodParameter>, IGenericMethodParameter
+    internal sealed class DeletedSourceGenericParameter : DeletedSourceDefinition<IGenericMethodParameter>, IGenericMethodParameter
     {
-        private readonly DeletedMethodDefinition _method;
+        private readonly DeletedSourceMethodDefinition _method;
 
-        public DeletedGenericParameter(IGenericMethodParameter oldParameter, DeletedMethodDefinition method, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+        public DeletedSourceGenericParameter(IGenericMethodParameter oldParameter, DeletedSourceMethodDefinition method, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
             : base(oldParameter, typesUsedByDeletedMembers)
         {
             _method = method;
@@ -59,11 +60,6 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         IMethodReference IGenericMethodParameterReference.DefiningMethod => ((IGenericMethodParameterReference)OldDefinition).DefiningMethod;
 
-        public IDefinition? AsDefinition(EmitContext context)
-        {
-            return OldDefinition.AsDefinition(context);
-        }
-
         public INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context)
         {
             return OldDefinition.AsNamespaceTypeDefinition(context);
@@ -79,25 +75,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             return OldDefinition.AsTypeDefinition(context);
         }
 
-        public void Dispatch(MetadataVisitor visitor)
+        public override void Dispatch(MetadataVisitor visitor)
         {
             OldDefinition.Dispatch(visitor);
         }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return OldDefinition.GetAttributes(context);
-        }
-
         public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
-        {
-            return OldDefinition.GetConstraints(context);
-        }
-
-        public ISymbolInternal? GetInternalSymbol()
-        {
-            return OldDefinition.GetInternalSymbol();
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         public ITypeDefinition? GetResolvedType(EmitContext context)
         {

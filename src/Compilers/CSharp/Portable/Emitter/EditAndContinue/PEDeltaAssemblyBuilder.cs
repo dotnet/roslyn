@@ -39,34 +39,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var initialBaseline = previousGeneration.InitialBaseline;
 
+            var previousSourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
             var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
-            var matchToMetadata = new CSharpSymbolMatcher(
+            var sourceToMetadata = new CSharpSymbolMatcher(
                 metadataSymbols.SynthesizedTypes,
                 sourceAssembly,
                 metadataAssembly);
 
-            CSharpSymbolMatcher? matchToPrevious = null;
+            var previousSourceToMetadata = new CSharpSymbolMatcher(
+                metadataSymbols.SynthesizedTypes,
+                previousSourceAssembly,
+                metadataAssembly);
+
+            CSharpSymbolMatcher? previousSourceToCurrentSource = null;
             if (previousGeneration.Ordinal > 0)
             {
-                RoslynDebug.AssertNotNull(previousGeneration.Compilation);
-                RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+                Debug.Assert(previousGeneration.PEModuleBuilder != null);
 
-                var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-
-                matchToPrevious = new CSharpSymbolMatcher(
+                previousSourceToCurrentSource = new CSharpSymbolMatcher(
                     sourceAssembly: sourceAssembly,
-                    otherAssembly: previousAssembly,
+                    otherAssembly: previousSourceAssembly,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembers: previousGeneration.SynthesizedMembers,
                     otherDeletedMembers: previousGeneration.DeletedMembers);
             }
 
-            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration);
+            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, sourceToMetadata, previousSourceToCurrentSource, previousGeneration);
             _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.

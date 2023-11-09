@@ -92,10 +92,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 return null;
             }
+#nullable enable
+            public bool HasBody
+                => Cci.DefaultImplementations.HasBody(this);
 
-            Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
+            Cci.IMethodBody? Cci.IMethodDefinition.GetBody(EmitContext context)
             {
-                if (Cci.Extensions.HasBody(this))
+                if (HasBody)
                 {
                     // This is an error condition, which we already reported.
                     // To prevent metadata emitter/visitor from crashing, let's
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 return null;
             }
-
+#nullable disable
             private sealed class EmptyBody : Cci.IMethodBody
             {
                 private readonly CommonEmbeddedMethod _method;
@@ -255,8 +258,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             bool Cci.IMethodReference.AcceptsExtraArguments => AcceptsExtraArguments;
 
             ushort Cci.IMethodReference.GenericParameterCount => (ushort)_typeParameters.Length;
-
-            bool Cci.IMethodReference.IsGeneric => _typeParameters.Length > 0;
 
             Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
             {

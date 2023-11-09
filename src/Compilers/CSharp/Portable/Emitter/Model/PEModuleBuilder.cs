@@ -299,6 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
+            Debug.Assert(!context.MetadataOnly);
+
             while (typesToProcess.Count > 0)
             {
                 var definition = typesToProcess.Pop();
@@ -1191,82 +1193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             return _embeddedTypesManagerOpt?.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics) ?? fieldSymbol.GetCciAdapter();
-        }
-
-        public static Cci.TypeMemberVisibility MemberVisibility(Symbol symbol)
-        {
-            //
-            // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            //
-            // Top-level:
-            //   private                       -> public
-            //   protected                     -> public (compiles with a warning)
-            //   public
-            //   internal                      -> public
-            //
-            // In a nested class:
-            //
-            //   private
-            //   protected
-            //   public
-            //   internal                      -> public
-            //
-            switch (symbol.DeclaredAccessibility)
-            {
-                case Accessibility.Public:
-                    return Cci.TypeMemberVisibility.Public;
-
-                case Accessibility.Private:
-                    if (symbol.ContainingType?.TypeKind == TypeKind.Submission)
-                    {
-                        // top-level private member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Private;
-                    }
-
-                case Accessibility.Internal:
-                    if (symbol.ContainingAssembly.IsInteractive)
-                    {
-                        // top-level or nested internal member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Assembly;
-                    }
-
-                case Accessibility.Protected:
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
-                    {
-                        // top-level protected member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.Family;
-                    }
-
-                case Accessibility.ProtectedAndInternal:
-                    Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
-                    return Cci.TypeMemberVisibility.FamilyAndAssembly;
-
-                case Accessibility.ProtectedOrInternal:
-                    if (symbol.ContainingAssembly.IsInteractive)
-                    {
-                        // top-level or nested protected internal member:
-                        return Cci.TypeMemberVisibility.Public;
-                    }
-                    else
-                    {
-                        return Cci.TypeMemberVisibility.FamilyOrAssembly;
-                    }
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
-            }
         }
 
         internal sealed override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)

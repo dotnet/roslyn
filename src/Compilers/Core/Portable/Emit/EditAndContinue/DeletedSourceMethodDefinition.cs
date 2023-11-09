@@ -5,32 +5,31 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    internal sealed class DeletedMethodDefinition : DeletedDefinition<IMethodDefinition>, IMethodDefinition
+    internal sealed class DeletedSourceMethodDefinition
+        : DeletedSourceDefinition<IMethodDefinition>, IMethodDefinition, IDeletedMethodDefinition
     {
-        private readonly ITypeDefinition _containingTypeDef;
-        private readonly ImmutableArray<DeletedParameterDefinition> _parameters;
+        private readonly MethodDefinitionHandle _handle;
+        private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
         private DeletedMethodBody? _body;
 
-        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef, Dictionary<ITypeDefinition, DeletedTypeDefinition> typesUsedByDeletedMembers)
+        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
             : base(oldMethod, typesUsedByDeletedMembers)
         {
-            _containingTypeDef = containingTypeDef;
-
+            _handle = handle;
             _parameters = WrapParameters(oldMethod.Parameters);
         }
 
+        public MethodDefinitionHandle MetadataHandle
+            => _handle;
+
         public IEnumerable<IGenericMethodParameter> GenericParameters
-        {
-            get
-            {
-                return WrapGenericMethodParameters(this, OldDefinition.GenericParameters);
-            }
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         public bool HasDeclarativeSecurity => OldDefinition.HasDeclarativeSecurity;
 
@@ -74,15 +73,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public INamespace ContainingNamespace => OldDefinition.ContainingNamespace;
 
-        public ITypeDefinition ContainingTypeDefinition => _containingTypeDef;
+        public ITypeDefinition ContainingTypeDefinition => throw ExceptionUtilities.Unreachable();
 
         public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 
         public bool AcceptsExtraArguments => OldDefinition.AcceptsExtraArguments;
 
         public ushort GenericParameterCount => OldDefinition.GenericParameterCount;
-
-        public bool IsGeneric => OldDefinition.IsGeneric;
 
         public ImmutableArray<IParameterTypeInformation> ExtraParameters => OldDefinition.ExtraParameters;
 
@@ -102,20 +99,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public string? Name => OldDefinition.Name;
 
-        public IDefinition? AsDefinition(EmitContext context)
-        {
-            return OldDefinition.AsDefinition(context);
-        }
-
-        public void Dispatch(MetadataVisitor visitor)
+        public override void Dispatch(MetadataVisitor visitor)
         {
             visitor.Visit(this);
         }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return WrapAttributes(OldDefinition.GetAttributes(context));
-        }
+        public bool HasBody
+            => true;
 
         public IMethodBody GetBody(EmitContext context)
         {
@@ -124,18 +114,11 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         }
 
         public ITypeReference GetContainingType(EmitContext context)
-        {
-            return _containingTypeDef;
-        }
+            => throw ExceptionUtilities.Unreachable();
 
         public MethodImplAttributes GetImplementationAttributes(EmitContext context)
         {
             return OldDefinition.GetImplementationAttributes(context);
-        }
-
-        public ISymbolInternal? GetInternalSymbol()
-        {
-            return OldDefinition.GetInternalSymbol();
         }
 
         public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
@@ -149,9 +132,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         }
 
         public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
-        {
-            return WrapAttributes(OldDefinition.GetReturnValueAttributes(context));
-        }
+            // attributes shouldn't be emitted for deleted definitions
+            => throw ExceptionUtilities.Unreachable();
 
         public ITypeReference GetType(EmitContext context)
         {
@@ -161,13 +143,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

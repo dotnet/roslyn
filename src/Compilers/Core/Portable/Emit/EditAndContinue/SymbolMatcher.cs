@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedSynthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> mappedDeletedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        internal ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
+        internal IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> MapSynthesizedOrDeletedMembers(
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> previousMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> newMembers,
             bool isDeletedMemberMapping)
         {
             // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
+            var synthesizedMembersBuilder = ImmutableSegmentedDictionary.CreateBuilder<ISymbolInternal, ImmutableArray<ISymbolInternal>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
