@@ -178,25 +178,24 @@ internal partial class SolutionState
                         documentIdentity,
                         sourceText,
                         ProjectState.ParseOptions!,
-                        ProjectState.LanguageServices);
-                    Contract.ThrowIfTrue(generatedDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
+                        ProjectState.LanguageServices,
+                        // Server provided us the checksum, so we just pass that along.  Note: it is critical that we do
+                        // this as it may not be possible to reconstruct the same checksum the server produced due to
+                        // the lossy nature of source texts.  See comment on GetOriginalSourceTextChecksum for more detail.
+                        contentIdentity.OriginalSourceTextChecksum);
+                    Contract.ThrowIfTrue(generatedDocument.GetOriginalSourceTextChecksum() != contentIdentity.OriginalSourceTextChecksum, "Checksums must match!");
                     generatedDocumentsBuilder.Add(generatedDocument);
                 }
                 else
                 {
                     // a document that already matched something locally.
                     var existingDocument = generatorInfo.Documents.GetRequiredState(documentId);
-                    Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identies must match!");
-                    Contract.ThrowIfTrue(existingDocument.GetTextChecksum() != contentIdentity.Checksum, "Checksums must match!");
+                    Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identities must match!");
+                    Contract.ThrowIfTrue(existingDocument.GetOriginalSourceTextChecksum() != contentIdentity.OriginalSourceTextChecksum, "Checksums must match!");
 
-                    if (existingDocument.ParseOptions.Equals(this.ProjectState.ParseOptions))
-                    {
-                        generatedDocumentsBuilder.Add(existingDocument);
-                    }
-                    else
-                    {
-                        generatedDocumentsBuilder.Add(existingDocument.WithUpdatedGeneratedContent(existingDocument.SourceText, this.ProjectState.ParseOptions!));
-                    }
+                    // ParseOptions may have changed between last generation and this one.  Ensure that they are
+                    // properly propagated to the generated doc.
+                    generatedDocumentsBuilder.Add(existingDocument.WithParseOptions(this.ProjectState.ParseOptions!));
                 }
             }
 
@@ -305,9 +304,9 @@ internal partial class SolutionState
 
                     if (existing != null)
                     {
-                        var newDocument = existing.WithUpdatedGeneratedContent(
-                            generatedSource.SourceText,
-                            this.ProjectState.ParseOptions!);
+                        var newDocument = existing
+                            .WithText(generatedSource.SourceText)
+                            .WithParseOptions(this.ProjectState.ParseOptions!);
 
                         generatedDocumentsBuilder.Add(newDocument);
 
@@ -330,7 +329,9 @@ internal partial class SolutionState
                                 identity,
                                 generatedSource.SourceText,
                                 generatedSource.SyntaxTree.Options,
-                                ProjectState.LanguageServices));
+                                ProjectState.LanguageServices,
+                                // Compute the checksum on demand from the given source text.
+                                originalSourceTextChecksum: null));
 
                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                         // was added, and an equal number must have been removed. Rather than trying to incrementally update
