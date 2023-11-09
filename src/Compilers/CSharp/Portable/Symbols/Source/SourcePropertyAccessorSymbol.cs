@@ -659,8 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (IsExplicitInterfaceImplementation)
                     {
-                        string accessorName = GetAccessorName(_property.Name,
-                                isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
+                        string accessorName = GetAccessorName(
+                            ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(_property.Name),
+                            isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
 
                         var explicitInterfaceSpecifier = _property.GetExplicitInterfaceSpecifier();
                         name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifier, accessorName);
