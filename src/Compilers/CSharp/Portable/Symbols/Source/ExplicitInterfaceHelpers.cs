@@ -18,12 +18,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
 #nullable enable
-    internal class ExplicitInterfaceMemberInfo(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
+    internal sealed class ExplicitInterfaceMemberInfo
     {
+        private readonly SyntaxReference _explicitInterfaceSpecifierReference;
+        private readonly string _name;
+
         private TypeSymbol? _lazyExplicitInterfaceType;
         private string? _lazyMemberMetadataName;
 
-        public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier => explicitInterfaceSpecifier;
+        public ExplicitInterfaceMemberInfo(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
+        {
+            _explicitInterfaceSpecifierReference = explicitInterfaceSpecifier.GetReference();
+            _name = name;
+        }
+
+        public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier
+        {
+            get
+            {
+                return (ExplicitInterfaceSpecifierSyntax)_explicitInterfaceSpecifierReference.GetSyntax();
+            }
+        }
 
         public TypeSymbol ExplicitInterfaceType
         {
@@ -49,12 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // that might result in a recursive attempt to bind the containing class.
             var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier = ExplicitInterfaceSpecifier;
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
             TypeSymbol explicitInterfaceType = typeBinder.BindType(explicitInterfaceName, diagnostics).Type;
             InterlockedOperations.Initialize(ref _lazyExplicitInterfaceType, explicitInterfaceType);
 
             string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
-            string memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(name, ExplicitInterfaceType, aliasQualifier);
+            string memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(_name, ExplicitInterfaceType, aliasQualifier);
             InterlockedOperations.Initialize(ref _lazyMemberMetadataName, memberMetadataName);
         }
     }
