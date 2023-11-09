@@ -12102,5 +12102,86 @@ class Derived : BaseClass
                 Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
             End Using
         End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherNoMatchingItemShouldCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".x")
+                Await state.AssertSelectedCompletionItem(displayText:="X", isHardSelected:=True)
+                state.SendTypeChars("+")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("point.X+", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherPotentiallyMatchingItemShouldNotCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".+")
+                Await state.AssertSelectedCompletionItem(displayText:="+", inlineDescription:="x + y")
+                state.SendTab()
+                Assert.Contains("point +", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
     End Class
 End Namespace
