@@ -20,10 +20,12 @@ namespace Microsoft.CodeAnalysis
     public readonly struct IncrementalValueProvider<TValue>
     {
         internal readonly IIncrementalGeneratorNode<TValue> Node;
+        internal readonly bool DebugAnalyzers;
 
-        internal IncrementalValueProvider(IIncrementalGeneratorNode<TValue> node)
+        internal IncrementalValueProvider(IIncrementalGeneratorNode<TValue> node, bool debugAnalyzers)
         {
             this.Node = node;
+            this.DebugAnalyzers = debugAnalyzers;
         }
     }
 
@@ -39,10 +41,12 @@ namespace Microsoft.CodeAnalysis
     public readonly struct IncrementalValuesProvider<TValues>
     {
         internal readonly IIncrementalGeneratorNode<TValues> Node;
+        internal readonly bool DebugAnalyzers;
 
-        internal IncrementalValuesProvider(IIncrementalGeneratorNode<TValues> node)
+        internal IncrementalValuesProvider(IIncrementalGeneratorNode<TValues> node, bool debugAnalyzers)
         {
             this.Node = node;
+            this.DebugAnalyzers = debugAnalyzers;
         }
     }
 }

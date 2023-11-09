@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.FeatureDebugAnalyzers);
 
                     Exception? ex = null;
                     try
