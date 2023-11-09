@@ -689,6 +689,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyName;
             }
         }
+
+        public override string MetadataName
+        {
+            get
+            {
+                if (IsExplicitInterfaceImplementation)
+                {
+                    PropertySymbol? explicitlyImplementedPropertyOpt = _property.ExplicitInterfaceImplementations.FirstOrDefault();
+
+                    if (explicitlyImplementedPropertyOpt is object)
+                    {
+                        bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
+
+                        MethodSymbol? implementedAccessor = isGetMethod
+                            ? explicitlyImplementedPropertyOpt.GetMethod
+                            : explicitlyImplementedPropertyOpt.SetMethod;
+
+                        string accessorName = (object)implementedAccessor != null
+                            ? implementedAccessor.Name
+                            : GetAccessorName(explicitlyImplementedPropertyOpt.MetadataName,
+                                isGetMethod, isWinMdOutput: _property.IsCompilationOutputWinMdObj()); //Not name - could be indexer placeholder
+
+                        string? aliasQualifierOpt = _property.GetExplicitInterfaceSpecifier()?.Name.GetAliasQualifierOpt();
+                        return ExplicitInterfaceHelpers.GetMemberMetadataName(accessorName, explicitlyImplementedPropertyOpt.ContainingType, aliasQualifierOpt);
+                    }
+                }
+
+                return Name;
+            }
+        }
 #nullable disable
 
         public sealed override bool IsImplicitlyDeclared
