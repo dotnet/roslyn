@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </remarks>
     internal static class SyntacticChangeRangeComputer
     {
-        private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_pool = new(() => new());
+        private static readonly ObjectPool<Stack<object>> s_pool = new(() => new());
 
         public static TextChangeRange ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
         {
@@ -130,32 +130,58 @@ namespace Microsoft.CodeAnalysis.Classification
                     cancellationToken.ThrowIfCancellationRequested();
                     var currentOld = oldStack.Pop();
                     var currentNew = newStack.Pop();
-                    Contract.ThrowIfFalse(currentOld.FullSpan.Start == currentNew.FullSpan.Start);
 
-                    // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew))
-                        continue;
+                    if (currentOld is SyntaxNode currentOldNode && currentNew is SyntaxNode currentNewNode)
+                    {
+                        Contract.ThrowIfFalse(currentOldNode.FullSpan.Start == currentNewNode.FullSpan.Start);
+                        // If the two nodes/tokens were the same just skip past them.  They're part of the common left width.
+                        if (currentOldNode.IsIncrementallyIdenticalTo(currentNewNode))
+                            continue;
 
-                    // if we reached a token for either of these, then we can't break things down any further, and we hit
-                    // the furthest point they are common.
-                    if (currentOld.IsToken || currentNew.IsToken)
-                        return currentOld.FullSpan.Start;
+                        // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
+                        // we could be.  But the caller wants the results asap.
+                        if (stopwatch.Elapsed > timeout)
+                            return currentOldNode.FullSpan.Start;
 
-                    // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
-                    // we could be.  But the caller wants the results asap.
-                    if (stopwatch.Elapsed > timeout)
-                        return currentOld.FullSpan.Start;
+                        // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
+                        // class, the class node would be new, but there might be many member nodes that were the same that we'd
+                        // want to see and skip.  Crumble the node and deal with its left side.
+                        //
+                        // Reverse so that we process the leftmost child first and walk left to right.
+                        oldStack.Push(currentOldNode.ChildNodesAndTokens().Reverse().GetEnumerator());
+                        newStack.Push(currentNewNode.ChildNodesAndTokens().Reverse().GetEnumerator());
+                    }
+                    else if (currentOld is SyntaxToken currentOldToken || currentNew is SyntaxToken currentNewToken)
+                    {
+                        // if we reached a token for either of these, then we can't break things down any further, and we hit
+                        // the furthest point they are common.
+                        return currentOld switch
+                        {
+                            SyntaxToken token => token.FullSpan.Start,
+                            SyntaxNode node => node.FullSpan.Start,
+                            _ => throw ExceptionUtilities.Unreachable(),
+                        };
+                    }
+                    else
+                    {
+                        if (currentOld is ChildSyntaxList.Reversed.Enumerator currentOldEnumerator)
+                        {
+                            ExpandAndEnqueue(currentOldEnumerator, oldStack);
+                        }
+                        else
+                        {
+                            oldStack.Push(currentOld);
+                        }
 
-                    // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                    // class, the class node would be new, but there might be many member nodes that were the same that we'd
-                    // want to see and skip.  Crumble the node and deal with its left side.
-                    //
-                    // Reverse so that we process the leftmost child first and walk left to right.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens().Reverse())
-                        oldStack.Push(nodeOrToken);
-
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens().Reverse())
-                        newStack.Push(nodeOrToken);
+                        if (currentNew is ChildSyntaxList.Reversed.Enumerator currentNewEnumerator)
+                        {
+                            ExpandAndEnqueue(currentNewEnumerator, newStack);
+                        }
+                        else
+                        {
+                            newStack.Push(currentNew);
+                        }
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -187,45 +213,71 @@ namespace Microsoft.CodeAnalysis.Classification
                     var currentOld = oldStack.Pop();
                     var currentNew = newStack.Pop();
 
-                    // The width on the right we've moved past on both old/new should be the same.
-                    Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOld.FullSpan.End) ==
-                                          (newRoot.FullSpan.End - currentNew.FullSpan.End));
-
-                    // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
-                    // Critically though, we can only skip past if this wasn't already something we consumed when determining
-                    // the common left width.  If this was common the left side, we can't consider it common to the right,
-                    // otherwise we could end up with overlapping regions of commonality.
-                    //
-                    // This can occur in incremental settings when the similar tokens are written successsively.
-                    // Because the parser can reuse underlying token data, it may end up with many incrementally
-                    // identical tokens in a row.
-                    if (currentOld.IsIncrementallyIdenticalTo(currentNew) &&
-                        currentOld.FullSpan.Start >= commonLeftWidth &&
-                        currentNew.FullSpan.Start >= commonLeftWidth)
+                    if (currentOld is SyntaxNode currentOldNode && currentNew is SyntaxNode currentNewNode)
                     {
-                        continue;
+                        // The width on the right we've moved past on both old/new should be the same.
+                        Contract.ThrowIfFalse((oldRoot.FullSpan.End - currentOldNode.FullSpan.End) ==
+                                              (newRoot.FullSpan.End - currentNewNode.FullSpan.End));
+
+                        // If the two nodes/tokens were the same just skip past them.  They're part of the common right width.
+                        // Critically though, we can only skip past if this wasn't already something we consumed when determining
+                        // the common left width.  If this was common the left side, we can't consider it common to the right,
+                        // otherwise we could end up with overlapping regions of commonality.
+                        //
+                        // This can occur in incremental settings when the similar tokens are written successsively.
+                        // Because the parser can reuse underlying token data, it may end up with many incrementally
+                        // identical tokens in a row.
+                        if (currentOldNode.IsIncrementallyIdenticalTo(currentNewNode) &&
+                            currentOldNode.FullSpan.Start >= commonLeftWidth &&
+                            currentNewNode.FullSpan.Start >= commonLeftWidth)
+                        {
+                            continue;
+                        }
+
+                        // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
+                        // we could be.  But the caller wants the results asap.
+                        if (stopwatch.Elapsed > timeout)
+                            return oldRoot.FullSpan.End - currentOldNode.FullSpan.End;
+
+                        // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
+                        // class, the class node would be new, but there might be many member nodes following the edited node
+                        // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
+                        //
+                        // Do not reverse the children.  We want to process the rightmost child first and walk right to left.
+                        oldStack.Push(currentOldNode.ChildNodesAndTokens().GetEnumerator());
+                        newStack.Push(currentNewNode.ChildNodesAndTokens().GetEnumerator());
                     }
+                    else if (currentOld is SyntaxToken currentOldToken || currentNew is SyntaxToken currentNewToken)
+                    {
+                        // if we reached a token for either of these, then we can't break things down any further, and we hit
+                        // the furthest point they are common.
+                        return currentOld switch
+                        {
+                            SyntaxToken oldToken => oldRoot.FullSpan.End - oldToken.FullSpan.End,
+                            SyntaxNode oldNode => oldRoot.FullSpan.End - oldNode.FullSpan.End,
+                            _ => throw ExceptionUtilities.Unreachable(),
+                        };
+                    }
+                    else
+                    {
+                        if (currentOld is ChildSyntaxList.Enumerator currentOldEnumerator)
+                        {
+                            ExpandAndEnqueue(currentOldEnumerator, oldStack);
+                        }
+                        else
+                        {
+                            oldStack.Push(currentOld);
+                        }
 
-                    // if we reached a token for either of these, then we can't break things down any further, and we hit
-                    // the furthest point they are common.
-                    if (currentOld.IsToken || currentNew.IsToken)
-                        return oldRoot.FullSpan.End - currentOld.FullSpan.End;
-
-                    // Similarly, if we've run out of time, just return what we've computed so far.  It's not as accurate as
-                    // we could be.  But the caller wants the results asap.
-                    if (stopwatch.Elapsed > timeout)
-                        return oldRoot.FullSpan.End - currentOld.FullSpan.End;
-
-                    // we've got two nodes, but they weren't the same.  For example, say we made an edit in a method in the
-                    // class, the class node would be new, but there might be many member nodes following the edited node
-                    // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
-                    //
-                    // Do not reverse the children.  We want to process the rightmost child first and walk right to left.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens())
-                        oldStack.Push(nodeOrToken);
-
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens())
-                        newStack.Push(nodeOrToken);
+                        if (currentNew is ChildSyntaxList.Enumerator currentNewEnumerator)
+                        {
+                            ExpandAndEnqueue(currentNewEnumerator, newStack);
+                        }
+                        else
+                        {
+                            newStack.Push(currentNew);
+                        }
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -240,6 +292,38 @@ namespace Microsoft.CodeAnalysis.Classification
                 // different). We should never get here.  If we were the same, then walking from the left should have
                 // consumed everything and already bailed out.
                 throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private static void ExpandAndEnqueue(ChildSyntaxList.Enumerator enumerator, Stack<object> stack)
+        {
+            while (enumerator.MoveNext())
+            {
+                var current = enumerator.Current;
+                if (current.IsNode)
+                {
+                    stack.Push(current.AsNode()!);
+                }
+                else
+                {
+                    stack.Push(current.AsToken()!);
+                }
+            }
+        }
+
+        private static void ExpandAndEnqueue(ChildSyntaxList.Reversed.Enumerator enumerator, Stack<object> stack)
+        {
+            while (enumerator.MoveNext())
+            {
+                var current = enumerator.Current;
+                if (current.IsNode)
+                {
+                    stack.Push(current.AsNode()!);
+                }
+                else
+                {
+                    stack.Push(current.AsToken()!);
+                }
             }
         }
     }
