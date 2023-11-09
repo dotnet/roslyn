@@ -68,6 +68,18 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        internal void ValidateChecksum()
+        {
+            if (_lazyChecksum.IsDefault)
+                return;
+
+            using (var stream = new SourceTextStream(this, useDefaultEncodingIfNull: true))
+            {
+                var computedChecksum = CalculateChecksum(stream, _checksumAlgorithm);
+                Debug.Assert(_lazyChecksum == computedChecksum);
+            }
+        }
+
         internal static void ValidateChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         {
             if (!SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm))

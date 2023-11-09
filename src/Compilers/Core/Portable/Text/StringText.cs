@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Text
 
             _source = source;
             _encodingOpt = encodingOpt;
+
+            ValidateChecksum();
         }
 
         public override Encoding? Encoding => _encodingOpt;

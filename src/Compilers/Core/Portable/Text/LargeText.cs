@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             _length = offset;
+
+            ValidateChecksum();
         }
 
         internal LargeText(ImmutableArray<char[]> chunks, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
