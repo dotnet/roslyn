@@ -15,18 +15,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(PrepareRenameHandler)), Shared]
 [Method(Methods.TextDocumentPrepareRenameName)]
-internal class PrepareRenameHandler : ILspServiceDocumentRequestHandler<PrepareRenameParams, DefaultBehaviorPrepareRename?>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<PrepareRenameParams, DefaultBehaviorPrepareRename?>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PrepareRenameHandler()
-    {
-    }
-
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(PrepareRenameParams request) => request.TextDocument;
+    public TextDocumentIdentifier GetTextDocumentIdentifier(PrepareRenameParams request)
+        => request.TextDocument;
 
     public async Task<DefaultBehaviorPrepareRename?> HandleRequestAsync(PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
     {
