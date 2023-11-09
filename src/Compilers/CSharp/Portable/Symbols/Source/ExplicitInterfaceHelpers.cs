@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
 #nullable enable
-    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name, string? aliasQualifier)
+    internal class ExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
     {
         private TypeSymbol? _lazyExplicitInterfaceType;
         private string? _lazyMemberMetadataName;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
 
                     NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
-                    TypeSymbol? explicitInterfaceType = binder.BindType(explicitInterfaceName, diagnostics).Type;
+                    TypeSymbol? explicitInterfaceType = typeBinder.BindType(explicitInterfaceName, diagnostics).Type;
                     return InterlockedOperations.Initialize(ref _lazyExplicitInterfaceType, explicitInterfaceType);
                 }
 
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyMemberMetadataName is null)
                 {
-                    var memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(name, ExplicitInterfaceType, aliasQualifier);
+                    string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
+                    string memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(name, ExplicitInterfaceType, aliasQualifier);
                     return InterlockedOperations.Initialize(ref _lazyMemberMetadataName, memberMetadataName);
                 }
 
@@ -65,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             string name)
         {
-            string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
-            return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier);
+            return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier: string.Empty);
         }
 
         public static string GetExplicitInterfaceMemberInfo(
@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return name;
             }
 
-            string? aliasQualifier = explicitInterfaceSpecifier.Name.GetAliasQualifierOpt();
-            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier, name, aliasQualifier);
+            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(binder, diagnostics, explicitInterfaceSpecifier, name);
             return GetMemberName(explicitInterfaceSpecifier, name);
         }
 #nullable disable
