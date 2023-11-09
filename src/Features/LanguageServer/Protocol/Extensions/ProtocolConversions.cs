@@ -441,11 +441,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             Uri? uri = null;
             try
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> ConvertTextSpanToLocation(
+            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
                 Document document,
                 TextSpan span,
                 bool isStale,

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
-            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
                 Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
             {
                 var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
