@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Host
         [property: DataMember(Order = 3)] bool DisableRecoverableText = false,
         [property: DataMember(Order = 4)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
-            true
+            true,
 #else
-            false
+            false,
 #endif
-        )
+        [property: DataMember(Order = 5)] bool RunSourceGeneratorsInSameProcessOnly = false)
     {
         public WorkspaceConfigurationOptions()
             : this(CacheStorage: StorageDatabase.SQLite)
@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
             CacheStorage: StorageDatabase.None,
             EnableOpeningSourceGeneratedFiles: false,
             DisableSharedSyntaxTrees: false,
-            DisableRecoverableText: false);
+            DisableRecoverableText: false,
+            RunSourceGeneratorsInSameProcessOnly: false);
     }
 }

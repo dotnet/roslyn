@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private void AppendFileLoggingErrorInMemory(string? path, Exception e)
-            => AppendInMemory(new Entry("Error writing log file '{0}': {1}", new[] { new Arg(path), new Arg(e.Message) }));
+            => AppendInMemory(new Entry("Error writing log file '{0}': {1}", [new Arg(path), new Arg(e.Message)]));
 
         private void Append(Entry entry)
         {

@@ -154,7 +154,7 @@ class {|caret:ABC|}
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Rename }
+                            ResourceOperations = [ResourceOperationKind.Rename]
                         }
                     }
                 }
@@ -318,7 +318,7 @@ class BCD
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                            ResourceOperations = [ResourceOperationKind.Create]
                         }
                     }
                 }
@@ -439,7 +439,7 @@ class {|caret:BCD|}
                     {
                         WorkspaceEdit = new WorkspaceEditSetting
                         {
-                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                            ResourceOperations = [ResourceOperationKind.Create]
                         }
                     }
                 },

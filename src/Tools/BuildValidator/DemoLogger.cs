@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    internal sealed class DemoLogger : ILogger
+    file class DemoLogger : ILogger
     {
         private const int IndentIncrement = 2;
 

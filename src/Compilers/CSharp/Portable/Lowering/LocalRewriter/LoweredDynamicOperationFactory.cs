@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // however
         //     dynamic d = ...;
         //     GetS().M(d); // becomes Site(GetS(), d) without ref on the target obj arg
-        internal static RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
+        internal RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
         {
             Debug.Assert(loweredReceiver.Type is { });
             if (!loweredReceiver.Type.IsValueType)
@@ -547,27 +547,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RefKind.None;
             }
 
-            switch (loweredReceiver.Kind)
-            {
-                case BoundKind.Parameter:
-                    Debug.Assert(!LocalRewriter.IsCapturedPrimaryConstructorParameter(loweredReceiver));
-                    goto case BoundKind.Local;
-
-                case BoundKind.Local:
-                case BoundKind.ArrayAccess:
-                case BoundKind.ThisReference:
-                case BoundKind.PointerIndirectionOperator:
-                case BoundKind.PointerElementAccess:
-                case BoundKind.RefValueOperator:
-                    return RefKind.Ref;
-
-                case BoundKind.BaseReference:
-                // base dynamic dispatch is not supported, an error has already been reported
-                case BoundKind.TypeExpression:
-                    throw ExceptionUtilities.UnexpectedValue(loweredReceiver.Kind);
-            }
-
-            return RefKind.None;
+            var hasHome = Binder.HasHome(loweredReceiver,
+                Binder.AddressKind.Writeable,
+                _factory.CurrentFunction,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null);
+            return hasHome ? RefKind.Ref : RefKind.None;
         }
 
         internal BoundExpression MakeCallSiteArgumentInfos(

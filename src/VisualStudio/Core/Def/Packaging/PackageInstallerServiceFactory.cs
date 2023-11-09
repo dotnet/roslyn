@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string packageName,
             string? version,
             bool includePrerelease,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
@@ -296,13 +296,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Guid projectGuid,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Installing_0, packageName);
-            progressTracker.Description = description;
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try
@@ -369,12 +369,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private async Task<bool> TryUninstallPackageAsync(
             string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(IsEnabled);
 
             var description = string.Format(ServicesVSResources.Uninstalling_0, packageName);
-            progressTracker.Description = description;
+            progressTracker.Report(CodeAnalysisProgress.Description(description));
             await UpdateStatusBarAsync(dte, description, cancellationToken).ConfigureAwait(false);
 
             try

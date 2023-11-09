@@ -2,14 +2,37 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 internal class EditAndContinueTestUtilities
 {
+    public static EmitBaseline CreateInitialBaseline(Compilation compilation, ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+    {
+        var localSignatureProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
+        {
+            try
+            {
+                return module.Module.GetMethodBodyOrThrow(methodHandle)?.LocalSignature ?? default;
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            {
+                throw new InvalidDataException(e.Message, e);
+            }
+        });
+
+        var hasPortableDebugInformation = module.Module.PEReaderOpt.ReadDebugDirectory().Any(static entry => entry.IsPortableCodeView);
+
+        return EmitBaseline.CreateInitialBaseline(compilation, module, debugInformationProvider, localSignatureProvider, hasPortableDebugInformation);
+    }
+
     internal static string EncLogRowToString(EditAndContinueLogEntry row)
     {
         TableIndex tableIndex;

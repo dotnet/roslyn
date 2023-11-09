@@ -36,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return result.ToString()
         End Function
 
+        Public Shared Function CreateInitialBaseline(compilation As Compilation, [module] As ModuleMetadata, debugInformationProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation)) As EmitBaseline
+            Return EditAndContinueTestUtilities.CreateInitialBaseline(compilation, [module], debugInformationProvider)
+        End Function
+
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
             Return New SourceWithMarkedNodes(WithWindowsLineBreaks(source.Value), Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
@@ -304,9 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
                 fromCompilation.SourceAssembly,
-                sourceContext:=Nothing,
                 toCompilation.SourceAssembly,
-                otherContext:=Nothing,
                 synthesizedTypes:=SynthesizedTypeMaps.Empty,
                 otherSynthesizedMembersOpt:=Nothing,
                 otherDeletedMembersOpt:=Nothing)

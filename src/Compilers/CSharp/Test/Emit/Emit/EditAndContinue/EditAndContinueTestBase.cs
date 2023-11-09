@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return result.ToString();
         }
 
+        public static EmitBaseline CreateInitialBaseline(Compilation compilation, ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+            => EditAndContinueTestUtilities.CreateInitialBaseline(compilation, module, debugInformationProvider);
+
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
             => new SourceWithMarkedNodes(
                 WithWindowsLineBreaks(markedSource),

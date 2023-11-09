@@ -369,7 +369,10 @@ internal readonly struct UpdateExpressionState<
 
         Match<TStatementSyntax>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
         {
-            syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var identifier, out _, out var foreachStatements);
+            syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var awaitKeyword, out var identifier, out _, out var foreachStatements);
+            if (awaitKeyword != default)
+                return null;
+
             // must be of the form:
             //
             //      foreach (var x in expr)
@@ -424,7 +427,9 @@ internal readonly struct UpdateExpressionState<
                 if (whenFalse is null)
                 {
                     // add the form `.. x ? [y] : []` to the result
-                    return new Match<TStatementSyntax>(ifStatement, UseSpread: true);
+                    return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
+                        ? new Match<TStatementSyntax>(ifStatement, UseSpread: true)
+                        : null;
                 }
 
                 var whenFalseStatements = whenFalse.ToImmutableArray();

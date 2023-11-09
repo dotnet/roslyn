@@ -54,7 +54,7 @@ class C
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C.F");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
@@ -118,7 +118,7 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
@@ -182,7 +182,7 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
@@ -246,7 +246,7 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
@@ -310,7 +310,7 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
