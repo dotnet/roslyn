@@ -43,12 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
 
         /// <summary>
-        /// Caches the last call to GetMembers(string) when that member is a namespace. Multiple types
+        /// Caches the last call to GetMembers(string) when the call returns a single element that is a namespace. Multiple types
         /// within the same namespace are often requested in sequence, so this allows the second and
         /// subsequent request for members with the same name to share a result without looking up the
         /// values or allocating.
+        /// For example, if we ask for two different types `System.Collections.Generic` in sequence,
+        /// The symbol representing 'System' namespace will have cached the symbol representing 'System.Collections',
+        /// And the symbol representing 'System.Collections' will have cached the symbol representing 'System.Collections.Generic'
+        /// So, the second time we request a nested namespace, it will be zero cost as the result is already cached.
         /// </summary>
-        private ImmutableArray<Symbol> _lastGetMembersResult;
+        private ImmutableArray<Symbol> _lastNestedNamespaceResult;
 
         /// <summary>
         /// All type members in a flat array
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
-            var lastResult = _lastGetMembersResult;
+            var lastResult = _lastNestedNamespaceResult;
 
             // The only code path where we cache is creating a single-element array.
             Debug.Assert(lastResult.IsDefault || lastResult.Length == 1);
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // Measurements show this path as the problematic non-performant path.
                     // Caching other paths will make the cache less beneficial.
                     var result = ImmutableArray.Create<Symbol>(ns);
-                    _lastGetMembersResult = result;
+                    _lastNestedNamespaceResult = result;
                     return result;
                 }
             }
