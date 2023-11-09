@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsAutoProperty = 1 << 1,
             IsExplicitInterfaceImplementation = 1 << 2,
             HasInitializer = 1 << 3,
-            IsInitOnly = 1 << 4,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private readonly string _name;
         private string? _lazySourceName;
-        private SynthesizedBackingFieldSymbol? _lazyBackingField;
         private readonly ExplicitInterfaceMemberInfo? _explicitInterfaceMemberInfo;
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
@@ -125,11 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsExpressionBodied;
             }
 
-            if (isInitOnly)
-            {
-                _propertyFlags |= Flags.IsInitOnly;
-            }
-
             if (isIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
@@ -146,6 +139,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _name = _lazySourceName = memberName;
+            }
+
+            if ((isAutoProperty && hasGetAccessor) || hasInitializer)
+            {
+                Debug.Assert(!IsIndexer);
+                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
+                BackingField = new SynthesizedBackingFieldSymbol(this,
+                                                                      fieldName,
+                                                                      isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
+                                                                      this.IsStatic,
+                                                                      hasInitializer);
             }
 
             if (hasGetAccessor)
@@ -619,32 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for automatically implemented property, or
         /// for a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField
-        {
-            get
-            {
-                bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
-                if (hasInitializer || (IsAutoProperty && _getMethod is { }))
-                {
-                    if (_lazyBackingField is null)
-                    {
-                        Debug.Assert(!IsIndexer);
-                        string fieldName = GeneratedNames.MakeBackingFieldName(Name);
-                        bool isInitOnly = (_propertyFlags & Flags.IsInitOnly) != 0;
-                        var backingField = new SynthesizedBackingFieldSymbol(this,
-                            fieldName,
-                            isReadOnly: (_getMethod is { } && _setMethod is null) || isInitOnly,
-                            this.IsStatic,
-                            hasInitializer);
-                        return InterlockedOperations.Initialize(ref _lazyBackingField, backingField);
-                    }
-
-                    return _lazyBackingField;
-                }
-
-                return null;
-            }
-        }
+        internal SynthesizedBackingFieldSymbol BackingField { get; }
 
         internal override bool MustCallMethodsDirectly
         {
