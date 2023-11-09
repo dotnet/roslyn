@@ -265,9 +265,9 @@ Class1.Method3([6], , [7])",
                     Signature("NS.Derived", "Method", ".method public hidebysig newslot virtual final instance System.Int32 Method(System.Exception A, System.Int32 B, NS.Derived[] C) cil managed"),
                     Signature("NS.Base", "Method2", ".method public hidebysig newslot virtual final instance System.Void Method2(NS.Derived c1, NS.Derived c2, [System.ParamArrayAttribute()] NS.Derived[] C3) cil managed"),
                     Signature("NS.Derived", "Method3", ".method public hidebysig newslot virtual final instance System.Void Method3(System.Int32[] B1, Type`1[System.Int32] B2, [System.ParamArrayAttribute()] System.Int32[] b2) cil managed"),
-                    Signature("NS.Class1", "Interface.Method", ".method private hidebysig newslot virtual final instance System.Int32 Interface.Method(System.Exception A, System.Int32 B, NS.Derived[] C) cil managed"),
+                    Signature("NS.Class1", "Type.Method", ".method private hidebysig newslot virtual final instance System.Int32 Type.Method(System.Exception A, System.Int32 B, NS.Derived[] C) cil managed"),
                     Signature("NS.Class1", "Interface.Method2", ".method private hidebysig newslot virtual final instance System.Void Interface.Method2(NS.Derived c1, NS.Derived c2, NS.Derived[] C3) cil managed"),
-                    Signature("NS.Class1", "Interface.Method3", ".method private hidebysig newslot virtual final instance System.Void Interface.Method3(System.Int32[] B1, Type`1[System.Int32] B2, [System.ParamArrayAttribute()] System.Int32[] B3) cil managed")
+                    Signature("NS.Class1", "Type.Method3", ".method private hidebysig newslot virtual final instance System.Void Type.Method3(System.Int32[] B1, Type`1[System.Int32] B2, [System.ParamArrayAttribute()] System.Int32[] B3) cil managed")
                 });
         }
 
@@ -2104,7 +2104,7 @@ class Test
                     Signature("Implicit", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(System.Int32 x, System.Func`3[System.Int32,System.Int32,V] v, System.Int32 z) cil managed"),
                     Signature("Base", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(System.Int32 x, System.Func`3[System.Int32,System.Int32,V] v, System.Int32 z) cil managed"),
                     Signature("Explicit", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(System.Int32 x, System.Func`3[System.Int32,System.Int32,V] v, System.Int32 z) cil managed"),
-                    Signature("Explicit", "I1<System.Int32,System.Int32>.Method", ".method private hidebysig newslot virtual final instance System.Void I1<System.Int32,System.Int32>.Method<V>(System.Int32 x, System.Func`3[System.Int32,System.Int32,V] v, System.Int32 z) cil managed")
+                    Signature("Explicit", "I1<Int32,Int32>.Method", ".method private hidebysig newslot virtual final instance System.Void I1<Int32,Int32>.Method<V>(System.Int32 x, System.Func`3[System.Int32,System.Int32,V] v, System.Int32 z) cil managed")
                 });
 
             comp.VerifyDiagnostics(
@@ -2591,8 +2591,7 @@ class C : I<int[][,]>
     void I<int[][,]>.Goo() { }
 }
 ";
-            // NOTE: order reversed from C# notation.
-            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Goo()");
+            CompileAndVerify(source, expectedOutput: @"Void I<int[][,]>.Goo()");
         }
 
         [Fact]
