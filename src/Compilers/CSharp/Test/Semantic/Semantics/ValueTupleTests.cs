@@ -307,7 +307,7 @@ namespace System
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        [Fact(Skip = "StackOverflowException"), WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
         public void ExplicitInterfaceImplementation_Event()
         {
             var source = """
