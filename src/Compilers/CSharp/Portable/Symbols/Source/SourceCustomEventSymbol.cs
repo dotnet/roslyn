@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var diagnostics = BindingDiagnosticBag.GetInstance();
                         EnsureSignatureGuarded(diagnostics);
                         AddDeclarationDiagnostics(diagnostics);
+                        _state.NotePartComplete(CompletionPart.FinishPropertyEnsureSignature);
                         diagnostics.Free();
                     }
                 }
