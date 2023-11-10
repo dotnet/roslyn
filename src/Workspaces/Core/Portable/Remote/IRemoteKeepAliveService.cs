@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        private RemoteKeepAliveSession(Solution solution, IAsynchronousOperationListener listener)
+        private RemoteKeepAliveSession(SolutionState solution, IAsynchronousOperationListener listener)
         {
             var cancellationToken = _cancellationTokenSource.Token;
             var token = listener.BeginAsyncOperation(nameof(RemoteKeepAliveSession));
@@ -72,9 +72,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same solution during the life of this session do not need to resync the solution.  Nor do they then need
         /// to rebuild any compilations they've already built due to the solution going away and then coming back.
         /// </summary>
+        public static RemoteKeepAliveSession Create(Solution solution, IAsynchronousOperationListener listener)
+            => Create(solution.State, listener);
+
+        /// <inheritdoc cref="Create(Solution, IAsynchronousOperationListener)"/>
         public static RemoteKeepAliveSession Create(
-            Solution solution,
-            IAsynchronousOperationListener listener)
+            SolutionState solution, IAsynchronousOperationListener listener)
         {
             return new RemoteKeepAliveSession(solution, listener);
         }
