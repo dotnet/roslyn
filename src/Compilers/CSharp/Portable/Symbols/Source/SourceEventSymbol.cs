@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override MethodSymbol? RemoveMethod { get; }
 
+        public abstract ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier { get; }
+
         public abstract override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
         public abstract override TypeWithAnnotations TypeWithAnnotations { get; }

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return AttributeLocation.Event; }
         }
 
-        private ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier
+        public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier
         {
             get { return ((EventDeclarationSyntax)this.CSharpSyntaxNode).ExplicitInterfaceSpecifier; }
         }

@@ -47,23 +47,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _event = @event;
 
-            if (GetOverriddenAccessorName(@event, isAdder) is { } name)
-            {
-                _name = name;
-            }
-            else if (!@event.IsExplicitInterfaceImplementation)
-            {
-                _name = SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
-            }
-            else
-            {
-                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierOpt, @event.Name);
-            }
+            _name = ExplicitInterfaceHelpers.GetMemberName(
+                explicitInterfaceSpecifierOpt,
+                SourceEventSymbol.GetAccessorName(
+                    ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(@event.Name),
+                    isAdder));
         }
 
         public override string Name
         {
             get { return _name; }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                bool isAdder = MethodKind == MethodKind.EventAdd;
+
+                if (GetOverriddenAccessorName(_event, isAdder) is { } overriddenAccessorName)
+                {
+                    return overriddenAccessorName;
+                }
+
+                EventSymbol explicitlyImplementedEventOpt = IsExplicitInterfaceImplementation ? _event.ExplicitInterfaceImplementations.FirstOrDefault() : null;
+                if (explicitlyImplementedEventOpt is not null)
+                {
+                    MethodSymbol implementedAccessor = isAdder ? explicitlyImplementedEventOpt.AddMethod : explicitlyImplementedEventOpt.RemoveMethod;
+                    string accessorName = (object)implementedAccessor != null ? implementedAccessor.Name : SourceEventSymbol.GetAccessorName(explicitlyImplementedEventOpt.Name, isAdder);
+                    string aliasQualifierOpt = _event.ExplicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
+
+                    return ExplicitInterfaceHelpers.GetMemberMetadataName(accessorName, explicitlyImplementedEventOpt.ContainingType, aliasQualifierOpt);
+                }
+
+                return Name;
+            }
         }
 
         internal override bool IsExplicitInterfaceImplementation

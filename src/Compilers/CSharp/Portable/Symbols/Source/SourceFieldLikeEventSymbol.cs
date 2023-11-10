@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => null;
+
         public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<EventSymbol>.Empty; }
