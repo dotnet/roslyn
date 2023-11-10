@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -478,6 +479,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static SourceText CreateText(string content, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
             => SourceText.From(content, encoding ?? Encoding.UTF8, checksumAlgorithm);
 
+        private static SourceText CreateStreamText(string content, bool useBOM, bool useMemoryStream)
+        {
+            var encoding = new UTF8Encoding(useBOM);
+            var bytes = encoding.GetBytes(content);
+            if (useMemoryStream)
+            {
+                using var stream = new MemoryStream(bytes);
+                return SourceText.From(stream, encoding, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            }
+            else
+            {
+                return SourceText.From(bytes, bytes.Length, encoding, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: true);
+            }
+        }
+
         [Theory, CombinatorialData]
         public async Task InProcAndRemoteWorkspaceAgree1(bool syncWithRemoteServer)
         {
@@ -667,6 +683,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 syncWithRemoteServer,
                 ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
                 ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task InProcAndRemoteWorkspaceAgree21(
+            bool syncWithRemoteServer, bool useBOM1, bool useMemoryStream1, bool useBOM2, bool useMemoryStream2)
+        {
+            var contents = Guid.NewGuid().ToString();
+            await TestInProcAndRemoteWorkspace(
+                syncWithRemoteServer,
+                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM1, useMemoryStream: useMemoryStream1))),
+                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM2, useMemoryStream: useMemoryStream2))));
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
