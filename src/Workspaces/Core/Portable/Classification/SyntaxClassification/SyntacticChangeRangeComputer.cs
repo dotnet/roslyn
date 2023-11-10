@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -152,13 +151,10 @@ namespace Microsoft.CodeAnalysis.Classification
                     // want to see and skip.  Crumble the node and deal with its left side.
                     //
                     // Reverse so that we process the leftmost child first and walk left to right.
-                    var oldNodeChildren = currentOld.AsNode()!.ChildNodesAndTokens();
-                    var newNodeChildren = currentNew.AsNode()!.ChildNodesAndTokens();
-
-                    foreach (var nodeOrToken in oldNodeChildren.Where(child => newNodeChildren.All(node => !node.IsIncrementallyIdenticalTo(child))).Reverse())
+                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens().Reverse())
                         oldStack.Push(nodeOrToken);
 
-                    foreach (var nodeOrToken in newNodeChildren.Where(child => oldNodeChildren.All(node => !node.IsIncrementallyIdenticalTo(child))).Reverse())
+                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens().Reverse())
                         newStack.Push(nodeOrToken);
                 }
 
