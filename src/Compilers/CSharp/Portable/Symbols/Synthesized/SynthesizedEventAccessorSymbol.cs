@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Since we don't have a syntax reference, we'll have to use another object for locking.
         private readonly object _methodChecksLockObject = new object();
 
-        internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, bool isExpressionBodied, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt = null)
-            : base(@event, null, @event.Location, explicitInterfaceSpecifierOpt, isAdder, isIterator: false, isNullableAnalysisEnabled: false, isExpressionBodied: isExpressionBodied)
+        internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, bool isExpressionBodied)
+            : base(@event, null, @event.Location, isAdder, isIterator: false, isNullableAnalysisEnabled: false, isExpressionBodied: isExpressionBodied)
         {
         }
 

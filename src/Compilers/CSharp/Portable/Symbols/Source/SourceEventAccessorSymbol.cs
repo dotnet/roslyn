@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceEventAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourceEventSymbol _event;
-        private readonly string _name;
 
+        private string _lazyName;
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
@@ -27,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
             Location location,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             bool isAdder,
             bool isIterator,
             bool isNullableAnalysisEnabled,
@@ -46,24 +46,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation)))
         {
             _event = @event;
-
-            if (GetOverriddenAccessorName(@event, isAdder) is { } name)
-            {
-                _name = name;
-            }
-            else if (!@event.IsExplicitInterfaceImplementation)
-            {
-                _name = SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
-            }
-            else
-            {
-                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifierOpt, @event.Name);
-            }
         }
 
         public override string Name
         {
-            get { return _name; }
+            get
+            {
+                if (_lazyName is null)
+                {
+                    bool isAdder = MethodKind == MethodKind.EventAdd;
+
+                    string name;
+
+                    if (GetOverriddenAccessorName(_event, isAdder) is { } overriddenAccessorName)
+                    {
+                        name = overriddenAccessorName;
+                    }
+                    else if (!_event.IsExplicitInterfaceImplementation)
+                    {
+                        name = SourceEventSymbol.GetAccessorName(_event.Name, isAdder);
+                    }
+                    else
+                    {
+                        name = ExplicitInterfaceHelpers.GetMemberName(_event.ExplicitInterfaceSpecifier, _event.Name);
+                    }
+
+                    return InterlockedOperations.Initialize(ref _lazyName, name);
+                }
+
+                return _lazyName;
+            }
         }
 
         internal override bool IsExplicitInterfaceImplementation
