@@ -1099,6 +1099,54 @@ $@"{type} N
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, ($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [.. ($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, .. ($$
+                }
+                """);
+        }
+
         #endregion
     }
 }
