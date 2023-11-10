@@ -2658,19 +2658,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
+                    if (_arity == 0)
+                    {
+                        _lazyTypeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                        return;
+                    }
+
                     var moduleSymbol = ContainingPEModule;
 
                     // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
                     int firstIndex = _genericParameterHandles.Count - _arity;
 
-                    TypeParameterSymbol[] ownedParams = new TypeParameterSymbol[_arity];
-                    for (int i = 0; i < ownedParams.Length; i++)
+                    var ownedParams = ArrayBuilder<TypeParameterSymbol>.GetInstance(_arity);
+                    ownedParams.Count = _arity;
+                    for (int i = 0; i < ownedParams.Count; i++)
                     {
                         ownedParams[i] = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]);
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters,
-                        ImmutableArray.Create<TypeParameterSymbol>(ownedParams));
+                        ownedParams.ToImmutableAndFree());
                 }
             }
 
