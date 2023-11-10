@@ -169,11 +169,8 @@ namespace Microsoft.CodeAnalysis.Classification
                         // want to see and skip.  Crumble the node and deal with its left side.
                         //
                         // Reverse so that we process the leftmost child first and walk left to right.
-                        if (currentOldNodeOrToken.AsNode()!.ChildNodesAndTokens().Any())
-                            oldStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentOldNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
-
-                        if (currentNewNodeOrToken.AsNode()!.ChildNodesAndTokens().Any())
-                            newStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentNewNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
+                        oldStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentOldNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
+                        newStack.Push(((IEnumerable<SyntaxNodeOrToken>)currentNewNodeOrToken.AsNode()!.ChildNodesAndTokens().Reverse()).GetEnumerator());
                     }
                     else
                     {
