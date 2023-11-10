@@ -17632,7 +17632,7 @@ file class C
                         g.VerifyMethodDefNames(
                             ".ctor",
                             "GetEnumerator",
-                            "System.Collections.IEnumerable.GetEnumerator",
+                            "IEnumerable.GetEnumerator",
                             "Create",
                             ".ctor",
                             "F",

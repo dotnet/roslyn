@@ -403,7 +403,7 @@ public  class D3 : C3
             var retargetedClassC1Method1Impl = retargetedClassC1Method1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Method1, retargetedClassC1Method1Impl.OriginalDefinition);
 
-            var retargetedClassC2Method1 = (MethodSymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Method1").Single();
+            var retargetedClassC2Method1 = (MethodSymbol)retargetedClassC2.GetMembers("Interface2<int>.Method1").Single();
             var retargetedClassC2Method1Impl = retargetedClassC2Method1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Method1, retargetedClassC2Method1Impl.OriginalDefinition);
 
@@ -415,7 +415,7 @@ public  class D3 : C3
             var retargetedClassC1Property1Impl = retargetedClassC1Property1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Property1, retargetedClassC1Property1Impl.OriginalDefinition);
 
-            var retargetedClassC2Property1 = (PropertySymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Property1").Single();
+            var retargetedClassC2Property1 = (PropertySymbol)retargetedClassC2.GetMembers("Interface2<int>.Property1").Single();
             var retargetedClassC2Property1Impl = retargetedClassC2Property1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Property1, retargetedClassC2Property1Impl.OriginalDefinition);
 
@@ -427,7 +427,7 @@ public  class D3 : C3
             var retargetedClassC1Event1Impl = retargetedClassC1Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC1Event1Impl.OriginalDefinition);
 
-            var retargetedClassC2Event1 = (EventSymbol)retargetedClassC2.GetMembers("Interface2<System.Int32>.Event1").Single();
+            var retargetedClassC2Event1 = (EventSymbol)retargetedClassC2.GetMembers("Interface2<int>.Event1").Single();
             var retargetedClassC2Event1Impl = retargetedClassC2Event1.ExplicitInterfaceImplementations.Single();
             Assert.Same(interfaceV2Event1, retargetedClassC2Event1Impl.OriginalDefinition);
 

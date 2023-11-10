@@ -20498,10 +20498,10 @@ public class C4 : I2, I3
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32a,System.Int32b)>.M")).ExplicitInterfaceImplementations;
+                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(inta,intb)>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 a, System.Int32 b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32c,System.Int32d)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(intc,intd)>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20565,7 +20565,7 @@ public class C2 : C1, I1<(int c, int d)>
                 Assert.Equal("void C2.M1()",
                              c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString());
 
-                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<(System.Int32c,System.Int32d)>.M2");
+                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<(intc,intd)>.M2");
                 var m2Implementations = m2.ExplicitInterfaceImplementations;
                 Assert.Equal(1, m2Implementations.Length);
                 Assert.Equal(isMetadata ?
@@ -20801,7 +20801,7 @@ public class C4 : I1<(int c, int d)>
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3Interfaces[0].ToTestDisplayString());
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3AllInterfaces[0].ToTestDisplayString());
 
-            var mImplementations = ((MethodSymbol)c3.GetMember("I1<(System.Int32c,System.Int32d)>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
+            var mImplementations = ((MethodSymbol)c3.GetMember("I1<(intc,intd)>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
             Assert.Equal(1, mImplementations.Length);
             Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", mImplementations[0].ToTestDisplayString());
 

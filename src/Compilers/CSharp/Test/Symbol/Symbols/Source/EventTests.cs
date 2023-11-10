@@ -2339,13 +2339,17 @@ class Derived2 : Base
 
             var derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
             var event1 = derived1.GetMember<EventSymbol>("E");
-            Assert.Equal("myAdd", event1.AddMethod.Name);
-            Assert.Equal("myRemove", event1.RemoveMethod.Name);
+            Assert.Equal("myAdd", event1.AddMethod.MetadataName);
+            Assert.Equal("add_E", event1.AddMethod.Name);
+            Assert.Equal("myRemove", event1.RemoveMethod.MetadataName);
+            Assert.Equal("remove_E", event1.RemoveMethod.Name);
 
             var derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
-            Assert.Equal("myAdd", event2.AddMethod.Name);
-            Assert.Equal("myRemove", event2.RemoveMethod.Name);
+            Assert.Equal("myAdd", event2.AddMethod.MetadataName);
+            Assert.Equal("add_E", event1.AddMethod.Name);
+            Assert.Equal("myRemove", event2.RemoveMethod.MetadataName);
+            Assert.Equal("remove_E", event1.RemoveMethod.Name);
         }
 
         [Fact, WorkItem(570905, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/570905")]

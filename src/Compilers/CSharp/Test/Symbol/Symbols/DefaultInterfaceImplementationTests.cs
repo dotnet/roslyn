@@ -39316,10 +39316,7 @@ class Test1 : I3
                 Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1").WithLocation(13, 18),
                 // (13,18): error CS8646: 'I1<string?>.M1' is explicitly implemented more than once.
                 // public interface I3 : I2, I1<string?>
-                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1").WithLocation(13, 18),
-                // (21,21): error CS0102: The type 'I3' already contains a definition for 'I1<System.String>.M1'
-                //     int I1<string?>.M1 
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("I3", "I1<System.String>.M1").WithLocation(21, 21 + implModifiers.Length)
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1").WithLocation(13, 18)
                 );
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
@@ -62530,8 +62527,8 @@ class C1 : I1, Interface<int>
                     Assert.True(baseInterface.IsInterface);
                     Assert.True(i1.IsInterface);
 
-                    var i1Normal = i1.GetMember<EventSymbol>("Interface<System.Int32>.Normal");
-                    var i1WinRT = i1.GetMember<EventSymbol>("Interface<System.Int32>.WinRT");
+                    var i1Normal = i1.GetMember<EventSymbol>("Interface<int>.Normal");
+                    var i1WinRT = i1.GetMember<EventSymbol>("Interface<int>.WinRT");
 
                     var baseInterfaceNormal = baseInterface.GetMember<EventSymbol>("Normal");
                     var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
