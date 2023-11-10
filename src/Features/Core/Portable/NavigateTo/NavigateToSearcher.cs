@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
         private readonly IImmutableSet<string> _kinds;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IStreamingProgressTracker _progress_doNotAccessDirectly;
 
         private readonly Document? _activeDocument;
@@ -47,13 +49,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Solution solution,
             INavigateToSearchCallback callback,
             string searchPattern,
-            IImmutableSet<string> kinds)
+            IImmutableSet<string> kinds,
+            IAsynchronousOperationListener listener)
         {
             _host = host;
             _solution = solution;
             _callback = callback;
             _searchPattern = searchPattern;
             _kinds = kinds;
+            _listener = listener;
             _progress_doNotAccessDirectly = new StreamingProgressTracker((current, maximum, ct) =>
             {
                 callback.ReportProgress(current, maximum);
@@ -80,7 +84,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
+            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
         }
 
         private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -111,6 +115,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             try
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+
+                // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
+                // solution we're searching stays pinned between us and it while this is happening.
+                using var _ = RemoteKeepAliveSession.Create(_solution, _listener);
 
                 if (searchCurrentDocument)
                 {
