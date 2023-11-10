@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
             SourceMemberContainerTypeSymbol containingType,
-            Binder bodyBinder,
             ConversionOperatorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
@@ -36,15 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
-            TypeSymbol explicitInterfaceType;
-            name = ExplicitInterfaceHelpers.GetMemberMetadataNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            name = ExplicitInterfaceHelpers.GetMemberName(interfaceSpecifier, name);
 
             var methodKind = interfaceSpecifier == null
                 ? MethodKind.Conversion
                 : MethodKind.ExplicitInterfaceImplementation;
 
             return new SourceUserDefinedConversionSymbol(
-                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
+                methodKind, containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -53,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourceUserDefinedConversionSymbol(
             MethodKind methodKind,
             SourceMemberContainerTypeSymbol containingType,
-            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
@@ -61,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics) :
             base(
                 methodKind,
-                explicitInterfaceType,
                 name,
                 containingType,
                 location,
@@ -99,6 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
+        protected override ExplicitInterfaceMemberInfo GetExplicitInterfaceMemberInfo(BaseMethodDeclarationSyntax declarationSyntax, Binder binder, BindingDiagnosticBag diagnostics)
+        {
+            var syntax = (ConversionOperatorDeclarationSyntax)declarationSyntax;
+            string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
+            return ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, name, binder, diagnostics);
         }
 
         protected override int GetParameterCountFromSyntax()

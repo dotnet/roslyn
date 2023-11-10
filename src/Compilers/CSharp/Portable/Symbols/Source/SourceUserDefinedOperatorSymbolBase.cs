@@ -18,12 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
 #nullable enable
-        private readonly TypeSymbol? _explicitInterfaceType;
+#if DEBUG
+        private bool _lazyExplicitInterfaceMemberInfoInitialized;
+#endif
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
 #nullable disable
 
         protected SourceUserDefinedOperatorSymbolBase(
             MethodKind methodKind,
-            TypeSymbol explicitInterfaceType,
             string name,
             SourceMemberContainerTypeSymbol containingType,
             Location location,
@@ -46,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                                   isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation)))
         {
-            _explicitInterfaceType = explicitInterfaceType;
             _name = name;
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
@@ -215,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        protected abstract ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(BaseMethodDeclarationSyntax declarationSyntax, Binder binder, BindingDiagnosticBag diagnostics);
+#nullable disable
+
         protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
         {
             TypeWithAnnotations returnType;
@@ -222,6 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var binder = this.DeclaringCompilation.
                 GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(returnTypeSyntax, declarationSyntax, this);
+
+            _lazyExplicitInterfaceMemberInfo = GetExplicitInterfaceMemberInfo(declarationSyntax, binder, diagnostics);
+            _lazyExplicitInterfaceMemberInfoInitialized = true;
 
             SyntaxToken arglistToken;
 
@@ -294,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
         {
-            if (_explicitInterfaceType is object)
+            if (ExplicitInterfaceType is { } explicitInterfaceType)
             {
                 string interfaceMethodName;
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
@@ -315,14 +323,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.Unreachable();
                 }
 
-                return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifier, diagnostics);
+                return this.FindExplicitlyImplementedMethod(isOperator: true, explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifier, diagnostics);
             }
 
             return null;
         }
 
 #nullable enable
-        protected sealed override TypeSymbol? ExplicitInterfaceType => _explicitInterfaceType;
+        protected sealed override TypeSymbol? ExplicitInterfaceType
+        {
+            get
+            {
+#if DEBUG
+                Debug.Assert(_lazyExplicitInterfaceMemberInfoInitialized);
+#endif
+                return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+            }
+        }
 #nullable disable
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)
@@ -786,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if ((object)_explicitInterfaceType != null)
+            if (ExplicitInterfaceType is { } explicitInterfaceType)
             {
                 NameSyntax name;
 
@@ -806,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.Unreachable();
                 }
 
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(name), diagnostics);
+                explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(name), diagnostics);
             }
         }
 
