@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Harness;
 
@@ -26,6 +28,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         static AbstractIntegrationTest()
         {
+            // Make sure to run the module initializer for Roslyn.Test.Utilities before installing TestTraceListener, or
+            // it will replace it with ThrowingTraceListener later.
+            RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
             TestTraceListener.Install();
 
             IdeStateCollector.RegisterCustomState(
