@@ -83,31 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        public static string GetMemberMetadataNameAndInterfaceSymbol(
-            Binder binder,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
-            string name,
-            BindingDiagnosticBag diagnostics,
-            out TypeSymbol explicitInterfaceTypeOpt,
-            out string aliasQualifierOpt)
-        {
-            if (explicitInterfaceSpecifierOpt == null)
-            {
-                explicitInterfaceTypeOpt = null;
-                aliasQualifierOpt = null;
-                return name;
-            }
-
-            // Avoid checking constraints context when binding explicit interface type since
-            // that might result in a recursive attempt to bind the containing class.
-            binder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
-
-            NameSyntax explicitInterfaceName = explicitInterfaceSpecifierOpt.Name;
-            explicitInterfaceTypeOpt = binder.BindType(explicitInterfaceName, diagnostics).Type;
-            aliasQualifierOpt = explicitInterfaceName.GetAliasQualifierOpt();
-            return GetMemberMetadataName(name, explicitInterfaceTypeOpt, aliasQualifierOpt);
-        }
-
         public static string GetMemberMetadataName(string name, TypeSymbol explicitInterfaceTypeOpt, string aliasQualifierOpt)
         {
             string interfaceName = explicitInterfaceTypeOpt?.ToDisplayString(SymbolDisplayFormat.ExplicitInterfaceImplementationFormat);
