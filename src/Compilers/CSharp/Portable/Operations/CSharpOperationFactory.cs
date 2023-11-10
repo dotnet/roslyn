@@ -812,6 +812,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromArray<BoundExpression, IOperation>(boundDynamicAccess.Arguments);
 
                 case BoundObjectInitializerMember boundObjectInitializerMember:
+                    Debug.Assert(!boundObjectInitializerMember.Expanded);
                     return CreateFromArray<BoundExpression, IOperation>(boundObjectInitializerMember.Arguments);
 
                 default:
@@ -1867,10 +1868,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
-                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
+                                                    getEnumeratorArguments: createArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo),
+                                                    moveNextArguments: createArgumentOperations(enumeratorInfoOpt.MoveNextInfo),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo)
                                                         : default);
             }
             else
@@ -1880,8 +1881,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return info;
 
-            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
-                 SyntaxNode invocationSyntax)
+            ImmutableArray<IArgumentOperation> createArgumentOperations(MethodArgumentInfo? info)
             {
                 if (info == null)
                 {
@@ -1896,8 +1896,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     info.Arguments,
                     argumentsToParametersOpt: default,
                     info.DefaultArguments,
-                    info.Expanded,
-                    invocationSyntax: invocationSyntax,
                     invokedAsExtensionMethod: info.Method.IsExtensionMethod
                 );
                 return Operation.SetParentOperation(args, null);
@@ -1991,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DisposeOperationInfo disposeOperationInfo = boundUsingStatement.PatternDisposeInfoOpt is object
                                                          ? new DisposeOperationInfo(
                                                                  disposeMethod: boundUsingStatement.PatternDisposeInfoOpt.Method.GetPublicSymbol(),
-                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.PatternDisposeInfoOpt, boundUsingStatement.Syntax))
+                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.PatternDisposeInfoOpt))
                                                          : default;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
@@ -2130,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     disposeInfo: usingDecl.PatternDisposeInfoOpt is object
                                    ? new DisposeOperationInfo(
                                            disposeMethod: usingDecl.PatternDisposeInfoOpt.Method.GetPublicSymbol(),
-                                           disposeArguments: CreateDisposeArguments(usingDecl.PatternDisposeInfoOpt, usingDecl.Syntax))
+                                           disposeArguments: CreateDisposeArguments(usingDecl.PatternDisposeInfoOpt))
                                    : default,
                      _semanticModel,
                     declarationGroupSyntax,
@@ -2857,7 +2855,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
-        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodArgumentInfo patternDisposeInfo, SyntaxNode syntax)
+        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodArgumentInfo patternDisposeInfo)
         {
             // can't be an extension method for dispose
             Debug.Assert(!patternDisposeInfo.Method.IsStatic);
@@ -2872,10 +2870,8 @@ namespace Microsoft.CodeAnalysis.Operations
             var args = DeriveArguments(
                             patternDisposeInfo.Method,
                             patternDisposeInfo.Arguments,
-                            patternDisposeInfo.ArgsToParamsOpt,
+                            argumentsToParametersOpt: default,
                             patternDisposeInfo.DefaultArguments,
-                            patternDisposeInfo.Expanded,
-                            syntax,
                             invokedAsExtensionMethod: false);
 
             return Operation.SetParentOperation(args, null);

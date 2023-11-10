@@ -384,7 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     firstRewrittenArgument: firstRewrittenArgument);
 
                 rewrittenArguments = MakeArguments(
-                    node.Syntax,
                     rewrittenArguments,
                     method,
                     node.Expanded,
@@ -413,18 +412,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             bool invokedAsExtensionMethod,
-            ImmutableArray<int> argsToParamsOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
             ArrayBuilder<LocalSymbol>? temps,
             BoundCall? nodeOpt = null)
         {
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 method,
                 expanded,
-                argsToParamsOpt,
+                argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
                 ref temps,
                 invokedAsExtensionMethod);
@@ -987,7 +984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// arguments based on <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
         /// </summary>
         private ImmutableArray<BoundExpression> MakeArguments(
-            SyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
             bool expanded,
@@ -998,8 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 
             // We need to do a fancy rewrite under the following circumstances:
-            // (1) a params array is being used; we need to generate the array.
-            // (2) there were named arguments that reordered the arguments; we might
+            // (1) there were named arguments that reordered the arguments; we might
             //     have to generate temporaries to ensure that the arguments are 
             //     evaluated in source code order, not the actual call order.
             //
@@ -1008,10 +1003,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenArguments.All(arg => arg is not BoundDiscardExpression), "Discards should have been substituted by VisitArguments");
             temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+            BoundExpression? optimized;
 
-            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, false, out var isComReceiver))
+            Debug.Assert(expanded ? rewrittenArguments.Length == parameters.Length : rewrittenArguments.Length >= parameters.Length);
+            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArray) == (expanded ? 1 : 0));
+
+            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, argsToParamsOpt, invokedAsExtensionMethod, false, out var isComReceiver))
             {
                 argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
+
+                Debug.Assert(!expanded || rewrittenArguments[rewrittenArguments.Length - 1].IsParamsArray);
+
+                if (expanded && TryOptimizeParamsArray(rewrittenArguments[rewrittenArguments.Length - 1], out optimized))
+                {
+                    return rewrittenArguments.SetItem(rewrittenArguments.Length - 1, optimized);
+                }
 
                 return rewrittenArguments;
             }
@@ -1071,7 +1077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
-            // Do not yet attempt to deal with params arrays or optional arguments.
             BuildStoresToTemps(
                 expanded,
                 argsToParamsOpt,
@@ -1083,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            // all the formal arguments, except missing optionals, are now in place. 
+            // all the formal arguments are now in place. 
             // Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate
             // argument expression.
@@ -1091,10 +1096,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             storesToTemps.Free();
 
-            // Step two: If we have a params array, build the array and fill in the argument.
-            if (expanded)
+            Debug.Assert(!expanded || actualArguments[actualArguments.Length - 1].IsParamsArray);
+
+            if (expanded && TryOptimizeParamsArray(actualArguments[actualArguments.Length - 1], out optimized))
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                actualArguments[actualArguments.Length - 1] = optimized;
             }
 
             if (isComReceiver)
@@ -1112,6 +1118,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(actualArguments.All(static arg => arg is not null));
             return actualArguments.AsImmutableOrNull();
+        }
+
+        private bool TryOptimizeParamsArray(BoundExpression possibleParamsArray, [NotNullWhen(true)] out BoundExpression? optimized)
+        {
+            if (possibleParamsArray.IsParamsArray && !_inExpressionLambda && ((BoundArrayCreation)possibleParamsArray).Bounds is [BoundLiteral { ConstantValueOpt.Value: 0 }])
+            {
+                optimized = CreateArrayEmptyCallIfAvailable(possibleParamsArray.Syntax, ((ArrayTypeSymbol)possibleParamsArray.Type!).ElementType);
+                if (optimized is { })
+                {
+                    return true;
+                }
+            }
+
+            optimized = null;
+            return false;
         }
 
         /// <summary>
@@ -1179,11 +1200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(
             CSharpOperationFactory operationFactory,
-            CSharpCompilation compilation,
-            SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
-            bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             bool invokedAsExtensionMethod)
@@ -1194,9 +1212,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
+            if (CanSkipRewriting(arguments, methodOrIndexer, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
             {
-                // In this case, the invocation is not in expanded form and there's no named argument provided.
+                // In this case, there's no named argument provided.
                 // So we just return list of arguments as is.
 
                 ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
@@ -1205,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    var argumentKind = defaultArguments[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    var argumentKind = GetArgumentKind(arguments[i], ref defaultArguments, i);
                     argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, parameters[i].GetPublicSymbol(), arguments[i]));
                 }
 
@@ -1225,20 +1243,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BuildArgumentsInEvaluationOrder(
                 operationFactory,
-                syntax,
                 methodOrIndexer,
-                expanded,
                 argsToParamsOpt,
                 defaultArguments,
-                arguments,
-                compilation);
+                arguments);
+        }
+
+        private static ArgumentKind GetArgumentKind(BoundExpression argument, ref BitVector defaultArguments, int i)
+        {
+            ArgumentKind argumentKind;
+            if (defaultArguments[i])
+            {
+                argumentKind = ArgumentKind.DefaultValue;
+            }
+            else if (argument.IsParamsArray)
+            {
+                argumentKind = ArgumentKind.ParamArray;
+            }
+            else
+            {
+                argumentKind = ArgumentKind.Explicit;
+            }
+
+            return argumentKind;
         }
 
         // temporariesBuilder will be null when factory is null.
         private static bool CanSkipRewriting(
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
-            bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
             bool ignoreComReceiver,
@@ -1254,7 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
                 Debug.Assert(argsToParamsOpt.IsDefault);
-                Debug.Assert(!expanded);
                 return true;
             }
 
@@ -1268,7 +1300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
-                !expanded &&
                 !isComReceiver;
         }
 
@@ -1282,6 +1313,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return default(ImmutableArray<RefKind>);
+        }
+
+        private delegate BoundExpression ParamsArrayElementRewriter<TArg>(BoundExpression element, ref TArg arg);
+        private static BoundExpression RewriteParamsArray<TArg>(BoundExpression paramsArray, ParamsArrayElementRewriter<TArg> elementRewriter, ref TArg arg)
+        {
+            Debug.Assert(paramsArray.IsParamsArray);
+
+            if (paramsArray is BoundArrayCreation { Bounds: [BoundLiteral] bounds, InitializerOpt: BoundArrayInitialization { Initializers: var elements } initialization } creation)
+            {
+                ArrayBuilder<BoundExpression>? elementsBuilder = null;
+
+                for (int i = 0; i < elements.Length; i++)
+                {
+                    var element = elements[i];
+                    var replacement = elementRewriter(element, ref arg);
+
+                    if (element != replacement)
+                    {
+                        if (elementsBuilder == null)
+                        {
+                            elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(elements.Length);
+                            elementsBuilder.AddRange(elements, i);
+                        }
+
+                        elementsBuilder.Add(replacement);
+                    }
+                    else if (elementsBuilder is { })
+                    {
+                        elementsBuilder.Add(replacement);
+                    }
+                }
+
+                if (elementsBuilder is { })
+                {
+                    return creation.Update(bounds, initialization.Update(elementsBuilder.ToImmutableAndFree()), creation.Type);
+                }
+                else
+                {
+                    return creation;
+                }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
 
         // This fills in the arguments, refKinds and storesToTemps arrays.
@@ -1298,6 +1374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
+            Debug.Assert(rewrittenArguments.Length == parameters.Length);
+            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArray) == (expanded ? 1 : 0));
 
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
@@ -1308,49 +1386,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(arguments[p] == null);
 
-                // Unfortunately, we violate the specification and allow:
-                // M(int q, params int[] x) ... M(x : X(), q : Q());
-                // which means that we cannot bail out just because
-                // an argument of an expanded-form call corresponds to
-                // the parameter array. We need to make sure that the
-                // side effects of X() and Q() continue to happen in the right
-                // order here.
-                //
-                // Fortunately, we do disallow M(x : 123, x : 345, x : 456).
-                // 
-                // Here's what we'll do. If all the remaining arguments
-                // correspond to elements in the parameter array then 
-                // we can bail out here without creating any temporaries.
-                // The next step in the call rewriter will deal with gathering
-                // up the elements. 
-                //
-                // However, if there are other elements after this one
-                // that do not correspond to elements in the parameter array
-                // then we need to create a temporary as usual. The step that
-                // produces the parameter array will need to deal with that
-                // eventuality.
-                if (IsBeginningOfParamArray(p, a, expanded, arguments.Length, rewrittenArguments, argsToParamsOpt, out int paramArrayArgumentCount)
-                    && a + paramArrayArgumentCount == rewrittenArguments.Length)
+                if (argument.IsParamsArray)
                 {
-                    return;
+                    Debug.Assert(expanded);
+                    Debug.Assert(p == parameters.Length - 1);
+                    Debug.Assert(argRefKind == RefKind.None);
+                    refKinds[p] = argRefKind;
+
+                    if (a == rewrittenArguments.Length - 1)
+                    {
+                        arguments[p] = argument;
+                    }
+                    else
+                    {
+                        // Storing the array creation instead changes IL for
+                        // Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTests.NamedParamsOptimizationAndParams002​
+                        // unit test.
+                        (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg = (rewriter: this, forceLambdaSpilling, storesToTemps);
+                        arguments[p] = RewriteParamsArray(
+                                           argument,
+                                           static (BoundExpression element, ref (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg) =>
+                                               arg.rewriter.StoreArgumentToTempIfNecessary(arg.forceLambdaSpilling, arg.storesToTemps, element, RefKind.None, RefKind.None),
+                                           ref arg);
+
+                        Debug.Assert(arguments[p].IsParamsArray);
+                    }
+
+                    continue;
                 }
 
-                if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
-                    IsSafeForReordering(argument, argRefKind))
-                {
-                    arguments[p] = argument;
-                }
-                else
-                {
-                    var temp = _factory.StoreToTemp(
-                        argument,
-                        out BoundAssignmentOperator assignment,
-                        refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter
-                            ? (argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn)
-                            : argRefKind);
-                    storesToTemps.Add(assignment);
-                    arguments[p] = temp;
-                }
+                arguments[p] = StoreArgumentToTempIfNecessary(forceLambdaSpilling, storesToTemps, argument, argRefKind, paramRefKind);
 
                 // Patch refKinds for arguments that match 'in' or 'ref readonly' parameters to have effective RefKind
                 // For the purpose of further analysis we will mark the arguments as -
@@ -1368,6 +1433,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return;
+        }
+
+        private BoundExpression StoreArgumentToTempIfNecessary(bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps, BoundExpression argument, RefKind argRefKind, RefKind paramRefKind)
+        {
+            if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
+                IsSafeForReordering(argument, argRefKind))
+            {
+                return argument;
+            }
+            else
+            {
+                var temp = _factory.StoreToTemp(
+                    argument,
+                    out BoundAssignmentOperator assignment,
+                    refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                        ? (argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn)
+                        : argRefKind);
+                storesToTemps.Add(assignment);
+                return temp;
+            }
 
             bool isLambdaConversion(BoundExpression expr)
                 => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
@@ -1376,19 +1461,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This fills in the arguments and parameters arrays in evaluation order.
         private static ImmutableArray<IArgumentOperation> BuildArgumentsInEvaluationOrder(
             CSharpOperationFactory operationFactory,
-            SyntaxNode syntax,
             Symbol methodOrIndexer,
-            bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            ImmutableArray<BoundExpression> arguments,
-            CSharpCompilation compilation)
+            ImmutableArray<BoundExpression> arguments)
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
             ArrayBuilder<IArgumentOperation> argumentsInEvaluationBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(parameters.Length);
-
-            bool visitedLastParam = false;
 
             // First, fill in all the explicitly provided arguments.
             for (int a = 0; a < arguments.Length; ++a)
@@ -1398,134 +1478,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 var parameter = parameters[p];
 
-                if (!visitedLastParam)
-                {
-                    visitedLastParam = p == parameters.Length - 1;
-                }
-
-                ArgumentKind kind = defaultArguments[a] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
-
-                if (IsBeginningOfParamArray(p, a, expanded, parameters.Length, arguments, argsToParamsOpt, out int paramArrayArgumentCount))
-                {
-                    int firstNonParamArrayArgumentIndex = a + paramArrayArgumentCount;
-                    Debug.Assert(firstNonParamArrayArgumentIndex <= arguments.Length);
-
-                    kind = ArgumentKind.ParamArray;
-                    ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance(paramArrayArgumentCount);
-
-                    for (int i = a; i < firstNonParamArrayArgumentIndex; ++i)
-                    {
-                        paramArray.Add(arguments[i]);
-                    }
-
-                    // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
-                    a = firstNonParamArrayArgumentIndex - 1;
-
-                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), compilation, localRewriter: null);
-                }
+                ArgumentKind kind = GetArgumentKind(argument, ref defaultArguments, a);
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
             }
 
-            // Finally, append the missing empty params array if necessary.
-            var lastParam = !parameters.IsEmpty ? parameters[^1] : null;
-            if (expanded && lastParam is object && !visitedLastParam)
-            {
-                Debug.Assert(lastParam.IsParams);
-
-                // Create an empty array for omitted param array argument.
-                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation, localRewriter: null);
-                ArgumentKind kind = ArgumentKind.ParamArray;
-
-                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, lastParam.GetPublicSymbol(), argument));
-            }
-
             Debug.Assert(argumentsInEvaluationBuilder.All(static arg => arg is not null));
             return argumentsInEvaluationBuilder.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Returns true if the given argument is the beginning of a list of param array arguments (could be empty), otherwise returns false.
-        /// When returns true, numberOfParamArrayArguments is set to the number of param array arguments.
-        /// </summary>
-        private static bool IsBeginningOfParamArray(
-            int parameterIndex,
-            int argumentIndex,
-            bool expanded,
-            int parameterCount,
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<int> argsToParamsOpt,
-            out int numberOfParamArrayArguments)
-        {
-            numberOfParamArrayArguments = 0;
-
-            if (expanded && parameterIndex == parameterCount - 1)
-            {
-                int remainingArgument = argumentIndex + 1;
-                for (; remainingArgument < arguments.Length; ++remainingArgument)
-                {
-                    int remainingParameter = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument;
-                    if (remainingParameter != parameterCount - 1)
-                    {
-                        break;
-                    }
-                }
-                numberOfParamArrayArguments = remainingArgument - argumentIndex;
-                return true;
-            }
-
-            return false;
-        }
-
-        private BoundExpression BuildParamsArray(
-            SyntaxNode syntax,
-            ImmutableArray<int> argsToParamsOpt,
-            ImmutableArray<BoundExpression> rewrittenArguments,
-            ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression tempStoreArgument)
-        {
-            ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance();
-            int paramsParam = parameters.Length - 1;
-
-            if (tempStoreArgument != null)
-            {
-                paramArray.Add(tempStoreArgument);
-                // Special case: see comment in BuildStoresToTemps above; if there 
-                // is an argument already in the slot then it is the only element in 
-                // the params array. 
-            }
-            else
-            {
-                for (int a = 0; a < rewrittenArguments.Length; ++a)
-                {
-                    BoundExpression argument = rewrittenArguments[a];
-                    int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
-                    if (p == paramsParam)
-                    {
-                        paramArray.Add(argument);
-                    }
-                }
-            }
-
-            var paramArrayType = parameters[paramsParam].Type;
-            var arrayArgs = paramArray.ToImmutableAndFree();
-
-            // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
-            // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
-            // point of which is just to represent the semantics of an operation, and we don't know that all consumers
-            // of expression lambdas will appropriately understand Array.Empty<T>().
-            if (arrayArgs.Length == 0
-                && !_inExpressionLambda
-                && paramArrayType is ArrayTypeSymbol ats) // could be false if there's a semantic error, e.g. the params parameter type isn't an array
-            {
-                BoundExpression? arrayEmpty = CreateArrayEmptyCallIfAvailable(syntax, ats.ElementType);
-                if (arrayEmpty is { })
-                {
-                    return arrayEmpty;
-                }
-            }
-
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
         }
 
         private BoundExpression CreateEmptyArray(SyntaxNode syntax, ArrayTypeSymbol arrayType)
@@ -1580,39 +1539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
                 type: arrayEmpty.ReturnType);
-        }
-
-        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
-            TypeSymbol paramArrayType,
-            ImmutableArray<BoundExpression> arrayArgs,
-            CSharpCompilation compilation,
-            LocalRewriter? localRewriter)
-        {
-
-            TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
-            BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
-
-            return new BoundArrayCreation(
-                syntax,
-                ImmutableArray.Create(arraySize),
-                new BoundArrayInitialization(syntax, isInferred: false, arrayArgs) { WasCompilerGenerated = true },
-                paramArrayType)
-            { WasCompilerGenerated = true };
-        }
-
-        /// <summary>
-        /// To create literal expression for IOperation, set localRewriter to null.
-        /// </summary>
-        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, LocalRewriter? localRewriter)
-        {
-            if (localRewriter != null)
-            {
-                return localRewriter.MakeLiteral(syntax, constantValue, type);
-            }
-            else
-            {
-                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad) { WasCompilerGenerated = true };
-            }
         }
 
         private static void OptimizeTemporaries(
@@ -1673,12 +1599,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = arguments[a];
 
+                if (argument.IsParamsArray)
+                {
+                    (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg = (tempStores, tempsRemainedInUse, firstUnclaimedStore);
+                    arguments[a] = RewriteParamsArray(
+                                       argument,
+                                       static (BoundExpression element, ref (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg) =>
+                                           mergeArgumentAndSideEffect(element, arg.tempStores, ref arg.tempsRemainedInUse, ref arg.firstUnclaimedStore),
+                                       ref arg);
+                    tempsRemainedInUse = arg.tempsRemainedInUse;
+                    firstUnclaimedStore = arg.firstUnclaimedStore;
+                }
+                else
+                {
+                    arguments[a] = mergeArgumentAndSideEffect(argument, tempStores, ref tempsRemainedInUse, ref firstUnclaimedStore);
+                }
+            }
+
+            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all side-effects were claimed");
+            return tempsRemainedInUse;
+
+            static BoundExpression mergeArgumentAndSideEffect(BoundExpression argument, ArrayBuilder<BoundAssignmentOperator> tempStores, ref int tempsRemainedInUse, ref int firstUnclaimedStore)
+            {
                 // if argument is a load, search for corresponding store. if store is found, extract
                 // the actual expression we were storing and add it as an argument - this one does
                 // not need a temp. if there are any unclaimed stores before the found one, add them
                 // as side effects that precede this arg, they cannot happen later.
                 // NOTE: missing optional parameters are not filled yet and therefore nulls - no need to do anything for them
-                if (argument?.Kind == BoundKind.Local)
+                if (argument.Kind == BoundKind.Local)
                 {
                     var correspondingStore = -1;
                     for (int i = firstUnclaimedStore; i < tempStores.Count; i++)
@@ -1705,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // just combine store and load
                         if (correspondingStore == firstUnclaimedStore)
                         {
-                            arguments[a] = value;
+                            argument = value;
                         }
                         else
                         {
@@ -1715,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sideeffects[s] = tempStores[firstUnclaimedStore + s];
                             }
 
-                            arguments[a] = new BoundSequence(
+                            argument = new BoundSequence(
                                         value.Syntax,
                                         // this sequence does not own locals. Note that temps that
                                         // we use for the rewrite are stored in one arg and loaded
@@ -1729,10 +1677,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         firstUnclaimedStore = correspondingStore + 1;
                     }
                 }
-            }
 
-            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all side-effects were claimed");
-            return tempsRemainedInUse;
+                return argument;
+            }
         }
 
         // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.

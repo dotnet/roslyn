@@ -3609,7 +3609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-                        var arguments = node.Arguments;
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
@@ -6379,6 +6378,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentResult? firstArgumentResult = null)
         {
             Debug.Assert(!arguments.IsDefault);
+            Debug.Assert(!expanded || !parametersOpt.IsDefault);
+            Debug.Assert(refKindsOpt.IsDefaultOrEmpty || refKindsOpt.Length == arguments.Length);
+            Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == arguments.Length);
+
+            if (expanded)
+            {
+                expandParamsArray(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
+            }
+            else
+            {
+                Debug.Assert(!arguments.Any(a => a.IsParamsArray));
+            }
+
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
             // Visit the arguments and collect results
@@ -6567,6 +6579,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                            return (result.method, result.returnNotNull);
                        };
+            }
+
+            static void expandParamsArray(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
+            {
+                // It looks like in some error scenarios we can get here without params array created.
+                // At the moment, there is only one test that gets here like that - Microsoft.CodeAnalysis.CSharp.UnitTests.AttributeTests.TestBadParamsCtor.
+                // And we get here for the erroneous attribute application, constructor is inaccessible. 
+                // Perhaps that shouldn't cancel the default values / params array processing?
+                Debug.Assert(arguments.Count(a => a.IsParamsArray) <= 1);
+
+                for (int a = 0; a < arguments.Length; ++a)
+                {
+                    BoundExpression argument = arguments[a];
+                    if (argument.IsParamsArray)
+                    {
+                        Debug.Assert(parametersOpt.IsDefault || arguments.Length == parametersOpt.Length);
+                        ImmutableArray<BoundExpression> elements = ((BoundArrayCreation)argument).InitializerOpt!.Initializers;
+
+                        if (elements.Length == 0)
+                        {
+                            arguments = arguments.RemoveAt(a);
+
+                            if (!argsToParamsOpt.IsDefault)
+                            {
+                                argsToParamsOpt = argsToParamsOpt.RemoveAt(a);
+                            }
+
+                            if (!refKindsOpt.IsDefaultOrEmpty)
+                            {
+                                refKindsOpt = refKindsOpt.RemoveAt(a);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(defaultArguments.IsNull || elements.Length == 1);
+                            Debug.Assert(elements.Length == 1 || a == arguments.Length - 1);
+                            var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length + elements.Length - 1);
+                            argumentsBuilder.AddRange(arguments, a);
+                            argumentsBuilder.AddRange(elements);
+                            argumentsBuilder.AddRange(arguments, a + 1, arguments.Length - (a + 1));
+                            Debug.Assert(argumentsBuilder.Count == arguments.Length + elements.Length - 1);
+
+                            if (!argsToParamsOpt.IsDefault)
+                            {
+                                var argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length + elements.Length - 1);
+                                argsToParamsBuilder.AddRange(argsToParamsOpt, a);
+                                argsToParamsBuilder.AddMany(arguments.Length - 1, elements.Length);
+                                argsToParamsBuilder.AddRange(argsToParamsOpt, a + 1, argsToParamsOpt.Length - (a + 1));
+                                argsToParamsOpt = argsToParamsBuilder.ToImmutableAndFree();
+                            }
+
+                            if (!refKindsOpt.IsDefaultOrEmpty)
+                            {
+                                var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(refKindsOpt.Length + elements.Length - 1);
+                                refKindsBuilder.AddRange(refKindsOpt, a);
+                                refKindsBuilder.AddMany(RefKind.None, elements.Length);
+                                refKindsBuilder.AddRange(refKindsOpt, a + 1, refKindsOpt.Length - (a + 1));
+                                refKindsOpt = refKindsBuilder.ToImmutableAndFree();
+                            }
+
+                            arguments = argumentsBuilder.ToImmutableAndFree();
+                        }
+
+                        break;
+                    }
+                }
             }
         }
 
@@ -9940,7 +10018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MethodSymbol method = node.Operator.Method;
                     VisitArguments(node, ImmutableArray.Create(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default, defaultArguments: default,
-                        expanded: true, invokedAsExtensionMethod: false, method);
+                        expanded: false, invokedAsExtensionMethod: false, method);
                 }
 
                 resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
@@ -10279,9 +10357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
                     parameters,
-                    argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
+                    argsToParamsOpt: default,
                     defaultArguments: enumeratorMethodInfo.DefaultArguments,
-                    expanded: false,
+                    expanded: enumeratorMethodInfo.Expanded,
                     invokedAsExtensionMethod: true,
                     enumeratorMethodInfo.Method);
 

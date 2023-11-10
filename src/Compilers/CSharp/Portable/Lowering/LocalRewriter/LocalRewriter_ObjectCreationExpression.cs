@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
             rewrittenArguments = MakeArguments(
-                node.Syntax,
                 rewrittenArguments,
                 node.Constructor,
                 node.Expanded,
