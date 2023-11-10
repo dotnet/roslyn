@@ -9,11 +9,10 @@ on:
   pull_request:
 
 env:
-  TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BUILDCONFIGURATION: Release
-  codecov_token: c8862aaf-0c6d-48ee-a4a7-e88af58ef469
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  # codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages/
 
 jobs:
   build:
@@ -23,97 +22,95 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - windows-2019
+        - ubuntu-20.04
+        - macos-latest
+        - windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
-    - name: Install prerequisites
+    - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
       shell: pwsh
-    - name: Set pipeline variables based on source
+    - name: ⚙️ Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-    - name: Prepare Visual Studio
-      run: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
-    - name: build
-      run: msbuild /t:Build /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
-    - name: pack
-      run: msbuild /t:Pack /p:Configuration=${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
-    - name: test
-      run: dotnet test --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true /m:1 --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
-    - name: Test EqualExceptionLegacy
-      run: test/EqualExceptionLegacy/Test.ps1 -binlog bin/build_logs/EqualExceptionLegacy.binlog
+    - name: 🛠 build
+      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} -warnaserror /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
+    - name: 🧪 test
+      run: azure-pipelines/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
       shell: pwsh
-    - name: Update pipeline variables based on build outputs
+    - name: ⚙ Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
-    - name: Collect artifacts
+    - name: 📥 Collect artifacts
       run: azure-pipelines/artifacts/_stage_all.ps1
       shell: pwsh
       if: always()
-    - name: Upload project.assets.json files
+    - name: 📢 Upload project.assets.json files
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: projectAssetsJson-${{ runner.os }}
-        path: obj/_artifacts/projectAssetsJson
+        path: ${{ runner.temp }}/_artifacts/projectAssetsJson
       continue-on-error: true
-    - name: Upload variables
+    - name: 📢 Upload variables
       uses: actions/upload-artifact@v1
       with:
-        name: variables
-        path: obj/_artifacts/variables
-      if: runner.os == 'Windows'
+        name: variables-${{ runner.os }}
+        path: ${{ runner.temp }}/_artifacts/Variables
       continue-on-error: true
-    - name: Upload build_logs
+    - name: 📢 Upload build_logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: build_logs-${{ runner.os }}
-        path: obj/_artifacts/build_logs
+        path: ${{ runner.temp }}/_artifacts/build_logs
       continue-on-error: true
-    - name: Upload testResults
+    - name: 📢 Upload test_logs
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: test_logs-${{ runner.os }}
+        path: ${{ runner.temp }}/_artifacts/test_logs
+      continue-on-error: true
+    - name: 📢 Upload testResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: testResults-${{ runner.os }}
-        path: obj/_artifacts/testResults
+        path: ${{ runner.temp }}/_artifacts/testResults
       continue-on-error: true
-    - name: Upload rawTestResults
-      if: always()
-      uses: actions/upload-artifact@v1
-      with:
-        name: rawTestResults-${{ runner.os }}
-        path: obj/_artifacts/rawTestResults
-      continue-on-error: true
-    - name: Upload coverageResults
+    - name: 📢 Upload coverageResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: coverageResults-${{ runner.os }}
-        path: obj/_artifacts/coverageResults
+        path: ${{ runner.temp }}/_artifacts/coverageResults
       continue-on-error: true
-    - name: Upload symbols
+    - name: 📢 Upload symbols
       uses: actions/upload-artifact@v1
       with:
-        name: symbols
-        path: obj/_artifacts/symbols
-      if: runner.os == 'Windows'
+        name: symbols-${{ runner.os }}
+        path: ${{ runner.temp }}/_artifacts/symbols
       continue-on-error: true
-    - name: Upload deployables
+    - name: 📢 Upload deployables
       uses: actions/upload-artifact@v1
       with:
-        name: deployables
-        path: obj/_artifacts/deployables
-      if: always() && runner.os == 'Windows'
-    - name: Publish code coverage results to codecov.io
-      run: bash <(curl -s https://codecov.io/bash)
-      shell: bash
+        name: deployables-${{ runner.os }}
+        path: ${{ runner.temp }}/_artifacts/deployables
+      if: always()
+    - name: 📢 Publish code coverage results to codecov.io
+      run: ./azure-pipelines/publish-CodeCov.ps1 -CodeCovToken "${{ env.codecov_token }}" -PathToCodeCoverage "${{ runner.temp }}/_artifacts/coverageResults" -Name "${{ runner.os }} Coverage Results" -Flags "${{ runner.os }}Host,${{ env.BUILDCONFIGURATION }}"
+      shell: pwsh
       timeout-minutes: 3
       continue-on-error: true
+      if: always()

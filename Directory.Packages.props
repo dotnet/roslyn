@@ -1,0 +1,27 @@
+<Project>
+  <!-- https://learn.microsoft.com/nuget/consume-packages/central-package-management -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+
+    <MicroBuildVersion>2.0.146</MicroBuildVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageVersion Include="xunit" Version="2.5.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />
+    <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
+    <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
+    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" />
+    <GlobalPackageReference Include="Nullable" Version="1.3.1" />
+    <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.507" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- <GlobalPackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="1.1.1" /> -->
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+  </ItemGroup>
+</Project>

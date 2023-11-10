@@ -33,7 +33,7 @@ if ($IsMacOS -or $IsLinux) {
 
 $installerScript = Join-Path $toolsPath $installerScript
 
-if (!(Test-Path $installerScript)) {
+if (!(Test-Path $installerScript) -or $Force) {
     Invoke-WebRequest $sourceUrl -OutFile $installerScript
 }
 
@@ -43,7 +43,7 @@ if ($IsMacOS -or $IsLinux) {
     chmod u+x $installerScript
 }
 
-& $installerScript -Force:$Force
+& $installerScript -Force:$Force -AddNetfx -InstallNet6
 
 if ($AccessToken) {
     $endpoints = @()

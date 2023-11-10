@@ -3,19 +3,21 @@ trigger:
   branches:
     include:
     - main
+    - microbuild
     - 'validate/*'
   paths:
     exclude:
     - doc/
     - '*.md'
     - .vscode/
+    - azure-pipelines/release.yml
+    - azure-pipelines/vs-insertion.yml
 #schedules:
 #- cron: "0 3 * * *" # Daily @ 8 PM PST
 #  displayName: Daily vs-insertion
 #  branches:
 #    include:
 #    - microbuild
-pr: none
 
 parameters:
 - name: SignTypeSelection
@@ -23,83 +25,41 @@ parameters:
   type: string
   default: Test
   values: [ 'Test', 'Real' ]
-
-variables:
-  NugetSecurityAnalysisWarningLevel: none # nuget.config requires signed packages by trusted owners
+- name: includeMacOS
+  displayName: Build on macOS
+  type: boolean
+  default: false # macOS is often bogged down in Azure Pipelines
+- name: RunTests
+  displayName: Run tests
+  type: boolean
+  default: true
+- name: EnableCompliance
+  displayName: Run Compliance Tools
+  type: boolean
+  default: true
+- name: EnableAPIScan
+  displayName: Include APIScan with Compliance tools
+  type: boolean
+  default: true
 
 stages:
 
 - stage: Build
   variables:
-    TreatWarningsAsErrors: true
-    UpdateXlfOnBuild: false # force build breaks if xlf files aren't updated on dev box with resx changes
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     BuildConfiguration: Release
-    BuildPlatform: Any CPU
-    push_to_ci: true
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-    MicroBuild_DoNotStrongNameSign: true
     SignTypeSelection: ${{ parameters.SignTypeSelection }}
+    Packaging.EnableSBOMSigning: false
+    Codeql.Enabled: true
 
   jobs:
   - template: build.yml
     parameters:
-      windowsPool: VSEngSS-MicroBuild2019-1ES
+      EnableCompliance: ${{ parameters.EnableCompliance }}
+      EnableAPIScan: ${{ parameters.EnableAPIScan }}
+      windowsPool: VSEngSS-MicroBuild2022-1ES
+      includeMacOS: ${{ parameters.includeMacOS }}
+      RunTests: ${{ parameters.RunTests }}
 
-- stage: symbol_archive
-  displayName: Symbol archival
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-  jobs:
-  - job: archive
-    pool: VSEng-ReleasePool-1ES
-    steps:
-    - download: current
-      artifact: Variables-Windows
-      displayName: Download Variables-Windows artifact
-    - task: PowerShell@2
-      displayName: Set VSTS variables based on artifacts
-      inputs:
-        targetType: filePath
-        filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-    - download: current
-      artifact: symbols-Windows
-      displayName: Download symbols-Windows artifact
-    - task: MicroBuildArchiveSymbols@1
-      displayName: Archive symbols to Symweb
-      inputs:
-        SymbolsFeatureName: $(SymbolsFeatureName)
-        SymbolsSymwebProject: VS
-        SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
-        SymbolsEmailContacts: vsidemicrobuild
-        SymbolsAgentPath: $(Pipeline.Workspace)/symbols-Windows
-    - task: MicroBuildCleanup@1
-      displayName: Send Telemetry
-
-- stage: azure_public_vssdk_feed
-  displayName: azure-public/vssdk feed
-  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
-  jobs:
-  - deployment: push
-    pool:
-      vmImage: ubuntu-latest
-    environment: No-Approval
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: current
-            artifact: deployables-Windows
-            displayName: Download deployables-Windows artifact
-          - task: NuGetToolInstaller@1
-            displayName: Use NuGet 5.x
-            inputs:
-              versionSpec: 5.x
-          - task: NuGetCommand@2
-            displayName: NuGet push
-            inputs:
-              command: push
-              packagesToPush: $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg
-              nuGetFeedType: external
-              publishFeedCredentials: azure-public/vssdk
-              allowPackageConflicts: true
-            continueOnError: true # until "skip on conflict" is offered as a task input.
+- template: prepare-insertion-stages.yml

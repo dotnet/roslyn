@@ -1,8 +1,8 @@
 {
-    "files.trimTrailingWhitespace": true,
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableImportCompletion": true,
-    "omnisharp.enableRoslynAnalyzers": true
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.enableRoslynAnalyzers": true,
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
 }

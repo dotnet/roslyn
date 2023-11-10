@@ -3,6 +3,7 @@ trigger:
   branches:
     include:
     - main
+    - microbuild
     - 'validate/*'
   paths:
     exclude:
@@ -10,14 +11,26 @@ trigger:
     - '*.md'
     - .vscode/
     - .github/
+    - azure-pipelines/release.yml
+
+parameters:
+- name: includeMacOS
+  displayName: Build on macOS
+  type: boolean
+  default: false # macOS is often bogged down in Azure Pipelines
+- name: RunTests
+  displayName: Run tests
+  type: boolean
+  default: true
 
 variables:
-  TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BuildConfiguration: Release
-  codecov_token: c8862aaf-0c6d-48ee-a4a7-e88af58ef469
-  NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-  Codeql.Enabled: true
+  # codecov_token: 4dc9e7e2-6b01-4932-a180-847b52b43d35 # Get a new one from https://codecov.io/
+  NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
 
 jobs:
 - template: azure-pipelines/build.yml
+  parameters:
+    includeMacOS: ${{ parameters.includeMacOS }}
+    RunTests: ${{ parameters.RunTests }}

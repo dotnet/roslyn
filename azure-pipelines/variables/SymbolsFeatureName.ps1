@@ -1,1 +1,1 @@
-'ExtensionTesting'
+'LibraryName'

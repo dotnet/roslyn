@@ -6,7 +6,7 @@
 #>
 Param(
     [Parameter()]
-    [string]$NuGetVersion='5.2.0'
+    [string]$NuGetVersion='6.4.0'
 )
 
 $toolsPath = & "$PSScriptRoot\Get-TempToolsPath.ps1"

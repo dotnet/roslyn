@@ -11,6 +11,8 @@
     The directory to install the package to. By default, it uses the Packages folder at the root of the repo.
 .PARAMETER ConfigFile
     The nuget.config file to use. By default, it uses :/nuget.config.
+.OUTPUTS
+    System.String. The path to the installed package.
 #>
 [CmdletBinding(SupportsShouldProcess=$true,ConfirmImpact='Low')]
 Param(
@@ -45,6 +47,9 @@ try {
         $p = Start-Process $nugetPath $nugetArgs -NoNewWindow -Wait -PassThru
         if ($p.ExitCode -ne 0) { throw }
     }
+
+    # Provide the path to the installed package directory to our caller.
+    Write-Output (Get-ChildItem "$PackagesDir\$PackageId.*")[0].FullName
 } finally {
     Pop-Location
 }

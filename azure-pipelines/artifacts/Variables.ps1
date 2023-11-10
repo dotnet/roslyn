@@ -2,13 +2,13 @@
 # It "snaps" the values of these variables where we can compute them during the build,
 # and otherwise captures the scripts to run later during an Azure Pipelines environment release.
 
-$RepoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot (Join-Path .. ..)))
-$ArtifactBasePath = Join-Path $RepoRoot (Join-Path obj _artifacts)
+$RepoRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot/../..")
+$ArtifactBasePath = "$RepoRoot/obj/_artifacts"
 $VariablesArtifactPath = Join-Path $ArtifactBasePath variables
 if (-not (Test-Path $VariablesArtifactPath)) { New-Item -ItemType Directory -Path $VariablesArtifactPath | Out-Null }
 
 # Copy variables, either by value if the value is calculable now, or by script
-Get-ChildItem -Path (Join-Path $PSScriptRoot (Join-Path .. variables)) |% {
+Get-ChildItem "$PSScriptRoot/../variables" |% {
     $value = $null
     if (-not $_.BaseName.StartsWith('_')) { # Skip trying to interpret special scripts
         # First check the environment variables in case the variable was set in a queued build
@@ -35,7 +35,7 @@ Get-ChildItem -Path (Join-Path $PSScriptRoot (Join-Path .. variables)) |% {
         $value = Get-Content -Path $_.FullName
     }
 
-    Set-Content -Path (Join-Path $VariablesArtifactPath $_.Name) -Value $value
+    Set-Content -Path "$VariablesArtifactPath/$($_.Name)" -Value $value
 }
 
 @{

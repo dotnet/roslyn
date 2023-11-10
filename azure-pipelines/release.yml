@@ -9,63 +9,53 @@ resources:
       tags:
       - auto-release
 
-stages:
-- stage: GitHubRelease
-  displayName: GitHub Release
-  jobs:
-  - deployment: create
-    pool:
-      vmImage: ubuntu-latest
-    environment: No-Approval
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: none
-          - powershell: |
-              Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
-            displayName: Set pipeline name
-          - task: GitHubRelease@1
-            displayName: GitHub release (create)
-            inputs:
-              gitHubConnection: # TODO: fill in service connection here
-              repositoryName: $(Build.Repository.Name)
-              target: $(resources.pipeline.CI.sourceCommit)
-              tagSource: userSpecifiedTag
-              tag: v$(resources.pipeline.CI.runName)
-              title: v$(resources.pipeline.CI.runName)
-              isDraft: true # After running this step, visit the new draft release, edit, and publish.
-              changeLogCompareToRelease: lastNonDraftRelease
-              changeLogType: issueBased
-              changeLogLabels: |
-                [
-                  { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
-                  { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
-                ]
+variables:
+- group: VS SDK feeds # Expected to provide NuGetOrgApiKey
 
-- stage: nuget_org
-  displayName: nuget.org
-  dependsOn: GitHubRelease
-  jobs:
-  - deployment: push
-    pool:
-      vmImage: ubuntu-latest
-    environment: No-Approval
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: CI
-            artifact: deployables-Windows
-            displayName: Download deployables-Windows artifact
-          - task: NuGetToolInstaller@1
-            displayName: Use NuGet 5.x
-            inputs:
-              versionSpec: 5.x
-          - task: NuGetCommand@2
-            displayName: NuGet push
-            inputs:
-              command: push
-              packagesToPush: $(Pipeline.Workspace)/CI/deployables-Windows/NuGet/*.nupkg
-              nuGetFeedType: external
-              publishFeedCredentials: # TODO: fill in service connection here
+jobs:
+- job: release
+  pool:
+    name: AzurePipelines-EO
+    vmImage: AzurePipelinesUbuntu20.04compliant
+  steps:
+  - checkout: none
+  - powershell: |
+      Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+      if ('$(resources.pipeline.CI.runName)'.Contains('-')) {
+        Write-Host "##vso[task.setvariable variable=IsPrerelease]true"
+      } else {
+        Write-Host "##vso[task.setvariable variable=IsPrerelease]false"
+      }
+    displayName: ⚙ Set up pipeline
+  - task: UseDotNet@2
+    displayName: ⚙ Install .NET SDK
+    inputs:
+      packageType: sdk
+      version: 6.x
+  - download: CI
+    artifact: deployables-Windows
+    displayName: 🔻 Download deployables-Windows artifact
+    patterns: 'deployables-Windows/NuGet/*'
+  - task: GitHubRelease@1
+    displayName: 📢 GitHub release (create)
+    inputs:
+      gitHubConnection: # TODO: fill in service connection here
+      repositoryName: $(Build.Repository.Name)
+      target: $(resources.pipeline.CI.sourceCommit)
+      tagSource: userSpecifiedTag
+      tag: v$(resources.pipeline.CI.runName)
+      title: v$(resources.pipeline.CI.runName)
+      isDraft: true # After running this step, visit the new draft release, edit, and publish.
+      isPreRelease: $(IsPrerelease)
+      assets: $(Pipeline.Workspace)/CI/deployables-Windows/NuGet/*.nupkg
+      changeLogCompareToRelease: lastNonDraftRelease
+      changeLogType: issueBased
+      changeLogLabels: |
+        [
+          { "label" : "breaking change", "displayName" : "Breaking changes", "state" : "closed" },
+          { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
+          { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
+        ]
+  - script: dotnet nuget push $(Pipeline.Workspace)/CI/deployables-Windows/NuGet/*.nupkg -s https://api.nuget.org/v3/index.json --api-key $(NuGetOrgApiKey) --skip-duplicate
+    displayName: 📦 Push packages to nuget.org
+    condition: and(succeeded(), ne(variables['NuGetOrgApiKey'], ''))

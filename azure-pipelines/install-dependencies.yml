@@ -3,9 +3,11 @@ parameters:
 
 steps:
 
-- task: NuGetAuthenticate@0
-  displayName: Authenticate NuGet feeds
+- task: NuGetAuthenticate@1
+  displayName: 🔏 Authenticate NuGet feeds
   inputs:
+    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+      nuGetServiceConnections: azure-public/msft_consumption
     forceReinstallCredentialProvider: true
 
 - powershell: |
@@ -17,9 +19,9 @@ steps:
     if (Get-Command mono -ErrorAction SilentlyContinue) {
       mono --version
     }
-  displayName: Install prerequisites
+  displayName: ⚙ Install prerequisites
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
-  displayName: Set pipeline variables based on source
+  displayName: ⚙ Set pipeline variables based on source
   name: SetPipelineVariables

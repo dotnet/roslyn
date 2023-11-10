@@ -7,6 +7,9 @@
 *.sh eol=lf
 *.ps1 eol=lf
 
+# The macOS codesign tool is extremely picky, and requires LF line endings.
+*.plist eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

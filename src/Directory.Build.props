@@ -1,26 +1,11 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))' != '' " />
-
-  <!-- We always want a good debugging experience in integration tests -->
+  <!-- Include and reference README in nuget package, if a README is in the project directory. -->
   <PropertyGroup>
-    <Optimize>false</Optimize>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <EmbedAllSources>true</EmbedAllSources>
+    <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)ExtensionTesting.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-
-  <!-- Code analysis configuration -->
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)ExtensionTesting.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
   <ItemGroup>
-    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+    <None Condition="Exists('README.md')" Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
 </Project>

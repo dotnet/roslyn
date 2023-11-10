@@ -1,23 +1,25 @@
+parameters:
+  includeMacOS:
+
 steps:
 - download: current
   artifact: coverageResults-Windows
-  displayName: Download Windows code coverage results
+  displayName: 🔻 Download Windows code coverage results
   continueOnError: true
-#- powershell: |
-#    dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 4.8.5 --configfile azure-pipelines/justnugetorg.nuget.config
-#    Copy-Item -Recurse $(Pipeline.Workspace)/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj
-#    Write-Host "Substituting {reporoot} with $(System.DefaultWorkingDirectory)"
-#    $reports = Get-ChildItem -Recurse "$(Pipeline.Workspace)/coverage.*.cobertura.xml"
-#    $reports |% {
-#        $content = Get-Content -Path $_ |% { $_.Replace("{reporoot}", "$(System.DefaultWorkingDirectory)") }
-#        Set-Content -Path $_ -Value $content -Encoding UTF8
-#    }
-#    $Inputs = [string]::join(';', ($reports |% { Resolve-Path -relative $_ }))
-#    obj/reportgenerator -reports:"$Inputs" -targetdir:coveragereport -reporttypes:Cobertura
-#  displayName: Merge coverage
-#- task: PublishCodeCoverageResults@1
-#  displayName: Publish code coverage results to Azure DevOps
-#  inputs:
-#    codeCoverageTool: cobertura
-#    summaryFileLocation: 'coveragereport/Cobertura.xml'
-#    failIfCoverageEmpty: true
+- download: current
+  artifact: coverageResults-Linux
+  displayName: 🔻 Download Linux code coverage results
+  continueOnError: true
+- download: current
+  artifact: coverageResults-macOS
+  displayName: 🔻 Download macOS code coverage results
+  continueOnError: true
+  condition: and(succeeded(), ${{ parameters.includeMacOS }})
+- powershell: azure-pipelines/Merge-CodeCoverage.ps1 -Path '$(Pipeline.Workspace)' -OutputFile coveragereport/merged.cobertura.xml -Format Cobertura -Verbose
+  displayName: ⚙ Merge coverage
+- task: PublishCodeCoverageResults@1
+  displayName: 📢 Publish code coverage results to Azure DevOps
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: coveragereport/merged.cobertura.xml
+    failIfCoverageEmpty: true
