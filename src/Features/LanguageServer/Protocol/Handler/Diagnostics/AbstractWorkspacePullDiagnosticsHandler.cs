@@ -141,11 +141,11 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         var codeAnalysisService = solution.Workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-            await AddDocumentsAndProject(project, cancellationToken).ConfigureAwait(false);
+            await AddDocumentsAndProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
         return result.ToImmutable();
 
-        async Task AddDocumentsAndProject(Project project, CancellationToken cancellationToken)
+        async Task AddDocumentsAndProjectAsync(Project project, CancellationToken cancellationToken)
         {
             // There are two potential sources for reporting workspace diagnostics:
             //

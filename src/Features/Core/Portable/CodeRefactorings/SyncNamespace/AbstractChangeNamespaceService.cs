@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
-                document = await RemoveUnnecessaryImportsWorker(
+                document = await RemoveUnnecessaryImportsWorkerAsync(
                     document,
                     CreateImports(document, names, withFormatterAnnotation: false),
                     cancellationToken).ConfigureAwait(false);
@@ -797,14 +797,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
-                    doc => RemoveUnnecessaryImportsWorker(
+                    doc => RemoveUnnecessaryImportsWorkerAsync(
                         doc,
                         CreateImports(doc, names, withFormatterAnnotation: false),
                         cancellationToken))).ConfigureAwait(false);
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            async Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorkerAsync(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)
