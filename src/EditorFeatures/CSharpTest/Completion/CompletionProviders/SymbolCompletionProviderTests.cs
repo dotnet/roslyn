@@ -12702,6 +12702,70 @@ public static class Extension
                 """;
         }
 
+        [Fact]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToVar()
+        {
+            var source = AddInsideMethod(
+                """
+                const int val = 3;
+                var x = [$$
+                """);
+
+            await VerifyItemExistsAsync(source, "val");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToReturn()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+
+                    IEnumerable<string> M() => [$$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_AfterFirstElementToVar()
+        {
+            var source = AddInsideMethod(
+                """
+                const int val = 3;
+                var x = [val, $$
+                """);
+
+            await VerifyItemExistsAsync(source, "val");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_AfterFirstElement()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+                
+                    IEnumerable<string> M() => [string.Empty, $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

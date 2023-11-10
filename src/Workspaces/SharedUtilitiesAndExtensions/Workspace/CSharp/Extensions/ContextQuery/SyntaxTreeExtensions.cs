@@ -2695,6 +2695,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // Collection expressions
+            // [|
+            // [0, |
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.CollectionExpression))
+            {
+                return true;
+            }
+
             // $"{ |
             // $@"{ |
             // $"""{ |
