@@ -44,7 +44,7 @@ class C
             var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
+            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -105,7 +105,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -166,7 +166,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -238,7 +238,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -296,7 +296,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -349,7 +349,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -408,7 +408,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -462,7 +462,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -517,7 +517,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -573,7 +573,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -628,7 +628,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -696,7 +696,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -774,7 +774,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -848,7 +848,7 @@ class C : D
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -915,7 +915,7 @@ partial class C
             var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
             var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -974,7 +974,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1062,7 +1062,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1151,7 +1151,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1235,7 +1235,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1326,7 +1326,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1408,7 +1408,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1486,7 +1486,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1585,7 +1585,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1676,7 +1676,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1785,7 +1785,7 @@ class C
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
             var f3 = compilation3.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -1983,7 +1983,7 @@ class C
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
             var f3 = compilation3.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2193,7 +2193,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2332,7 +2332,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2449,7 +2449,7 @@ public class C
             CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
             CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2582,7 +2582,7 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
@@ -2653,7 +2653,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2725,7 +2725,7 @@ class C
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2831,7 +2831,7 @@ class C
             var ctor01 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor()");
             var ctor11 = compilation1.GetMembers("C..ctor").Single(m => m.ToTestDisplayString() == "C..ctor(System.Int32 x)");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -2950,7 +2950,7 @@ class C
             var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
             var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3045,7 +3045,7 @@ class C
             var b1 = compilation1.GetMember<FieldSymbol>("C.B");
             var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3106,7 +3106,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3234,7 +3234,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3350,7 +3350,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3475,7 +3475,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -3600,7 +3600,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             v0.VerifyIL("C.F", @"
 {
@@ -3721,7 +3721,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             string expectedIL = @"
 {
@@ -3801,7 +3801,7 @@ class C
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
             var f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             v0.VerifyIL("C.F",
 @"{
   // Code size      112 (0x70)
@@ -3993,7 +3993,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4078,7 +4078,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4160,7 +4160,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4233,7 +4233,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4315,7 +4315,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4412,7 +4412,7 @@ public class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4499,7 +4499,7 @@ Console.WriteLine(x());
             var f0 = compilation0.GetMember<MethodSymbol>("Program.<Main>$");
             var f1 = compilation1.GetMember<MethodSymbol>("Program.<Main>$");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4558,7 +4558,7 @@ class C
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
@@ -4608,7 +4608,7 @@ class C
             using var md0 = ModuleMetadata.CreateFromImage(bytes0);
             var reader0 = md0.MetadataReader;
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+            var generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider);
 
             // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
             var diff1 = compilation1.EmitDifference(

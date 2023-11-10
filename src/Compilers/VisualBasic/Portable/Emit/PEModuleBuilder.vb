@@ -714,6 +714,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
+            Debug.Assert(Not context.MetadataOnly)
+
             While typesToProcess.Count > 0
                 Dim definition = typesToProcess.Pop()
 

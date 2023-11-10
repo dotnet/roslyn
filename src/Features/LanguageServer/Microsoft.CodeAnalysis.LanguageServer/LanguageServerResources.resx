@@ -132,6 +132,10 @@
   <data name="Client_failed_to_attach_the_debugger" xml:space="preserve">
     <value>Client failed to attach the debugger</value>
   </data>
+  <data name="Completed_reload_of_all_projects_in_0" xml:space="preserve">
+    <value>Completed (re)load of all projects in {0}</value>
+    <comment>The placeholder is a time duration like 00:15</comment>
+  </data>
   <data name="Debugger_attached" xml:space="preserve">
     <value>Debugger attached</value>
   </data>
@@ -140,6 +144,9 @@
   </data>
   <data name="Discovering_tests" xml:space="preserve">
     <value>Discovering tests...</value>
+  </data>
+  <data name="Exception_thrown_while_loading_0" xml:space="preserve">
+    <value>Exception thrown while loading {0}</value>
   </data>
   <data name="Failed" xml:space="preserve">
     <value>Failed!</value>
@@ -150,11 +157,21 @@
   <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
     <value>Failed to read .runsettings file at {0}:{1}</value>
   </data>
+  <data name="Failed_to_run_restore_on_0" xml:space="preserve">
+    <value>Failed to run restore on {0}</value>
+  </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
   </data>
+  <data name="Loading_0" xml:space="preserve">
+    <value>Loading {0}...</value>
+    <comment>The placeholder is a name of a file</comment>
+  </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
+  </data>
+  <data name="Nothing_found_to_restore" xml:space="preserve">
+    <value>Nothing found to restore</value>
   </data>
   <data name="No_test_methods_found_in_requested_range" xml:space="preserve">
     <value>No test methods found in requested range</value>
@@ -167,6 +184,25 @@
   </data>
   <data name="Projects_failed_to_load_because_MSBuild_could_not_be_found" xml:space="preserve">
     <value>Projects failed to load because the .NET Framework build tools could not be found. Try installing Visual Studio or the Visual Studio Build Tools package, or check the logs for details.</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Restore_complete" xml:space="preserve">
+    <value>Restore complete</value>
+  </data>
+  <data name="Restore_started" xml:space="preserve">
+    <value>Restore started</value>
+  </data>
+  <data name="Restoring_0" xml:space="preserve">
+    <value>Restoring {0}</value>
+  </data>
+  <data name="Running_dotnet_restore_on_0" xml:space="preserve">
+    <value>Running dotnet restore on {0}</value>
+  </data>
+  <data name="Project_0_loaded_by_CSharp_Dev_Kit" xml:space="preserve">
+    <value>Project {0} loaded by C# Dev Kit</value>
+    <comment>The placeholder is a name of a file</comment>
   </data>
   <data name="Running_tests" xml:space="preserve">
     <value>Running tests...</value>
@@ -185,6 +221,9 @@
   </data>
   <data name="Starting_test_run" xml:space="preserve">
     <value>Starting test run</value>
+  </data>
+  <data name="Successfully_completed_load_of_0" xml:space="preserve">
+    <value>Successfully completed load of {0}</value>
   </data>
   <data name="Summary" xml:space="preserve">
     <value>Summary</value>

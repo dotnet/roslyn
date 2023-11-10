@@ -22,12 +22,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
-        : MethodExtractor(result, options, localFunction)
+        : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
     {
         protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
             => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
 
-        protected override AnalyzerResult Analyze(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
 
         protected override SyntaxNode GetInsertionPointNode(
@@ -154,66 +154,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
             => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
-        protected override async Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken)
-        {
-            var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<ExpressionSyntax>().LastOrDefault();
-            if (lastExpression == null)
-            {
-                return selection.SemanticDocument;
-            }
-
-            var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
-        }
-
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
             => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
-        protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)
-            => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule());
+        protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
+            => FormattingRule.Instance;
 
         protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
             => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
-        protected override OperationStatus CheckType(
-            SemanticModel semanticModel,
-            SyntaxNode contextNode,
-            Location location,
-            ITypeSymbol type)
-        {
-            Contract.ThrowIfNull(type);
-
-            // this happens when there is no return type
-            if (type.SpecialType == SpecialType.System_Void)
-            {
-                return OperationStatus.Succeeded;
-            }
-
-            if (type.TypeKind is TypeKind.Error or
-                TypeKind.Unknown)
-            {
-                return OperationStatus.ErrorOrUnknownType;
-            }
-
-            // if it is type parameter, make sure we are getting same type parameter
-            foreach (var typeParameter in TypeParameterCollector.Collect(type))
-            {
-                var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
-                var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
-                {
-                    return new OperationStatus(OperationStatusFlag.Succeeded,
-                        string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            currentType == null ? string.Empty : currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
-                }
-            }
-
-            return OperationStatus.Succeeded;
-        }
+        protected override SyntaxNode ParseTypeName(string name)
+            => SyntaxFactory.ParseTypeName(name);
 
         protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,

@@ -379,9 +379,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
                 // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
                 // which should not alter 'isSuppressed'.
-                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
-                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, cancellationToken, out severity)) &&
-                    severity != ReportDiagnostic.Default)
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) && severity != ReportDiagnostic.Default) ||
+                    (options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, cancellationToken, out severity)))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }

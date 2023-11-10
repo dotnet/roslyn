@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities? capabilities)
         {
             VerifySemantics(
-                new[] { editScript },
+                [editScript],
                 TargetFramework.NetStandard20,
-                new[] { new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics) },
+                [new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics)],
                 capabilities);
         }
 

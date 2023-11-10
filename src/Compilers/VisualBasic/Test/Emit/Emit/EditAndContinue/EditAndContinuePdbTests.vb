@@ -146,7 +146,7 @@ End Class", fileName:="C:\Enc1.vb")
 
             Dim b2 = compilation2.GetMember(Of MethodSymbol)("C.B")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1)
 
@@ -269,7 +269,9 @@ End Class", fileName:="C:\Enc1.vb")
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default))
@@ -280,7 +282,9 @@ End Class", fileName:="C:\Enc1.vb")
                         Handle(10, TableIndex.MethodDebugInformation),
                         Handle(11, TableIndex.MethodDebugInformation),
                         Handle(13, TableIndex.MethodDebugInformation),
+                        Handle(16, TableIndex.MethodDebugInformation),
                         Handle(17, TableIndex.MethodDebugInformation),
+                        Handle(18, TableIndex.MethodDebugInformation),
                         Handle(19, TableIndex.MethodDebugInformation),
                         Handle(20, TableIndex.MethodDebugInformation))
                 End Using

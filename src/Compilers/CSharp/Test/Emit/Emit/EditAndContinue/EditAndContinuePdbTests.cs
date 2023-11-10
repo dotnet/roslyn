@@ -142,7 +142,7 @@ public class C
 
             var b2 = compilation2.GetMember<MethodSymbol>("C.B");
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1);
             var diff1 = compilation1.EmitDifference(
@@ -285,7 +285,9 @@ public class C
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default));
@@ -298,7 +300,9 @@ public class C
                     Handle(1, TableIndex.MethodDebugInformation),
                     Handle(2, TableIndex.MethodDebugInformation),
                     Handle(4, TableIndex.MethodDebugInformation),
+                    Handle(8, TableIndex.MethodDebugInformation),
                     Handle(9, TableIndex.MethodDebugInformation),
+                    Handle(10, TableIndex.MethodDebugInformation),
                     Handle(11, TableIndex.MethodDebugInformation),
                     Handle(12, TableIndex.MethodDebugInformation));
             }

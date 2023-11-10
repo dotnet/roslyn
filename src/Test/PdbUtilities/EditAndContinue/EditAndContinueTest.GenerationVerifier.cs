@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -46,6 +48,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 var actual = _readers.GetStrings(_metadataReader.GetMethodDefNames());
                 AssertEx.Equal(expected, actual, message: GetAssertMessage("MethodDefs don't match"));
+            }
+
+            internal void VerifyTypeRefNames(params string[] expected)
+            {
+                var actual = _readers.GetStrings(_metadataReader.GetTypeRefNames());
+                AssertEx.Equal(expected, actual, message: GetAssertMessage("TypeRefs don't match"));
             }
 
             internal void VerifyMemberRefNames(params string[] expected)
@@ -131,6 +139,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
                 => _generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+
+            internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
+                => _generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb);
 
             internal void VerifyIL(string expectedIL)
                 => _generationInfo.CompilationDifference!.VerifyIL(expectedIL);

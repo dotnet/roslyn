@@ -316,8 +316,8 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">Očekávaná úloha vrací {0}.</target>
+        <source>Awaited task returns {0}</source>
+        <target state="needs-review-translation">Očekávaná úloha vrací {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">

@@ -8,14 +8,14 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>9</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
-    <MicrosoftNetCompilersToolsetVersion>4.8.0-1.23419.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>4.8.0-3.final</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -24,7 +24,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
-    <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.7.188</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
@@ -42,6 +42,7 @@
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <MicrosoftVisualStudioThreadingPackagesVersion>17.7.30</MicrosoftVisualStudioThreadingPackagesVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>17.9.12-alpha</MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>
     <MicrosoftTestPlatformVersion>17.4.1</MicrosoftTestPlatformVersion>
   </PropertyGroup>
   <!--
@@ -84,7 +85,7 @@
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildUtilitiesCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
-    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>8.0.0-preview.23465.2</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
+    <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>7.0.0-preview.23525.7</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -198,7 +199,7 @@
     <MicrosoftVisualStudioTextLogicVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextLogicVersion>
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingAnalyzersPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioUtilitiesInternalVersion>16.3.53</MicrosoftVisualStudioUtilitiesInternalVersion>

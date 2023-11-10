@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
