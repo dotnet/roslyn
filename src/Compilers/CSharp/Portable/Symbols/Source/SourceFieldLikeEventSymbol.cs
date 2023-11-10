@@ -158,8 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier => null;
-
         protected override AttributeLocation AllowedAttributeLocations
         {
             get

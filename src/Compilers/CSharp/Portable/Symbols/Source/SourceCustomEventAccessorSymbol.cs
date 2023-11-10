@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceCustomEventAccessorSymbol(
             SourceEventSymbol @event,
             AccessorDeclarationSyntax syntax,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   syntax.Keyword.GetLocation(),
+                   syntax.Keyword.GetLocation(), explicitInterfaceSpecifierOpt,
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                    isNullableAnalysisEnabled: isNullableAnalysisEnabled,

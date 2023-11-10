@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                 }
 
-                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
-                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
+                _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false, interfaceSpecifier);
+                _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false, interfaceSpecifier);
             }
             else
             {
-                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, diagnostics);
-                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, diagnostics);
+                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, interfaceSpecifier, diagnostics);
+                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, interfaceSpecifier, diagnostics);
             }
         }
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return AttributeLocation.Event; }
         }
 
-        public override ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier
+        private ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier
         {
             get { return ((EventDeclarationSyntax)this.CSharpSyntaxNode).ExplicitInterfaceSpecifier; }
         }
@@ -272,14 +272,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         [return: NotNullIfNotNull(parameterName: nameof(syntaxOpt))]
         private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
-            BindingDiagnosticBag diagnostics)
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, BindingDiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
             {
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitInterfaceSpecifier, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }
