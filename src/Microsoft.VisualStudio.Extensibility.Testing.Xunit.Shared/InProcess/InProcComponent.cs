@@ -4,6 +4,7 @@
 namespace Xunit.InProcess
 {
     using System;
+    using System.Threading;
     using System.Windows;
     using System.Windows.Threading;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -35,14 +36,34 @@ namespace Xunit.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void InvokeOnUIThread(Action action)
+        {
+            if (CurrentApplicationDispatcher.CheckAccess())
+            {
+                // Invoke the action directly
+                action();
+            }
+            else
+            {
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
+                CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            }
+        }
 
         protected static T InvokeOnUIThread<T>(Func<T> action)
+        {
+            if (CurrentApplicationDispatcher.CheckAccess())
+            {
+                // Invoke the action directly
+                return action();
+            }
+            else
+            {
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
+                return CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+            }
+        }
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class
