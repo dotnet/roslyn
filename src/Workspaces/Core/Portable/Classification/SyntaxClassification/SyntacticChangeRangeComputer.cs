@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -151,11 +150,30 @@ namespace Microsoft.CodeAnalysis.Classification
                     // want to see and skip.  Crumble the node and deal with its left side.
                     //
                     // Reverse so that we process the leftmost child first and walk left to right.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens().Reverse())
-                        oldStack.Push(nodeOrToken);
+                    var currentOldChildren = currentOld.AsNode()!.ChildNodesAndTokens();
+                    var currentNewChildren = currentNew.AsNode()!.ChildNodesAndTokens();
+                    var minLength = Math.Min(currentOldChildren.Count, currentNewChildren.Count);
 
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens().Reverse())
-                        newStack.Push(nodeOrToken);
+                    var i = 1;
+                    for (; i <= minLength; i++)
+                    {
+                        var oldChild = currentOldChildren[currentOldChildren.Count - i];
+                        var newChild = currentNewChildren[currentNewChildren.Count - i];
+                        if (oldChild.IsToken || newChild.IsToken || !oldChild.IsIncrementallyIdenticalTo(newChild))
+                        {
+                            break;
+                        }
+                    }
+
+                    for (var j = currentNewChildren.Count - i; j >= 0; j--)
+                    {
+                        newStack.Push(currentNewChildren[j]);
+                    }
+
+                    for (var k = currentOldChildren.Count - i; k >= 0; k--)
+                    {
+                        oldStack.Push(currentOldChildren[k]);
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
@@ -221,11 +239,30 @@ namespace Microsoft.CodeAnalysis.Classification
                     // that were the same that we'd want to see and skip.  Crumble the node and deal with its right side.
                     //
                     // Do not reverse the children.  We want to process the rightmost child first and walk right to left.
-                    foreach (var nodeOrToken in currentOld.AsNode()!.ChildNodesAndTokens())
-                        oldStack.Push(nodeOrToken);
+                    var currentOldChildren = currentOld.AsNode()!.ChildNodesAndTokens();
+                    var currentNewChildren = currentNew.AsNode()!.ChildNodesAndTokens();
+                    var minLength = Math.Min(currentOldChildren.Count, currentNewChildren.Count);
 
-                    foreach (var nodeOrToken in currentNew.AsNode()!.ChildNodesAndTokens())
-                        newStack.Push(nodeOrToken);
+                    var i = 0;
+                    for (; i < minLength; i++)
+                    {
+                        var oldChild = currentOldChildren[i];
+                        var newChild = currentNewChildren[i];
+                        if (oldChild.IsToken || newChild.IsToken || !oldChild.IsIncrementallyIdenticalTo(newChild))
+                        {
+                            break;
+                        }
+                    }
+
+                    for (var j = i; j < currentOldChildren.Count; j++)
+                    {
+                        oldStack.Push(currentOldChildren[j]);
+                    }
+
+                    for (var k = i; k < currentNewChildren.Count; k++)
+                    {
+                        newStack.Push(currentNewChildren[k]);
+                    }
                 }
 
                 // If we consumed all of 'new', then the length of the new doc is what we have in common.
