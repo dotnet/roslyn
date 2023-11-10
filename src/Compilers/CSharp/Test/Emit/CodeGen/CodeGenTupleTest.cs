@@ -20565,7 +20565,7 @@ public class C2 : C1, I1<(int c, int d)>
                 Assert.Equal("void C2.M1()",
                              c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString());
 
-                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<(intc,intd)>.M2");
+                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember(isMetadata ? "I1<(System.Int32c,System.Int32d)>.M2" : "I1<(intc,intd)>.M2");
                 var m2Implementations = m2.ExplicitInterfaceImplementations;
                 Assert.Equal(1, m2Implementations.Length);
                 Assert.Equal(isMetadata ?

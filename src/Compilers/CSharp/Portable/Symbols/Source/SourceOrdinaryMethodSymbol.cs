@@ -989,6 +989,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
+            public override string MetadataName => _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? Name;
+
             protected sealed override TypeSymbol ExplicitInterfaceType => _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
             internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
