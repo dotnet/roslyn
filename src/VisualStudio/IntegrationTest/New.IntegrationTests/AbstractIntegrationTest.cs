@@ -76,6 +76,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
             }
 
+            await TestServices.Workarounds.RemoveConflictingKeyBindingsAsync(HangMitigatingCancellationToken);
             await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
             await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
 

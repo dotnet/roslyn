@@ -180,7 +180,7 @@ Module Program
 End Module", HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70511")]
+        [IdeFact]
         public async Task VerifyOverloadsUpdated()
         {
             var markup = @"
