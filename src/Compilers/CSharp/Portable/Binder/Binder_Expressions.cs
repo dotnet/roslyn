@@ -7745,7 +7745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+                // If we're in a parameter default value, this is an error scenario, so avoid checking for COM imported types to
+                // avoid a default value binding cycle.
+                bool allowRefOmittedArguments = !InParameterDefaultValue && methodGroup.Receiver.IsExpressionOfComImportType();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
@@ -9075,7 +9077,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver is not null);
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-            bool allowRefOmittedArguments = receiver.IsExpressionOfComImportType();
+            // We don't consider when we're in default parameter values to avoid cycles. This is an error scenario,
+            // so we don't care if we accidentally miss a parameter being applicable.
+            bool allowRefOmittedArguments = !InParameterDefaultValue && receiver.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
@@ -9745,7 +9749,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+                // We check for default parameter value to avoid a cycle. If we're binding a parameter default value,
+                // this entire expression is bad, so we don't care whether this is a COM import type and we can safely
+                // just pass false here.
+                bool allowRefOmittedArguments = !this.InParameterDefaultValue && methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methodGroup.Methods,
                     methodGroup.TypeArguments,

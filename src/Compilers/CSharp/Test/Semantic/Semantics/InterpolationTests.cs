@@ -18172,5 +18172,75 @@ class C
                 //         ByIn(s);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s").WithArguments("1", "string", "in System.Runtime.CompilerServices.DefaultInterpolatedStringHandler").WithLocation(7, 14));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = $"{1}") { }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,27): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     public A(int x, A a = $"{1}") { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""{1}""").WithArguments("a").WithLocation(8, 27));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_02()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = M($"{1}")) { }
+
+                    public static void M(ref A a) {}
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,29): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //     public A(int x, A a = M($"{1}")) { }
+                Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
+        }
     }
 }
