@@ -367,23 +367,7 @@ Delta: Gamma: Beta: Test B
 
                 if (path.EndsWith(".resources.dll", StringComparison.Ordinal))
                 {
-                    // This is a satellite assembly, need to find the mapped path of the real assembly, then 
-                    // adjust that mapped path for the suffix of the satellite assembly
-                    //
-                    // Example of dll and it's corresponding satellite assembly
-                    //
-                    //  c:\some\path\en-GB\util.resources.dll
-                    //  c:\some\path\util.dll
-                    var assemblyFileName = Path.ChangeExtension(Path.GetFileNameWithoutExtension(path), ".dll");
-                    // Real assembly is located in the directory above this one
-                    var assemblyDir = Path.GetDirectoryName(Path.GetDirectoryName(path))!;
-                    var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
-
-                    var loadPath = loader.GetRealAnalyzerLoadPath(assemblyPath);
-                    var loadSatellitePath = Path.Combine(
-                        Path.GetDirectoryName(loadPath)!,
-                        path.Substring(assemblyDir.Length + 1));
-                    return loadSatellitePath;
+                    return loader.GetRealSatelliteLoadPath(path) ?? "";
                 }
                 return loader.GetRealAnalyzerLoadPath(path ?? "");
             }

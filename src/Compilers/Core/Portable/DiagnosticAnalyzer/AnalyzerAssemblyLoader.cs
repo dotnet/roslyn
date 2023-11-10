@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis
         /// When <see cref="PreparePathToLoad(string, ImmutableHashSet{string})"/> is overriden this returns the most recent
         /// real path for the given analyzer satellite assembly path
         /// </summary>
-        internal string GetRealSatelliteLoadPath(string originalSatelliteFullPath, string cultureName)
+        internal string? GetRealSatelliteLoadPath(string originalSatelliteFullPath)
         {
             // This is a satellite assembly, need to find the mapped path of the real assembly, then 
             // adjust that mapped path for the suffix of the satellite assembly
@@ -309,8 +309,11 @@ namespace Microsoft.CodeAnalysis
             //  c:\some\path\util.dll
             var assemblyFileName = Path.ChangeExtension(Path.GetFileNameWithoutExtension(originalSatelliteFullPath), ".dll");
 
+            var assemblyDir = Path.GetDirectoryName(originalSatelliteFullPath)!;
+            var cultureName = Path.GetFileName(assemblyDir);
+            assemblyDir = Path.GetDirectoryName(assemblyDir)!;
+
             // Real assembly is located in the directory above this one
-            var assemblyDir = Path.GetDirectoryName(Path.GetDirectoryName(originalSatelliteFullPath))!;
             var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
             return GetSatelliteInfoForPath(assemblyPath, cultureName);
         }
