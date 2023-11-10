@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             var nameToken = syntax.Identifier;
 
-            ExplicitInterfaceMemberInfo explicitInterfaceMemberInfo;
-            var name = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(interfaceSpecifier, nameToken.ValueText, out explicitInterfaceMemberInfo);
+            var name = ExplicitInterfaceHelpers.GetMemberName(interfaceSpecifier, nameToken.ValueText);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -37,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Use a smaller type for the common case of non-generic, non-partial, non-explicit-impl methods.
 
-            return explicitInterfaceMemberInfo is null && !syntax.Modifiers.Any(SyntaxKind.PartialKeyword) && syntax.Arity == 0
+            return interfaceSpecifier is null && !syntax.Modifiers.Any(SyntaxKind.PartialKeyword) && syntax.Arity == 0
                 ? new SourceOrdinaryMethodSymbolSimple(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
-                : new SourceOrdinaryMethodSymbolComplex(containingType, explicitInterfaceMemberInfo, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
+                : new SourceOrdinaryMethodSymbolComplex(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceOrdinaryMethodSymbol(
@@ -965,8 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class SourceOrdinaryMethodSymbolComplex : SourceOrdinaryMethodSymbol
         {
-            private readonly ExplicitInterfaceMemberInfo _explicitInterfaceMemberInfo;
-
             private readonly TypeParameterInfo _typeParameterInfo;
 
             /// <summary>
@@ -976,9 +973,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SourceOrdinaryMethodSymbol _otherPartOfPartial;
 
+#if DEBUG
+            private bool _lazyExplicitInterfaceMemberInfoInitialized;
+#endif
+            private ExplicitInterfaceMemberInfo _lazyExplicitInterfaceMemberInfo;
+
             public SourceOrdinaryMethodSymbolComplex(
                 NamedTypeSymbol containingType,
-                ExplicitInterfaceMemberInfo explicitInterfaceMemberInfo,
                 string name,
                 Location location,
                 MethodDeclarationSyntax syntax,
@@ -987,8 +988,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BindingDiagnosticBag diagnostics)
                 : base(containingType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics)
             {
-                _explicitInterfaceMemberInfo = explicitInterfaceMemberInfo;
-
                 // Compute the type parameters.  If empty (the common case), directly point at the singleton to reduce
                 // the amount of pointers-to-arrays this type needs to store.
                 var typeParameters = MakeTypeParameters(syntax, diagnostics);
@@ -997,7 +996,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
-            protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceMemberInfo?.ExplicitInterfaceType;
+            protected sealed override TypeSymbol ExplicitInterfaceType
+            {
+                get
+                {
+#if DEBUG
+                    Debug.Assert(_lazyExplicitInterfaceMemberInfoInitialized);
+#endif
+                    return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+                }
+            }
             internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
             internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
@@ -1092,7 +1100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
             {
-                _explicitInterfaceMemberInfo?.Bind(binder, diagnostics);
+                var syntax = this.GetSyntax();
+                _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics);
+#if DEBUG
+                _lazyExplicitInterfaceMemberInfoInitialized = true;
+#endif
             }
 
             private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)

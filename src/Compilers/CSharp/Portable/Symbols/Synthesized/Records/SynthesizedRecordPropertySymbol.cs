@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor: true,
                 hasSetAccessor: true,
                 isExplicitInterfaceImplementation: false,
-                explicitInterfaceMemberInfo: null,
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 isAutoProperty: true,

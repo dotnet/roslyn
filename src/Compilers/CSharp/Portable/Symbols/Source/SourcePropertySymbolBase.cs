@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private readonly string _name;
         private string? _lazySourceName;
-        private readonly ExplicitInterfaceMemberInfo? _explicitInterfaceMemberInfo;
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
 #nullable disable
@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasGetAccessor,
             bool hasSetAccessor,
             bool isExplicitInterfaceImplementation,
-            ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo,
             DeclarationModifiers modifiers,
             bool hasInitializer,
             bool isAutoProperty,
@@ -94,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
             _refKind = refKind;
             _modifiers = modifiers;
-            _explicitInterfaceMemberInfo = explicitInterfaceMemberInfo;
 
             if (isExplicitInterfaceImplementation)
             {
@@ -134,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(memberName == DefaultIndexerName);
                 }
 
-                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceMemberInfo?.ExplicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
+                var explicitInterfaceSpecifier = (syntax as BasePropertyDeclarationSyntax)?.ExplicitInterfaceSpecifier;
+                _name = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifier, WellKnownMemberNames.Indexer);
             }
             else
             {
@@ -165,7 +164,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
-            _explicitInterfaceMemberInfo?.Bind(CreateBinderForExplicitInterfaceType(), diagnostics);
+            var propertyBaseSyntax = CSharpSyntaxNode as BasePropertyDeclarationSyntax;
+            var explicitInterfaceSpecifier = propertyBaseSyntax?.ExplicitInterfaceSpecifier;
+            if (explicitInterfaceSpecifier is not null)
+            {
+                var name = CSharpSyntaxNode is PropertyDeclarationSyntax propertySyntax
+                    ? propertySyntax.Identifier.ValueText
+                    : DefaultIndexerName;
+                var binder = CreateBinderForExplicitInterfaceType();
+                _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, name, binder, diagnostics);
+            }
 
             PropertySymbol? explicitlyImplementedProperty = null;
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
@@ -206,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     CSharpSyntaxNode syntax = CSharpSyntaxNode;
                     string interfacePropertyName = IsIndexer ? WellKnownMemberNames.Indexer : ((PropertyDeclarationSyntax)syntax).Identifier.ValueText;
-                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceMemberInfo?.ExplicitInterfaceType, interfacePropertyName, GetExplicitInterfaceSpecifier(), diagnostics);
+                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType, interfacePropertyName, GetExplicitInterfaceSpecifier(), diagnostics);
                     this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedProperty, diagnostics);
                     overriddenOrImplementedProperty = explicitlyImplementedProperty;
                 }
@@ -421,7 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Explicit implementation names may have spaces if the interface
                 // is generic (between the type arguments).
-                return _explicitInterfaceMemberInfo?.MemberMetadataName ?? SourceName.Replace(" ", "");
+                EnsureSignature();
+                return _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? SourceName.Replace(" ", "");
             }
         }
 
@@ -800,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // property name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
 
-            if (_explicitInterfaceMemberInfo?.ExplicitInterfaceType is { } explicitInterfaceType)
+            if (_lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType is { } explicitInterfaceType)
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier();
                 Debug.Assert(explicitInterfaceSpecifier != null);

@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly SourceEventAccessorSymbol? _addMethod;
         private readonly SourceEventAccessorSymbol? _removeMethod;
-        private readonly ExplicitInterfaceMemberInfo? _explicitInterfaceMemberInfo;
 
         private TypeWithAnnotations _lazyType;
-        private TypeSymbol? _lazyExplicitInterfaceType;
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
         internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken nameToken = syntax.Identifier;
             bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
 
-            _name = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(interfaceSpecifier, nameToken.ValueText, out _explicitInterfaceMemberInfo);
+            _name = ExplicitInterfaceHelpers.GetMemberName(interfaceSpecifier, nameToken.ValueText);
 
             AccessorDeclarationSyntax? addSyntax = null;
             AccessorDeclarationSyntax? removeSyntax = null;
@@ -136,13 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyType = BindEventType(binder, syntax.Type, diagnostics);
 
-            _explicitInterfaceMemberInfo?.Bind(binder, diagnostics);
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+            _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics);
 
-            _lazyExplicitInterfaceType = _explicitInterfaceMemberInfo?.ExplicitInterfaceType;
-            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier = _explicitInterfaceMemberInfo?.ExplicitInterfaceSpecifier;
+            TypeSymbol? explicitInterfaceType = _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
             bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier != null;
 
-            var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(_lazyExplicitInterfaceType, syntax.Identifier.ValueText, explicitInterfaceSpecifier, diagnostics);
+            var explicitlyImplementedEvent = this.FindExplicitlyImplementedEvent(explicitInterfaceType, syntax.Identifier.ValueText, explicitInterfaceSpecifier, diagnostics);
             this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedEvent, diagnostics);
 
             // The runtime will not treat the accessors of this event as overrides or implementations
@@ -252,11 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if (_lazyExplicitInterfaceType is not null)
+            if (_lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType is { } explicitInterfaceType)
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 RoslynDebug.Assert(explicitInterfaceSpecifier != null);
-                _lazyExplicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
 
             if (!_lazyExplicitInterfaceImplementations.IsEmpty)

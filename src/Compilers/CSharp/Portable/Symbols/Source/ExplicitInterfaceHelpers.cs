@@ -20,58 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
     internal sealed class ExplicitInterfaceMemberInfo
     {
-        private readonly SyntaxReference _explicitInterfaceSpecifierReference;
-        private readonly string _name;
+        public TypeSymbol ExplicitInterfaceType { get; }
+        public string MemberMetadataName { get; }
 
-        private TypeSymbol? _lazyExplicitInterfaceType;
-        private string? _lazyMemberMetadataName;
-
-        public ExplicitInterfaceMemberInfo(ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, string name)
+        public ExplicitInterfaceMemberInfo(TypeSymbol explicitInterfaceType, string memberMetadataName)
         {
-            _explicitInterfaceSpecifierReference = explicitInterfaceSpecifier.GetReference();
-            _name = name;
-        }
-
-        public ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier
-        {
-            get
-            {
-                return (ExplicitInterfaceSpecifierSyntax)_explicitInterfaceSpecifierReference.GetSyntax();
-            }
-        }
-
-        public TypeSymbol ExplicitInterfaceType
-        {
-            get
-            {
-                Debug.Assert(_lazyExplicitInterfaceType is not null);
-                return _lazyExplicitInterfaceType;
-            }
-        }
-
-        public string MemberMetadataName
-        {
-            get
-            {
-                Debug.Assert(_lazyMemberMetadataName is not null);
-                return _lazyMemberMetadataName;
-            }
-        }
-
-        public void Bind(Binder binder, BindingDiagnosticBag diagnostics)
-        {
-            // Avoid checking constraints context when binding explicit interface type since
-            // that might result in a recursive attempt to bind the containing class.
-            var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
-
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier = ExplicitInterfaceSpecifier;
-            NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
-            TypeSymbol explicitInterfaceType = typeBinder.BindType(explicitInterfaceName, diagnostics).Type;
-            InterlockedOperations.Initialize(ref _lazyExplicitInterfaceType, explicitInterfaceType);
-
-            string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
-            string memberMetadataName = ExplicitInterfaceHelpers.GetMemberMetadataName(_name, ExplicitInterfaceType, aliasQualifier);
-            InterlockedOperations.Initialize(ref _lazyMemberMetadataName, memberMetadataName);
+            ExplicitInterfaceType = explicitInterfaceType;
+            MemberMetadataName = memberMetadataName;
         }
     }
 
@@ -84,19 +39,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetMemberName(name, explicitInterfaceSpecifier?.Name.ToString(), aliasQualifier: string.Empty);
         }
 
-        public static string GetExplicitInterfaceMemberInfo(
+        public static ExplicitInterfaceMemberInfo? GetMemberInfo(
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             string name,
-            out ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo)
+            Binder binder,
+            BindingDiagnosticBag diagnostics)
         {
             if (explicitInterfaceSpecifier is null)
             {
-                explicitInterfaceMemberInfo = null;
-                return name;
+                return null;
             }
 
-            explicitInterfaceMemberInfo = new ExplicitInterfaceMemberInfo(explicitInterfaceSpecifier, name);
-            return GetMemberName(explicitInterfaceSpecifier, name);
+            // Avoid checking constraints context when binding explicit interface type since
+            // that might result in a recursive attempt to bind the containing class.
+            var typeBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+
+            NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
+            TypeSymbol explicitInterfaceType = typeBinder.BindType(explicitInterfaceName, diagnostics).Type;
+
+            string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
+            string memberMetadataName = GetMemberMetadataName(name, explicitInterfaceType, aliasQualifier);
+
+            return new ExplicitInterfaceMemberInfo(explicitInterfaceType, memberMetadataName);
         }
 #nullable disable
 

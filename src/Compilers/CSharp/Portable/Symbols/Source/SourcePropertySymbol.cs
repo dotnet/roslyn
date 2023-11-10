@@ -58,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
 
-            ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo;
-            string memberName = ExplicitInterfaceHelpers.GetExplicitInterfaceMemberInfo(explicitInterfaceSpecifier, name, out explicitInterfaceMemberInfo);
+            string memberName = ExplicitInterfaceHelpers.GetMemberName(explicitInterfaceSpecifier, name);
 
             return new SourcePropertySymbol(
                 containingType,
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor: getSyntax != null || isExpressionBodied,
                 hasSetAccessor: setSyntax != null,
                 isExplicitInterfaceImplementation,
-                explicitInterfaceMemberInfo,
                 modifiers,
                 isAutoProperty: isAutoProperty,
                 isExpressionBodied: isExpressionBodied,
@@ -83,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasGetAccessor,
             bool hasSetAccessor,
             bool isExplicitInterfaceImplementation,
-            ExplicitInterfaceMemberInfo? explicitInterfaceMemberInfo,
             DeclarationModifiers modifiers,
             bool isAutoProperty,
             bool isExpressionBodied,
@@ -97,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor,
                 hasSetAccessor,
                 isExplicitInterfaceImplementation,
-                explicitInterfaceMemberInfo,
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
                 isAutoProperty: isAutoProperty,

@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGetAccessor: true,
                 hasSetAccessor: false,
                 isExplicitInterfaceImplementation: false,
-                explicitInterfaceMemberInfo: null,
                 modifiers: (containingType.IsSealed, containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType()) switch
                 {
                     (true, true) => DeclarationModifiers.Private,
