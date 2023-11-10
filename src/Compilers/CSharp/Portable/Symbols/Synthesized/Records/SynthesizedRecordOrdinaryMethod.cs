@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override TypeSymbol? ExplicitInterfaceType => null;
 
+        protected sealed override void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics)
+        {
+        }
+
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
         }

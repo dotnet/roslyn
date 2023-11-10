@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        protected override ExplicitInterfaceMemberInfo GetExplicitInterfaceMemberInfo(BaseMethodDeclarationSyntax declarationSyntax, Binder binder, BindingDiagnosticBag diagnostics)
+        protected override ExplicitInterfaceMemberInfo GetExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics)
         {
-            var syntax = (ConversionOperatorDeclarationSyntax)declarationSyntax;
+            var syntax = (ConversionOperatorDeclarationSyntax)SyntaxNode;
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
             return ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, name, binder, diagnostics);
         }

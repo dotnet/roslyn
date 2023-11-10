@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool SynthesizesLoweredBoundBody => true;
         internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
-        protected sealed override ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(BaseMethodDeclarationSyntax declarationSyntax, Binder binder, BindingDiagnosticBag diagnostics) => throw ExceptionUtilities.Unreachable();
+        protected sealed override ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics) => null;
         internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
 
         protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)

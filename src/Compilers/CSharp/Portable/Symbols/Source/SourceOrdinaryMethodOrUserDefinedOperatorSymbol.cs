@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_FinalizeMethod, _location);
             }
 
+            BindExplicitInterfaceType(diagnostics);
+
             ExtensionMethodChecks(diagnostics);
 
             if (IsPartial)
@@ -223,6 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected abstract void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics);
+
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -230,6 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Defer computing location to avoid unnecessary allocations in most cases.
             Location? returnTypeLocation = null;
             var compilation = DeclaringCompilation;
+
+            BindExplicitInterfaceType(diagnostics);
 
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return

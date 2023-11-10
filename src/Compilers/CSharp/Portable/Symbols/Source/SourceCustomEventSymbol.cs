@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventAccessorSymbol? _addMethod;
         private readonly SourceEventAccessorSymbol? _removeMethod;
 
+        private SymbolCompletionState _state;
         private TypeWithAnnotations _lazyType;
         private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceMemberInfo.Uninitialized;
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
@@ -185,14 +186,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureSignature()
         {
-            if (_lazyType.IsDefault)
+            if (!_state.HasComplete(CompletionPart.FinishPropertyEnsureSignature))
             {
-                lock (_name)
+                lock (SyntaxReference)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
-                    EnsureSignatureGuarded(diagnostics);
-                    AddDeclarationDiagnostics(diagnostics);
-                    diagnostics.Free();
+                    if (_state.NotePartComplete(CompletionPart.StartPropertyEnsureSignature))
+                    {
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        EnsureSignatureGuarded(diagnostics);
+                        AddDeclarationDiagnostics(diagnostics);
+                        diagnostics.Free();
+                    }
                 }
             }
         }

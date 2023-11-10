@@ -106,14 +106,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool HasAnyBody => flags.HasAnyBody;
 
-        protected abstract void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics);
-
         private (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParamsBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
-
-            BindExplicitInterfaceType(withTypeParamsBinder, diagnostics);
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -948,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
+            protected sealed override void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics)
             {
             }
         }
@@ -1086,13 +1082,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
+            protected sealed override void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics)
             {
-                var syntax = this.GetSyntax();
-                InterlockedOperations.Initialize(
-                    ref _lazyExplicitInterfaceMemberInfo,
-                    ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics),
-                    ExplicitInterfaceMemberInfo.Uninitialized);
+                if (_lazyExplicitInterfaceMemberInfo == ExplicitInterfaceMemberInfo.Uninitialized)
+                {
+                    var syntax = this.GetSyntax();
+                    var binder = DeclaringCompilation.GetBinder(syntax);
+                    InterlockedOperations.Initialize(
+                        ref _lazyExplicitInterfaceMemberInfo,
+                        ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics),
+                        ExplicitInterfaceMemberInfo.Uninitialized);
+                }
             }
 
             private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)

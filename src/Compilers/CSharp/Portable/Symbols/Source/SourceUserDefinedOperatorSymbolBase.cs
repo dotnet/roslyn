@@ -214,7 +214,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected abstract ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(BaseMethodDeclarationSyntax declarationSyntax, Binder binder, BindingDiagnosticBag diagnostics);
+        protected abstract ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics);
+
+        protected override void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics)
+        {
+            if (_lazyExplicitInterfaceMemberInfo == ExplicitInterfaceMemberInfo.Uninitialized)
+            {
+                var binder = DeclaringCompilation.GetBinder(SyntaxNode);
+                InterlockedOperations.Initialize(
+                    ref _lazyExplicitInterfaceMemberInfo,
+                    GetExplicitInterfaceMemberInfo(binder, diagnostics),
+                    ExplicitInterfaceMemberInfo.Uninitialized);
+            }
+        }
 #nullable disable
 
         protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
@@ -224,11 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var binder = this.DeclaringCompilation.
                 GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(returnTypeSyntax, declarationSyntax, this);
-
-            InterlockedOperations.Initialize(
-                ref _lazyExplicitInterfaceMemberInfo,
-                GetExplicitInterfaceMemberInfo(declarationSyntax, binder, diagnostics),
-                ExplicitInterfaceMemberInfo.Uninitialized);
 
             SyntaxToken arglistToken;
 
