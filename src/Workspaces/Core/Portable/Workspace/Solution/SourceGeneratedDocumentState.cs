@@ -46,7 +46,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         Checksum? originalSourceTextChecksum)
     {
         // If the caller explicitly provided us with the checksum for the source text, then we always defer to that.
-        // This happens on the host side, when we are give the data computed by the OOP side.
+        // This happens on the host side, when we are given the data computed by the OOP side.
         //
         // If the caller didn't provide us with the checksum, then we'll compute it on demand.  This happens on the OOP
         // side when we're actually producing the SG doc in the first place.
