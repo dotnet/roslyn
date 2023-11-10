@@ -973,10 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private SourceOrdinaryMethodSymbol _otherPartOfPartial;
 
-#if DEBUG
-            private bool _lazyExplicitInterfaceMemberInfoInitialized;
-#endif
-            private ExplicitInterfaceMemberInfo _lazyExplicitInterfaceMemberInfo;
+            private ExplicitInterfaceMemberInfo _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceMemberInfo.Uninitialized;
 
             public SourceOrdinaryMethodSymbolComplex(
                 NamedTypeSymbol containingType,
@@ -996,16 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
-            protected sealed override TypeSymbol ExplicitInterfaceType
-            {
-                get
-                {
-#if DEBUG
-                    Debug.Assert(_lazyExplicitInterfaceMemberInfoInitialized);
-#endif
-                    return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
-                }
-            }
+            protected sealed override TypeSymbol ExplicitInterfaceType => _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
             internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
             internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
@@ -1101,10 +1089,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected sealed override void BindExplicitInterfaceType(Binder binder, BindingDiagnosticBag diagnostics)
             {
                 var syntax = this.GetSyntax();
-                _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics);
-#if DEBUG
-                _lazyExplicitInterfaceMemberInfoInitialized = true;
-#endif
+                InterlockedOperations.Initialize(
+                    ref _lazyExplicitInterfaceMemberInfo,
+                    ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics),
+                    ExplicitInterfaceMemberInfo.Uninitialized);
             }
 
             private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)

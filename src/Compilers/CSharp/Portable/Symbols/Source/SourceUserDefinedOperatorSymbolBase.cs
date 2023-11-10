@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
 #nullable enable
-#if DEBUG
-        private bool _lazyExplicitInterfaceMemberInfoInitialized;
-#endif
-        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceMemberInfo.Uninitialized;
 #nullable disable
 
         protected SourceUserDefinedOperatorSymbolBase(
@@ -228,8 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = this.DeclaringCompilation.
                 GetBinderFactory(declarationSyntax.SyntaxTree).GetBinder(returnTypeSyntax, declarationSyntax, this);
 
-            _lazyExplicitInterfaceMemberInfo = GetExplicitInterfaceMemberInfo(declarationSyntax, binder, diagnostics);
-            _lazyExplicitInterfaceMemberInfoInitialized = true;
+            InterlockedOperations.Initialize(
+                ref _lazyExplicitInterfaceMemberInfo,
+                GetExplicitInterfaceMemberInfo(declarationSyntax, binder, diagnostics),
+                ExplicitInterfaceMemberInfo.Uninitialized);
 
             SyntaxToken arglistToken;
 
@@ -330,16 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected sealed override TypeSymbol? ExplicitInterfaceType
-        {
-            get
-            {
-#if DEBUG
-                Debug.Assert(_lazyExplicitInterfaceMemberInfoInitialized);
-#endif
-                return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
-            }
-        }
+        protected sealed override TypeSymbol? ExplicitInterfaceType => _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
 #nullable disable
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)

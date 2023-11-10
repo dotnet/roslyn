@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private readonly string _name;
         private string? _lazySourceName;
-        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceMemberInfo.Uninitialized;
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
 #nullable disable
@@ -173,6 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : DefaultIndexerName;
                 var binder = CreateBinderForExplicitInterfaceType();
                 _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, name, binder, diagnostics);
+            }
+            else
+            {
+                _lazyExplicitInterfaceMemberInfo = null;
             }
 
             PropertySymbol? explicitlyImplementedProperty = null;

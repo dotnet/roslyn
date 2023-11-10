@@ -20,13 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
     internal sealed class ExplicitInterfaceMemberInfo
     {
-        public TypeSymbol ExplicitInterfaceType { get; }
-        public string MemberMetadataName { get; }
+        public static readonly ExplicitInterfaceMemberInfo Uninitialized = new ExplicitInterfaceMemberInfo(null!, null!);
+        private readonly TypeSymbol _explicitInterfaceType;
+        private readonly string _memberMetadataName;
 
         public ExplicitInterfaceMemberInfo(TypeSymbol explicitInterfaceType, string memberMetadataName)
         {
-            ExplicitInterfaceType = explicitInterfaceType;
-            MemberMetadataName = memberMetadataName;
+            _explicitInterfaceType = explicitInterfaceType;
+            _memberMetadataName = memberMetadataName;
+        }
+
+        public TypeSymbol ExplicitInterfaceType
+        {
+            get
+            {
+                Debug.Assert(this != Uninitialized);
+                return _explicitInterfaceType;
+            }
+        }
+
+        public string MemberMetadataName
+        {
+            get
+            {
+                Debug.Assert(this != Uninitialized);
+                return _memberMetadataName;
+            }
         }
     }
 

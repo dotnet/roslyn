@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventAccessorSymbol? _removeMethod;
 
         private TypeWithAnnotations _lazyType;
-        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo;
+        private ExplicitInterfaceMemberInfo? _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceMemberInfo.Uninitialized;
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
         internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
