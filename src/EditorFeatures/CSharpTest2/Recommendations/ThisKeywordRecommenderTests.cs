@@ -1447,13 +1447,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestInCollectionExpressions_AfterFirstElement()
+        public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
         {
             await VerifyKeywordAsync(
                 """
                 class C
                 {
                     IEnumerable<string> M() => [string.Empty, $$
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [.. $$
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, .. $$
                 }
                 """);
         }

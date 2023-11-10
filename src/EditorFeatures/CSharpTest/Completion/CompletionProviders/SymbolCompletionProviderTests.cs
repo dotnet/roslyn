@@ -12747,7 +12747,7 @@ public static class Extension
         }
 
         [Fact]
-        public async Task TestInCollectionExpressions_AfterFirstElement()
+        public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
         {
             var source =
                 """
@@ -12764,6 +12764,40 @@ public static class Extension
             await VerifyItemExistsAsync(source, "String");
             await VerifyItemExistsAsync(source, "System");
             await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [.. $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [string.Empty, .. $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
         }
 
         private static string MakeMarkup(string source, string languageVersion = "Preview")
