@@ -79,6 +79,11 @@ namespace Xunit.Harness
 
         public static VisualStudioInstanceKey DeserializeFromString(string s)
         {
+            if (s is null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
             var elements = s.Split(new[] { ';' }, 5);
             var environmentVariables = new string[0];
 

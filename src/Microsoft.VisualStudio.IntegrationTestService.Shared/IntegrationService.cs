@@ -46,6 +46,11 @@ namespace Microsoft.VisualStudio.IntegrationTestService
 
         public static IntegrationService GetInstanceFromHostProcess(Process hostProcess)
         {
+            if (hostProcess is null)
+            {
+                throw new ArgumentNullException(nameof(hostProcess));
+            }
+
             var uri = $"ipc://{GetPortName(hostProcess.Id)}/{typeof(IntegrationService).FullName}";
             return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
         }

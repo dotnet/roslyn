@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "powershell": {
-      "version": "7.3.8",
+      "version": "6.2.7",
       "commands": [
         "pwsh"
       ]

@@ -77,6 +77,11 @@ namespace Xunit.Threading
 
         public override void Serialize(IXunitSerializationInfo data)
         {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
             data.AddValue(nameof(SkipReason), SkipReason);
@@ -84,6 +89,11 @@ namespace Xunit.Threading
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
             base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));

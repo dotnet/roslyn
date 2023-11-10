@@ -7,5 +7,27 @@
     <None Condition="Exists('README.md')" Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <!-- We always want a good debugging experience in integration tests -->
+  <PropertyGroup>
+    <Optimize>false</Optimize>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)ExtensionTesting.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <!-- Code analysis configuration -->
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)ExtensionTesting.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
 </Project>

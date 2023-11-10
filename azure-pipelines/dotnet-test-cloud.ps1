@@ -50,7 +50,7 @@ if ($x86) {
     --filter "TestCategory!=FailsInCloudTest" `
     --collect "Code Coverage;Format=cobertura" `
     --settings "$PSScriptRoot/test.runsettings" `
-    --blame-hang-timeout 60s `
+    --blame-hang-timeout 600s `
     --blame-crash `
     -bl:"$ArtifactStagingFolder/build_logs/test.binlog" `
     --diag "$ArtifactStagingFolder/test_logs/diag.log;TraceLevel=info" `

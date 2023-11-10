@@ -23,6 +23,11 @@ namespace Xunit.Threading
 
         protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
         {
+            if (aggregator is null)
+            {
+                throw new ArgumentNullException(nameof(aggregator));
+            }
+
             return aggregator.RunAsync(
                 () =>
                 {

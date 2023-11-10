@@ -18,7 +18,7 @@ namespace Xunit.Harness
     internal static class IntegrationHelper
     {
         /// <summary>
-        /// Kills the specified process if it is not <c>null</c> and has not already exited.
+        /// Kills the specified process if it is not <see langword="null"/> and has not already exited.
         /// </summary>
         public static void KillProcess(Process process)
         {

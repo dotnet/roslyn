@@ -3,7 +3,6 @@ trigger:
   branches:
     include:
     - main
-    - microbuild
     - 'validate/*'
   paths:
     exclude:
@@ -18,6 +17,7 @@ trigger:
 #  branches:
 #    include:
 #    - microbuild
+pr: none
 
 parameters:
 - name: SignTypeSelection
@@ -25,10 +25,6 @@ parameters:
   type: string
   default: Test
   values: [ 'Test', 'Real' ]
-- name: includeMacOS
-  displayName: Build on macOS
-  type: boolean
-  default: false # macOS is often bogged down in Azure Pipelines
 - name: RunTests
   displayName: Run tests
   type: boolean
@@ -49,6 +45,7 @@ stages:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     BuildConfiguration: Release
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+    MicroBuild_DoNotStrongNameSign: true
     SignTypeSelection: ${{ parameters.SignTypeSelection }}
     Packaging.EnableSBOMSigning: false
     Codeql.Enabled: true
@@ -59,7 +56,35 @@ stages:
       EnableCompliance: ${{ parameters.EnableCompliance }}
       EnableAPIScan: ${{ parameters.EnableAPIScan }}
       windowsPool: VSEngSS-MicroBuild2022-1ES
-      includeMacOS: ${{ parameters.includeMacOS }}
       RunTests: ${{ parameters.RunTests }}
 
 - template: prepare-insertion-stages.yml
+
+- stage: azure_public_vssdk_feed
+  displayName: azure-public/vssdk feed
+  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+  jobs:
+  - deployment: push
+    pool:
+      vmImage: ubuntu-latest
+    environment: No-Approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: deployables-Windows
+            displayName: Download deployables-Windows artifact
+          - task: NuGetToolInstaller@1
+            displayName: Use NuGet 5.x
+            inputs:
+              versionSpec: 5.x
+          - task: NuGetCommand@2
+            displayName: NuGet push
+            inputs:
+              command: push
+              packagesToPush: $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg
+              nuGetFeedType: external
+              publishFeedCredentials: azure-public/vssdk
+              allowPackageConflicts: true
+            continueOnError: true # until "skip on conflict" is offered as a task input.

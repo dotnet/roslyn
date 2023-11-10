@@ -22,6 +22,11 @@ namespace Xunit.Threading
 
         public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
         {
+            if (testMethod is null)
+            {
+                throw new ArgumentNullException(nameof(testMethod));
+            }
+
             if (!testMethod.Method.GetParameters().Any())
             {
                 if (!testMethod.Method.IsGenericMethodDefinition)

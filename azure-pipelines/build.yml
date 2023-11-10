@@ -2,8 +2,7 @@ parameters:
 - name: windowsPool
   type: object
   default:
-    vmImage: windows-2022
-- name: includeMacOS
+    vmImage: windows-2019-vs2019
 - name: RunTests
   type: boolean
   default: true
@@ -48,40 +47,9 @@ jobs:
         EnableCompliance: ${{ parameters.EnableCompliance }}
         EnableAPIScan: ${{ parameters.EnableAPIScan }}
 
-  - template: expand-template.yml
-
-- job: Linux
-  pool:
-    vmImage: Ubuntu 20.04
-  steps:
-  - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-    clean: true
-  - template: install-dependencies.yml
-  - template: dotnet.yml
-    parameters:
-      RunTests: ${{ parameters.RunTests }}
-  - template: expand-template.yml
-
-- job: macOS
-  condition: ${{ parameters.includeMacOS }}
-  pool:
-    vmImage: macOS-12
-  steps:
-  - checkout: self
-    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
-    clean: true
-  - template: install-dependencies.yml
-  - template: dotnet.yml
-    parameters:
-      RunTests: ${{ parameters.RunTests }}
-  - template: expand-template.yml
-
 - job: WrapUp
   dependsOn:
   - Windows
-  - Linux
-  - macOS
   pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
   condition: succeededOrFailed()
   steps:
@@ -92,9 +60,5 @@ jobs:
     parameters:
       initArgs: -NoRestore
   - template: publish-symbols.yml
-    parameters:
-      includeMacOS: ${{ parameters.includeMacOS }}
   - ${{ if parameters.RunTests }}:
     - template: publish-codecoverage.yml
-      parameters:
-        includeMacOS: ${{ parameters.includeMacOS }}

@@ -2,13 +2,53 @@ parameters:
   RunTests:
 
 steps:
+- powershell: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
+  failOnStderr: true
+  displayName: ⚙ Prepare Visual Studio
+  condition: succeededOrFailed()
 
-- script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
-  displayName: 🛠 dotnet build
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Build /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+  displayName: 🛠 msbuild /t:Build
 
-- powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
-  displayName: 🧪 dotnet test
-  condition: and(succeeded(), ${{ parameters.RunTests }})
+- task: MSBuild@1
+  inputs:
+    solution: ExtensionTesting.sln
+    configuration: $(BuildConfiguration)
+    msbuildArguments: /t:Pack /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
+  displayName: 🛠 msbuild /t:Pack
+
+- task: DotNetCoreCLI@2
+  displayName: 🧪 Source generator tests
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_unit_net472.binlog"
+    testRunTitle: net472-unit-$(Agent.JobName)
+  condition: eq(variables['SignTypeSelection'], '')
+
+- task: DotNetCoreCLI@2
+  displayName: 🧪 dotnet test -f net46
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net46 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net46.binlog"
+    testRunTitle: net46-$(Agent.JobName)
+  condition: eq(variables['SignTypeSelection'], '')
+
+- task: DotNetCoreCLI@2
+  displayName: 🧪 dotnet test -f net472
+  inputs:
+    command: test
+    arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net472.binlog"
+    testRunTitle: net472-$(Agent.JobName)
+  condition: eq(variables['SignTypeSelection'], '')
+
+- powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
+  failOnStderr: false
+  displayName: 🧪 Test EqualExceptionLegacy
+  condition: eq(variables['SignTypeSelection'], '')
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
