@@ -199,25 +199,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // we're fully loaded (and thus have all the information necessary to properly run generators).
                 if (searchRegularDocuments)
                 {
-                    // We do at least two passes.  One for cached docs.  One for normal docs.
-                    await AddProgressItemsAsync(
-                        projectCount * 2,
-                        cancellationToken).ConfigureAwait(false);
-
+                    await AddProgressItemsAsync(projectCount, cancellationToken).ConfigureAwait(false);
                     await SearchCachedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
 
-                    // If searching cached data returned any results, then we're done.  We've at least shown some results
-                    // to the user.  That will hopefully serve them well enough until the solution fully loads.
-                    if (seenItems.Count > 0)
-                        return;
-
-                    await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
-
-                    // Report a telemetry event to track if we found uncached items after failing to find cached items.
-                    // In practice if we see that we are always finding uncached items, then it's likely something
-                    // has broken in the caching system since we would expect to normally find values there.  Specifically
-                    // we expect: foundFullItems <<< not foundFullItems.
-                    Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
+                    // Note: we only bother searching cached documents during this time.  Telemetry shows no meaningful
+                    // change if we do a full search after this point.  That prevents us from showing the user a
+                    // glacially slow progress meter as we load everything and end up finding nothing.
                 }
             }
         }

@@ -72,6 +72,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same solution during the life of this session do not need to resync the solution.  Nor do they then need
         /// to rebuild any compilations they've already built due to the solution going away and then coming back.
         /// </summary>
+        /// <remarks>
+        /// The <paramref name="listener"/> is not strictly necessary for this type.  This class functions just as an
+        /// optimization to hold onto data so it isn't resync'ed or recomputed.  However, we still want to let the
+        /// system know when unobserved async work is kicked off in case we have any tooling that keep track of this for
+        /// any reason (for example for tracking down problems in testing scenarios).
+        /// </remarks>
         public static RemoteKeepAliveSession Create(Solution solution, IAsynchronousOperationListener listener)
             => Create(solution.State, listener);
 

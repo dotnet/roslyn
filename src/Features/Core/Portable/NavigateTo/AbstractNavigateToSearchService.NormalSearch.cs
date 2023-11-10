@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (client != null)
             {
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
-                // Don't need to sync the full solution when searching a particular project.
+                // Don't need to sync the full solution when searching a single document.  Just sync the project that doc is in.
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     document.Project,
                     (service, solutionInfo, callbackId, cancellationToken) =>
@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
 
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    // Intentionally sync the full solution.   When SearchProjectAsync is called, we're searching all
+                    // projects (just in parallel).  So best for them all to sync and share a single solution snapshot
+                    // on the oop side.
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
                         service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
