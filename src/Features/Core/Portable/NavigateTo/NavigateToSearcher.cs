@@ -282,15 +282,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// precedence when searching.  This allows results to get to the user more quickly for common cases (like using
         /// nav-to to find results in the file you currently have open
         /// </summary>
-        private ImmutableArray<Document> GetPriorityDocuments(Project project)
+        private ImmutableArray<Document> GetPriorityDocuments(IImmutableSet<Project> projects)
         {
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-            if (_activeDocument?.Project == project)
+            if (_activeDocument?.Project != null && projects.Contains(_activeDocument.Project))
                 result.Add(_activeDocument);
 
             foreach (var doc in _visibleDocuments)
             {
-                if (doc.Project == project)
+                if (projects.Contains(doc.Project))
                     result.Add(doc);
             }
 
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, IImmutableSet<Project>, Func<Project, INavigateToSearchResult, Task>, Task> processProjectAsync,
+            Func<INavigateToSearchService, IImmutableSet<Project>, Func<Project, INavigateToSearchResult, Task>, Func<CancellationToken, Task>, Task> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -343,19 +343,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
             {
                 var searchService = grouping.Key;
-                await processProjectAsync(searchService, grouping.ToImmutableHashSet(), (project, result) =>
-                {
-                    // If we're seeing a dupe in another project, then filter it out here.  The results from
-                    // the individual projects will already contain the information about all the projects
-                    // leading to a better condensed view that doesn't look like it contains duplicate info.
-                    lock (seenItems)
+                await processProjectAsync(
+                    searchService,
+                    grouping.ToImmutableHashSet(),
+                    (project, result) =>
                     {
-                        if (!seenItems.Add(result))
-                            return Task.CompletedTask;
-                    }
+                        // If we're seeing a dupe in another project, then filter it out here.  The results from
+                        // the individual projects will already contain the information about all the projects
+                        // leading to a better condensed view that doesn't look like it contains duplicate info.
+                        lock (seenItems)
+                        {
+                            if (!seenItems.Add(result))
+                                return Task.CompletedTask;
+                        }
 
-                    return _callback.AddItemAsync(project, result, cancellationToken);
-                }).ConfigureAwait(false);
+                        return _callback.AddItemAsync(project, result, cancellationToken);
+                    },
+                    cancellationToken => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
             }
         }
 
@@ -372,8 +376,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, ps, cb) => s.SearchProjectsAsync(
-                    _solution, ps, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, ps, cb1, cb2) => s.SearchProjectsAsync(
+                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, cb1, cb2, cancellationToken),
                 cancellationToken);
         }
 
@@ -390,7 +394,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, ps, cb1, cb2) => s.SearchCachedDocumentsAsync(
+                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
                 cancellationToken);
         }
 
@@ -399,17 +404,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
-            // creating and processing the entire compilation for a project, which itself may require dependent compilations
-            // as references.  These dependents might also be skeleton references in the case of cross language projects.
+            // creating and processing the entire compilation for a project, which itself may require dependent
+            // compilations as references.  These dependents might also be skeleton references in the case of cross
+            // language projects.
             //
-            // As such, we always want to compute the information for one project before moving onto a project that depends on
-            // it.  That way information is available as soon as possible, and then computation for it immediately benefits 
-            // what comes next.  Importantly, this avoids the problem of picking a project deep in the dependency tree, which
-            // then pulls on N other projects, forcing results for this single project to pay that full price (that would 
-            // be paid when we hit these through a normal topological walk).
+            // As such, we always want to compute the information for one project before moving onto a project that
+            // depends on it.  That way information is available as soon as possible, and then computation for it
+            // immediately benefits what comes next.  Importantly, this avoids the problem of picking a project deep in
+            // the dependency tree, which then pulls on N other projects, forcing results for this single project to pay
+            // that full price (that would be paid when we hit these through a normal topological walk).
             //
-            // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process in
-            // the desired order if we process serially.
+            // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process
+            // in the desired order if we process serially.
             var allProjects = _solution.GetProjectDependencyGraph()
                                        .GetDependencySets(cancellationToken)
                                        .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
@@ -418,7 +424,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, ps, cb1, cb2) => s.SearchGeneratedDocumentsAsync(
+                    _solution, ps, _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
                 cancellationToken);
         }
     }

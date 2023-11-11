@@ -33,7 +33,7 @@ internal interface INavigateToSearchService : ILanguageService
     Task SearchProjectsAsync(
         Solution solution,
         IImmutableSet<Project> projects,
-        IImmutableSet<Document> priorityDocuments,
+        ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
         // Document? activeDocument,
