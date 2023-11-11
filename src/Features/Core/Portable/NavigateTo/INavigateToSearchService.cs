@@ -48,6 +48,7 @@ internal interface INavigateToSearchService : ILanguageService
     /// </summary>
     Task SearchCachedDocumentsAsync(
         Solution solution,
+        IImmutableSet<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
