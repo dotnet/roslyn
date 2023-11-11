@@ -114,3 +114,7 @@ PR: https://github.com/dotnet/roslyn/pull/70277
 ### Changes in `Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline` method
 
 A new required parameter `Compilation` has been added. Existing overloads without this parameter no longer work and throw `NotSupportedException`.
+
+### Changes in `Microsoft.CodeAnalysis.Emit.SemanticEdit` constructors
+
+The value of `preserveLocalVariables` passed to the constructors is no longer used.

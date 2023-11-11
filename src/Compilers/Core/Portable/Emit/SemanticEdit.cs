@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -185,6 +186,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// True if <see cref="SyntaxMap"/> is not null.
         /// </summary>
+        [MemberNotNullWhen(returnValue: true, nameof(SyntaxMap))]
         public bool PreserveLocalVariables => SyntaxMap != null;
 
         // for testing non-public instrumentation kinds
