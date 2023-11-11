@@ -50,7 +50,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
     public async Task SearchProjectsAsync(
         Solution solution,
         IImmutableSet<Project> projects,
-        IImmutableSet<Document> priorityDocuments,
+        ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
         // Document? activeDocument,
@@ -61,11 +61,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
 
         foreach (var group in priorityDocuments.GroupBy(d => d.Project))
-        {
-            var priorityProject = group.Key;
-            if (projects.Contains(priorityProject))
-                await ProcessProjectAsync(priorityProject).ConfigureAwait(false);
-        }
+            await ProcessProjectAsync(group.Key).ConfigureAwait(false);
 
         foreach (var project in projects)
             await ProcessProjectAsync(project).ConfigureAwait(false);
@@ -91,17 +87,18 @@ internal sealed class VSTypeScriptNavigateToSearchService(
 
     public async Task SearchCachedDocumentsAsync(
         Solution solution,
+        IImmutableSet<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onDocumentCompleted,
+        Func<CancellationToken, Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         // we don't support searching cached documents.
-        foreach (var _ in priorityDocuments)
-            await onDocumentCompleted(cancellationToken).ConfigureAwait(false);
+        foreach (var _ in projects)
+            await onProjectCompleted(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SearchGeneratedDocumentsAsync(
