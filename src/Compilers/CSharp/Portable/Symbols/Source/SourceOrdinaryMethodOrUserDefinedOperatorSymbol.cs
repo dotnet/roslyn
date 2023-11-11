@@ -39,38 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected MethodSymbol? MethodChecks(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            if (this.IsAsync2)
-            {
-                bool isValueTask = false;
-                foreach (var attr in this.GetAttributes())
-                {
-                    if (attr.IsTargetAttribute(this, AttributeDescription.ValueTaskAsyncAttribute))
-                    {
-                        isValueTask = true;
-                    }
-                }
-
-                CustomModifier modifier;
-                if (returnType.IsVoidType())
-                {
-                    var task = isValueTask ?
-                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask):
-                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-
-                    modifier = CSharpCustomModifier.CreateOptional(task);
-                }
-                else
-                {
-                    var openTask = isValueTask ?
-                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T).ConstructUnboundGenericType():
-                        this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).ConstructUnboundGenericType();
-
-                    modifier = CSharpCustomModifier.CreateOptional(openTask);
-                }
-
-                returnType = returnType.WithModifiers(ImmutableArray.Create(modifier));
-            }
-
             _lazyReturnType = returnType;
             _lazyParameters = parameters;
 
@@ -119,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This value may not be correct, but we need something while we compute this.OverriddenMethod.
             // May be re-assigned below.
-            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty || IsAsync2);
+            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             MethodSymbol? overriddenOrExplicitlyImplementedMethod = null;

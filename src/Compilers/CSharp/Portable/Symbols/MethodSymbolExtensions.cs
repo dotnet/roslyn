@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
+            return method.IsAsyncOrAsync2
                 && method.ReturnType is NamedTypeSymbol { Arity: 0 }
                 && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            return method.IsAsync
+            return method.IsAsyncOrAsync2
                 && method.ReturnType is NamedTypeSymbol { Arity: 1 }
                 && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
         }

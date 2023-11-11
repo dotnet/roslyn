@@ -167,6 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mods |= DeclarationModifiers.Async;
             }
 
+            if (originalMethod.IsAsync2)
+            {
+                mods |= DeclarationModifiers.Async2;
+            }
+
             if (originalMethod.IsExtern)
             {
                 mods |= DeclarationModifiers.Extern;

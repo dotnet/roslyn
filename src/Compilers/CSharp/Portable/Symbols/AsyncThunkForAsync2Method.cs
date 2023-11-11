@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class AsyncThunkForAsync2Method : WrappedMethodSymbol
     {
-        readonly TypeWithAnnotations _taskType;
-
         // thunks are mostly wrapper symbols to express that a method call is done via a thunk
         // it is not expected that thunks will be used as an input to generic instantiation
         // (that should happen using actual async2 methods)
@@ -20,18 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private AsyncThunkForAsync2Method? _origDefinition;
         private AsyncThunkForAsync2Method? _constructedFrom;
 
-        internal AsyncThunkForAsync2Method(MethodSymbol underlyingMethod, TypeWithAnnotations taskType)
+        internal AsyncThunkForAsync2Method(MethodSymbol underlyingMethod)
         {
             Debug.Assert(underlyingMethod.IsAsync2);
             UnderlyingMethod = underlyingMethod;
-            _taskType = taskType;
         }
 
         public override MethodSymbol UnderlyingMethod { get; }
 
         public override Symbol? AssociatedSymbol => null;
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => _taskType;
+        public override TypeWithAnnotations ReturnTypeWithAnnotations => UnderlyingMethod.ReturnTypeWithAnnotations;
 
         public override bool ReturnsVoid => false;
 
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_origDefinition == null)
                 {
-                    _origDefinition = new AsyncThunkForAsync2Method(UnderlyingMethod.OriginalDefinition, TypeWithAnnotations.Create(_taskType.Type.OriginalDefinition));
+                    _origDefinition = new AsyncThunkForAsync2Method(UnderlyingMethod.OriginalDefinition);
                 }
 
                 return _origDefinition;
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_constructedFrom == null)
                 {
-                    _constructedFrom = new AsyncThunkForAsync2Method(UnderlyingMethod.ConstructedFrom, TypeWithAnnotations.Create(_taskType.Type.OriginalDefinition));
+                    _constructedFrom = new AsyncThunkForAsync2Method(UnderlyingMethod.ConstructedFrom);
                 }
 
                 return _constructedFrom;

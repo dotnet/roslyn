@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                         }
-                        else if (!IsValidOverrideReturnType(overridingMethod, overridingMethod.ReturnTypeWithAnnotations, overriddenMethod, overriddenMethod.ReturnTypeWithAnnotations, diagnostics))
+                        else if (!IsValidOverrideReturnType(overridingMethod, overridingMethod.ReturnTypeWithAnnotations, overriddenMethod.ReturnTypeWithAnnotations, diagnostics))
                         {
                             // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
                             if (!IsOrContainsErrorType(overridingMethod.ReturnType))
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                     }
                     else if (overridingProperty.SetMethod is null ?
-                        !IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenProperty, overriddenMemberType, diagnostics) :
+                        !IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics) :
                         !overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                     {
                         // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
@@ -1168,14 +1168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overridingMethod,
                         diagnostics,
                         static (diagnostics, overriddenMethod, overridingMethod, overridingParameter, _, location) =>
-                            {
-                                diagnostics.Add(
-                                    ReportInvalidScopedOverrideAsError(overriddenMethod, overridingMethod) ?
-                                        ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
-                                        ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                    location,
-                                    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
-                            },
+                        {
+                            diagnostics.Add(
+                                ReportInvalidScopedOverrideAsError(overriddenMethod, overridingMethod) ?
+                                    ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                    ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                location,
+                                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
+                        },
                         overridingMemberLocation,
                         allowVariance: true,
                         invokedAsExtensionMethod: false);
@@ -1210,27 +1210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Return true if <paramref name="overridingReturnType"/> is valid for the return type of an override method when the overridden method's return type is <paramref name="overriddenReturnType"/>.
         /// </summary>
-        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, Symbol overriddenSymbol, TypeWithAnnotations overriddenReturnType, BindingDiagnosticBag diagnostics)
+        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, BindingDiagnosticBag diagnostics)
         {
-            bool isAsync2_1 = overridingSymbol is MethodSymbol ms1 && ms1.IsAsync2;
-            bool isAsync2_2 = overriddenSymbol is MethodSymbol ms2 && ms2.IsAsync2;
-
-            if (isAsync2_1 != isAsync2_2)
-            {
-                var isVoid1 = overridingReturnType.IsVoidType();
-                var isVoid2 = overriddenReturnType.IsVoidType();
-
-                if (isAsync2_1)
-                {
-                    // when comparing with non-async2 type, use the thunk type
-                    overridingReturnType = TypeWithAnnotations.Create(overridingReturnType.GetAsync2ThunkType());
-                }
-                else
-                {
-                    overriddenReturnType = TypeWithAnnotations.Create(overriddenReturnType.GetAsync2ThunkType());
-                }
-            }
-
             if (overridingSymbol.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
             {

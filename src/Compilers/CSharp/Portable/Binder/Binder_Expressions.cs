@@ -3189,7 +3189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, bool forUsingExpression = false)
         {
             if (containingSymbol.Kind == SymbolKind.Method
-                && ((MethodSymbol)containingSymbol).IsAsync
+                && ((MethodSymbol)containingSymbol).IsAsyncOrAsync2
                 && type.IsRestrictedType())
             {
                 Error(diagnostics, forUsingExpression ? ErrorCode.ERR_BadSpecialByRefUsing : ErrorCode.ERR_BadSpecialByRefLocal, syntax, type);

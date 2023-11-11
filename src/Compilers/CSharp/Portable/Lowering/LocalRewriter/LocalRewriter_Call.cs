@@ -393,6 +393,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
+                var calledMethod = method.GetConstructedLeastOverriddenMethod(Factory.CurrentType, requireSameReturnType: true);
+                if (calledMethod.IsAsync2)
+                {
+                    method = new AsyncThunkForAsync2Method(calledMethod);
+                }
+
                 InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 

@@ -982,10 +982,7 @@ hasRelatedInterfaces:
             Debug.Assert(substitution != null);
 
             // The type parameters must be original definitions of type parameters from the containing symbol.
-
-            // TODO: (async2)  thunk is a different method but it is ok since typeparameters and constraints are logically the same
-            Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition) ||
-                containingSymbol is AsyncThunkForAsync2Method);
+            Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
 
             if (typeArgument.Type.IsErrorType())
             {

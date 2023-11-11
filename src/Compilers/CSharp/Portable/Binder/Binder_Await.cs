@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -21,15 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureAsync.CheckFeatureAvailability(diagnostics, node.AwaitKeyword);
 
             BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
-            if (ContainingMemberOrLambda is MethodSymbol ms &&
-                ms.IsAsync2)
-            {
-                if (expression is BoundCall call && call.Method.IsAsync2)
-                {
-                    return call;
-                }
-            }
-
             return BindAwait(expression, node, diagnostics);
         }
 
@@ -100,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var call = (BoundCall)expression;
 
             // First check if the target method is async.
-            if ((object)call.Method != null && call.Method.IsAsync)
+            if ((object)call.Method != null && call.Method.IsAsyncOrAsync2)
             {
                 return true;
             }
@@ -114,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Finally, if we're in an async method, and the expression could be awaited, report that it is instead discarded.
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
             if (containingMethod is null
-                || !(containingMethod.IsAsync || containingMethod is SynthesizedSimpleProgramEntryPointSymbol))
+                || !(containingMethod.IsAsyncOrAsync2 || containingMethod is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 return false;
             }
@@ -176,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SymbolKind.Method:
                         var method = (MethodSymbol)containingMemberOrLambda;
-                        if (method.IsAsync || method.IsAsync2)
+                        if (method.IsAsyncOrAsync2)
                         {
                             return false;
                         }

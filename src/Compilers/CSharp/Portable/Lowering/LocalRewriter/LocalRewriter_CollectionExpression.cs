@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? asSpan = null;
 
             // Do not use optimizations in async method since the optimizations require Span<T>.
-            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
+            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsyncOrAsync2 == false)
             {
                 setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
                 asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);

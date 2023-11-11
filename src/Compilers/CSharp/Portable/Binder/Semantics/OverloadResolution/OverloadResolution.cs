@@ -2625,7 +2625,7 @@ outerDefault:
                     return true;
                 }
 
-                if (lambda.Symbol.IsAsync)
+                if (lambda.Symbol.IsAsyncOrAsync2)
                 {
                     // Dig through Task<...> for an async lambda.
                     if (y.OriginalDefinition.IsGenericTaskType(Compilation))

@@ -563,28 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isVoid1 = unsubstitutedReturnType1.IsVoidType();
             var isVoid2 = unsubstitutedReturnType2.IsVoidType();
 
-            bool isAsync2_1 = member1 is MethodSymbol ms1 && ms1.IsAsync2;
-            bool isAsync2_2 = member2 is MethodSymbol ms2 && ms2.IsAsync2;
-
-            if (isAsync2_1 != isAsync2_2)
-            {
-                if (isAsync2_1)
-                {
-                    if (isVoid1)
-                    {
-                        // when comparing with non-async2 type, use the thunk type
-                        unsubstitutedReturnType1 = TypeWithAnnotations.Create(unsubstitutedReturnType1.GetAsync2ThunkType());
-                    }
-                }
-                else
-                {
-                    if (isVoid2)
-                    {
-                        unsubstitutedReturnType2 = TypeWithAnnotations.Create(unsubstitutedReturnType2.GetAsync2ThunkType());
-                    }
-                }
-            }
-
             if (isVoid1 != isVoid2)
             {
                 return false;
@@ -601,26 +579,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var returnType1 = SubstituteType(typeMap1, unsubstitutedReturnType1);
             var returnType2 = SubstituteType(typeMap2, unsubstitutedReturnType2);
-
-            if (isAsync2_1 != isAsync2_2)
-            {
-                if (isAsync2_1)
-                {
-                    if (!isVoid1)
-                    {
-                        // when comparing with non-async2 type, use the thunk type
-                        returnType1 = TypeWithAnnotations.Create(returnType1.GetAsync2ThunkType());
-                    }
-                }
-                else
-                {
-                    if (!isVoid2)
-                    {
-                        returnType2 = TypeWithAnnotations.Create(returnType2.GetAsync2ThunkType());
-                    }
-                }
-            }
-
             if (!returnType1.Equals(returnType2, typeComparison))
             {
                 return false;

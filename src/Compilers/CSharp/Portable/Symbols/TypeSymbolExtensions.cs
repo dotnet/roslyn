@@ -1226,21 +1226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
-        internal static NamedTypeSymbol GetAsync2ThunkType(this TypeWithAnnotations returnType)
-        {
-            var modifiers = returnType.CustomModifiers;
-            var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
-            var modifierType = modifier.ModifierSymbol.OriginalDefinition;
-            if (returnType.IsVoidType())
-            {
-                return modifierType;
-            }
-
-            var async2returnType = returnType.Type;
-            var constructedType = modifierType.Construct(async2returnType);
-            return constructedType;
-        }
-
         internal static bool ContainsErrorType(this TypeSymbol type)
         {
             var result = type.VisitType((type, unused1, unused2) => type.IsErrorType(), (object?)null, canDigThroughNullable: true);

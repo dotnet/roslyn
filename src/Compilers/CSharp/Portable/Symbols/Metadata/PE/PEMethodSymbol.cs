@@ -504,20 +504,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var modifiers = ReturnTypeWithAnnotations.CustomModifiers;
+                var modifiers = Signature.ReturnParam.TypeWithAnnotations.CustomModifiers;
                 if (modifiers.IsDefaultOrEmpty)
                 {
                     return false;
                 }
 
-                var modifier = modifiers[modifiers.Length - 1];
+                var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
                 if (!modifier.IsOptional)
                 {
                     return false;
                 }
 
-                var modifierType = modifier.Modifier;
-                if (this.ReturnsVoid)
+                var modifierType = modifier.ModifierSymbol;
+                if (Signature.ReturnParam.TypeWithAnnotations.IsVoidType())
                 {
                     return modifierType.MetadataName == "Task" || modifierType.MetadataName == "ValueTask";
                 }
@@ -659,7 +659,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => Signature.ReturnParam.TypeWithAnnotations;
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
+        {
+            get
+            {
+                TypeWithAnnotations returnType = Signature.ReturnParam.TypeWithAnnotations;
+                if (!IsAsync2)
+                {
+                    return returnType;
+                }
+
+                var modifiers = Signature.ReturnParam.TypeWithAnnotations.CustomModifiers;
+                var modifier = (CSharpCustomModifier)modifiers[modifiers.Length - 1];
+                var modifierType = modifier.ModifierSymbol;
+                if (!Signature.ReturnParam.TypeWithAnnotations.IsVoidType())
+                {
+                    modifierType = modifierType.OriginalDefinition.Construct(Signature.ReturnParam.Type);
+                }
+
+                return TypeWithAnnotations.Create(modifierType, NullableAnnotation.NotAnnotated);
+            }
+        }
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => Signature.ReturnParam.FlowAnalysisAnnotations;
 

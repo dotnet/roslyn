@@ -223,6 +223,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (AdaptedMethodSymbol.IsAsync2)
+                {
+                    NamedTypeSymbol typeSymbol = (NamedTypeSymbol)AdaptedMethodSymbol.ReturnType;
+                    if (typeSymbol.AllTypeArgumentCount() != 0)
+                    {
+                        typeSymbol = typeSymbol.ConstructUnboundGenericType();
+                    }
+
+                    Cci.ICustomModifier mod = CSharpCustomModifier.CreateOptional(typeSymbol);
+                    return ImmutableArray.Create(mod);
+                }
+
                 return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedMethodSymbol.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
@@ -245,7 +257,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
+            var type = AdaptedMethodSymbol.ReturnType;
+
+            if (AdaptedMethodSymbol.IsAsync2)
+            {
+                NamedTypeSymbol typeSymbol = (NamedTypeSymbol)type;
+                if (typeSymbol.AllTypeArgumentCount() == 0)
+                {
+                    type = AdaptedMethodSymbol.ContainingAssembly.GetSpecialType(SpecialType.System_Void);
+                }
+                else
+                {
+                    type = typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                }
+            }
+
+            return ((PEModuleBuilder)context.Module).Translate(type,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
         }

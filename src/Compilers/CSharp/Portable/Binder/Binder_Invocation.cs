@@ -1063,41 +1063,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = methodResult.Member.ReturnType;
             var method = methodResult.Member;
 
-            if (methodResult.Member.IsAsync2)
-            {
-                // if awaited in an async2 method, then use actual method that returns T
-                // otherwise use the thunk that returns Task<T>
-
-                if (ContainingMemberOrLambda is MethodSymbol containingMethod &&
-                    containingMethod.IsAsync2 &&
-                    node.Parent.IsKind(SyntaxKind.AwaitExpression))
-                {
-                    returnType = methodResult.Member.ReturnType;
-                }
-                else
-                {
-                    if (returnType.IsVoidType())
-                    {
-                        returnType = method.ReturnTypeWithAnnotations.GetAsync2ThunkType();
-                    }
-                    else
-                    {
-                        if (method.RefKind != RefKind.None ||
-                            returnType.IsPointerOrFunctionPointer() || returnType.IsRestrictedType())
-                        {
-                            Error(diagnostics, ErrorCode.ERR_BadTypeArgument, expression, returnType);
-                        }
-                        else
-                        {
-                            returnType = method.ReturnTypeWithAnnotations.GetAsync2ThunkType();
-                        }
-                    }
-
-                    var returnTypeWithAnnotations = TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.SyntaxTree, node.SpanStart), returnType);
-                    method = new AsyncThunkForAsync2Method(method, returnTypeWithAnnotations);
-                }
-            }
-
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
             // overload resolution spec shows that the "final validation" stage allows an
