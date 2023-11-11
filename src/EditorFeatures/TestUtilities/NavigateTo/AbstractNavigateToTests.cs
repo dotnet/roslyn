@@ -44,16 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         protected static readonly TestComposition FirstVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocIsVisibleDocumentTrackingService.Factory));
         protected static readonly TestComposition FirstActiveAndVisibleComposition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestWorkspaceNavigateToSearchHostService), typeof(FirstDocIsActiveAndVisibleDocumentTrackingService.Factory));
 
-        [ExportWorkspaceService(typeof(IWorkspaceNavigateToSearcherHostService))]
-        [PartNotDiscoverable, Shared]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
-        {
-            public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-                => new(true);
-        }
-
         protected INavigateToItemProvider _provider;
         protected NavigateToTestAggregator _aggregator;
 
@@ -306,6 +296,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                     => new FirstDocIsActiveAndVisibleDocumentTrackingService(workspaceServices.Workspace);
             }
+        }
+
+        [ExportWorkspaceService(typeof(IWorkspaceNavigateToSearcherHostService))]
+        [PartNotDiscoverable, Shared]
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
+        {
+            public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+                => new(true);
         }
     }
 }
