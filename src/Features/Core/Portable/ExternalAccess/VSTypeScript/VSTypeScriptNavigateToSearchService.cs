@@ -55,15 +55,10 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         IImmutableSet<string> kinds,
         // Document? activeDocument,
         Func<INavigateToSearchResult, Task> onResultFound,
-        IStreamingProgressTracker progress,
+        Func<CancellationToken, Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
-        if (_searchService == null)
-            return;
-
         using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
-
-        await progress.AddItemsAsync(projects.Count, cancellationToken).ConfigureAwait(false);
 
         foreach (var group in priorityDocuments.GroupBy(d => d.Project))
         {
@@ -75,30 +70,53 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         foreach (var project in projects)
             await ProcessProjectAsync(project).ConfigureAwait(false);
 
+        return;
+
         async Task ProcessProjectAsync(Project project)
         {
             if (processedProjects.Add(project))
             {
-                var results = await _searchService.SearchProjectAsync(
-                    project, priorityDocuments.Where(d => d.Project == project).ToImmutableArray(), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-                foreach (var result in results)
-                    await onResultFound(Convert(result)).ConfigureAwait(false);
+                if (_searchService != null)
+                {
+                    var results = await _searchService.SearchProjectAsync(
+                        project, priorityDocuments.Where(d => d.Project == project).ToImmutableArray(), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                    foreach (var result in results)
+                        await onResultFound(Convert(result)).ConfigureAwait(false);
+                }
 
-                await progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    public Task SearchCachedDocumentsAsync(Solution solution, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, IStreamingProgressTracker progress, CancellationToken cancellationToken)
+    public async Task SearchCachedDocumentsAsync(
+        Solution solution,
+        ImmutableArray<Document> priorityDocuments,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Document? activeDocument,
+        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<CancellationToken, Task> onDocumentCompleted,
+        CancellationToken cancellationToken)
     {
         // we don't support searching cached documents.
-        return Task.CompletedTask;
+        foreach (var _ in priorityDocuments)
+            await onDocumentCompleted(cancellationToken).ConfigureAwait(false);
     }
 
-    public Task SearchGeneratedDocumentsAsync(Solution solution, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<INavigateToSearchResult, Task> onResultFound, IStreamingProgressTracker progress, CancellationToken cancellationToken)
+    public async Task SearchGeneratedDocumentsAsync(
+        Solution solution,
+        IImmutableSet<Project> projects,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        Document? activeDocument,
+        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<CancellationToken, Task> onProjectCompleted,
+        CancellationToken cancellationToken)
     {
         // we don't support searching generated documents.
-        return Task.CompletedTask;
+        foreach (var _ in projects)
+            await onProjectCompleted(cancellationToken).ConfigureAwait(false);
     }
 
     private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             // Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
-            IStreamingProgressTracker progress,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
-            IStreamingProgressTracker progress,
+            Func<CancellationToken, Task> onDocumentCompleted,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -62,11 +62,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// </summary>
         Task SearchGeneratedDocumentsAsync(
             Solution solution,
+            IImmutableSet<Project> projects,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
-            IStreamingProgressTracker progress,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken);
     }
 }

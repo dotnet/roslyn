@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
             await service.SearchDocumentAsync(
-                _activeDocument, _searchPattern, _kinds, _activeDocument,
+                _activeDocument, _searchPattern, _kinds,
                 r => _callback.AddItemAsync(project, r, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -179,6 +179,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Debug.Assert(searchRegularDocuments || searchGeneratedDocuments);
 
             var projectCount = orderedProjects.Sum(g => g.Length);
+
+            using var _ = ArrayBuilder<Task>.GetInstance(out var projectTasks);
+
+            foreach (var priorityProjectGroup in orderedProjects)
+            {
+                await SearchProjectGroupAsync(
+                    isFullyLoaded, priorityProjectGroup, searchRegularDocuments, searchGeneratedDocuments, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Group the projects by search service, and defer to that service to search all those projects at once.
+            foreach (var group in orderedProjects.GroupBy(p => _host.GetNavigateToSearchService(p)))
+            {
+
+            }
+
+            await Task.WhenAll(projectTasks).ConfigureAwait(false);
 
             if (isFullyLoaded)
             {
