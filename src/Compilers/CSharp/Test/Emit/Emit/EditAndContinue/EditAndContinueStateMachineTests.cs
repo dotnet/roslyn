@@ -1075,7 +1075,6 @@ class C
                     """);
                 })
                 .Verify();
->>>>>>> 6b7a32291c3 (Remove unused SemanticEdit parameter: preserveLocalVariables)
         }
 
         [Fact]

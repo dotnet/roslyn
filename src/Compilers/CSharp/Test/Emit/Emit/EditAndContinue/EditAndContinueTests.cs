@@ -2476,7 +2476,7 @@ class C
                     """,
                     edits: new[]
                     {
-                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true),
                     },
                     validator: g =>
                     {
