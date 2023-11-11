@@ -135,7 +135,17 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var process in _processes.Values)
+        List<BuildHostProcess> processesToDispose;
+
+        // Copy the list out while we're in the lock, otherwise as we dispose these events will get fired, which
+        // may try to mutate the list while we're enumerating.
+        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+        {
+            processesToDispose = _processes.Values.ToList();
+            _processes.Clear();
+        }
+
+        foreach (var process in processesToDispose)
             await process.DisposeAsync().ConfigureAwait(false);
     }
 
