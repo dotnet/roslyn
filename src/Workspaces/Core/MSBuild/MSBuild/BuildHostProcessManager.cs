@@ -96,8 +96,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 // We've subscribed to Disconnected, but if the process crashed before that point we might have not seen it
                 if (process.HasExited)
                 {
-                    await buildHostProcess.DisposeAsync().ConfigureAwait(false);
-                    throw new Exception($"BuildHost process exited with {process.ExitCode}");
+                    throw new Exception($"BuildHost process exited immediately with {process.ExitCode}");
                 }
                 _processes.Add(buildHostKind, buildHostProcess);
             }
