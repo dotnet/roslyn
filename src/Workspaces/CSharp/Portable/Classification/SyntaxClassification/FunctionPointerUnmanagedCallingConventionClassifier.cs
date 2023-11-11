@@ -39,9 +39,7 @@ internal sealed class FunctionPointerUnmanagedCallingConventionClassifier : Abst
             if (name is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall")
                 return true;
 
-            var fullName = $"System.Runtime.CompilerServices.CallConv{name}";
-            var type = semanticModel.Compilation.GetBestTypeByMetadataName(fullName);
-            return type != null;
+            return semanticModel.Compilation.TryGetCallingConventionSymbol(name) is not null;
         }
     }
 }
