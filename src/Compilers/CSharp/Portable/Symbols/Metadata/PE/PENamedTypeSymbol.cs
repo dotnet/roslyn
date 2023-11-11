@@ -2663,6 +2663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
+                    // If _arity is zero, we should have assigned empty immutable array to _lazyTypeParameters early in the constructor.
+                    Debug.Assert(_arity > 0);
+
                     var moduleSymbol = ContainingPEModule;
 
                     // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
