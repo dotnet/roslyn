@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Join(ref State, ref localFunctionState.StateFromBottom);
 
-                if (!symbol.IsAsync)
+                if (!symbol.IsAsyncOrAsync2)
                 {
                     Meet(ref State, ref localFunctionState.StateFromTop);
                 }

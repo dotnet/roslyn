@@ -1298,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ParameterNotNullIfNotNull, location, outputParam.Name, inputParam.Name);
                     }
-                    else if (CurrentSymbol is MethodSymbol { IsAsync: false })
+                    else if (CurrentSymbol is MethodSymbol { IsAsyncOrAsync2: false })
                     {
                         // Return value must be non-null because parameter '{0}' is non-null.
                         Diagnostics.Add(ErrorCode.WRN_ReturnNotNullIfNotNull, location, inputParam.Name);
@@ -2982,7 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!method.IsAsync)
+            if (!method.IsAsyncOrAsync2)
             {
                 annotations = method.ReturnTypeFlowAnalysisAnnotations;
                 type = ApplyUnconditionalAnnotations(returnType, annotations);
@@ -6189,26 +6189,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return receiverType;
             }
 
-            void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
+        private void ReinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitArgumentResult? firstArgumentResult = null)
+        {
+            var method = node.Method;
+            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+            if (!receiverType.HasNullType)
             {
-                var method = node.Method;
-
-                // TODO: (async2) for now just say that thunks never return null
-                if (node.Method is AsyncThunkForAsync2Method)
-                {
-                    var rs = GetReturnTypeWithState(method);
-                    rs = rs.WithNotNullState();
-                    SetResult(node, rs, method.ReturnTypeWithAnnotations);
-                    SetUpdatedSymbol(node, node.Method, method);
-                    return;
-                }
-
-                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                if (!receiverType.HasNullType)
-                {
-                    // Update method based on inferred receiver type.
-                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
-                }
+                // Update method based on inferred receiver type.
+                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+            }
 
                 ImmutableArray<VisitResult> results;
                 bool returnNotNull;
@@ -6916,8 +6905,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            method, delayCompletionForTargetMember: false);
                            Debug.Assert(result.completion is null);
 
-                           return (result.method, result.returnNotNull);
-                       };
+                    return (result.method, result.returnNotNull);
+                };
             }
 
             static void expandParamsCollection(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)

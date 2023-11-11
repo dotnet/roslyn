@@ -3242,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if (containingSymbol.Kind == SymbolKind.Method
-                && ((MethodSymbol)containingSymbol).IsAsync
+                && ((MethodSymbol)containingSymbol).IsAsyncOrAsync2
                 && type.IsRestrictedType())
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);

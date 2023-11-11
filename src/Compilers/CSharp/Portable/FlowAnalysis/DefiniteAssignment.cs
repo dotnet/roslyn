@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.RemoveReturns();
 
-            if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync && !currentMethod.IsImplicitlyDeclared)
+            if (CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsyncOrAsync2 && !currentMethod.IsImplicitlyDeclared)
             {
                 var foundAwait = result.Any(static pending => HasAwait(pending));
                 if (!foundAwait)
@@ -1876,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void EnterParameter(ParameterSymbol parameter)
         {
             int slot = GetOrCreateSlot(parameter);
-            if (parameter.RefKind == RefKind.Out && !(this.CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsync)) // out parameters not allowed in async
+            if (parameter.RefKind == RefKind.Out && !(this.CurrentSymbol is MethodSymbol currentMethod && currentMethod.IsAsyncOrAsync2)) // out parameters not allowed in async
             {
                 if (slot > 0) SetSlotState(slot, initiallyAssignedVariables?.Contains(parameter) == true);
             }

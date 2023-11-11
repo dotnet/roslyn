@@ -2916,7 +2916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected static bool IsInAsyncMethod(MethodSymbol method)
         {
-            return (object)method != null && method.IsAsync;
+            return (object)method != null && method.IsAsyncOrAsync2;
         }
 
         protected bool IsInAsyncMethod()

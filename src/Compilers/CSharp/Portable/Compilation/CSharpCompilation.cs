@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (checkValid(candidate, IsCandidate, perCandidateBag))
                         {
-                            if (candidate.IsAsync)
+                            if (candidate.IsAsyncOrAsync2)
                             {
                                 diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.GetFirstLocation());
                             }
