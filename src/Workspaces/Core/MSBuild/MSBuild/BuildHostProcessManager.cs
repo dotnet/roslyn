@@ -363,11 +363,16 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
             try
             {
-                await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
+                if (!_process.HasExited)
+                {
+                    LoggerForProcessMessages?.LogTrace("Sending a Shutdown request to the BuildHost.");
+
+                    await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
+                }
 
                 _rpcClient.Shutdown();
 
-                LoggerForProcessMessages?.LogTrace("Process gracefully shut down.");
+                LoggerForProcessMessages?.LogTrace("Process shut down.");
             }
             catch (Exception e)
             {
