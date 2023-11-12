@@ -60,10 +60,10 @@
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
     <!-- Dlls we don't directly reference but need to include to build the MEF composition -->
-    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" ReferenceOutputAssembly="false" />
 
     <!-- Not directly referenced but needed for Razor source generators -->
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
