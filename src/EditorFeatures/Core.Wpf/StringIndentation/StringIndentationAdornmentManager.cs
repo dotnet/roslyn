@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 
             foreach (var changedSpan in changedSpanCollection)
             {
-                // Don't do any work for a raw string if it doesn't at least intersect the view span. If it does fully
-                // (or partially) intersect the view, then we'll want to draw the part in view.
+                // Don't do any work for a raw string if it doesn't at least intersect the view span. If it does
+                // intersect the view, then we'll want to draw whichever is in view.
                 if (!viewLines.IntersectsBufferSpan(changedSpan))
                     continue;
 
@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     // that the end point of the tag maps to a line that is in view.  However, for raw-string
                     // indentation adornments it's fine for that point to be offscreen, and we still want to draw the
                     // indentation line in that case.
-
                     if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _) ||
                         !ShouldDrawTag(tagMappingSpan) ||
                         !TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span) ||
