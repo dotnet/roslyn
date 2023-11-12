@@ -45,20 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out _))
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _) ||
+                        !ShouldDrawTag(tagMappingSpan) ||
+                        !TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span) ||
+                        !TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans) ||
+                        VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
+                    {
                         continue;
+                    }
 
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
-                        continue;
-
-                    if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
-                        continue;
-
-                    if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
-                        continue;
-
-                    var tag = tagMappingSpan.Tag;
-                    var brush = tag.GetBrush(TextView);
+                    var brush = tagMappingSpan.Tag.GetBrush(TextView);
 
                     foreach (var (start, end) in block.YSegments)
                     {

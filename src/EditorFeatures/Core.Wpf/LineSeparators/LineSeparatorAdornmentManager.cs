@@ -40,12 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out _))
-                    {
-                        continue;
-                    }
-
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out var mappedPoint) ||
+                        !TryGetViewLine(mappedPoint, out _) ||
+                        !ShouldDrawTag(tagMappingSpan) ||
+                        !TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
                     {
                         continue;
                     }
