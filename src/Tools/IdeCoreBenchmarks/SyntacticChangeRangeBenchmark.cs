@@ -74,6 +74,7 @@ namespace IdeCoreBenchmarks
             var newRoot = newTree.GetRoot();
             return newRoot;
         }
+
         private SyntaxNode WithSimpleEditInTheEnd()
         {
             var addedText = "class HelloWorld { }";
