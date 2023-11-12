@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Classification
                         // the common left width.  If this was common the left side, we can't consider it common to the right,
                         // otherwise we could end up with overlapping regions of commonality.
                         //
-                        // This can occur in incremental settings when the similar tokens are written successsively.
+                        // This can occur in incremental settings when the similar tokens are written successively.
                         // Because the parser can reuse underlying token data, it may end up with many incrementally
                         // identical tokens in a row.
                         if (currentOld.IsIncrementallyIdenticalTo(currentNew) &&
