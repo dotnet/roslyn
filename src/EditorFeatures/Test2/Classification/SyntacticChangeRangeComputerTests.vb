@@ -66,6 +66,33 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestIdentifierChangeInMethod1_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            Con[||]|}.WriteLine(0);
+        }
+
+        void M3()
+        {
+        }
+    }
+}
+", "sole")
+        End Function
+
+        <Fact>
         Public Async Function TestIdentifierChangeInMethod2() As Task
             Await TestCSharp(
 "
@@ -84,6 +111,33 @@ public class C
 
     void M3()
     {
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestIdentifierChangeInMethod2_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            Con[|sole|]|}.WriteLine(0);
+        }
+
+        void M3()
+        {
+        }
     }
 }
 ", "")
@@ -116,6 +170,35 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestSplitClass1_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+{|changed:
+    [||]
+
+        void |}M2()
+        {
+            Console.WriteLine(0);
+        }
+
+        void M3()
+        {
+        }
+    }
+}
+", "} class C2 {")
+        End Function
+
+        <Fact>
         Public Async Function TestMergeClass() As Task
             Await TestCSharp(
 "
@@ -137,6 +220,36 @@ public class C
 
     void M3()
     {
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestMergeClass_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+{|changed:
+
+    [|} class C2 {|]
+
+        void |}M2()
+        {
+            Console.WriteLine(0);
+        }
+
+        void M3()
+        {
+        }
     }
 }
 ", "")
@@ -172,6 +285,38 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestExtendComment_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            [||]
+        }
+
+        void M3()
+        {
+            Console.WriteLine(""*/ Console.WriteLine("")
+|}        }
+
+        void M4()
+        {
+        }
+    }
+}
+", "/*")
+        End Function
+
+        <Fact>
         Public Async Function TestRemoveComment() As Task
             Await TestCSharp(
 "
@@ -195,6 +340,38 @@ public class C
 
     void M4()
     {
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestRemoveComment_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            [|/*|]
+        }
+
+        void M3()
+        {
+            Console.WriteLine(""*/ Console.WriteLine("")
+|}        }
+
+        void M4()
+        {
+        }
     }
 }
 ", "")
@@ -229,6 +406,37 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestExtendCommentToEndOfFile_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            [||]
+        }
+
+        void M3()
+        {
+        }
+
+        void M4()
+        {
+        }
+    }
+}
+|}", "/*")
+        End Function
+
+        <Fact>
         Public Async Function TestDeleteFullFile() As Task
             Await TestCSharp(
 "{|changed:[|
@@ -250,6 +458,36 @@ public class C
 
     void M4()
     {
+    }
+}
+|]|}", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestDeleteFullFile_A() As Task
+            Await TestCSharp(
+"{|changed:[|
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+        }
+
+        void M3()
+        {
+        }
+
+        void M4()
+        {
+        }
     }
 }
 |]|}", "")
@@ -283,6 +521,36 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function InsertFullFile_A() As Task
+            Await TestCSharp(
+"{|changed:[||]|}", "
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+        }
+
+        void M3()
+        {
+        }
+
+        void M4()
+        {
+        }
+    }
+}
+")
+        End Function
+
+        <Fact>
         Public Async Function TestInsertDuplicateLineBelow() As Task
             Await TestCSharp(
 "
@@ -301,6 +569,34 @@ public class C
 
     void M3()
     {
+    }
+}
+", "
+        throw new NotImplementedException();")
+        End Function
+
+        <Fact>
+        Public Async Function TestInsertDuplicateLineBelow_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+            throw new NotImplementedException();[||]
+{|changed:|}        }
+
+        void M3()
+        {
+        }
     }
 }
 ", "
@@ -333,6 +629,34 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestInsertDuplicateLineAbove_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {[||]
+{|changed:|}            throw new NotImplementedException();
+        }
+
+        void M3()
+        {
+        }
+    }
+}
+", "
+        throw new NotImplementedException();")
+        End Function
+
+        <Fact>
         Public Async Function TestDeleteDuplicateLineBelow() As Task
             Await TestCSharp(
 "
@@ -358,6 +682,34 @@ public class C
         End Function
 
         <Fact>
+        Public Async Function TestDeleteDuplicateLineBelow_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+            throw new NotImplementedException();
+{|changed:            [|throw new NotImplementedException();|]
+        }
+|}
+        void M3()
+        {
+        }
+    }
+}
+", "")
+        End Function
+
+        <Fact>
         Public Async Function TestDeleteDuplicateLineAbove() As Task
             Await TestCSharp(
 "
@@ -377,6 +729,34 @@ public class C
 
     void M3()
     {
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestDeleteDuplicateLineAbove_A() As Task
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+{|changed:            [|throw new NotImplementedException();|]
+            throw |}new NotImplementedException();
+        }
+
+        void M3()
+        {
+        }
     }
 }
 ", "")
