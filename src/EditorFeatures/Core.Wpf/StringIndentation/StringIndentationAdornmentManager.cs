@@ -51,14 +51,20 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                     // that the end point of the tag maps to a line that is in view.  However, for raw-string
                     // indentation adornments it's fine for that point to be offscreen, and we still want to draw the
                     // indentation line in that case.
-                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _) ||
-                        !ShouldDrawTag(tagMappingSpan) ||
-                        !TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span) ||
-                        !TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans) ||
-                        VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
-                    {
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out _))
                         continue;
-                    }
+
+                    if (!ShouldDrawTag(tagMappingSpan))
+                        continue;
+
+                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                        continue;
+
+                    if (!TryMapHoleSpans(tagMappingSpan.Tag.OrderedHoleSpans, out var orderedHoleSpans))
+                        continue;
+
+                    if (VisibleBlock.CreateVisibleBlock(span, orderedHoleSpans, TextView) is not VisibleBlock block)
+                        continue;
 
                     var brush = tagMappingSpan.Tag.GetBrush(TextView);
 
