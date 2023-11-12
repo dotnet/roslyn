@@ -7857,5 +7857,158 @@ class Test
 ");
 
         }
+
+        [Fact]
+        public void Async2_EH()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        {
+        }
+    }
+}
+
+public class Async2SimpleEH
+{
+    public static void Main()
+    {
+        int result = TT.Handler().Result;
+        Console.WriteLine(result);
+    }
+}
+
+class TT
+{
+    public static async2 Task<int> Handler()
+    {
+        try
+        {
+            return await Throw(42);
+        }
+        catch (IntegerException ex)
+        {
+            return ex.Value;
+        }
+    }
+
+    public static async2 Task<int> Throw(int value)
+    {
+        await Task.Yield();
+        throw new IntegerException(value);
+    }
+
+    public class IntegerException : Exception
+    {
+        public int Value;
+        public IntegerException(int value) => Value = value;
+    }
+}
+";
+
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails);
+
+            c.VerifyTypeIL("TT", @"
+    .class private auto ansi beforefieldinit TT
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested public auto ansi beforefieldinit IntegerException
+		extends [mscorlib]System.Exception
+	{
+		// Fields
+		.field public int32 Value
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor (
+				int32 'value'
+			) cil managed 
+		{
+			// Method begins at RVA 0x20e9
+			// Code size 14 (0xe)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Exception::.ctor()
+			IL_0006: ldarg.0
+			IL_0007: ldarg.1
+			IL_0008: stfld int32 TT/IntegerException::Value
+			IL_000d: ret
+		} // end of method IntegerException::.ctor
+	} // end of class IntegerException
+	// Methods
+	.method public hidebysig static 
+		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) Handler () cil managed 
+	{
+		// Method begins at RVA 0x2080
+		// Code size 20 (0x14)
+		.maxstack 1
+		.locals init (
+			[0] int32
+		)
+		.try
+		{
+			IL_0000: ldc.i4.s 42
+			IL_0002: call int32 modopt([mscorlib]System.Threading.Tasks.Task`1) TT::Throw(int32)
+			IL_0007: stloc.0
+			IL_0008: leave.s IL_0012
+		} // end .try
+		catch TT/IntegerException
+		{
+			IL_000a: ldfld int32 TT/IntegerException::Value
+			IL_000f: stloc.0
+			IL_0010: leave.s IL_0012
+		} // end handler
+		IL_0012: ldloc.0
+		IL_0013: ret
+	} // end of method TT::Handler
+	.method public hidebysig static 
+		int32 modopt([mscorlib]System.Threading.Tasks.Task`1) Throw (
+			int32 'value'
+		) cil managed 
+	{
+		// Method begins at RVA 0x20b0
+		// Code size 43 (0x2b)
+		.maxstack 1
+		.locals init (
+			[0] valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter,
+			[1] valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable
+		)
+		IL_0000: call valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable [mscorlib]System.Threading.Tasks.Task::Yield()
+		IL_0005: stloc.1
+		IL_0006: ldloca.s 1
+		IL_0008: call instance valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter [mscorlib]System.Runtime.CompilerServices.YieldAwaitable::GetAwaiter()
+		IL_000d: stloc.0
+		IL_000e: ldloca.s 0
+		IL_0010: call instance bool [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::get_IsCompleted()
+		IL_0015: brtrue.s IL_001d
+		IL_0017: ldloc.0
+		IL_0018: call void System.Runtime.CompilerServices.RuntimeHelpers::UnsafeAwaitAwaiterFromRuntimeAsync<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter>(!!0)
+		IL_001d: ldloca.s 0
+		IL_001f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
+		IL_0024: ldarg.0
+		IL_0025: newobj instance void TT/IntegerException::.ctor(int32)
+		IL_002a: throw
+	} // end of method TT::Throw
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2078
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method TT::.ctor
+} // end of class TT
+");
+
+        }
+
     }
 }
