@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchProjectAsync(
+        public ValueTask SearchProjectsAsync(
             Checksum solutionChecksum,
             ImmutableArray<ProjectId> projectIds,
             ImmutableArray<DocumentId> priorityDocumentIds,
