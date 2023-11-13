@@ -434,11 +434,11 @@ class C : I<int>
   .maxstack  1
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<I<System-Int32>-F>d__0.<>4__this""
+  IL_0001:  ldfld      ""C C.<I<int>-F>d__0.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
+            VerifyHasThis(source, "C.<I<int>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -467,14 +467,14 @@ class C : I<int>
   .maxstack  1
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                C.<I<System-Int32>-F>d__0 V_2,
+                C.<I<int>-F>d__0 V_2,
                 System.Exception V_3)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C C.<I<System-Int32>-F>d__0.<>4__this""
+  IL_0001:  ldfld      ""C C.<I<int>-F>d__0.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
+            VerifyHasThis(source, "C.<I<int>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -506,7 +506,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<int>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066489")]

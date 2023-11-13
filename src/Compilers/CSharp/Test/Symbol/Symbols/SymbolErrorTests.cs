@@ -10116,27 +10116,27 @@ class remove_E : A
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (8,34): error CS0542: 'B1': member names cannot be the same as their enclosing type
+                // (16,34): error CS0542: 'add_E': member names cannot be the same as their enclosing type
                 //     public override event Action E;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("B1").WithLocation(8, 34),
-                // (12,34): error CS0542: 'B2': member names cannot be the same as their enclosing type
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("add_E").WithLocation(16, 34),
+                // (20,34): error CS0542: 'remove_E': member names cannot be the same as their enclosing type
                 //     public override event Action E;
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("B2").WithLocation(12, 34),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("remove_E").WithLocation(20, 34),
                 // (16,34): warning CS0067: The event 'add_E.E' is never used
                 //     public override event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("add_E.E").WithLocation(16, 34),
-                // (12,34): warning CS0067: The event 'B2.E' is never used
+                // (4,34): warning CS0067: The event 'B0.E' is never used
                 //     public override event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B2.E").WithLocation(12, 34),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B0.E").WithLocation(4, 34),
                 // (8,34): warning CS0067: The event 'B1.E' is never used
                 //     public override event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B1.E").WithLocation(8, 34),
                 // (20,34): warning CS0067: The event 'remove_E.E' is never used
                 //     public override event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("remove_E.E").WithLocation(20, 34),
-                // (4,34): warning CS0067: The event 'B0.E' is never used
+                // (12,34): warning CS0067: The event 'B2.E' is never used
                 //     public override event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B0.E").WithLocation(4, 34));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("B2.E").WithLocation(12, 34));
         }
 
         [Fact]

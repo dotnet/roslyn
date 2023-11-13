@@ -954,7 +954,7 @@ class C : I<int, bool>
 
             var mappedProperty = (Cci.IPropertyDefinition)matcher.MapDefinition(property.GetCciAdapter());
 
-            Assert.Equal("I<System.Int32,System.Boolean>.Item", ((PropertySymbol)mappedProperty.GetInternalSymbol()).MetadataName);
+            Assert.Equal("I<int,bool>.Item", ((PropertySymbol)mappedProperty.GetInternalSymbol()).MetadataName);
         }
 
         [Fact]

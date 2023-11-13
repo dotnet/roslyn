@@ -112,7 +112,7 @@ class C : I<C, object>
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = type.GetMethod(module is PEModuleSymbol ? "I<C,System.Object>.M" : "I<C,object>.M");
+                var method = type.GetMethod("I<C,object>.M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 

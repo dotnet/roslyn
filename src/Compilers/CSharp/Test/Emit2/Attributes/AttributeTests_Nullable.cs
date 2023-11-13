@@ -3339,7 +3339,7 @@ C
         T[]! this[T index].get
             T index
 [NullableContext(2)] [Nullable(0)] C
-    System.Object? <I<System.Object>.P>k__BackingField
+    System.Object? <I<object?>.P>k__BackingField
     System.Object? I<System.Object>.M(System.Object?[]! args)
         [Nullable({ 1, 2 })] System.Object?[]! args
     [Nullable({ 1, 2 })] System.Object?[]! I<System.Object>.get_Item(System.Object? index)
