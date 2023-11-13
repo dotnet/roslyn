@@ -20,14 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
     internal sealed class ExplicitInterfaceMemberInfo
     {
-        public static readonly ExplicitInterfaceMemberInfo Uninitialized = new ExplicitInterfaceMemberInfo(null!, null!);
+        public static readonly ExplicitInterfaceMemberInfo Uninitialized = new ExplicitInterfaceMemberInfo(null!);
         private readonly TypeSymbol _explicitInterfaceType;
-        private readonly string _memberMetadataName;
 
-        public ExplicitInterfaceMemberInfo(TypeSymbol explicitInterfaceType, string memberMetadataName)
+        public ExplicitInterfaceMemberInfo(TypeSymbol explicitInterfaceType)
         {
             _explicitInterfaceType = explicitInterfaceType;
-            _memberMetadataName = memberMetadataName;
         }
 
         public TypeSymbol ExplicitInterfaceType
@@ -36,15 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(this != Uninitialized);
                 return _explicitInterfaceType;
-            }
-        }
-
-        public string MemberMetadataName
-        {
-            get
-            {
-                Debug.Assert(this != Uninitialized);
-                return _memberMetadataName;
             }
         }
     }
@@ -60,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static ExplicitInterfaceMemberInfo? GetMemberInfo(
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
-            string name,
             Binder binder,
             BindingDiagnosticBag diagnostics)
         {
@@ -76,10 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NameSyntax explicitInterfaceName = explicitInterfaceSpecifier.Name;
             TypeSymbol explicitInterfaceType = typeBinder.BindType(explicitInterfaceName, diagnostics).Type;
 
-            string? aliasQualifier = explicitInterfaceSpecifier?.Name.GetAliasQualifierOpt();
-            string memberMetadataName = GetMemberMetadataName(name, explicitInterfaceType, aliasQualifier);
-
-            return new ExplicitInterfaceMemberInfo(explicitInterfaceType, memberMetadataName);
+            return new ExplicitInterfaceMemberInfo(explicitInterfaceType);
         }
 #nullable disable
 

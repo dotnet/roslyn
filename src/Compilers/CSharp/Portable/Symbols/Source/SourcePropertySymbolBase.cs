@@ -168,11 +168,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var explicitInterfaceSpecifier = propertyBaseSyntax?.ExplicitInterfaceSpecifier;
             if (explicitInterfaceSpecifier is not null)
             {
-                var name = CSharpSyntaxNode is PropertyDeclarationSyntax propertySyntax
-                    ? propertySyntax.Identifier.ValueText
-                    : DefaultIndexerName;
                 var binder = CreateBinderForExplicitInterfaceType();
-                _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, name, binder, diagnostics);
+                _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, binder, diagnostics);
             }
             else
             {
@@ -433,8 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Explicit implementation names may have spaces if the interface
                 // is generic (between the type arguments).
-                EnsureSignature();
-                return _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? SourceName.Replace(" ", "");
+                return SourceName.Replace(" ", "");
             }
         }
 

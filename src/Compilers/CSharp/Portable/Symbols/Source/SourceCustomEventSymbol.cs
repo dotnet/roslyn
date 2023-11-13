@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyType = BindEventType(binder, syntax.Type, diagnostics);
 
             ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
-            _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics);
+            _lazyExplicitInterfaceMemberInfo = ExplicitInterfaceHelpers.GetMemberInfo(explicitInterfaceSpecifier, binder, diagnostics);
 
             TypeSymbol? explicitInterfaceType = _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
             bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier != null;

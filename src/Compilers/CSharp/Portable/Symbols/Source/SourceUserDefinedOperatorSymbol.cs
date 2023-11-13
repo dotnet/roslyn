@@ -100,8 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ExplicitInterfaceMemberInfo GetExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics)
         {
             var syntax = (OperatorDeclarationSyntax)SyntaxNode;
-            string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
-            return ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, name, binder, diagnostics);
+            return ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, binder, diagnostics);
         }
 
         protected override int GetParameterCountFromSyntax()

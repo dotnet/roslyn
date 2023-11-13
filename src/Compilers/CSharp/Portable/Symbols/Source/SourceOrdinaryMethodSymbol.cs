@@ -989,15 +989,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
-            public override string MetadataName
-            {
-                get
-                {
-                    EnsureExplicitInterfaceType();
-                    return _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? Name;
-                }
-            }
-
             protected sealed override TypeSymbol ExplicitInterfaceType
             {
                 get
@@ -1118,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var binder = DeclaringCompilation.GetBinder(syntax);
                     InterlockedOperations.Initialize(
                         ref _lazyExplicitInterfaceMemberInfo,
-                        ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, syntax.Identifier.ValueText, binder, diagnostics),
+                        ExplicitInterfaceHelpers.GetMemberInfo(syntax.ExplicitInterfaceSpecifier, binder, diagnostics),
                         ExplicitInterfaceMemberInfo.Uninitialized);
                 }
             }
