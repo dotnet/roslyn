@@ -74,7 +74,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
                 if (_searchService != null)
                 {
                     var results = await _searchService.SearchProjectAsync(
-                        project, priorityDocuments.Where(d => d.Project == project).ToImmutableArray(), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchPattern, kinds, cancellationToken).ConfigureAwait(false);
                     foreach (var result in results)
                         await onResultFound(project, Convert(result)).ConfigureAwait(false);
                 }
