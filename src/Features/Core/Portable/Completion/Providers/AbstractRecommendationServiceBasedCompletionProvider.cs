@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string GetFilterText(ISymbol symbol, string displayText, TSyntaxContext context);
 
-
         protected sealed override async Task<ImmutableArray<SymbolAndSelectionInfo>> GetSymbolsAsync(
             CompletionContext? completionContext, TSyntaxContext context, int position, CompletionOptions options, CancellationToken cancellationToken)
         {
