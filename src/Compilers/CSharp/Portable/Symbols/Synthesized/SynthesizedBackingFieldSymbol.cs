@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourcePropertySymbolBase _property;
         internal override bool HasInitializer { get; }
 
-        private string _lazyMetadataName;
-
         public SynthesizedBackingFieldSymbol(
             SourcePropertySymbolBase property,
             string name,
@@ -94,20 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(property.RefKind is RefKind.None or RefKind.Ref or RefKind.RefReadOnly);
             _property = property;
             HasInitializer = hasInitializer;
-        }
-
-        public override string MetadataName
-        {
-            get
-            {
-                if (_lazyMetadataName is null)
-                {
-                    return InterlockedOperations.Initialize(ref _lazyMetadataName,
-                        GeneratedNames.MakeBackingFieldName(_property.MetadataName));
-                }
-
-                return _lazyMetadataName;
-            }
         }
 
         protected override IAttributeTargetSymbol AttributeOwner

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
         {
             return slotAllocatorOpt?.PreviousStateMachineTypeName ??
-                   GeneratedNames.MakeStateMachineTypeName(kickoffMethod.MetadataName, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+                   GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
         }
 
         public override Symbol ContainingSymbol

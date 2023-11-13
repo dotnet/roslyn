@@ -1371,9 +1371,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Struct:
-                    if (member.MetadataName == this.MetadataName)
+                    if (member.Name == this.Name)
                     {
-                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.MetadataName);
+                        diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.GetFirstLocation(), this.Name);
                     }
                     break;
                 case TypeKind.Interface:
