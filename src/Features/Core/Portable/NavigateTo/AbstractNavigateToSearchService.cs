@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -27,12 +28,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
-        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
-            Project project, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+        private static Func<ProjectKey, RoslynNavigateToItem, Task> GetOnItemFoundCallback(
+            Solution solution, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            return async item =>
+            return async (projectKey, item) =>
             {
-                var result = await item.TryCreateSearchResultAsync(project.Solution, activeDocument, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(projectKey.Id);
+                if (project is null)
+                    return;
+
+                var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     await onResultFound(project, result).ConfigureAwait(false);
             };

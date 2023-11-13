@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -53,24 +55,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public async Task SearchCachedDocumentsAsync(
-            Project project,
+            Solution solution,
+            IImmutableSet<Project> projects,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
+            // var solution = project.Solution;
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
-            var documentKeys = project.Documents.SelectAsArray(DocumentKey.ToDocumentKey);
+            var documentKeys = projects.SelectMany(p => p.Documents.Select(DocumentKey.ToDocumentKey)).ToImmutableArray();
             var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
 
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
+                var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     (service, callbackId, cancellationToken) =>
                         service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var storageService = solution.Services.GetPersistentStorageService();
             await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -90,27 +94,50 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<DocumentKey> priorityDocumentKeys,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
+            Func<ProjectKey, RoslynNavigateToItem, Task> onItemFound,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // Quick abort if OOP is now fully loaded.
             if (!ShouldSearchCachedDocuments(out _, out _))
                 return;
 
-            var highPriDocsSet = priorityDocumentKeys.ToSet();
-            var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
-
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, priorityDocumentKeys, cancellationToken).ConfigureAwait(false);
+            // Process the documents by project group.  That way, when each project is done, we can
+            // report that back to the host for progress.
+            var groups = documentKeys.GroupBy(d => d.Project).ToImmutableArray();
 
-            await SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            var priorityDocumentKeysSet = priorityDocumentKeys.ToHashSet();
+
+            // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those
+            // that don't).  We'll process the high pri groups first, then the low pri ones.
+            var highPriorityGroups = groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)).ToHashSet();
+            var lowPriorityGroups = groups.Where(g => !highPriorityGroups.Contains(g)).ToHashSet();
+            var orderedGroups = highPriorityGroups.Concat(lowPriorityGroups);
+
+            foreach (var group in orderedGroups)
+            {
+                var project = group.Key;
+
+                // Break the project into high-pri docs and low pri docs.
+                var highPriDocsSet = group.Where(priorityDocumentKeysSet.Contains).ToSet();
+                var highPriDocs = highPriDocsSet.ToImmutableArray();
+                var lowPriDocs = group.Where(d => !highPriDocsSet.Contains(d)).ToImmutableArray();
+
+                await SearchCachedDocumentsInCurrentProcessAsync(
+                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                    onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+
+                await SearchCachedDocumentsInCurrentProcessAsync(
+                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                    onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+
+                // done with project.  Let the host know.
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -118,7 +145,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string patternName,
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onItemFound,
+            Func<ProjectKey, RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {

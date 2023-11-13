@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -46,15 +47,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             => GetCallback(callbackId).OnResultFoundAsync(result);
     }
 
-    internal sealed class NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
+    internal sealed class NavigateToSearchServiceCallback(
+        Func<ProjectKey, RoslynNavigateToItem, Task> onResultFound,
+        Func<CancellationToken, Task> onProjectCompleted)
     {
-        private readonly Func<RoslynNavigateToItem, Task> _onResultFound = onResultFound;
-
-        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+        public async ValueTask OnResultFoundAsync(ProjectKey projectKey, RoslynNavigateToItem result)
         {
             try
             {
-                await _onResultFound(result).ConfigureAwait(false);
+                await onResultFound(result).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
+            {
+            }
+        }
+
+        public async ValueTask OnProjectCompletedAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
             {
