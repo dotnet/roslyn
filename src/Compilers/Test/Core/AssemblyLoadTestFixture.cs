@@ -168,7 +168,6 @@ using System.Text;
 
             AnalyzerWithLocResourceEnGB = GenerateDll("AnalyzerWithLoc.resources", _directory.CreateDirectory("en-GB"), AnalyzerWithLocResourceEnGBSource);
 
-
             const string Delta1Source = @"
 using System.Text;
 
