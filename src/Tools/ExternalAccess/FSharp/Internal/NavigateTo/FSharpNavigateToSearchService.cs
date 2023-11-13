@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Document? activeDocument,
             Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -43,43 +42,56 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
                 await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
         }
 
-        public async Task SearchProjectAsync(
-            Project project,
+        public async Task SearchProjectsAsync(
+            Solution solution,
+            ImmutableArray<Project> projects,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
-            var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+            foreach (var project in projects)
+            {
+                var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(project, new InternalFSharpNavigateToSearchResult(result)).ConfigureAwait(false);
+
+                await onProjectCompleted().ConfigureAwait(false);
+            }
         }
 
-        public Task SearchCachedDocumentsAsync(
-            Project project,
+        public async Task SearchCachedDocumentsAsync(
+            Solution solution,
+            ImmutableArray<Project> projects,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // we don't support searching cached documents.
-            return Task.CompletedTask;
+            foreach (var _ in projects)
+                await onProjectCompleted().ConfigureAwait(false);
         }
 
-        public Task SearchGeneratedDocumentsAsync(
-            Project project,
+        public async Task SearchGeneratedDocumentsAsync(
+            Solution solution,
+            ImmutableArray<Project> projects,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // we don't support searching generated documents.
-            return Task.CompletedTask;
+            foreach (var _ in projects)
+                await onProjectCompleted().ConfigureAwait(false);
         }
     }
 }
