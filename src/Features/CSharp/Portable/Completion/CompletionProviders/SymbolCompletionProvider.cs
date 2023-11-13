@@ -80,19 +80,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override string GetFilterText(ISymbol symbol, string displayText, CSharpSyntaxContext context)
             => GetFilterTextDefault(symbol, displayText, context);
 
-        protected override Task<bool> ShouldPreselectInferredTypesAsync(
+        protected override async Task<bool> ShouldPreselectInferredTypesAsync(
             CompletionContext? context,
             int position,
             CompletionOptions options,
             CancellationToken cancellationToken)
         {
             if (context is null)
-                return Task.FromResult(true);
+                return true;
 
             // Avoid preselection & hard selection when triggered via insertion in an argument list.
             // If an item is hard selected, then a user trying to type MethodCall() will get
             // MethodCall(someVariable) instead. We need only soft selected items to prevent this.
-            return IsTriggeredInArgumentListAsync(context, position, options, cancellationToken);
+            return !await IsTriggeredInArgumentListAsync(context, position, options, cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task<bool> ShouldProvideAvailableSymbolsInCurrentContextAsync(
