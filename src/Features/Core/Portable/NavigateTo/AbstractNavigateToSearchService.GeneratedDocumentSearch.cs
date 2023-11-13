@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             Document? activeDocument,
             Func<Project, INavigateToSearchResult, Task> onResultFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string pattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await ProcessDocumentsAsync(
                     searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToHashSet<Document>(), cancellationToken).ConfigureAwait(false);
 
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted().ConfigureAwait(false);
             }
         }
     }

@@ -37,7 +37,7 @@ internal interface INavigateToSearchService : ILanguageService
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -53,7 +53,7 @@ internal interface INavigateToSearchService : ILanguageService
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -67,6 +67,6 @@ internal interface INavigateToSearchService : ILanguageService
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
 }

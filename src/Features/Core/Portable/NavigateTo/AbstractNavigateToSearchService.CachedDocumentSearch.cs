@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             Document? activeDocument,
             Func<Project, INavigateToSearchResult, Task> onResultFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // Quick abort if OOP is now fully loaded.
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
 
                 // done with project.  Let the host know.
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted().ConfigureAwait(false);
             }
         }
 

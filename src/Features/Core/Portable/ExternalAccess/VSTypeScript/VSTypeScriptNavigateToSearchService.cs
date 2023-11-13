@@ -55,7 +55,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
@@ -80,7 +80,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
                         await onResultFound(project, Convert(result)).ConfigureAwait(false);
                 }
 
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted().ConfigureAwait(false);
             }
         }
     }
@@ -93,12 +93,12 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         // we don't support searching cached documents.
         foreach (var _ in projects)
-            await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+            await onProjectCompleted().ConfigureAwait(false);
     }
 
     public async Task SearchGeneratedDocumentsAsync(
@@ -108,12 +108,12 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         IImmutableSet<string> kinds,
         Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted,
+        Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
         // we don't support searching generated documents.
         foreach (var _ in projects)
-            await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+            await onProjectCompleted().ConfigureAwait(false);
     }
 
     private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)

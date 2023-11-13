@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Project project, ImmutableArray<Document> priorityDocuments,
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             try
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted().ConfigureAwait(false);
             }
         }
 

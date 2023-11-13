@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IImmutableSet<string> kinds,
             Document? activeDocument,
             Func<Project, INavigateToSearchResult, Task> onResultFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
-            Func<CancellationToken, Task> onProjectCompleted,
+            Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             var highPriProjects = priorityDocuments.Select(d => d.Project).ToHashSet();
