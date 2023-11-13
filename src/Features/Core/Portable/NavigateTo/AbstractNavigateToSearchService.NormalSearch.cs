@@ -3,19 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -26,11 +21,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, (_, i) => onResultFound(i), cancellationToken);
 
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
