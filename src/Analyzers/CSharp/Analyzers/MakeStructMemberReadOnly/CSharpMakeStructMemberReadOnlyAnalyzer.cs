@@ -196,9 +196,9 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             if (operation is IInstanceReferenceOperation)
                 return true;
 
-            // A reference of a primary constructor parameter is implicitly referencing 'this' instance
-            if (operation is IParameterReferenceOperation parameterReference &&
-                parameterReference.Parameter.IsPrimaryConstructor(cancellationToken))
+            // A primary constructor parameter implicitly references 'this' instance.
+            if (operation is IParameterReferenceOperation { Parameter: var parameter } &&
+                parameter.IsPrimaryConstructor(cancellationToken))
             {
                 return true;
             }
@@ -221,9 +221,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
         IOperation originalOperation,
         CancellationToken cancellationToken)
     {
-        // We only care if the parameter is a value type when looking at if it is somehow mutated with the
-        // operations that follow.
-        if (originalOperation is IParameterReferenceOperation && !IsPotentiallyValueType(originalOperation))
+        // We only care if operation is a value type when looking at if it is somehow mutated with the operations that
+        // are performed on it.  In other words.  `valueType.X = 0` is not allowed while `referenceType.X = 0` is fine
+        // (since the former actually mutates storage in 'this' which would prevent this method from becoming readonly.
+        if (!IsPotentiallyValueType(originalOperation))
             return false;
 
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
