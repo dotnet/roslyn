@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
-        private static Func<ProjectKey, RoslynNavigateToItem, Task> GetOnItemFoundCallback(
+        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
             Solution solution, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            return async (projectKey, item) =>
+            return async item =>
             {
-                var project = solution.GetProject(projectKey.Id);
+                var project = solution.GetProject(item.DocumentId.ProjectId);
                 if (project is null)
                     return;
 

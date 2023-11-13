@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     }
 
     internal sealed class NavigateToSearchServiceCallback(
-        Func<ProjectKey, RoslynNavigateToItem, Task> onResultFound,
+        Func<RoslynNavigateToItem, Task> onResultFound,
         Func<CancellationToken, Task> onProjectCompleted)
     {
-        public async ValueTask OnResultFoundAsync(ProjectKey projectKey, RoslynNavigateToItem result)
+        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
         {
             try
             {

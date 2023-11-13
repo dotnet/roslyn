@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray<DocumentKey> priorityDocumentKeys,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Func<ProjectKey, RoslynNavigateToItem, Task> onItemFound,
+            Func<RoslynNavigateToItem, Task> onItemFound,
             Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string patternName,
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
-            Func<ProjectKey, RoslynNavigateToItem, Task> onItemFound,
+            Func<RoslynNavigateToItem, Task> onItemFound,
             ImmutableArray<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {
