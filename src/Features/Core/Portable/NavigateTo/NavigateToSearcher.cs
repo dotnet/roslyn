@@ -116,10 +116,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
 
-                // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
-                // solution we're searching stays pinned between us and it while this is happening.
-                using var _ = RemoteKeepAliveSession.Create(_solution, _listener);
-
                 if (searchCurrentDocument)
                 {
                     await SearchCurrentDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -182,6 +178,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             if (isFullyLoaded)
             {
+                // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
+                // solution we're searching stays pinned between us and it while this is happening.
+                using var _ = RemoteKeepAliveSession.Create(_solution, _listener);
+
                 // We may do up to two passes.  One for loaded docs.  One for source generated docs.
                 await AddProgressItemsAsync(
                     projectCount * ((searchRegularDocuments ? 1 : 0) + (searchGeneratedDocuments ? 1 : 0)),
