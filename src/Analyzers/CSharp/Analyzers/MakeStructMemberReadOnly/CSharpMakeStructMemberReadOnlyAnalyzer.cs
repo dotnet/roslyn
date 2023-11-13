@@ -17,17 +17,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
+        EnforceOnBuildValues.MakeStructMemberReadOnly,
+        CSharpCodeStyleOptions.PreferReadOnlyStructMember,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
-               EnforceOnBuildValues.MakeStructMemberReadOnly,
-               CSharpCodeStyleOptions.PreferReadOnlyStructMember,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -175,10 +171,28 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             if (operation is IInvalidOperation)
                 return true;
 
-            if (operation is IInstanceReferenceOperation instanceOperation &&
-                InstanceReferencePotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+            if (operation is IInstanceReferenceOperation instanceOperation)
             {
-                return true;
+                // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
+                // then can't make this `readonly`.
+                if (!instanceOperation.IsImplicit &&
+                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
+                {
+                    return true;
+                }
+
+                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+                    return true;
+            }
+            else if (operation is IParameterReferenceOperation parameterReference &&
+                parameterReference.Parameter.IsPrimaryConstructor(cancellationToken))
+            {
+                // If we're writing to a primary constructor parameter, we can't make this method `readonly`
+                if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, parameterReference.Syntax, cancellationToken))
+                    return true;
+
+                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, parameterReference, cancellationToken))
+                    return true;
             }
         }
 
@@ -193,22 +207,14 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
     }
 
-    private static bool InstanceReferencePotentiallyMutatesThis(
+    private static bool OperationPotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
-        IInstanceReferenceOperation instanceOperation,
+        IOperation original,
         CancellationToken cancellationToken)
     {
-        // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
-        // then can't make this `readonly`.
-        if (!instanceOperation.IsImplicit &&
-            CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
-        {
-            return true;
-        }
-
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
-        for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
+        for (var operation = original.Parent; operation != null; operation = operation.Parent)
         {
             // Had a parent we didn't understand.  Assume that 'this' could be mutated.
             if (operation.Kind == OperationKind.None)

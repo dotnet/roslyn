@@ -1736,4 +1736,203 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference0()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value = 0;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value = (short)(value & ~(1 << candidate));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(short value)
+                {
+                    public readonly short Value => value;
+
+                    public void RemoveBit(int candidate)
+                    {
+                        value++;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.X++;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.X = 1;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value.MutatingMethod();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public readonly void NonMutatingMethod() { }
+                }
+                
+                struct Cell(Point value)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        value.NonMutatingMethod();
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Point
+                {
+                    public int X;
+
+                    public readonly void NonMutatingMethod() { }
+                }
+                
+                struct Cell(Point value)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        value.NonMutatingMethod();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(int value)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        var x = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                struct Cell(int value)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        var x = value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
