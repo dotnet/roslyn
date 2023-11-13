@@ -1307,18 +1307,20 @@ class YAttribute : System.Attribute { }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/70791")]
     public void FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1_DeepRecursion()
     {
-        var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 5000));
+        var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 20_000));
         var source = $$"""
-            [N1.X]
-            class C1 { }
-            [N2.X]
-            class C2
+            class Ex
             {
                 void M()
                 {
                     var v ={{deeplyRecursive}};
                 }
             }
+
+            [N1.X]
+            class C1 { }
+            [N2.X]
+            class C2 { }
 
             namespace N1
             {
