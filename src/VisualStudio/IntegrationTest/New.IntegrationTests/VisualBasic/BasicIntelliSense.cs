@@ -31,6 +31,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         {
             await base.InitializeAsync();
 
+            // Try disable the responsive completion option again: https://github.com/dotnet/roslyn/issues/70787
+            await TestServices.StateReset.DisableResponsiveCompletion(HangMitigatingCancellationToken);
+
             // Disable import completion.
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
             globalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, false);
