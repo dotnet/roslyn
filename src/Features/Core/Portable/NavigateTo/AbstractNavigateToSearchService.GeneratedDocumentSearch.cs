@@ -60,11 +60,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            // 
+            // Projects is already sorted in dependency order by the host.  Process in that order so that prior
+            // compilations are available for later projects when needed.
+            foreach (var project in projects)
+            {
+                // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
+                var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                await ProcessDocumentsAsync(
+                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
 
-            // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
-            var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

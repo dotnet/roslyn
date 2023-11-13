@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public async Task SearchCachedDocumentsAsync(
             Solution solution,
-            IImmutableSet<Project> projects,
+            ImmutableArray<Project> projects,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
