@@ -16,10 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Private ReadOnly _options As VisualBasicCompilationOptions
         Private ReadOnly _parseOptions As VisualBasicParseOptions
         Private ReadOnly _targetFramework As TargetFramework
+        Private ReadOnly _references As IEnumerable(Of MetadataReference)
 
         Sub New(Optional options As VisualBasicCompilationOptions = Nothing,
                 Optional parseOptions As VisualBasicParseOptions = Nothing,
                 Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime,
+                Optional references As IEnumerable(Of MetadataReference) = Nothing,
                 Optional verification As Verification? = Nothing)
 
             MyBase.New(verification)
@@ -27,10 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             _options = If(options, TestOptions.DebugDll).WithConcurrentBuild(False)
             _parseOptions = If(parseOptions, TestOptions.Regular)
             _targetFramework = targetFramework
+            _references = references
         End Sub
 
         Protected Overrides Function CreateCompilation(tree As SyntaxTree) As Compilation
-            Return CompilationUtils.CreateCompilation(tree, options:=_options, targetFramework:=_targetFramework)
+            Return CompilationUtils.CreateCompilation(tree, _references, options:=_options, targetFramework:=_targetFramework)
         End Function
 
         Protected Overrides Function CreateSourceWithMarkedNodes(source As String) As SourceWithMarkedNodes
