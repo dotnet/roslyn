@@ -101,11 +101,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Make sure responsive completion doesn't interfere if integration tests run slowly.
             await DisableResponsiveCompletion(cancellationToken);
 
-            // Disable frozen partial semantics
-            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
-            var hook = workspace.Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
-            hook.IsPartialSolutionDisabled = true;
-
             await CloseActiveWindowsAsync(cancellationToken);
         }
 
