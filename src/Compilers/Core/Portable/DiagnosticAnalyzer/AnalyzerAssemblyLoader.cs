@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableHashSet<string>.Empty;
                 }
 
-                var resourceFileName = Path.ChangeExtension(Path.GetFileName(originalAnalyzerPath), ".resources.dll");
+                var resourceFileName = GetSatelliteFileName(Path.GetFileName(originalAnalyzerPath));
                 var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                 do
                 {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the real load paths the satellite assembly given the original path to the analyzer 
+        /// Get the real load path of the satellite assembly given the original path to the analyzer 
         /// and the desired culture name.
         /// </summary>
         protected string? GetSatelliteInfoForPath(string originalAnalyzerPath, string cultureName)
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract string PreparePathToLoad(string assemblyFilePath, ImmutableHashSet<string> resourceAssemblyCultureNames);
 
         /// <summary>
-        /// When <see cref="PreparePathToLoad(string, ImmutableHashSet{string})"/> is overriden this returns the most recent
+        /// When <see cref="PreparePathToLoad(string, ImmutableHashSet{string})"/> is overridden this returns the most recent
         /// real path calculated for the <paramref name="originalFullPath"/>
         /// </summary>
         internal string GetRealAnalyzerLoadPath(string originalFullPath)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// When <see cref="PreparePathToLoad(string, ImmutableHashSet{string})"/> is overriden this returns the most recent
+        /// When <see cref="PreparePathToLoad(string, ImmutableHashSet{string})"/> is overridden this returns the most recent
         /// real path for the given analyzer satellite assembly path
         /// </summary>
         internal string? GetRealSatelliteLoadPath(string originalSatelliteFullPath)
