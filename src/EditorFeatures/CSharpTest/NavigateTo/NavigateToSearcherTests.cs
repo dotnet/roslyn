@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
     public class NavigateToSearcherTests
     {
         private static void SetupSearchProject(
-            Mock<INavigateToSearchService> searchService,
+            Mock<IAdvancedNavigateToSearchService> searchService,
             string pattern,
             bool isFullyLoaded,
             INavigateToSearchResult? result)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var result = new TestNavigateToSearchResult(workspace, new TextSpan(0, 0));
 
-            var searchService = new Mock<INavigateToSearchService>(MockBehavior.Strict);
+            var searchService = new Mock<IAdvancedNavigateToSearchService>(MockBehavior.Strict);
             SetupSearchProject(searchService, pattern, isFullyLoaded: false, result);
 
             // Simulate a host that says the solution isn't fully loaded.
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var result = new TestNavigateToSearchResult(workspace, new TextSpan(0, 0));
 
-            var searchService = new Mock<INavigateToSearchService>(MockBehavior.Strict);
+            var searchService = new Mock<IAdvancedNavigateToSearchService>(MockBehavior.Strict);
 
             // First call will pass in that we're not fully loaded.  If we return null, we should get
             // another call with the request to search the fully loaded data.
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var pattern = "irrelevant";
 
-            var searchService = new Mock<INavigateToSearchService>(MockBehavior.Strict);
+            var searchService = new Mock<IAdvancedNavigateToSearchService>(MockBehavior.Strict);
 
             // First call will pass in that we're not fully loaded.  If we return null, we should get another call with
             // the request to search the fully loaded data.  If we don't report anything the second time, we will still
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 
             var result = new TestNavigateToSearchResult(workspace, new TextSpan(0, 0));
 
-            var searchService = new Mock<INavigateToSearchService>(MockBehavior.Strict);
+            var searchService = new Mock<IAdvancedNavigateToSearchService>(MockBehavior.Strict);
 
             // First call will pass in that we're fully loaded.  If we return null, we should not get another call.
             SetupSearchProject(searchService, pattern, isFullyLoaded: true, result: null);
