@@ -171,20 +171,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             if (operation is IInvalidOperation)
                 return true;
 
-            if (ReferencesThisInstance(operation, cancellationToken))
+            if (ReferencesThisInstance(operation, cancellationToken) &&
+                OperationPotentiallyMutatesThis(semanticModel, owningMethod, operation, cancellationToken))
             {
-                // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
-                // then can't make this `readonly`.
-                if (!operation.IsImplicit &&
-                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
-                {
-                    return true;
-                }
-
-                // Otherwise, see if the instance value is itself mutated in some way (like writing into one of its
-                // fields, or calling a mutating method on it).  That would itself then mutate this type.
-                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, operation, cancellationToken))
-                    return true;
+                return true;
             }
         }
 
@@ -218,17 +208,25 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
     private static bool OperationPotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
-        IOperation originalOperation,
+        IOperation instanceOperation,
         CancellationToken cancellationToken)
     {
+        // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
+        // then can't make this `readonly`.
+        if (!instanceOperation.IsImplicit &&
+            CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
+        {
+            return true;
+        }
+
         // We only care if operation is a value type when looking at if it is somehow mutated with the operations that
         // are performed on it.  In other words.  `valueType.X = 0` is not allowed while `referenceType.X = 0` is fine
         // (since the former actually mutates storage in 'this' which would prevent this method from becoming readonly.
-        if (!IsPotentiallyValueType(originalOperation))
+        if (!IsPotentiallyValueType(instanceOperation))
             return false;
 
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
-        for (var operation = originalOperation.Parent; operation != null; operation = operation.Parent)
+        for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
         {
             // Had a parent we didn't understand.  Assume that 'this' could be mutated.
             if (operation.Kind == OperationKind.None)
