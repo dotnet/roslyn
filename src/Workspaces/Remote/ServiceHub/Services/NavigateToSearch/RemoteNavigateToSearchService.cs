@@ -30,12 +30,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
+        private (Func<RoslynNavigateToItem, Task> onItemFound, Func<CancellationToken, Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, c) =>
+            Func<RoslynNavigateToItem, Task> onItemFound = async i => await _callback.InvokeAsync((callback, c) =>
                 callback.OnResultFoundAsync(callbackId, i),
                 cancellationToken).ConfigureAwait(false);
+
+            Func<CancellationToken, Task> onProjectCompleted = async c => await _callback.InvokeAsync((callback, c) => callback.)
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask SearchGeneratedDocumentsAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
+            ImmutableArray<ProjectId> projectIds,
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
@@ -96,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var project = solution.GetRequiredProject(projectId);
+                var projects = projectIds.SelectAsArray(solution.GetRequiredProject);
                 var callback = GetCallback(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    projects, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

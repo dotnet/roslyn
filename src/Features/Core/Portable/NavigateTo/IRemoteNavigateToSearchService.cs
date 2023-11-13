@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -28,23 +27,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public interface ICallback
         {
             ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+            ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
         }
     }
 
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteNavigateToSearchService)), Shared]
-    internal sealed class NavigateToSearchServiceServerCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteNavigateToSearchService.ICallback
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteNavigateToSearchService.ICallback
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NavigateToSearchServiceServerCallbackDispatcher()
-        {
-        }
-
         private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
         public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
             => GetCallback(callbackId).OnResultFoundAsync(result);
+
+        public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
+            => GetCallback(callbackId).OnProjectCompletedAsync();
     }
 
     internal sealed class NavigateToSearchServiceCallback(
@@ -62,14 +61,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        public async ValueTask OnProjectCompletedAsync(CancellationToken cancellationToken)
+        public async ValueTask OnProjectCompletedAsync()
         {
             try
             {
                 if (onProjectCompleted is null)
                     return;
 
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                await onProjectCompleted().ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
             {
