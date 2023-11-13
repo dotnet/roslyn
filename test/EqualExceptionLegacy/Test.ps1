@@ -41,7 +41,7 @@ if ($LASTEXITCODE -ne 1) {
 
 $ns = @{"n" = "http://microsoft.com/schemas/VisualStudio/TeamTest/2010"}
 $trxPath = Get-ChildItem "$CurrentTestResultsDir\*.trx" | sort LastWriteTime | select -last 1
-if (-not (Test-Path $trxPath)) {
+if ((-not $trxPath) -or (-not (Test-Path $trxPath))) {
     Write-Host "Failed to find test results"
     Exit 1
 }
