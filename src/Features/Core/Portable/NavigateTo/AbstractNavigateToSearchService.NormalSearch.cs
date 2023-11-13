@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             return SearchProjectInCurrentProcessAsync(
                 document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document, searchPattern, kinds,
-                onItemFound, _ => Task.CompletedTask, cancellationToken);
+                onItemFound, () => Task.CompletedTask, cancellationToken);
         }
 
         public async Task SearchProjectsAsync(

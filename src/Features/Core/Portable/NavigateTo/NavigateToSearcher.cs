@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<CancellationToken, Task>, Task> processProjectAsync,
+            Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         return _callback.AddItemAsync(project, result, cancellationToken);
                     },
-                    cancellationToken => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
+                    () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
             }
         }
 

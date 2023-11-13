@@ -30,14 +30,18 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
-        private (Func<RoslynNavigateToItem, Task> onItemFound, Func<CancellationToken, Task> onProjectCompleted) GetCallbacks(
+        private (Func<RoslynNavigateToItem, Task> onItemFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            Func<RoslynNavigateToItem, Task> onItemFound = async i => await _callback.InvokeAsync((callback, c) =>
+            Func<RoslynNavigateToItem, Task> onItemFound = async i => await _callback.InvokeAsync((callback, _) =>
                 callback.OnResultFoundAsync(callbackId, i),
                 cancellationToken).ConfigureAwait(false);
 
-            Func<CancellationToken, Task> onProjectCompleted = async c => await _callback.InvokeAsync((callback, c) => callback.)
+            Func<Task> onProjectCompleted = async () => await _callback.InvokeAsync((callback, _) =>
+                callback.OnProjectCompletedAsync(callbackId),
+                cancellationToken).ConfigureAwait(false);
+
+            return (onItemFound, onProjectCompleted);
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -60,16 +64,16 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var document = solution.GetRequiredDocument(documentId);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var (onItemFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    document, searchPattern, kinds.ToImmutableHashSet(), onItemFound, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
         public ValueTask SearchProjectAsync(
             Checksum solutionChecksum,
-            ProjectId projectId,
+            ImmutableArray<ProjectId> projectIds,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
@@ -78,13 +82,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var projects = projectIds.SelectAsArray(solution.GetRequiredProject);
+                var (onItemFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                await AbstractNavigateToSearchService.SearchProjectsInCurrentProcessAsync(
+                    projects, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -99,24 +103,30 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var projects = projectIds.SelectAsArray(solution.GetRequiredProject);
-                var callback = GetCallback(callbackId, cancellationToken);
+                var (onItemFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    projects, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    projects, searchPattern, kinds.ToImmutableHashSet(), onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask SearchCachedDocumentsAsync(
+            ImmutableArray<DocumentKey> documentKeys,
+            ImmutableArray<DocumentKey> priorityDocumentKeys,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            RemoteServiceCallbackId callbackId,
+            CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
                 // synchronizing the solution over to the remote side.  Instead, we just directly
                 // check whatever cached data we have from the previous vs session.
-                var callback = GetCallback(callbackId, cancellationToken);
+                var (onItemFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
                 var storageService = GetWorkspaceServices().GetPersistentStorageService();
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string patternName,
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound,
+            Func<RoslynNavigateToItem, Task> onItemFound,
             HashSet<Document> documents,
             CancellationToken cancellationToken)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     continue;
 
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onResultFound, cancellationToken));
+                tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onItemFound, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
