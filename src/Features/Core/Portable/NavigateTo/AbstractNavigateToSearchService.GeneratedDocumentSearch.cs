@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -24,6 +25,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(projects.IsEmpty);
+            Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);

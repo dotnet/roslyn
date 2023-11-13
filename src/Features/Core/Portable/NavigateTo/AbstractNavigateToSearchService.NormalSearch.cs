@@ -62,6 +62,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(projects.IsEmpty);
+            Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
             Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 

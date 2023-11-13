@@ -57,6 +57,9 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken)
     {
+        Contract.ThrowIfTrue(projects.IsEmpty);
+        Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
         using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
 
         foreach (var group in priorityDocuments.GroupBy(d => d.Project))

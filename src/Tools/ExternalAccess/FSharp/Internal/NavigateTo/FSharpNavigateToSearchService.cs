@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
@@ -53,6 +56,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(projects.IsEmpty);
+            Contract.ThrowIfTrue(projects.Select(p => p.Language).Distinct().Count() != 1);
+
             foreach (var project in projects)
             {
                 var results = await _service.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
