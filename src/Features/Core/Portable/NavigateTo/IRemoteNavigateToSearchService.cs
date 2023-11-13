@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
     internal sealed class NavigateToSearchServiceCallback(
         Func<RoslynNavigateToItem, Task> onResultFound,
-        Func<CancellationToken, Task> onProjectCompleted)
+        Func<CancellationToken, Task>? onProjectCompleted)
     {
         public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
         {
@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             try
             {
+                if (onProjectCompleted is null)
+                    return;
+
                 await onProjectCompleted(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))

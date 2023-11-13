@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            // Document? activeDocument,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
+            var onItemFound = GetOnItemFoundCallback(solution, activeDocument: null, onResultFound, cancellationToken);
 
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
+                var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted: null);
                 // Don't need to sync the full solution when searching a single document.  Just sync the project that doc is in.
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     document.Project,
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onItemFound, CancellationToken cancellationToken)
         {
             return SearchProjectInCurrentProcessAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document,
-                searchPattern, kinds, onItemFound, cancellationToken);
+                document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document, searchPattern, kinds, onItemFound, cancellationToken);
         }
 
         public async Task SearchProjectAsync(

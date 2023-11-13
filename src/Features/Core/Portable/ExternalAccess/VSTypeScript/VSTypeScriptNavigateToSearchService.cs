@@ -49,7 +49,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
 
     public async Task SearchProjectsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
@@ -87,7 +87,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
 
     public async Task SearchCachedDocumentsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
@@ -103,7 +103,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
 
     public async Task SearchGeneratedDocumentsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,

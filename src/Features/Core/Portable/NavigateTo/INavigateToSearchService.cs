@@ -36,7 +36,7 @@ internal interface INavigateToSearchService : ILanguageService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
-        // Document? activeDocument,
+        Document? activeDocument,
         Func<Project, INavigateToSearchResult, Task> onResultFound,
         Func<CancellationToken, Task> onProjectCompleted,
         CancellationToken cancellationToken);
