@@ -328,17 +328,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     await Task.WhenAll(allTasks).ConfigureAwait(false);
 
                 }
-
-                //if (!parallel)
-                //{
-                //    foreach (var project in projectGroup)
-                //        await SearchCoreAsync(project).ConfigureAwait(false);
-                //}
-                //else
-                //{
-                //    var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p), cancellationToken));
-                //    await Task.WhenAll(allTasks).ConfigureAwait(false);
-                //}
             }
 
             return;
