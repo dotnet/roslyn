@@ -216,6 +216,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         protected abstract ExplicitInterfaceMemberInfo? GetExplicitInterfaceMemberInfo(Binder binder, BindingDiagnosticBag diagnostics);
 
+        private void EnsureExplicitInterfaceType()
+        {
+            if (_lazyExplicitInterfaceMemberInfo == ExplicitInterfaceMemberInfo.Uninitialized)
+            {
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                BindExplicitInterfaceType(diagnostics);
+                AddDeclarationDiagnostics(diagnostics);
+                diagnostics.Free();
+            }
+        }
+
         protected override void BindExplicitInterfaceType(BindingDiagnosticBag diagnostics)
         {
             if (_lazyExplicitInterfaceMemberInfo == ExplicitInterfaceMemberInfo.Uninitialized)
@@ -336,7 +347,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected sealed override TypeSymbol? ExplicitInterfaceType => _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+        protected sealed override TypeSymbol? ExplicitInterfaceType
+        {
+            get
+            {
+                EnsureExplicitInterfaceType();
+                return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+            }
+        }
 #nullable disable
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)

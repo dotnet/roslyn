@@ -813,6 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // property name location for any such errors. We'll do the same for return
             // type errors but for parameter errors, we'll use the parameter location.
 
+            EnsureSignature();
             if (_lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType is { } explicitInterfaceType)
             {
                 var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier();

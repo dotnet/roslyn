@@ -989,9 +989,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     : new TypeParameterInfo { LazyTypeParameters = typeParameters };
             }
 
-            public override string MetadataName => _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? Name;
+            public override string MetadataName
+            {
+                get
+                {
+                    EnsureExplicitInterfaceType();
+                    return _lazyExplicitInterfaceMemberInfo?.MemberMetadataName ?? Name;
+                }
+            }
 
-            protected sealed override TypeSymbol ExplicitInterfaceType => _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+            protected sealed override TypeSymbol ExplicitInterfaceType
+            {
+                get
+                {
+                    EnsureExplicitInterfaceType();
+                    return _lazyExplicitInterfaceMemberInfo?.ExplicitInterfaceType;
+                }
+            }
+
             internal sealed override SourceOrdinaryMethodSymbol OtherPartOfPartial => _otherPartOfPartial;
 
             internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbolComplex definition, SourceOrdinaryMethodSymbolComplex implementation)
@@ -1081,6 +1096,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var syntax = this.GetSyntax();
                     Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
                     explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                }
+            }
+
+            private void EnsureExplicitInterfaceType()
+            {
+                if (_lazyExplicitInterfaceMemberInfo == ExplicitInterfaceMemberInfo.Uninitialized)
+                {
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
+                    BindExplicitInterfaceType(diagnostics);
+                    AddDeclarationDiagnostics(diagnostics);
+                    diagnostics.Free();
                 }
             }
 
