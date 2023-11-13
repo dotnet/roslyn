@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -35,9 +36,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             return async item =>
             {
-                var project = solution.GetProject(item.DocumentId.ProjectId);
-                if (project is null)
-                    return;
+                // This must succeed.  We should always be searching for items that correspond to documents/projects in
+                // the host side solution.  Note: this even includes 'cached' items.  While those may correspond to
+                // stale versions of a document, it should still be for documents that the host has asked about.
+                var project = solution.GetRequiredProject(item.DocumentId.ProjectId);
 
                 var result = await item.TryCreateSearchResultAsync(solution, activeDocument, cancellationToken).ConfigureAwait(false);
                 if (result != null)
