@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -752,6 +753,67 @@ namespace N
         {
 {|changed:            [|throw new NotImplementedException();|]
             throw |}new NotImplementedException();
+        }
+
+        void M3()
+        {
+        }
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestDeleteInDeeplyNestedExpression() As Task
+            Dim binaryExp As New StringBuilder()
+            For j = 0 To 10000
+                binaryExp.Append(j)
+                binaryExp.Append(" + ")
+            Next
+            Await TestCSharp(
+"
+using X;
+
+public class C
+{
+    void M1()
+    {
+    }
+
+    void M2()
+    {
+        var x = {|changed:" + binaryExp.ToString() + "[|1 +|] |}" + binaryExp.ToString() + "1;
+    }
+
+    void M3()
+    {
+    }
+}
+", "")
+        End Function
+
+        <Fact>
+        Public Async Function TestDeleteInDeeplyNestedExpression_A() As Task
+            Dim binaryExp As New StringBuilder()
+            For j = 0 To 10000
+                binaryExp.Append(j)
+                binaryExp.Append(" + ")
+            Next
+            Await TestCSharp(
+"
+using X;
+
+namespace N
+{
+    public class C
+    {
+        void M1()
+        {
+        }
+
+        void M2()
+        {
+            var x = {|changed:" + binaryExp.ToString() + "[|1 +|] |}" + binaryExp.ToString() + "1;
         }
 
         void M3()
