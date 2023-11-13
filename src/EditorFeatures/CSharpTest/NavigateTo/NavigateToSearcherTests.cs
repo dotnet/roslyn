@@ -33,42 +33,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             if (isFullyLoaded)
             {
                 // First do a full search
-                searchService.Setup(ss => ss.SearchProjectAsync(
-                    It.IsAny<Project>(),
+                searchService.Setup(ss => ss.SearchProjectsAsync(
+                    It.IsAny<Solution>(),
+                    It.IsAny<ImmutableArray<Project>>(),
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
+                    (Solution solution,
+                     ImmutableArray<Project> projects,
                      ImmutableArray<Document> priorityDocuments,
                      string pattern,
                      IImmutableSet<string> kinds,
                      Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound,
+                     Func<Project, INavigateToSearchResult, Task> onResultFound,
+                     Func<Task> onProjectCompleted,
                      CancellationToken cancellationToken) =>
                     {
                         if (result != null)
-                            onResultFound(result);
+                            onResultFound(null!, result);
                     }).Returns(Task.CompletedTask);
 
                 searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
-                    It.IsAny<Project>(),
+                    It.IsAny<Solution>(),
+                    It.IsAny<ImmutableArray<Project>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
+                    (Solution solution,
+                     ImmutableArray<Project> projects,
                      string pattern,
                      IImmutableSet<string> kinds,
                      Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound,
+                     Func<Project, INavigateToSearchResult, Task> onResultFound,
+                     Func<Task> onProjectCompleted,
                      CancellationToken cancellationToken) =>
                     {
                         if (result != null)
-                            onResultFound(result);
+                            onResultFound(null!, result);
                     }).Returns(Task.CompletedTask);
 
                 // Followed by a generated doc search.
@@ -76,23 +84,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             else
             {
                 searchService.Setup(ss => ss.SearchCachedDocumentsAsync(
-                    It.IsAny<Project>(),
+                    It.IsAny<Solution>(),
+                    It.IsAny<ImmutableArray<Project>>(),
                     It.IsAny<ImmutableArray<Document>>(),
                     pattern,
                     ImmutableHashSet<string>.Empty,
                     It.IsAny<Document?>(),
-                    It.IsAny<Func<INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Project, INavigateToSearchResult, Task>>(),
+                    It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>())).Callback(
-                    (Project project,
+                    (Solution solution,
+                     ImmutableArray<Project> projects,
                      ImmutableArray<Document> priorityDocuments,
                      string pattern2,
                      IImmutableSet<string> kinds,
                      Document? activeDocument,
-                     Func<INavigateToSearchResult, Task> onResultFound2,
+                     Func<Project, INavigateToSearchResult, Task> onResultFound2,
+                     Func<Task> onProjectCompleted,
                      CancellationToken cancellationToken) =>
                     {
                         if (result != null)
-                            onResultFound2(result);
+                            onResultFound2(null!, result);
                     }).Returns(Task.CompletedTask);
             }
         }
