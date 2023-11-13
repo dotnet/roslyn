@@ -5,7 +5,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
     <PackageVersion Include="xunit" Version="2.6.1" />
   </ItemGroup>
