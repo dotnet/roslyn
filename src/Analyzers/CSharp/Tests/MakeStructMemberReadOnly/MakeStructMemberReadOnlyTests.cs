@@ -1935,4 +1935,104 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct Cell(string value)
+                {
+                    public void RemoveBit(int candidate)
+                    {
+                        value = "";
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+
+                struct Cell(Point point)
+                {
+                    public void [|RemoveBit|](int candidate)
+                    {
+                        point.X = 1;
+                    }
+                }
+                """,
+            FixedCode = """
+                class Point
+                {
+                    public int X;
+
+                    public void MutatingMethod() => X++;
+                }
+
+                struct Cell(Point point)
+                {
+                    public readonly void RemoveBit(int candidate)
+                    {
+                        point.X = 1;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            class Point
+            {
+                public int X;
+
+                public void MutatingMethod() => X++;
+            }
+
+            struct Cell(Point point)
+            {
+                public void [|RemoveBit|](int candidate)
+                {
+                    point.MutatingMethod();
+                }
+            }
+            """,
+            FixedCode = """
+            class Point
+            {
+                public int X;
+
+                public void MutatingMethod() => X++;
+            }
+
+            struct Cell(Point point)
+            {
+                public readonly void RemoveBit(int candidate)
+                {
+                    point.MutatingMethod();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

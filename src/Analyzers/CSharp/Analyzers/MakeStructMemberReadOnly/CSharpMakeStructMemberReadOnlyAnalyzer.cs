@@ -171,32 +171,40 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             if (operation is IInvalidOperation)
                 return true;
 
-            if (operation is IInstanceReferenceOperation instanceOperation)
+            if (ReferencesThisInstance(operation, cancellationToken))
             {
                 // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
                 // then can't make this `readonly`.
-                if (!instanceOperation.IsImplicit &&
-                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, instanceOperation.Syntax, cancellationToken))
+                if (!operation.IsImplicit &&
+                    CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
                 {
                     return true;
                 }
 
-                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
-                    return true;
-            }
-            else if (operation is IParameterReferenceOperation parameterReference &&
-                parameterReference.Parameter.IsPrimaryConstructor(cancellationToken))
-            {
-                // If we're writing to a primary constructor parameter, we can't make this method `readonly`
-                if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, parameterReference.Syntax, cancellationToken))
-                    return true;
-
-                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, parameterReference, cancellationToken))
+                // Otherwise, see if the instance value is itself mutated in some way (like writing into one of its
+                // fields, or calling a mutating method on it).  That would itself then mutate this type.
+                if (OperationPotentiallyMutatesThis(semanticModel, owningMethod, operation, cancellationToken))
                     return true;
             }
         }
 
         return false;
+
+        static bool ReferencesThisInstance(IOperation operation, CancellationToken cancellationToken)
+        {
+            // An actual usage of `this` or `base` in the code.
+            if (operation is IInstanceReferenceOperation)
+                return true;
+
+            // A reference of a primary constructor parameter is implicitly referencing 'this' instance
+            if (operation is IParameterReferenceOperation parameterReference &&
+                parameterReference.Parameter.IsPrimaryConstructor(cancellationToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static bool IsPotentiallyValueType(IOperation? instance)
@@ -210,11 +218,16 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
     private static bool OperationPotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
-        IOperation original,
+        IOperation originalOperation,
         CancellationToken cancellationToken)
     {
+        // We only care if the parameter is a value type when looking at if it is somehow mutated with the
+        // operations that follow.
+        if (originalOperation is IParameterReferenceOperation { Parameter.Type.IsReferenceType: true })
+            return false;
+
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
-        for (var operation = original.Parent; operation != null; operation = operation.Parent)
+        for (var operation = originalOperation.Parent; operation != null; operation = operation.Parent)
         {
             // Had a parent we didn't understand.  Assume that 'this' could be mutated.
             if (operation.Kind == OperationKind.None)
