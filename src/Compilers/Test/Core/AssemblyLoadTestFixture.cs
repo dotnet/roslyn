@@ -143,7 +143,7 @@ namespace AnalyzerWithLoc
         {
             try
             {
-                var ci = new CultureInfo("en-GB");
+                var ci = new CultureInfo(culture);
                 var rm = new ResourceManager("rmc", typeof(Util).Assembly);
                 _ = rm.GetString("hello", ci);
             }
