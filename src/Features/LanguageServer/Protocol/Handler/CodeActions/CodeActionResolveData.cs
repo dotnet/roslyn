@@ -38,13 +38,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public RoslynNestedCodeAction? NestedCodeAction { get; }
 
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[]? CodeActionPath { get; }
+
         public CodeActionResolveData(
             string uniqueIdentifier,
             ImmutableArray<string> customTags,
             LSP.Range range,
             LSP.TextDocumentIdentifier textDocument,
             string[]? fixAllFlavors,
-            RoslynNestedCodeAction? nestedCodeAction)
+            RoslynNestedCodeAction? nestedCodeAction,
+            string[]? codeActionPath)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
@@ -52,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             TextDocument = textDocument;
             FixAllFlavors = fixAllFlavors;
             NestedCodeAction = nestedCodeAction;
+            CodeActionPath = codeActionPath;
         }
     }
 }

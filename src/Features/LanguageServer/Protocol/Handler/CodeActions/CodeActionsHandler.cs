@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;

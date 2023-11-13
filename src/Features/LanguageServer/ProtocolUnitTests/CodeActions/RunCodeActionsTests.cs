@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 Uri = caretLocation.Uri
             };
 
-            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, documentId, fixAllFlavors: null, nestedCodeAction: null);
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), customTags: ImmutableArray<string>.Empty, caretLocation.Range, documentId, fixAllFlavors: null, nestedCodeAction: null, codeActionPath: null);
 
             var results = await ExecuteRunCodeActionCommandAsync(testLspServer, commandArgument);
 
