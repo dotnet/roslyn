@@ -42,7 +42,14 @@ internal interface INavigateToSearchService : ILanguageService
         Func<Project, INavigateToSearchResult, Task> onResultFound,
         Func<Task> onProjectCompleted,
         CancellationToken cancellationToken);
+}
 
+/// <summary>
+/// Optional expanded API for Navigate-To.  Allows languages to just implement a simpler set of methods if they don't
+/// offer this extra functionality.
+/// </summary>
+internal interface IAdvancedNavigateToSearchService : INavigateToSearchService
+{
     /// <summary>
     /// Searches the documents inside <paramref name="projects"/> for symbols that matches <paramref
     /// name="searchPattern"/>. Results should be reported from a previous computed cache (even if that cache is out of

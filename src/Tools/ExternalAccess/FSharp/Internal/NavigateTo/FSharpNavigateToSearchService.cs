@@ -62,36 +62,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
                 await onProjectCompleted().ConfigureAwait(false);
             }
         }
-
-        public async Task SearchCachedDocumentsAsync(
-            Solution solution,
-            ImmutableArray<Project> projects,
-            ImmutableArray<Document> priorityDocuments,
-            string searchPattern,
-            IImmutableSet<string> kinds,
-            Document? activeDocument,
-            Func<Project, INavigateToSearchResult, Task> onResultFound,
-            Func<Task> onProjectCompleted,
-            CancellationToken cancellationToken)
-        {
-            // we don't support searching cached documents.
-            foreach (var _ in projects)
-                await onProjectCompleted().ConfigureAwait(false);
-        }
-
-        public async Task SearchGeneratedDocumentsAsync(
-            Solution solution,
-            ImmutableArray<Project> projects,
-            string searchPattern,
-            IImmutableSet<string> kinds,
-            Document? activeDocument,
-            Func<Project, INavigateToSearchResult, Task> onResultFound,
-            Func<Task> onProjectCompleted,
-            CancellationToken cancellationToken)
-        {
-            // we don't support searching generated documents.
-            foreach (var _ in projects)
-                await onProjectCompleted().ConfigureAwait(false);
-        }
     }
 }

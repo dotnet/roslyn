@@ -399,8 +399,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, ps, cb1, cb2) => s.SearchCachedDocumentsAsync(
-                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
+                async (service, projects, onItemFound, onProjectCompleted) =>
+                {
+                    // if the language doesn't support searching cached docs, immediately transition the project to the
+                    // completed state.
+                    if (service is not IAdvancedNavigateToSearchService advancedService)
+                    {
+                        foreach (var project in projects)
+                            await onProjectCompleted().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await advancedService.SearchCachedDocumentsAsync(
+                            _solution, projects, GetPriorityDocuments(projects), _searchPattern, _kinds, _activeDocument,
+                            onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                    }
+                },
                 cancellationToken);
         }
 
@@ -429,8 +443,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, ps, cb1, cb2) => s.SearchGeneratedDocumentsAsync(
-                    _solution, ps, _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
+                async (service, projects, onItemFound, onProjectCompleted) =>
+                {
+                    // if the language doesn't support searching generated docs, immediately transition the project to the
+                    // completed state.
+                    if (service is not IAdvancedNavigateToSearchService advancedService)
+                    {
+                        foreach (var project in projects)
+                            await onProjectCompleted().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await advancedService.SearchGeneratedDocumentsAsync(
+                            _solution, projects, _searchPattern, _kinds, _activeDocument, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                    }
+                },
                 cancellationToken);
         }
     }

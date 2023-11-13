@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
+    internal abstract partial class AbstractNavigateToSearchService : IAdvancedNavigateToSearchService
     {
         public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
             NavigateToItemKind.Class,
