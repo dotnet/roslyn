@@ -1816,7 +1816,7 @@ class IC : Namespace.I<int>
 
             var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Single();
 
-            var classMethod = (MethodSymbol)@class.GetMembers("Namespace.I<System.Int32>.Method").Single();
+            var classMethod = (MethodSymbol)@class.GetMembers("Namespace.I<int>.Method").Single();
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
 
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();

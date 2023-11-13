@@ -2870,10 +2870,7 @@ public partial class C
             Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("FI<nint>.Prop").WithLocation(8, 16),
             // F1.cs(8,30): error CS0528: 'FI<nint>' is already listed in interface list
             // internal class C : FI<nint>, FI<IntPtr>
-            Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "FI<IntPtr>").WithArguments("FI<nint>").WithLocation(8, 30),
-            // F1.cs(11,23): error CS0102: The type 'C' already contains a definition for '<F1>F2A62B10769F2595F65CAD631A41E2B54F5D1B3601B00884A41306FA9AD9BACDB__FI<nint>.Prop'
-            //     IntPtr FI<IntPtr>.Prop { get; }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Prop").WithArguments("C", "<F1>F2A62B10769F2595F65CAD631A41E2B54F5D1B3601B00884A41306FA9AD9BACDB__FI<nint>.Prop").WithLocation(11, 23)
+            Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "FI<IntPtr>").WithArguments("FI<nint>").WithLocation(8, 30)
             );
     }
 

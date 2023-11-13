@@ -1826,7 +1826,7 @@ class C : N.I<int>
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var classProperty = (PropertySymbol)@class.GetMembers("N.I<System.Int32>.P").Single();
+            var classProperty = (PropertySymbol)@class.GetMembers("N.I<int>.P").Single();
 
             var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);

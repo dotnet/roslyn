@@ -945,7 +945,7 @@ class C : I<int, bool>
             compilation1.EmitToArray(testData: testData);
 
             var c = compilation1.GetMember<NamedTypeSymbol>("C");
-            var property = c.GetMember<PropertySymbol>("I<System.Int32,System.Boolean>.this[]");
+            var property = c.GetMember<PropertySymbol>("I<int,bool>.this[]");
             var parameters = property.GetParameters().ToArray();
             Assert.Equal(1, parameters.Length);
             Assert.Equal("anotherIndex", parameters[0].Name);

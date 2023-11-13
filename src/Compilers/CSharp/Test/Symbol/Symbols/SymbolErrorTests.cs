@@ -2025,10 +2025,7 @@ public class C : I, J
             compilation.VerifyDiagnostics(
                 // (13,14): error CS8646: 'I.this[int]' is explicitly implemented more than once.
                 // public class C : I, J
-                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.this[int]").WithLocation(13, 14),
-                // (16,19): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
-                //     int AliasForI.this[int x] { get { return 0; } set { } } //CS0111
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C"));
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.this[int]").WithLocation(13, 14));
         }
 
         /// <summary>

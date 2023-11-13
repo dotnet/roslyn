@@ -112,7 +112,7 @@ class C : I<C, object>
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = type.GetMethod("I<C,System.Object>.M");
+                var method = type.GetMethod(module is PEModuleSymbol ? "I<C,System.Object>.M" : "I<C,object>.M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
@@ -5490,7 +5490,7 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
-            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMethod("I<object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
             CheckConstraints(type.BaseType().GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
         }

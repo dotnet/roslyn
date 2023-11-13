@@ -8913,22 +8913,22 @@ static class Program
 
             static void compareTypes(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType)
             {
-                compareMembers(sourceType, synthesizedType, "System.Collections.ICollection.Count");
-                compareMembers(sourceType, synthesizedType, "System.Collections.IList.this[]");
-                compareMembers(sourceType, synthesizedType, "System.Collections.IList.get_Item");
-                compareMembers(sourceType, synthesizedType, "System.Collections.IList.set_Item");
-                compareMembers(sourceType, synthesizedType, "System.Collections.IList.Contains");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.IsReadOnly");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.get_IsReadOnly");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.ICollection<T>.Contains");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.this[]");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.get_Item");
-                compareMembers(sourceType, synthesizedType, "System.Collections.Generic.IList<T>.set_Item");
+                compareMembers(sourceType, synthesizedType, "ICollection.Count", "System.Collections.ICollection.Count");
+                compareMembers(sourceType, synthesizedType, "IList.this[]", "System.Collections.IList.this[]");
+                compareMembers(sourceType, synthesizedType, "IList.get_this[]", "System.Collections.IList.get_Item");
+                compareMembers(sourceType, synthesizedType, "IList.set_this[]", "System.Collections.IList.set_Item");
+                compareMembers(sourceType, synthesizedType, "IList.Contains", "System.Collections.IList.Contains");
+                compareMembers(sourceType, synthesizedType, "ICollection<T>.IsReadOnly", "System.Collections.Generic.ICollection<T>.IsReadOnly");
+                compareMembers(sourceType, synthesizedType, "ICollection<T>.get_IsReadOnly", "System.Collections.Generic.ICollection<T>.get_IsReadOnly");
+                compareMembers(sourceType, synthesizedType, "ICollection<T>.Contains", "System.Collections.Generic.ICollection<T>.Contains");
+                compareMembers(sourceType, synthesizedType, "IList<T>.this[]", "System.Collections.Generic.IList<T>.this[]");
+                compareMembers(sourceType, synthesizedType, "IList<T>.get_this[]", "System.Collections.Generic.IList<T>.get_Item");
+                compareMembers(sourceType, synthesizedType, "IList<T>.set_this[]", "System.Collections.Generic.IList<T>.set_Item");
             }
 
-            static void compareMembers(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType, string memberName)
+            static void compareMembers(NamedTypeSymbol sourceType, NamedTypeSymbol synthesizedType, string sourceName, string memberName)
             {
-                var sourceMember = sourceType.GetMembers(memberName).Single();
+                var sourceMember = sourceType.GetMembers(sourceName).Single();
                 var synthesizedMember = synthesizedType.GetMembers(memberName).Single();
                 Assert.Equal(sourceMember.IsAbstract, synthesizedMember.IsAbstract);
                 Assert.Equal(sourceMember.IsVirtual, synthesizedMember.IsVirtual);
