@@ -282,15 +282,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// precedence when searching.  This allows results to get to the user more quickly for common cases (like using
         /// nav-to to find results in the file you currently have open
         /// </summary>
-        private ImmutableArray<Document> GetPriorityDocuments(IImmutableSet<Project> projects)
+        private ImmutableArray<Document> GetPriorityDocuments(ImmutableArray<Project> projects)
         {
+            var projectsSet = projects.ToHashSet();
+
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-            if (_activeDocument?.Project != null && projects.Contains(_activeDocument.Project))
+            if (_activeDocument?.Project != null && projectsSet.Contains(_activeDocument.Project))
                 result.Add(_activeDocument);
 
             foreach (var doc in _visibleDocuments)
             {
-                if (projects.Contains(doc.Project))
+                if (projectsSet.Contains(doc.Project))
                     result.Add(doc);
             }
 
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, IImmutableSet<Project>, Func<Project, INavigateToSearchResult, Task>, Func<CancellationToken, Task>, Task> processProjectAsync,
+            Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<CancellationToken, Task>, Task> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -345,7 +347,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var searchService = grouping.Key;
                 await processProjectAsync(
                     searchService,
-                    grouping.ToImmutableHashSet(),
+                    grouping.ToImmutableArray(),
                     (project, result) =>
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from

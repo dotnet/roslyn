@@ -15,20 +15,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     internal abstract partial class AbstractNavigateToSearchService
     {
         public async Task SearchGeneratedDocumentsAsync(
-            Project project,
+            Solution solution,
+            ImmutableArray<Project> projects,
             string searchPattern,
             IImmutableSet<string> kinds,
             Document? activeDocument,
-            Func<INavigateToSearchResult, Task> onResultFound,
+            Func<Project, INavigateToSearchResult, Task> onResultFound,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
-            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
+                var callback = new NavigateToSearchServiceCallback(onItemFound, onProjectCompleted);
 
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     // Sync and search the full solution snapshot.  While this function is called serially per project,
@@ -37,27 +38,29 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // compilations would not be shared and we'd have to rebuild them.
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchGeneratedDocumentsAsync(solutionInfo, projects.SelectAsArray(p => p.Id), searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
 
             await SearchGeneratedDocumentsInCurrentProcessAsync(
-                project, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                projects, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task SearchGeneratedDocumentsInCurrentProcessAsync(
-            Project project,
+            ImmutableArray<Project> projects,
             string pattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
+            Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+            // 
 
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);

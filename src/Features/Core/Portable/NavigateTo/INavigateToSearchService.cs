@@ -32,7 +32,7 @@ internal interface INavigateToSearchService : ILanguageService
     /// </summary>
     Task SearchProjectsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
@@ -48,7 +48,7 @@ internal interface INavigateToSearchService : ILanguageService
     /// </summary>
     Task SearchCachedDocumentsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
@@ -63,7 +63,7 @@ internal interface INavigateToSearchService : ILanguageService
     /// </summary>
     Task SearchGeneratedDocumentsAsync(
         Solution solution,
-        IImmutableSet<Project> projects,
+        ImmutableArray<Project> projects,
         string searchPattern,
         IImmutableSet<string> kinds,
         Document? activeDocument,
