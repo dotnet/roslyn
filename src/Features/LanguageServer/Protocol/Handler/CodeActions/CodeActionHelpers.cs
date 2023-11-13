@@ -121,18 +121,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeActionPathList = codeActionPath.ToArray();
             if (nestedCodeActions.Any())
             {
-                nestedCodeAction = new RoslynNestedCodeAction(nestedCodeActions)
+                nestedCodeAction = new RoslynNestedCodeAction()
                 {
                     Title = title,
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
+                    NestedActions = nestedCodeActions,
                     Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction: null, codeActionPathList)
                 };
                 nestedCodeActionCommand = new LSP.Command
                 {
                     CommandIdentifier = CodeActionsHandler.RunNestedCodeActionCommandName,
                     Title = title,
-                    Arguments = new object[] { new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, null, nestedCodeAction: nestedCodeAction, codeActionPathList) }
+                    Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, null, nestedCodeAction: nestedCodeAction, codeActionPathList)]
                 };
             }
 
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                     Title = fixAllTitle,
-                    Arguments = new object[] { new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList) }
+                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)]
                 };
 
                 builder.Add(new LSP.CodeAction
@@ -200,12 +201,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     var codeActionPathList = codeActionPath.ToArray();
                     var title = codeAction.Title;
-                    nestedCodeActions.Add(new RoslynNestedCodeAction(ImmutableArray<RoslynNestedCodeAction>.Empty)
+                    nestedCodeActions.Add(new RoslynNestedCodeAction()
                     {
                         // Change this to -> because it is shown to the user
                         Title = title,
                         Kind = codeActionKind,
                         Diagnostics = diagnosticsForFix,
+                        NestedActions = ImmutableArray<RoslynNestedCodeAction>.Empty,
                         Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction: null, codeActionPathList)
                     });
 
@@ -218,16 +220,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         {
                             CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                             Title = fixAllTitle,
-                            Arguments = new object[] { new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList) }
+                            Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)]
                         };
 
-                        nestedCodeActions.Add(new RoslynNestedCodeAction(ImmutableArray<RoslynNestedCodeAction>.Empty)
+                        nestedCodeActions.Add(new RoslynNestedCodeAction()
                         {
                             // Change this to -> because it is shown to the user
                             Title = fixAllTitle,
                             Command = command,
                             Kind = codeActionKind,
                             Diagnostics = diagnosticsForFix,
+                            NestedActions = ImmutableArray<RoslynNestedCodeAction>.Empty,
                             Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)
                         });
                     }

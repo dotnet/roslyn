@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            if (data.NestedCodeAction?.NestedActions.Any() is true)
+            if (data.NestedCodeAction is { NestedActions.Length: > 0 })
             {
                 return codeAction;
             }
