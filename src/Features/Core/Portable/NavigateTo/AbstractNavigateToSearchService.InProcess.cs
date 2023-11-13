@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -105,11 +106,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
-                document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+                DocumentKey.ToDocumentKey(document), document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessIndexAsync(
-            DocumentId documentId,
+            DocumentKey documentKey,
             Document? document,
             string patternName,
             string? patternContainer,
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     continue;
 
                 await AddResultIfMatchAsync(
-                    documentId, document,
+                    documentKey, document,
                     declaredSymbolInfo,
                     nameMatcher, containerMatcher,
                     kinds, onResultFound, cancellationToken).ConfigureAwait(false);
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task AddResultIfMatchAsync(
-            DocumentId documentId,
+            DocumentKey documentKey,
             Document? document,
             DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher,
@@ -169,13 +170,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
                 var result = ConvertResult(
-                    documentId, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
+                    documentKey, document, declaredSymbolInfo, nameMatches, containerMatches, additionalMatchingProjects);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
 
         private static RoslynNavigateToItem ConvertResult(
-            DocumentId documentId,
+            DocumentKey documentKey,
             Document? document,
             DeclaredSymbolInfo declaredSymbolInfo,
             in TemporaryArray<PatternMatch> nameMatches,
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // and thus could be 'stale'.
             return new RoslynNavigateToItem(
                 isStale: document == null,
-                documentId,
+                documentKey,
                 additionalMatchingProjects,
                 declaredSymbolInfo,
                 kind,

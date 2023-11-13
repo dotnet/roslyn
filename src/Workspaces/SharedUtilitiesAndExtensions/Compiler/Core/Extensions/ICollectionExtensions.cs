@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class ICollectionExtensions
     {
+#if NETSTANDARD
+
+        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> values)
+            => new(values);
+
+#endif
+
         public static ImmutableArray<T> WhereAsArray<T, TState>(this IEnumerable<T> values, Func<T, TState, bool> predicate, TState state)
         {
             using var _ = ArrayBuilder<T>.GetInstance(out var result);
