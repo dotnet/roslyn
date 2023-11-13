@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 orderedProjects,
                 seenItems,
                 (s, ps, cb1, cb2) => s.SearchProjectsAsync(
-                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, cb1, cb2, cancellationToken),
+                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
                 cancellationToken);
         }
 

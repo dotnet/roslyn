@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<CancellationToken, Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
-            // var solution = project.Solution;
+            Debug.Assert(priorityDocuments.All(d => projects.Contains(d.Project)));
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
             var documentKeys = projects.SelectMany(p => p.Documents.Select(DocumentKey.ToDocumentKey)).ToImmutableArray();
@@ -115,27 +117,41 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // that don't).  We'll process the high pri groups first, then the low pri ones.
             var highPriorityGroups = groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)).ToHashSet();
             var lowPriorityGroups = groups.Where(g => !highPriorityGroups.Contains(g)).ToHashSet();
-            var orderedGroups = highPriorityGroups.Concat(lowPriorityGroups);
 
-            foreach (var group in orderedGroups)
+            await ProcessProjectGroupsAsync(highPriorityGroups).ConfigureAwait(false);
+            await ProcessProjectGroupsAsync(lowPriorityGroups).ConfigureAwait(false);
+
+            return;
+
+            async Task ProcessProjectGroupsAsync(HashSet<IGrouping<ProjectKey, DocumentKey>> groups)
             {
-                var project = group.Key;
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-                // Break the project into high-pri docs and low pri docs.
-                var highPriDocsSet = group.Where(priorityDocumentKeysSet.Contains).ToSet();
-                var highPriDocs = highPriDocsSet.ToImmutableArray();
-                var lowPriDocs = group.Where(d => !highPriDocsSet.Contains(d)).ToImmutableArray();
+                foreach (var group in groups)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var project = group.Key;
 
-                await SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                    onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+                        // Break the project into high-pri docs and low pri docs.
+                        var highPriDocsSet = group.Where(priorityDocumentKeysSet.Contains).ToSet();
+                        var highPriDocs = highPriDocsSet.ToImmutableArray();
+                        var lowPriDocs = group.Where(d => !highPriDocsSet.Contains(d)).ToImmutableArray();
 
-                await SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                    onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                        await SearchCachedDocumentsInCurrentProcessAsync(
+                            storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                            onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
-                // done with project.  Let the host know.
-                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                        await SearchCachedDocumentsInCurrentProcessAsync(
+                            storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                            onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+
+                        // done with project.  Let the host know.
+                        await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
 
