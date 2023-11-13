@@ -2035,4 +2035,75 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference11()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : class, IDisposable
+            {
+                public void [|RemoveBit|](int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            
+            struct Cell<T>(T t) where T : class, IDisposable
+            {
+                public readonly void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : struct, IDisposable
+            {
+                public void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70780")]
+    public async Task TestPrimaryConstructorParameterReference13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            struct Cell<T>(T t) where T : IDisposable
+            {
+                public void RemoveBit(int candidate)
+                {
+                    t.Dispose();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

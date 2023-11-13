@@ -223,7 +223,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
     {
         // We only care if the parameter is a value type when looking at if it is somehow mutated with the
         // operations that follow.
-        if (originalOperation is IParameterReferenceOperation { Parameter.Type.IsReferenceType: true })
+        if (originalOperation is IParameterReferenceOperation && !IsPotentiallyValueType(originalOperation))
             return false;
 
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
