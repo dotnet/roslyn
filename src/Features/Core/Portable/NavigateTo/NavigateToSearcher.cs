@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
                 else
                 {
-                    var allTasks = groups.Select(g => Task.Run(() => SearchCoreAsync(g), cancellationToken));
+                    var allTasks = groups.Select(SearchCoreAsync);
                     await Task.WhenAll(allTasks).ConfigureAwait(false);
 
                 }
@@ -344,6 +344,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
             {
+                await Task.Yield();
+
                 var searchService = grouping.Key;
                 await processProjectAsync(
                     searchService,

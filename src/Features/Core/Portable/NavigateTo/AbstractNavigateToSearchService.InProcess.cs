@@ -39,24 +39,35 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            Func<CancellationToken, Task> onProjectCompleted,
+            CancellationToken cancellationToken)
         {
-            // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
-            // of potentially stale indices.
-            ClearCachedData();
+            try
+            {
+                await Task.Yield();
 
-            // If the user created a dotted pattern then we'll grab the last part of the name
-            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+                // We're doing a real search over the fully loaded solution now.  No need to hold onto the cached map
+                // of potentially stale indices.
+                ClearCachedData();
 
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+                // If the user created a dotted pattern then we'll grab the last part of the name
+                var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
 
-            // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToHashSet();
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+                var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-            // Then process non-priority documents.
-            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToHashSet();
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+                // Prioritize the active documents if we have any.
+                var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToHashSet();
+                await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+
+                // Then process non-priority documents.
+                var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToHashSet();
+                await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static async Task ProcessDocumentsAsync(
@@ -76,8 +87,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     continue;
 
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(Task.Run(() =>
-                    ProcessDocumentAsync(document, patternName, patternContainer, kinds, onResultFound, cancellationToken), cancellationToken));
+                tasks.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, onResultFound, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -91,6 +101,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<RoslynNavigateToItem, Task> onResultFound,
             CancellationToken cancellationToken)
         {
+            await Task.Yield();
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(

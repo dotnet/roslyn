@@ -128,29 +128,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var group in groups)
-                {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        var project = group.Key;
-
-                        // Break the project into high-pri docs and low pri docs.
-                        var highPriDocs = group.Where(priorityDocumentKeysSet.Contains).ToHashSet();
-                        var lowPriDocs = group.Where(d => !highPriDocs.Contains(d)).ToHashSet();
-
-                        await SearchCachedDocumentsInCurrentProcessAsync(
-                            storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                            onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
-
-                        await SearchCachedDocumentsInCurrentProcessAsync(
-                            storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                            onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
-
-                        // done with project.  Let the host know.
-                        await onProjectCompleted(cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken));
-                }
+                    tasks.Add(ProcessProjectGroupAsync(group));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+
+            async Task ProcessProjectGroupAsync(IGrouping<ProjectKey, DocumentKey> group)
+            {
+                await Task.Yield();
+                var project = group.Key;
+
+                // Break the project into high-pri docs and low pri docs.
+                var highPriDocs = group.Where(priorityDocumentKeysSet.Contains).ToHashSet();
+                var lowPriDocs = group.Where(d => !highPriDocs.Contains(d)).ToHashSet();
+
+                await SearchCachedDocumentsInCurrentProcessAsync(
+                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                    onItemFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+
+                await SearchCachedDocumentsInCurrentProcessAsync(
+                    storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
+                    onItemFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+
+                // done with project.  Let the host know.
+                await onProjectCompleted(cancellationToken).ConfigureAwait(false);
             }
         }
 

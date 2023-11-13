@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -24,7 +26,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
-            // Document? activeDocument,
             Func<Project, INavigateToSearchResult, Task> onResultFound,
             CancellationToken cancellationToken)
         {
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public static Task SearchDocumentInCurrentProcessAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onItemFound, CancellationToken cancellationToken)
         {
             return SearchProjectInCurrentProcessAsync(
-                document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document, searchPattern, kinds, onItemFound, cancellationToken);
+                document.Project, priorityDocuments: ImmutableArray<Document>.Empty, document, searchPattern, kinds,
+                onItemFound, _ => Task.CompletedTask, cancellationToken);
         }
 
         public async Task SearchProjectsAsync(
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 projects, priorityDocuments, searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task SearchProjectsInCurrentProcessAsync(
+        public static async Task SearchProjectsInCurrentProcessAsync(
             ImmutableArray<Project> projects,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
@@ -104,11 +106,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 
-            
+            await ProcessProjectsAsync(highPriProjects).ConfigureAwait(false);
+            await ProcessProjectsAsync(lowPriProjects).ConfigureAwait(false);
 
-            return SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments, searchDocument: null,
-                searchPattern, kinds, onItemFound, cancellationToken);
+            return;
+
+            async Task ProcessProjectsAsync(HashSet<Project> projects)
+            {
+                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+                foreach (var project in projects)
+                {
+                    tasks.Add(SearchProjectInCurrentProcessAsync(
+                        project, priorityDocuments.WhereAsArray(d => d.Project == project), searchDocument: null,
+                        searchPattern, kinds, onItemFound, onProjectCompleted, cancellationToken));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
         }
     }
 }

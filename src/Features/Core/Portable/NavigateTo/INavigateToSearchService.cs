@@ -21,7 +21,7 @@ internal interface INavigateToSearchService : ILanguageService
         string searchPattern,
         IImmutableSet<string> kinds,
         // Document? activeDocument,
-        Func<INavigateToSearchResult, Task> onResultFound,
+        Func<Project, INavigateToSearchResult, Task> onResultFound,
         CancellationToken cancellationToken);
 
     /// <summary>
