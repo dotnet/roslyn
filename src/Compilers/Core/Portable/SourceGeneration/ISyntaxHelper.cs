@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
+        private static readonly ObjectPool<Stack<GreenNode>> s_nodeStackPool = new ObjectPool<Stack<GreenNode>>(static () => new Stack<GreenNode>());
+
         public abstract bool IsCaseSensitive { get; }
         protected abstract int AttributeListKind { get; }
 
@@ -69,23 +71,39 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsAttributeList(SyntaxNode root)
             => ContainsAttributeList(root.Green, this.AttributeListKind);
 
-        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+        private static bool ContainsAttributeList(GreenNode root, int attributeListKind)
         {
-            if (node.RawKind == attributeListKind)
-                return true;
-
-            for (int i = 0, n = node.SlotCount; i < n; i++)
+            var stack = s_nodeStackPool.Allocate();
+            try
             {
-                var child = node.GetSlot(i);
+                stack.Push(root);
 
-                if (child is null || child.IsToken)
-                    continue;
+                while (stack.Count > 0)
+                {
+                    var node = stack.Pop();
+                    if (node.RawKind == attributeListKind)
+                        return true;
 
-                if (ContainsAttributeList(child, attributeListKind))
-                    return true;
+                    for (int i = 0, n = node.SlotCount; i < n; i++)
+                    {
+                        var child = node.GetSlot(i);
+
+                        if (child is null || child.IsToken)
+                            continue;
+
+                        stack.Push(child);
+                    }
+
+                    return false;
+                }
+
+                return false;
             }
-
-            return false;
+            finally
+            {
+                stack.Clear();
+                s_nodeStackPool.Free(stack);
+            }
         }
     }
 }
