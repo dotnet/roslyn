@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -21,10 +23,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             private readonly int _ordinal;
             private readonly MetadataReader _metadataReader;
-            private readonly IEnumerable<MetadataReader> _readers;
+            private readonly ImmutableArray<MetadataReader> _readers;
             private readonly GenerationInfo _generationInfo;
 
-            public GenerationVerifier(int ordinal, GenerationInfo generationInfo, IEnumerable<MetadataReader> readers)
+            public GenerationVerifier(int ordinal, GenerationInfo generationInfo, ImmutableArray<MetadataReader> readers)
             {
                 _ordinal = ordinal;
                 _metadataReader = generationInfo.MetadataReader;
@@ -137,17 +139,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
             }
 
+            public void VerifyUpdatedMethodNames(params string[] expectedMethodNames)
+            {
+                Debug.Assert(_generationInfo.CompilationDifference != null);
+                CheckNames(_readers, _generationInfo.CompilationDifference.EmitResult.UpdatedMethods, expectedMethodNames);
+            }
+
+            public void VerifyChangedTypeNames(params string[] expectedTypeNames)
+            {
+                Debug.Assert(_generationInfo.CompilationDifference != null);
+                CheckNames(_readers, _generationInfo.CompilationDifference.EmitResult.ChangedTypes, expectedTypeNames);
+            }
+
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
                 => _generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
 
             internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
                 => _generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb);
 
+            internal void VerifyPdb(string qualifiedMemberName, string expectedPdb, PdbValidationOptions options = default)
+                => _generationInfo.CompilationVerifier!.VerifyPdb(qualifiedMemberName, expectedPdb, options: options);
+
             internal void VerifyIL(string expectedIL)
-                => _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
+            {
+                Debug.Assert(_generationInfo.CompilationDifference != null);
+                _generationInfo.CompilationDifference.VerifyIL(expectedIL);
+            }
 
             internal void VerifyIL(string qualifiedMemberName, string expectedIL)
-                => _generationInfo.CompilationDifference!.VerifyIL(qualifiedMemberName, expectedIL);
+            {
+                if (_generationInfo.CompilationVerifier != null)
+                {
+                    _generationInfo.CompilationVerifier.VerifyIL(qualifiedMemberName, expectedIL);
+                }
+                else
+                {
+                    Debug.Assert(_generationInfo.CompilationDifference != null);
+                    _generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedIL);
+                }
+            }
         }
     }
 }

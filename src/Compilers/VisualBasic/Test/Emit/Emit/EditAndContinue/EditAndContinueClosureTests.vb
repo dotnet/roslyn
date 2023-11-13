@@ -105,7 +105,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -156,7 +156,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -208,7 +208,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -261,7 +261,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -340,7 +340,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -424,7 +424,7 @@ End Module
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -527,7 +527,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -621,7 +621,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
@@ -690,7 +690,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -763,7 +763,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -827,7 +827,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -893,7 +893,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
@@ -975,7 +975,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -1001,7 +1001,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1090,7 +1090,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -1134,7 +1134,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1190,7 +1190,7 @@ End Class
 ")
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))))
 
             diff3.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1333,7 +1333,7 @@ End Class")
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -1357,7 +1357,7 @@ End Class")
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             ' no new members
             diff2.VerifySynthesizedMembers(
@@ -1545,8 +1545,8 @@ End Class
             Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(
-                New SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True),
-                New SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                New SemanticEdit(SemanticEditKind.Update, ctor00, ctor01, GetSyntaxMapFromMarkers(source0, source1)),
+                New SemanticEdit(SemanticEditKind.Update, ctor10, ctor11, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
 
@@ -1662,7 +1662,7 @@ End Class
                 generation0,
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Insert, Nothing, b1),
-                    New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -1847,7 +1847,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__, _Closure$__1-0}",
@@ -1888,7 +1888,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__, _Closure$__1-0}",
@@ -2001,7 +2001,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2033,7 +2033,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2122,7 +2122,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2133,7 +2133,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2200,7 +2200,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",
@@ -2211,7 +2211,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__1-0}",

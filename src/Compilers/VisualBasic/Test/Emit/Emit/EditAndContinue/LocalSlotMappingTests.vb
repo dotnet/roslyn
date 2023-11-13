@@ -118,7 +118,7 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source))))
 
             ' check that all user-defined and long-lived synthesized local slots are reused
             diff1.VerifyIL("C.M", "
@@ -284,7 +284,7 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source))))
 
             diff1.VerifyIL("C.M", "
 {
@@ -554,7 +554,7 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
 
             ' check that all user-defined and long-lived synthesized local slots are reused
             diff1.VerifyIL("C._Lambda$__1", "
@@ -992,7 +992,7 @@ End Class
             Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifyIL("C.G", "
 {
@@ -1023,7 +1023,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifyIL("C.G", "
 {
