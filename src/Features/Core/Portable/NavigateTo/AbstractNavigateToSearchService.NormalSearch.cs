@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Func<Task> onProjectCompleted,
             CancellationToken cancellationToken)
         {
-            var highPriProjects = priorityDocuments.Select(d => d.Project).ToHashSet();
-            var lowPriProjects = projects.Where(p => !highPriProjects.Contains(p)).ToHashSet();
+            using var _1 = GetPooledHashSet(priorityDocuments.Select(d => d.Project), out var highPriProjects);
+            using var _2 = GetPooledHashSet(projects.Where(p => !highPriProjects.Contains(p)), out var lowPriProjects);
 
             Debug.Assert(projects.SetEquals(highPriProjects.Concat(lowPriProjects)));
 

@@ -3,10 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -41,6 +45,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (result != null)
                     await onResultFound(project, result).ConfigureAwait(false);
             };
+        }
+
+        private static PooledDisposer<PooledHashSet<T>> GetPooledHashSet<T>(IEnumerable<T> items, out PooledHashSet<T> instance)
+        {
+            var disposer = PooledHashSet<T>.GetInstance(out instance);
+            instance.AddRange(items);
+            return disposer;
+        }
+
+        private static PooledDisposer<PooledHashSet<T>> GetPooledHashSet<T>(ImmutableArray<T> items, out PooledHashSet<T> instance)
+        {
+            var disposer = PooledHashSet<T>.GetInstance(out instance);
+            instance.AddRange(items);
+            return disposer;
         }
     }
 }

@@ -58,11 +58,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
                 // Prioritize the active documents if we have any.
-                var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToHashSet();
+                using var _1 = GetPooledHashSet(priorityDocuments.Where(d => project.ContainsDocument(d.Id)), out var highPriDocs);
+                using var _2 = GetPooledHashSet(project.Documents.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
+
                 await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
                 // Then process non-priority documents.
-                var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToHashSet();
                 await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
             }
             finally

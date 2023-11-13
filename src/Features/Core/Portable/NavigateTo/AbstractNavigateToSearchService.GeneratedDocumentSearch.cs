@@ -67,9 +67,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var project in projects)
             {
                 // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
-                var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                var sourceGeneratedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                using var _ = GetPooledHashSet<Document>(sourceGeneratedDocs, out var documents);
+
                 await ProcessDocumentsAsync(
-                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, generatedDocs.ToHashSet<Document>(), cancellationToken).ConfigureAwait(false);
+                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, documents, cancellationToken).ConfigureAwait(false);
 
                 await onProjectCompleted().ConfigureAwait(false);
             }

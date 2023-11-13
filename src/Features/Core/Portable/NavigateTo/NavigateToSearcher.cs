@@ -284,9 +284,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// </summary>
         private ImmutableArray<Document> GetPriorityDocuments(ImmutableArray<Project> projects)
         {
-            var projectsSet = projects.ToHashSet();
+            using var _1 = PooledHashSet<Project>.GetInstance(out var projectsSet);
+            projectsSet.AddRange(projects);
 
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<Document>.GetInstance(out var result);
             if (_activeDocument?.Project != null && projectsSet.Contains(_activeDocument.Project))
                 result.Add(_activeDocument);
 

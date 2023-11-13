@@ -112,12 +112,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // report that back to the host for progress.
             var groups = documentKeys.GroupBy(d => d.Project).ToImmutableArray();
 
-            var priorityDocumentKeysSet = priorityDocumentKeys.ToHashSet();
+            using var _1 = GetPooledHashSet(priorityDocumentKeys, out var priorityDocumentKeysSet);
 
             // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those
             // that don't).
-            var highPriorityGroups = groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)).ToHashSet();
-            var lowPriorityGroups = groups.Where(g => !highPriorityGroups.Contains(g)).ToHashSet();
+            using var _2 = GetPooledHashSet(groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)), out var highPriorityGroups);
+            using var _3 = GetPooledHashSet(groups.Where(g => !highPriorityGroups.Contains(g)), out var lowPriorityGroups);
 
             await ProcessProjectGroupsAsync(highPriorityGroups).ConfigureAwait(false);
             await ProcessProjectGroupsAsync(lowPriorityGroups).ConfigureAwait(false);
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var project = group.Key;
 
                 // Break the project into high-pri docs and low pri docs.
-                var highPriDocs = group.Where(priorityDocumentKeysSet.Contains).ToHashSet();
-                var lowPriDocs = group.Where(d => !highPriDocs.Contains(d)).ToHashSet();
+                using var _1 = GetPooledHashSet(group.Where(priorityDocumentKeysSet.Contains), out var highPriDocs);
+                using var _2 = GetPooledHashSet(group.Where(d => !highPriDocs.Contains(d)), out var lowPriDocs);
 
                 await SearchCachedDocumentsInCurrentProcessAsync(
                     storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
