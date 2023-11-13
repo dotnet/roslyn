@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
+            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToHashSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             // Then process non-priority documents.
-            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
+            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToHashSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
         }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
-            ISet<Document> documents,
+            HashSet<Document> documents,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);

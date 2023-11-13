@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
                 var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
                 await ProcessDocumentsAsync(
-                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
+                    searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToHashSet<Document>(), cancellationToken).ConfigureAwait(false);
 
                 await onProjectCompleted(cancellationToken).ConfigureAwait(false);
             }

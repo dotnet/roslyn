@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var priorityDocumentKeysSet = priorityDocumentKeys.ToHashSet();
 
             // Sort the groups into a high pri group (projects that contain a high-pri doc), and low pri groups (those
-            // that don't).  We'll process the high pri groups first, then the low pri ones.
+            // that don't).
             var highPriorityGroups = groups.Where(g => g.Any(priorityDocumentKeysSet.Contains)).ToHashSet();
             var lowPriorityGroups = groups.Where(g => !highPriorityGroups.Contains(g)).ToHashSet();
 
