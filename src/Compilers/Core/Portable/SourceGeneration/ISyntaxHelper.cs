@@ -93,8 +93,6 @@ namespace Microsoft.CodeAnalysis
 
                         stack.Push(child);
                     }
-
-                    return false;
                 }
 
                 return false;
