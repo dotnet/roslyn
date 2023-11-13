@@ -223,8 +223,8 @@ namespace IdeCoreBenchmarks
 
             var start = DateTime.Now;
             // Search each project with an independent threadpool task.
-            var searchTasks = _workspace.CurrentSolution.Projects.Select(
-                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
+            var searchTasks = _workspace.CurrentSolution.Projects.GroupBy(p => p.Services.GetService<INavigateToSearchService>()).Select(
+                g => Task.Run(() => SearchAsync(g, priorityDocuments: ImmutableArray<Document>.Empty), CancellationToken.None)).ToArray();
 
             var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
             var sum = result.Sum();
@@ -233,19 +233,20 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Time to search: " + (DateTime.Now - start));
         }
 
-        private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
+        private async Task<int> SearchAsync(IGrouping<INavigateToSearchService, Project> grouping, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.Services.GetService<INavigateToSearchService>();
+            var service = grouping.Key;
             var results = new List<INavigateToSearchResult>();
-            await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
+            await service.SearchProjectsAsync(
+                grouping.ToImmutableArray(), priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
                 r =>
                 {
                     lock (results)
                         results.Add(r);
 
                     return Task.CompletedTask;
-                }, CancellationToken.None);
+                },
+                () => Task.CompletedTask, CancellationToken.None);
 
             return results.Count;
         }
