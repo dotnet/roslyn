@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         var project = group.Key;
 
                         // Break the project into high-pri docs and low pri docs.
-                        var highPriDocsSet = group.Where(priorityDocumentKeysSet.Contains).ToSet();
-                        var highPriDocs = highPriDocsSet.ToImmutableArray();
-                        var lowPriDocs = group.Where(d => !highPriDocsSet.Contains(d)).ToImmutableArray();
+                        var highPriDocs = group.Where(priorityDocumentKeysSet.Contains).ToHashSet();
+                        var lowPriDocs = group.Where(d => !highPriDocs.Contains(d)).ToHashSet();
 
                         await SearchCachedDocumentsInCurrentProcessAsync(
                             storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
-            ImmutableArray<DocumentKey> documentKeys,
+            HashSet<DocumentKey> documentKeys,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
