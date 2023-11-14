@@ -1122,6 +1122,10 @@ static class Program
             Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
             Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
 
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M1").GetAttributes().Single();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
             attributeData = (SourceAttributeData)comp.GetMember("Program.M2").GetAttributes().Single();
             Assert.Equal(@"false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
             Assert.Equal(@"""World""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());

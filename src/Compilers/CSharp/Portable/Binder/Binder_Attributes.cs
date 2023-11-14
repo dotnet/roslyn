@@ -682,9 +682,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     Arguments returned: 0, 1, 2, 3
         /// </summary>
         /// <returns>Rewritten attribute constructor arguments</returns>
-        /// <remarks>
-        /// CONSIDER: Can we share some code will call rewriting in the local rewriter?
-        /// </remarks>
         private ImmutableArray<TypedConstant> GetRewrittenAttributeConstructorArguments(
             MethodSymbol attributeConstructor,
             ImmutableArray<TypedConstant> constructorArgsArray,
@@ -708,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var paramIndex = argumentsToParams.IsDefault ? i : argumentsToParams[i];
                 ParameterSymbol parameter = parameters[paramIndex];
 
-                TypedConstant reorderedArgument = reorderedArgument = constructorArgsArray[i];
+                TypedConstant reorderedArgument = constructorArgsArray[i];
 
                 if (!hasErrors)
                 {

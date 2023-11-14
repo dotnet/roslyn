@@ -1477,7 +1477,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
                 // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
                 Debug.Assert(!expanded || parameters[^1].IsParams);
-                // Params array is filled in the local rewriter
                 var lastIndex = expanded ? ^1 : ^0;
 
                 var argumentsCount = argumentsBuilder.Count;

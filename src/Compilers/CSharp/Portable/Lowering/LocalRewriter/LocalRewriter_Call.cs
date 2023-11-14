@@ -980,8 +980,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Rewrites arguments of an invocation according to the receiving method or indexer.
         /// It is assumed that each argument has already been lowered, but we may need
-        /// additional rewriting for the arguments, such as generating a params array, re-ordering
-        /// arguments based on <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
+        /// additional rewriting for the arguments, such as re-ordering
+        /// arguments based on <paramref name="argsToParamsOpt"/> map, etc.
         /// </summary>
         private ImmutableArray<BoundExpression> MakeArguments(
             ImmutableArray<BoundExpression> rewrittenArguments,
