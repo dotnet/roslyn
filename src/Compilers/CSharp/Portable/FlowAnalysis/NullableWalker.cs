@@ -9936,7 +9936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Operator.Kind,
                 node.Operator.Method,
                 node.Operator.ReturnType ?? node.Type,
-                node.LeftConversion as BoundConversion ?? node.Left,
+                node.LeftConversion ?? node.Left,
                 node.Left,
                 BoundNode.GetConversion(node.LeftConversion, node.LeftPlaceholder),
                 leftTypeWithState,
