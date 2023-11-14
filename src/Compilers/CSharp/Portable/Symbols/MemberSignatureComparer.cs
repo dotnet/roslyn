@@ -338,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
             considerCallingConvention: false,
+            considerArity: false,
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         // Compare the "unqualified" part of the member name (no explicit part)

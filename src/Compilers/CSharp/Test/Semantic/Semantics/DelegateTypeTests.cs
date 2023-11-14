@@ -1231,21 +1231,22 @@ partial class B
     public void M()
     {
         System.Delegate d = F;
+        d.DynamicInvoke();
         System.Console.Write(d.GetDelegateTypeName());
     }
 }
 abstract class A
 {
-    internal void F() { }
+    internal void F() { System.Console.Write("RAN "); }
 }
 partial class B : A
 {
-    internal void F<T>() { }
+    internal void F<T>() => throw null;
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "System.Action");
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN System.Action");
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1356,22 +1357,23 @@ partial class Program
     public void M()
     {
         System.Delegate d = this.F;
+        d.DynamicInvoke(42);
         System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }
 }
 static class A
 {
-    internal static void F(this object x, object y) { }
+    internal static void F(this object x, object y) { System.Console.Write($"RAN({y}) "); }
 }
 static class B
 {
-    internal static void F<T>(this object x, T y) { }
+    internal static void F<T>(this object x, T y) => throw null;
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "A.F: System.Action<System.Object>", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN(42) A.F: System.Action<System.Object>", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1384,7 +1386,7 @@ static class B
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
 
-            Assert.Equal(new[] { "void System.Object.F(System.Object y)", "void System.Object.F<T>(T y)" },
+            Assert.Equal(["void System.Object.F(System.Object y)", "void System.Object.F<T>(T y)"],
                 model.GetMemberGroup(expr).ToTestDisplayStrings());
         }
 
@@ -1399,22 +1401,23 @@ partial class Program
     public void M()
     {
         System.Delegate d = this.F;
+        d.DynamicInvoke();
         System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }
 }
 static class A
 {
-    internal static void F<T>(this object x) { }
+    internal static void F<T>(this object x) => throw null;
 }
 static class B
 {
-    internal static void F(this object x) { }
+    internal static void F(this object x) { System.Console.Write("RAN "); }
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "B.F: System.Action", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN B.F: System.Action", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1427,7 +1430,7 @@ static class B
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
 
-            Assert.Equal(new[] { "void System.Object.F<T>()", "void System.Object.F()" },
+            Assert.Equal(["void System.Object.F<T>()", "void System.Object.F()"],
                 model.GetMemberGroup(expr).ToTestDisplayStrings());
         }
 
@@ -1442,7 +1445,6 @@ partial class Program
     public void M()
     {
         System.Delegate d = this.F<int>;
-        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }
 }
 static class A
@@ -2502,7 +2504,8 @@ public static class E
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "E.M");
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2537,7 +2540,7 @@ namespace N
 {
     public static class E2
     {
-        public static void M(this C c) => throw null;
+        public static void M(this C c) { System.Console.Write("E2.M "); }
     }
 }
 """;
@@ -2549,7 +2552,8 @@ namespace N
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "E2.M E2.M");
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2577,7 +2581,7 @@ public class C { }
 
 public static class E1
 {
-    public static void M<T>(this T c) => throw null;
+    public static void M<T>(this T c) { System.Console.Write("E1.M "); }
 }
 
 namespace N
@@ -2596,7 +2600,8 @@ namespace N
                 );
 
             comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            var verifier = CompileAndVerify(comp, expectedOutput: "E1.M E1.M");
+            verifier.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using N;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
@@ -2816,15 +2821,15 @@ static class E
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(new[] { "void System.Object.M<System.Object>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -2845,9 +2850,9 @@ static class E
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -2855,7 +2860,7 @@ static class E
             Assert.Equal("void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()",
                 model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(new[] { "void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()" },
+            Assert.Equal(["void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()"],
                  model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2884,7 +2889,7 @@ static class E
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(new[] { "void C.M<T>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            Assert.Equal(["void C.M<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -2905,15 +2910,15 @@ public class C
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ran");
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
             Assert.Equal("void C.M<System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(new[] { "void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)" },
+            Assert.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2944,7 +2949,7 @@ public class C
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-            Assert.Equal(new[] { "void C.M<System.Object?>()", "void C.M<System.Object?>(System.Object o)" },
+            Assert.Equal(["void C.M<System.Object?>()", "void C.M<System.Object?>(System.Object o)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2965,18 +2970,18 @@ public class C
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics(
                 // (2,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>()'. Nullability of type argument 'object?' doesn't match 'class' constraint.
                 // var x = new C().M<object?>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "new C().M<object?>").WithArguments("C.M<T>()", "T", "object?").WithLocation(2, 9)
                 );
-            CompileAndVerify(comp, expectedOutput: "ran");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
             Assert.Equal("void C.M<System.Object?>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(new[] { "void C.M<System.Object?>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            Assert.Equal(["void C.M<System.Object?>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3000,15 +3005,15 @@ static class E2
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(new[] { "void System.Object.M<System.Object>()" }, model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3032,51 +3037,58 @@ static class E2
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<object>");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(new[] { "void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)" },
+            Assert.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
-        [Fact]
-        public void GenericExtensionMethod_ArityCountsInSignature()
+        [Theory, CombinatorialData]
+        public void GenericExtensionMethod_ArityIgnoredInSignature(bool useCSharp13)
         {
-            // Arity counts as part of "signature" so we have two different signatures even after reducing extension methods
             var source = """
 var x = new object().F;
+x();
 
 static class B
 {
-    internal static void F<T>(this T x) { }
+    internal static void F<T>(this T x) => throw null;
 }
 
 static class A
 {
-    internal static void F(this object x) { }
+    internal static void F(this object x) { System.Console.Write("A.F"); }
 }
 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (1,9): error CS8917: The delegate type could not be inferred.
                 // var x = new object().F;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().F").WithLocation(1, 9));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
-                // (1,9): error CS8917: The delegate type could not be inferred.
-                // var x = new object().F;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().F").WithLocation(1, 9));
+            var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "A.F");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().F");
+            Assert.Equal("void System.Object.F()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            Assert.Equal(["void System.Object.F<System.Object>()", "void System.Object.F()"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact]
         public void GenericExtensionMethod_Constraint()
         {
-            // In C# 12, a method group that cannot be successfully substituted (ie. respecting constraints)
+            // In C# 13, a method group that cannot be successfully substituted (ie. respecting constraints)
             // does not contribute to the natural type determination
             var source = """
 var x = new C().F<object>;
@@ -3088,7 +3100,7 @@ static class E
     public static void F<T>(this C c) where T : struct { }
 }
 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (1,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.F<T>(C)'
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("E.F<T>(C)", "T", "object").WithLocation(1, 9));
@@ -3097,12 +3109,17 @@ static class E
                 // (1,9): error CS8917: The delegate type could not be inferred.
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
         }
 
         [Fact]
         public void GenericInstanceMethod_Constraint()
         {
-            // In C# 12, a method that cannot be successfully substituted (ie. respecting constraints)
+            // In C# 13, a method that cannot be successfully substituted (ie. respecting constraints)
             // does not contribute to the natural type determination
             var source = """
 var x = new C().F<object>;
@@ -3112,12 +3129,17 @@ class C
     public void F<T>() where T : struct { }
 }
 """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (1,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>()'
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("C.F<T>()", "T", "object").WithLocation(1, 9));
 
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+
+            CreateCompilation(source).VerifyDiagnostics(
                 // (1,9): error CS8917: The delegate type could not be inferred.
                 // var x = new C().F<object>;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));

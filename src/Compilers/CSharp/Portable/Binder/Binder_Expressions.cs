@@ -9873,30 +9873,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = node.TypeArgumentsOpt;
             if (node.ResultKind == LookupResultKind.Viable)
             {
-                foreach (var instanceMethod in node.Methods)
+                foreach (var memberMethod in node.Methods)
                 {
                     switch (node.ReceiverOpt)
                     {
                         case BoundTypeExpression:
                         case null: // if `using static Class` is in effect, the receiver is missing
-                            if (!instanceMethod.IsStatic) continue;
+                            if (!memberMethod.IsStatic) continue;
                             break;
                         case BoundThisReference { WasCompilerGenerated: true }:
                             break;
                         default:
-                            if (instanceMethod.IsStatic) continue;
+                            if (memberMethod.IsStatic) continue;
                             break;
                     }
 
                     int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
-                    if (instanceMethod.Arity != arity)
+                    if (memberMethod.Arity != arity)
                     {
                         // We have no way of inferring type arguments, so if the given type arguments
                         // don't match the method's arity, the method is not a candidate
                         continue;
                     }
 
-                    var substituted = typeArguments.IsDefaultOrEmpty ? instanceMethod : instanceMethod.Construct(typeArguments);
+                    var substituted = typeArguments.IsDefaultOrEmpty ? memberMethod : memberMethod.Construct(typeArguments);
                     if (!satisfiesConstraintChecks(substituted))
                     {
                         continue;

@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
             ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
-            wasFullyInferred = !typeArgs.Any(static t => !t.HasType);
+            wasFullyInferred = typeArgs.All(static t => t.HasType);
             if (!wasFullyInferred)
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
