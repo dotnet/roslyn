@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
-            // If the CodeAction has a NestedCodeAction, then we need further resolution
-            // to obtain the user-selected action.
-            if (data.NestedCodeAction is { NestedActions.Length: > 0 })
+            // We don't need to resolve a top level code action that has nested actions - it requires further action
+            // on the client to pick which of the nested actions to actually apply.
+            if (data.NestedCodeActions.HasValue && data.NestedCodeActions.Value.Length > 0)
             {
                 return codeAction;
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             Contract.ThrowIfNull(data.CodeActionPath);
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: false);
-             Contract.ThrowIfNull(codeActionToResolve);
+            Contract.ThrowIfNull(codeActionToResolve);
 
             // LSP currently has no way to report progress for code action computation.
             var operations = await codeActionToResolve.GetOperationsAsync(

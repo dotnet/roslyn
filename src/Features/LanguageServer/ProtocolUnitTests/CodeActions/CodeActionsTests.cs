@@ -207,8 +207,9 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions on Inline
-        Assert.NotNull(data!.NestedCodeAction);
-
+        Assert.NotNull(data!.NestedCodeActions);
+        Assert.NotEmpty(data!.NestedCodeActions);
+        
         // Asserts that there is a Command present on an action with nested actions
         Assert.NotNull(inline.Command);
     }
@@ -252,10 +253,10 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.NotNull(data);
 
         // Asserts that there are NestedActions present
-        Assert.NotNull(data!.NestedCodeAction);
+        Assert.NotNull(data!.NestedCodeActions);
 
         //Asserts that a Nested Action could be a Fix All Action
-        Assert.Equal("Fix All: in Source", data.NestedCodeAction!.NestedActions[1].Title);
+        Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
     }
 
     [WpfTheory, CombinatorialData]

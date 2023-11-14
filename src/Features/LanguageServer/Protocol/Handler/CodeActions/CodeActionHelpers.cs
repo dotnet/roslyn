@@ -115,25 +115,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var nestedCodeActions = CollectNestedActions(request, codeActionKind, diagnosticsForFix, suggestedAction, codeActionPath, isTopLevelCodeAction: true);
 
             Command? nestedCodeActionCommand = null;
-            RoslynNestedCodeAction? nestedCodeAction = null;
             var title = codeAction.Title;
 
             var codeActionPathList = codeActionPath.ToArray();
             if (nestedCodeActions.Any())
             {
-                nestedCodeAction = new RoslynNestedCodeAction()
-                {
-                    Title = title,
-                    Kind = codeActionKind,
-                    Diagnostics = diagnosticsForFix,
-                    NestedActions = nestedCodeActions,
-                    Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction: null, codeActionPathList)
-                };
                 nestedCodeActionCommand = new LSP.Command
                 {
                     CommandIdentifier = CodeActionsHandler.RunNestedCodeActionCommandName,
                     Title = title,
-                    Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, null, nestedCodeAction: nestedCodeAction, codeActionPathList)]
+                    Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, null, nestedCodeActions: nestedCodeActions, codeActionPathList)]
                 };
             }
 
@@ -146,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Kind = codeActionKind,
                 Diagnostics = diagnosticsForFix,
                 Command = nestedCodeActionCommand,
-                Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction, codeActionPathList)
+                Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions, codeActionPathList)
             });
 
             if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
@@ -157,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                     Title = fixAllTitle,
-                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)]
+                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeActions: null, codeActionPathList)]
                 };
 
                 builder.Add(new LSP.CodeAction
@@ -166,14 +157,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Command = command,
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)
+                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeActions: null, codeActionPathList)
                 });
             }
 
             return builder.ToArray();
         }
 
-        private static ImmutableArray<RoslynNestedCodeAction> CollectNestedActions(
+        private static ImmutableArray<LSP.CodeAction> CollectNestedActions(
             CodeActionParams request,
             LSP.CodeActionKind codeActionKind,
             LSP.Diagnostic[]? diagnosticsForFix,
@@ -182,7 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             bool isTopLevelCodeAction = false)
         {
             var codeAction = suggestedAction.OriginalCodeAction;
-            using var _1 = ArrayBuilder<RoslynNestedCodeAction>.GetInstance(out var nestedCodeActions);
+            using var _1 = ArrayBuilder<LSP.CodeAction>.GetInstance(out var nestedCodeActions);
 
             codeActionPath.Add(codeAction.Title);
             if (suggestedAction is UnifiedSuggestedActionWithNestedActions unifiedSuggestedActions)
@@ -201,14 +192,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     var codeActionPathList = codeActionPath.ToArray();
                     var title = codeAction.Title;
-                    nestedCodeActions.Add(new RoslynNestedCodeAction()
+                    nestedCodeActions.Add(new LSP.CodeAction()
                     {
-                        // Change this to -> because it is shown to the user
                         Title = title,
                         Kind = codeActionKind,
                         Diagnostics = diagnosticsForFix,
-                        NestedActions = ImmutableArray<RoslynNestedCodeAction>.Empty,
-                        Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction: null, codeActionPathList)
+                        Data = new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions: ImmutableArray<LSP.CodeAction>.Empty, codeActionPathList)
                     });
 
                     if (suggestedAction is UnifiedCodeFixSuggestedAction unifiedCodeFixSuggestedAction && unifiedCodeFixSuggestedAction.FixAllFlavors is not null)
@@ -220,18 +209,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                         {
                             CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                             Title = fixAllTitle,
-                            Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)]
+                            Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeActions: ImmutableArray<LSP.CodeAction>.Empty, codeActionPathList)]
                         };
 
-                        nestedCodeActions.Add(new RoslynNestedCodeAction()
+                        nestedCodeActions.Add(new LSP.CodeAction()
                         {
-                            // Change this to -> because it is shown to the user
                             Title = fixAllTitle,
                             Command = command,
                             Kind = codeActionKind,
                             Diagnostics = diagnosticsForFix,
-                            NestedActions = ImmutableArray<RoslynNestedCodeAction>.Empty,
-                            Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeAction: null, codeActionPathList)
+                            Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray(), nestedCodeActions: ImmutableArray<LSP.CodeAction>.Empty, codeActionPathList)
                         });
                     }
                 }
@@ -274,7 +261,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
                 ApplicableRange = applicableRange,
-                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeAction: null, codeActionPath: null)
+                Data = new CodeActionResolveData(currentTitle, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions: null, codeActionPath: null)
             };
 
             static VSInternalCodeAction[] GenerateNestedVSCodeActions(
@@ -367,7 +354,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
                     if (fixAllScope != null)
                     {
-                        codeActions.Add(GetFixAllActionsFromActionSet(suggestedAction, fixAllScope));
+                        var fixAllAction = GetFixAllActionsFromActionSet(suggestedAction, fixAllScope);
+                        if (fixAllAction != null)
+                        {
+                            codeActions.Add(fixAllAction);
+                        }
                     }
                 }
             }
@@ -394,7 +385,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     nestedActions.Add(GetNestedActionsFromActionSet(action, fixAllScope));
                     if (fixAllScope != null)
                     {
-                        nestedActions.Add(GetFixAllActionsFromActionSet(action, fixAllScope));
+                        var fixAllAction = GetFixAllActionsFromActionSet(action, fixAllScope);
+                        if (fixAllAction is not null)
+                        {
+                            nestedActions.Add(fixAllAction);
+                        }
                     }
                 }
             }
@@ -403,12 +398,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
-        private static CodeAction GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
+        private static CodeAction? GetFixAllActionsFromActionSet(IUnifiedSuggestedAction suggestedAction, string? fixAllScope)
         {
             var codeAction = suggestedAction.OriginalCodeAction;
             if (suggestedAction is not UnifiedCodeFixSuggestedAction { FixAllFlavors: not null } unifiedCodeFixSuggestedAction)
             {
-                return codeAction;
+                return null;
             }
 
             // Retrieves the fix all code action based on the scope that was selected. 
@@ -464,15 +459,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public static CodeAction? GetCodeActionToResolve(string[] codeActionPath, ImmutableArray<CodeAction> codeActions, bool isFixAllAction)
         {
-            return FindCodeAction(codeActions, codeActionPath, isFixAllAction, 0);
+            var currentActions = codeActions;
+            for (var i = 0; i < codeActionPath.Length; i++)
+            {
+                var title = codeActionPath[i];
+                var matchingActions = currentActions.Where(action => action.Title == title);
+                CodeAction? matchingAction = null;
+
+                // If we only have one matching action then just need to retrieve it from the list.
+                if (matchingActions.Count() == 1)
+                {
+                    matchingAction = matchingActions.FirstOrDefault();
+                }
+                else
+                {
+                    // Otherwise, we are likely at the end of the path and need to retrieve
+                    // the FixAllCodeAction if we are in that state or just the regular CodeAction.
+                    if (isFixAllAction)
+                    {
+                        matchingAction = matchingActions.FirstOrDefault(action => action is FixAllCodeAction);
+                    }
+                    else
+                    {
+                        matchingAction = matchingActions.FirstOrDefault(action => action is CodeAction);
+                    }
+                }
+
+                if (matchingAction is null)
+                {
+                    return null;
+                }
+
+                currentActions = matchingAction.NestedCodeActions;
+                if (currentActions.IsEmpty)
+                {
+                    return matchingAction;
+                }
+            }
+
+            return null;
         }
 
-        private static CodeAction? FindCodeAction(ImmutableArray<CodeAction> codeActions, string[] titlePath, bool isFixAllAction, int index)
+        /*private static CodeAction? FindCodeAction(ImmutableArray<CodeAction> codeActions, string[] titlePath, bool isFixAllAction, int index)
         {
-            if (index < 0 || index >= titlePath.Length)
-            {
-                return null;
-            }
+            Contract.ThrowIfTrue(index < 0 || index >= titlePath.Length);
 
             CodeAction? matchingAction = null;
             foreach (var action in codeActions)
@@ -514,6 +544,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
 
             return matchingAction;
-        }
+        }*/
     }
 }

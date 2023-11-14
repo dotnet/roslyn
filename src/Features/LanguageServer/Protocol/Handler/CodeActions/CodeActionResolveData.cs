@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public string[]? FixAllFlavors { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public RoslynNestedCodeAction? NestedCodeAction { get; }
+        public ImmutableArray<CodeAction>? NestedCodeActions { get; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? CodeActionPath { get; }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.Range range,
             LSP.TextDocumentIdentifier textDocument,
             string[]? fixAllFlavors,
-            RoslynNestedCodeAction? nestedCodeAction,
+            ImmutableArray<CodeAction>? nestedCodeActions,
             string[]? codeActionPath)
         {
             UniqueIdentifier = uniqueIdentifier;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             Range = range;
             TextDocument = textDocument;
             FixAllFlavors = fixAllFlavors;
-            NestedCodeAction = nestedCodeAction;
+            NestedCodeActions = nestedCodeActions;
             CodeActionPath = codeActionPath;
         }
     }
