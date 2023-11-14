@@ -67,13 +67,12 @@ namespace Microsoft.CodeAnalysis
         public abstract bool ContainsGlobalAliases(SyntaxNode root);
 
         public bool ContainsAttributeList(SyntaxNode root)
-            => ContainsAttributeList(root.Green, this.AttributeListKind);
-
-        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
         {
-            foreach (var current in node.EnumerateNodes())
+            var attributeListKind = this.AttributeListKind;
+
+            foreach (var node in root.Green.EnumerateNodes())
             {
-                if (current.RawKind == attributeListKind)
+                if (node.RawKind == attributeListKind)
                     return true;
             }
 
