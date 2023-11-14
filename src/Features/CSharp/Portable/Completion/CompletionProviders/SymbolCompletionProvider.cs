@@ -106,10 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return true;
 
             // If we are triggered in argument list, provide symbols only when the invoked method accept any arguments.
-            // Special case for argument of base record primary constructor as a workaround for bug https://github.com/dotnet/roslyn/issues/70803
-            return !await IsTriggeredInArgumentListAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false)
-                || (!context.InferredTypes.IsEmpty || IsInPrimaryConstructorArgumentList());
+            if (await IsTriggeredInArgumentListAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false) is false)
+                return true;
 
+            return !context.InferredTypes.IsEmpty || IsInPrimaryConstructorArgumentList();
+
+            // Special case for argument of base record primary constructor as a workaround
+            // for bug https://github.com/dotnet/roslyn/issues/70803
             bool IsInPrimaryConstructorArgumentList()
                 => context.TargetToken.Parent?.Parent?.IsKind(SyntaxKind.PrimaryConstructorBaseType) is true;
         }
