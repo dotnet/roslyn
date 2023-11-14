@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (await IsTriggeredInArgumentListAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false) is false)
                 return true;
 
-            return !context.InferredTypes.IsEmpty || IsInPrimaryConstructorArgumentList();
+            return !context.InferredTypes.IsEmpty || IsTopNodeInPrimaryConstructorArgumentList();
 
             // Special case for argument of base record primary constructor as a workaround
             // for bug https://github.com/dotnet/roslyn/issues/70803
-            bool IsInPrimaryConstructorArgumentList()
+            bool IsTopNodeInPrimaryConstructorArgumentList()
                 => context.TargetToken.Parent?.Parent?.IsKind(SyntaxKind.PrimaryConstructorBaseType) is true;
         }
 
