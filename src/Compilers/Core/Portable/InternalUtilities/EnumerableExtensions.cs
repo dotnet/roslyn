@@ -382,11 +382,24 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
+            // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.AddRange(selector(item));

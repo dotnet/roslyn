@@ -38,9 +38,7 @@ public abstract class AbstractSpellCheckSpanTests
     }
 
     private static ImmutableArray<SpellCheckSpan> Flatten(IDictionary<string, ImmutableArray<TextSpan>> annotations)
-    {
-        return annotations.SelectMany(kvp => kvp.Value.Select(span => new SpellCheckSpan(span, ConvertKind(kvp.Key)))).ToImmutableArray();
-    }
+        => annotations.SelectManyAsArray(kvp => kvp.Value.Select(span => new SpellCheckSpan(span, ConvertKind(kvp.Key))));
 
     private static SpellCheckKind ConvertKind(string key)
     {
