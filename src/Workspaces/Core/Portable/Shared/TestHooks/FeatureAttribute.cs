@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string RenameTracking = nameof(RenameTracking);
         public const string RuleSetEditor = nameof(RuleSetEditor);
         public const string SignatureHelp = nameof(SignatureHelp);
+        public const string SmartRename = nameof(SmartRename);
         public const string Snippets = nameof(Snippets);
         public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
         public const string SolutionCrawlerLegacy = nameof(SolutionCrawlerLegacy);
