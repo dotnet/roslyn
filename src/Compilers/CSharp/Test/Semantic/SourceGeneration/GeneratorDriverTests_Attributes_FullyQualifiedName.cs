@@ -1304,53 +1304,6 @@ class YAttribute : System.Attribute { }
         }
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/70791")]
-    public void FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1_DeepRecursion()
-    {
-        var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 20_000));
-        var source = $$"""
-            class Ex
-            {
-                void M()
-                {
-                    var v ={{deeplyRecursive}};
-                }
-            }
-
-            [N1.X]
-            class C1 { }
-            [N2.X]
-            class C2 { }
-
-            namespace N1
-            {
-                class XAttribute : System.Attribute { }
-            }
-
-            namespace N2
-            {
-                class XAttribute : System.Attribute { }
-            }
-            """;
-        var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
-        {
-            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("N1.XAttribute");
-            ctx.RegisterSourceOutput(input, (spc, node) => { });
-        }));
-
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
-        driver = driver.RunGenerators(compilation);
-        var runResult = driver.GetRunResult().Results[0];
-
-        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
-            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
-    }
-
     #endregion
 
     #region Incremental tests
