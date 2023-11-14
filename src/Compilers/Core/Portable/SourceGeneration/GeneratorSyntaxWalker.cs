@@ -4,11 +4,10 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class GeneratorSyntaxWalker : SyntaxWalker
+    internal sealed class GeneratorSyntaxWalker
     {
         private readonly ISyntaxContextReceiver _syntaxReceiver;
         private readonly ISyntaxHelper _syntaxHelper;
@@ -33,11 +32,14 @@ namespace Microsoft.CodeAnalysis
             _semanticModel = null;
         }
 
-        public override void Visit(SyntaxNode node)
+        public void Visit(SyntaxNode node)
         {
-            Debug.Assert(_semanticModel is object && _semanticModel.Value.SyntaxTree == node.SyntaxTree);
-            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel, _syntaxHelper));
-            base.Visit(node);
+            Debug.Assert(_semanticModel is object);
+            foreach (var child in node.DescendantNodesAndSelf())
+            {
+                Debug.Assert(_semanticModel.Value.SyntaxTree == child.SyntaxTree);
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, _semanticModel, _syntaxHelper));
+            }
         }
     }
 }

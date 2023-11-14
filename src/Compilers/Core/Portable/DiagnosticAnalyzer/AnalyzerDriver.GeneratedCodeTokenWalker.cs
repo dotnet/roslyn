@@ -10,31 +10,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal abstract partial class AnalyzerDriver
     {
-        private sealed class GeneratedCodeTokenWalker : SyntaxWalker
+        private sealed class GeneratedCodeTokenWalker
         {
             private readonly CancellationToken _cancellationToken;
 
             public GeneratedCodeTokenWalker(CancellationToken cancellationToken)
-                : base(SyntaxWalkerDepth.Token)
             {
                 _cancellationToken = cancellationToken;
             }
 
             public bool HasGeneratedCodeIdentifier { get; private set; }
 
-            public override void Visit(SyntaxNode node)
+            public void Visit(SyntaxNode node)
             {
-                if (HasGeneratedCodeIdentifier)
-                    return;
+                foreach (var token in node.DescendantTokens())
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
 
-                _cancellationToken.ThrowIfCancellationRequested();
-                base.Visit(node);
-            }
+                    HasGeneratedCodeIdentifier = string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal) ||
+                                                 string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal);
 
-            protected override void VisitToken(SyntaxToken token)
-            {
-                HasGeneratedCodeIdentifier |= string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal)
-                    || string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal);
+                    if (HasGeneratedCodeIdentifier)
+                        return;
+                }
             }
         }
     }
