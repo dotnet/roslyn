@@ -483,8 +483,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)utilities\hashing\BitOperations.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)utilities\hashing\NonCryptographicHashAlgorithm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\BitOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Hashing\NonCryptographicHashAlgorithm.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
