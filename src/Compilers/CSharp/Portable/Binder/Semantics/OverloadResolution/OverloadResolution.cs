@@ -3830,7 +3830,10 @@ outerDefault:
                     }
 
                     bool hasInterpolatedStringRefMismatch = false;
-                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
+                    // We don't consider when we're in default parameter values or attribute arguments to avoid cycles. This is an error scenario,
+                    // so we don't care if we accidentally miss a parameter being applicable.
+                    if (!_binder.InParameterDefaultValue && !_binder.InAttributeArgument
+                        && argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
                         && parameterRefKind == RefKind.Ref
                         && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
                     {

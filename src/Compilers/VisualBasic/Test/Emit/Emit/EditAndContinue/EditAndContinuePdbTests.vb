@@ -151,8 +151,8 @@ End Class", fileName:="C:\Enc1.vb")
             Dim syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1)
 
             Dim diff1 = compilation1.EmitDifference(generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables:=True),
-                                      New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1),
+                                      New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1)))
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I4-0, $I4-2, $I4-3#1, $I4-1, _Lambda$__4-0, _Lambda$__4-1, _Lambda$__4-2, _Lambda$__4-3#1}")
@@ -251,9 +251,9 @@ End Class", fileName:="C:\Enc1.vb")
 
             Dim syntaxMap2 = GetSyntaxMapFromMarkers(source1, source2)
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables:=True),
-                                      New SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2, preserveLocalVariables:=True),
-                                      New SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2, preserveLocalVariables:=True),
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2),
+                                      New SemanticEdit(SemanticEditKind.Update, g1, g2, syntaxMap2),
+                                      New SemanticEdit(SemanticEditKind.Update, a1, a2, syntaxMap2),
                                       New SemanticEdit(SemanticEditKind.Insert, Nothing, b2)))
 
             diff2.VerifySynthesizedMembers(

@@ -17,6 +17,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class WorkaroundsInProcess
     {
+        public async Task RemoveConflictingKeyBindingsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE80.DTE2>(cancellationToken);
+            EnvDTE.Command command;
+            try
+            {
+                command = dte.Commands.Item("Edit.IntelliCode.APIUsageExamples");
+            }
+            catch
+            {
+                // Ignore if the command doesn't exist
+                return;
+            }
+
+            command.Bindings = Array.Empty<object>();
+        }
+
         public async Task WaitForNavigationAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.NavigateTo], cancellationToken);
@@ -25,7 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
             // of one of the above waiters, but GetActiveWindowCaptionAsync appears to return the previous window
             // caption for a short delay after the above complete.
-            await Task.Delay(2000);
+            await Task.Delay(2000, cancellationToken);
         }
 
         /// <summary>

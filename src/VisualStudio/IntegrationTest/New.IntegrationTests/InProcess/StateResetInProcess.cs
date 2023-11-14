@@ -99,14 +99,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TestServices.Editor.SetUseSuggestionModeAsync(forDebuggerTextView: false, false, cancellationToken);
 
             // Make sure responsive completion doesn't interfere if integration tests run slowly.
+            await DisableResponsiveCompletion(cancellationToken);
+
+            await CloseActiveWindowsAsync(cancellationToken);
+        }
+
+        public async Task DisableResponsiveCompletion(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // Make sure responsive completion doesn't interfere if integration tests run slowly.
             var editorOptionsFactory = await GetComponentModelServiceAsync<IEditorOptionsFactoryService>(cancellationToken);
             var options = editorOptionsFactory.GlobalOptions;
             options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
 
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
-
-            await CloseActiveWindowsAsync(cancellationToken);
         }
 
         public async Task CloseActiveWindowsAsync(CancellationToken cancellationToken)

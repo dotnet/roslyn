@@ -19,20 +19,20 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public static class Edit
         {
             public const VSConstants.VSStd97CmdID ClearAll = VSConstants.VSStd97CmdID.ClearPane;
-            public const string Copy = "Edit.Copy";
-            public const string Cut = "Edit.Cut";
-            public const string Delete = "Edit.Delete";
-            public const string LineDown = "Edit.LineDown";
-            public const string LineEnd = "Edit.LineEnd";
-            public const string LineEndExtend = "Edit.LineEndExtend";
-            public const string LineStart = "Edit.LineStart";
-            public const string LineStartExtend = "Edit.LineStartExtend";
-            public const string LineUp = "Edit.LineUp";
+            public const VSConstants.VSStd97CmdID Copy = VSConstants.VSStd97CmdID.Copy;
+            public const VSConstants.VSStd97CmdID Cut = VSConstants.VSStd97CmdID.Cut;
+            public const VSConstants.VSStd97CmdID Delete = VSConstants.VSStd97CmdID.Delete;
+            public const VSConstants.VSStd2KCmdID LineDown = VSConstants.VSStd2KCmdID.DOWN;
+            public const VSConstants.VSStd2KCmdID LineEnd = VSConstants.VSStd2KCmdID.EOL;
+            public const VSConstants.VSStd2KCmdID LineEndExtend = VSConstants.VSStd2KCmdID.EOL_EXT;
+            public const VSConstants.VSStd2KCmdID LineStart = VSConstants.VSStd2KCmdID.BOL;
+            public const VSConstants.VSStd2KCmdID LineStartExtend = VSConstants.VSStd2KCmdID.BOL_EXT;
+            public const VSConstants.VSStd2KCmdID LineUp = VSConstants.VSStd2KCmdID.UP;
             public const VSConstants.VSStd2KCmdID ListMembers = VSConstants.VSStd2KCmdID.SHOWMEMBERLIST;
             public const VSConstants.VSStd2KCmdID ParameterInfo = VSConstants.VSStd2KCmdID.PARAMINFO;
-            public const string Paste = "Edit.Paste";
+            public const VSConstants.VSStd97CmdID Paste = VSConstants.VSStd97CmdID.Paste;
             public const VSConstants.VSStd97CmdID Redo = VSConstants.VSStd97CmdID.Redo;
-            public const string SelectAll = "Edit.SelectAll";
+            public const VSConstants.VSStd97CmdID SelectAll = VSConstants.VSStd97CmdID.SelectAll;
             public const VSConstants.VSStd2KCmdID SelectionCancel = VSConstants.VSStd2KCmdID.CANCEL;
             public const VSConstants.VSStd2KCmdID ToggleCompletionMode = VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode;
             public const VSConstants.VSStd97CmdID Undo = VSConstants.VSStd97CmdID.Undo;
@@ -49,6 +49,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             /// <seealso cref="InteractiveShell.CommandIds.ClearScreen"/>
             public static readonly CommandID ClearScreen = new(InteractiveShell::Guids.InteractiveCommandSetId, 264);
+
+            /// <seealso cref="InteractiveShell.CommandIds.ExecuteInInteractiveWindow"/>
+            public static readonly CommandID ExecuteInInteractive = new(InteractiveShell::Guids.InteractiveCommandSetId, 268);
+        }
+
+        public static class ProjectandSolutionContextMenus
+        {
+            public static class Project
+            {
+                public static readonly CommandID ResetCSharpInteractiveFromProject = new(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
+            }
         }
 
         public static class Refactor

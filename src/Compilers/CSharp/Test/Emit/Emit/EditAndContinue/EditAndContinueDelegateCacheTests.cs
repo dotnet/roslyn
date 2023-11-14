@@ -58,7 +58,7 @@ class C
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C.F", @"
@@ -122,7 +122,7 @@ class C<T>
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F", @"
@@ -186,7 +186,7 @@ class C<T>
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"
@@ -250,7 +250,7 @@ class C<T>
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"
@@ -314,7 +314,7 @@ class C<T>
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"
