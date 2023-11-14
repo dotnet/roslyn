@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return nullableReturnOperations;
 
                 var returnType = syntaxNode is MethodDeclarationSyntax method ? method.ReturnType : ((LocalFunctionStatementSyntax)syntaxNode).ReturnType;
-                var newDocument = await GenerateNewDocument(methodSymbol, returnType, originalDocument, cancellationToken).ConfigureAwait(false);
+                var newDocument = await GenerateNewDocumentAsync(methodSymbol, returnType, originalDocument, cancellationToken).ConfigureAwait(false);
 
                 return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return null;
                 }
 
-                static async Task<Document> GenerateNewDocument(
+                static async Task<Document> GenerateNewDocumentAsync(
                     IMethodSymbol methodSymbol,
                     TypeSyntax returnType,
                     SemanticDocument originalDocument,

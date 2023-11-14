@@ -860,6 +860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterlockedOperations.Initialize(ref _lazySignature, signature);
         }
 
+        public override BlobHandle MetadataSignatureHandle
+        {
+            get
+            {
+                try
+                {
+                    return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle);
+                }
+                catch (BadImageFormatException)
+                {
+                    return default;
+                }
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get

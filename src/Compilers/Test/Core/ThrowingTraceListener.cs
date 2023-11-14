@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis
     {
         public override void Fail(string? message, string? detailMessage)
         {
-            if (message?.Contains("Pretty-listing introduced errors in error-free code") ?? false)
-            {
-                // Ignore this known assertion failure
-                return;
-            }
-
             throw new InvalidOperationException(
                 (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
                 (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));

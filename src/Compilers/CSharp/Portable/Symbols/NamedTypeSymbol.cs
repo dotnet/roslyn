@@ -1703,11 +1703,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
-        {
-            get
-            {
-                return this.EnumUnderlyingType;
-            }
-        }
+            => EnumUnderlyingType;
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers()
+            => GetMembers().CastArray<ISymbolInternal>();
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers(string name)
+            => GetMembers(name).CastArray<ISymbolInternal>();
+
     }
 }

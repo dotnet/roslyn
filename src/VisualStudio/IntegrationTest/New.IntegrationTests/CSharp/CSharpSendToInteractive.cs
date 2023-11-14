@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
@@ -66,7 +67,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 1 */", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 2 */", charsOffset: -1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("> int x = 1;", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -82,7 +83,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 3 */", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 4 */", charsOffset: -1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\n.             int z = 3;", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -101,7 +102,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 5 */", charsOffset: 6, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 6 */", charsOffset: -3, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplOutputAsync("\n. x *= 4;            ", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -137,7 +138,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 1 */", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 2 */", charsOffset: -1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplInputContainsAsync("// scenario 5", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -153,7 +154,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 3 */", charsOffset: 1, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 4 */", charsOffset: -1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplInputContainsAsync("// scenario 6", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -172,7 +173,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.OpenFileAsync(project, FileName, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 5 */", charsOffset: 6, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("/* 6 */", charsOffset: -3, occurrence: 0, extendSelection: true, selectBlock: true, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.InteractiveConsole_ExecuteInInteractive, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.InteractiveConsole.ExecuteInInteractive, HangMitigatingCancellationToken);
             await TestServices.InteractiveWindow.WaitForLastReplInputContainsAsync("// scenario 7", HangMitigatingCancellationToken);
 
             await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);
@@ -224,7 +225,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.SolutionExplorer.AddMetadataReferenceAsync(assembly, project, HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.SelectItemAsync(ProjectName, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject, HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.ProjectandSolutionContextMenus.Project.ResetCSharpInteractiveFromProject, HangMitigatingCancellationToken);
 
             // Waiting for a long operation: build + reset from project
             await TestServices.InteractiveWindow.WaitForReplOutputAsync("using TestProj;", HangMitigatingCancellationToken);

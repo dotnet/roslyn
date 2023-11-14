@@ -25,7 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async ValueTask<NavigationBarModel?> ComputeModelAndSelectItemAsync(ImmutableSegmentedList<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+
+            // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
+            // occurred while switching to the main thread.
+            if (cancellationToken.IsCancellationRequested)
+                return null;
+
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
 
             // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
@@ -100,7 +106,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             // Switch to the UI so we can determine where the user is and determine the state the last time we updated
             // the UI.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+
+            // Cancellation exceptions are ignored in AsyncBatchingWorkQueue, so return without throwing if cancellation
+            // occurred while switching to the main thread.
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             await SelectItemWorkerAsync(cancellationToken).ConfigureAwait(true);
 
             // Once we've computed and selected the latest navbar items, pause ourselves if we're no longer visible.

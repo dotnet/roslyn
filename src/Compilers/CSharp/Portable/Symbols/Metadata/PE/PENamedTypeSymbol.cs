@@ -2601,6 +2601,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert(genericParameterHandles.Count > 0);
                 _arity = arity;
+                if (_arity == 0)
+                {
+                    _lazyTypeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+                }
+
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
@@ -2658,19 +2663,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
+                    // If _arity is zero, we should have assigned empty immutable array to _lazyTypeParameters early in the constructor.
+                    Debug.Assert(_arity > 0);
+
                     var moduleSymbol = ContainingPEModule;
 
                     // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
                     int firstIndex = _genericParameterHandles.Count - _arity;
 
-                    TypeParameterSymbol[] ownedParams = new TypeParameterSymbol[_arity];
-                    for (int i = 0; i < ownedParams.Length; i++)
+                    var ownedParams = ArrayBuilder<TypeParameterSymbol>.GetInstance(_arity);
+                    ownedParams.Count = _arity;
+                    for (int i = 0; i < ownedParams.Count; i++)
                     {
                         ownedParams[i] = new PETypeParameterSymbol(moduleSymbol, this, (ushort)i, _genericParameterHandles[firstIndex + i]);
                     }
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameters,
-                        ImmutableArray.Create<TypeParameterSymbol>(ownedParams));
+                        ownedParams.ToImmutableAndFree());
                 }
             }
 

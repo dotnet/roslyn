@@ -74,7 +74,7 @@ End Class
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -180,7 +180,7 @@ End Class
             Dim g2 = compilation2.GetMember(Of MethodSymbol)("C.G")
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -265,7 +265,7 @@ End Class
             Dim g2 = compilation2.GetMember(Of MethodSymbol)("C.G")
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
@@ -337,7 +337,7 @@ End Class
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
@@ -461,12 +461,12 @@ End Class")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             ' First update adds some new synthesized members (lambda related)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -475,7 +475,7 @@ End Class")
             ' Second update is to a method that doesn't produce any synthesized members 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -487,7 +487,7 @@ End Class")
             ' hence we need to account for wildcards when comparing the versions.
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3))))
 
             diff3.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
