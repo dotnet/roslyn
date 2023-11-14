@@ -1971,24 +1971,26 @@ partial class Program
     public void M()
     {
         System.Delegate d = this.F;
+        d.DynamicInvoke();
         System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }
 }
 
 static class A
 {
-    internal static void F<T>(this object x) { }
+    internal static void F<T>(this object x) => throw null;
 }
 namespace N
 {
     static class B
     {
-        internal static void F(this object x) { }
+        internal static void F(this object x) { System.Console.Write("RAN "); }
     }
 }
 """;
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN N.B.F: System.Action");
+            verifier.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
