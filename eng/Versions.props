@@ -83,7 +83,6 @@
     <MicrosoftBuildRuntimeVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildUtilitiesCoreVersion>
-    <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
     <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>7.0.0-preview.23525.7</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
     <!--
@@ -115,7 +114,7 @@
     <MicrosoftDiaSymReaderNativeVersion>17.0.0-beta1.21524.1</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.7.0-beta-21528-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftExtensionsLoggingVersion>6.0.0</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.2</MicrosoftExtensionsLoggingAbstractionsVersion>
+    <MicrosoftExtensionsLoggingAbstractionsVersion>6.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>6.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
@@ -216,6 +215,7 @@
     <MoqVersion>4.10.1</MoqVersion>
     <NerdbankStreamsVersion>2.10.69</NerdbankStreamsVersion>
     <NuGetVisualStudioVersion>6.0.0-preview.0.15</NuGetVisualStudioVersion>
+    <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
@@ -223,17 +223,6 @@
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>3.0.0-beta2-19053-01</RoslynDependenciesOptimizationDataVersion>
     <RoslynDiagnosticsAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</RoslynDiagnosticsAnalyzersVersion>
-    <!--
-      The package "Microsoft.CodeAnalysis.Analyzer.Testing" brings in an earlier version of these NuGet dependencies than
-      is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
-      as our configured SDK, we must set the version to be the same.
-     -->
-    <NuGetCommonVersion>6.8.0-rc.112</NuGetCommonVersion>
-    <NuGetConfigurationVersion>$(NuGetCommonVersion)</NuGetConfigurationVersion>
-    <NuGetFrameworksVersion>$(NuGetCommonVersion)</NuGetFrameworksVersion>
-    <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
-    <NuGetProtocolVersion>$(NuGetCommonVersion)</NuGetProtocolVersion>
-    <NuGetVersioningVersion>$(NuGetCommonVersion)</NuGetVersioningVersion>
     <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.22474.1</RoslynToolsVSIXExpInstallerVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
