@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -192,35 +193,84 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// Enumerates all green nodes of the tree rooted by this node (including this node).  This includes normal
+        /// nodes, tokens, as well as list nodes.  The nodes will be returned in depth-first order.
+        /// Depth-First).
         /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
+        public NodeEnumerable EnumerateNodes()
+            => new NodeEnumerable(this);
+
+        public struct NodeEnumerable(GreenNode node) : IEnumerable<GreenNode>
         {
-            yield return this;
+            public readonly Enumerator GetEnumerator()
+                => new(node);
 
-            var stack = new Stack<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
+            IEnumerator<GreenNode> IEnumerable<GreenNode>.GetEnumerator()
+                => GetEnumerator();
 
-            while (stack.Count > 0)
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+
+            public struct Enumerator(GreenNode node) : IEnumerator<GreenNode>
             {
-                var en = stack.Pop();
-                if (!en.MoveNext())
+                private readonly GreenNode _node = node;
+                private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance();
+
+                private bool _started;
+                private GreenNode _current = null!;
+
+                public readonly GreenNode Current
+                    => _current;
+
+                public bool MoveNext()
                 {
-                    // no more down this branch
-                    continue;
+                    if (!_started)
+                    {
+                        _started = true;
+                        _current = _node;
+                        _stack.Push(_node.ChildNodesAndTokens().GetEnumerator());
+                        return true;
+                    }
+                    else
+                    {
+                        while (_stack.TryPop(out var currentEnumerator))
+                        {
+                            while (currentEnumerator.MoveNext())
+                            {
+                                var current = currentEnumerator.Current;
+                                if (current is null)
+                                    continue;
+
+                                // push back this enumerator back onto the stack as it may still have more elements to give.
+                                _stack.Push(currentEnumerator);
+
+                                // also push the children of this current node so we'll walk into those.
+                                if (!current.IsToken)
+                                    _stack.Push(current.ChildNodesAndTokens().GetEnumerator());
+
+                                // Finally, return the current node we ran into back to the caller.
+                                _current = current;
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
                 }
 
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!current.IsToken)
+                public void Reset()
                 {
-                    // not token, so consider children
-                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
-                    continue;
+                    _started = false;
+                    _stack.Clear();
+                    _current = null!;
                 }
+
+                public readonly void Dispose()
+                {
+                    _stack.Free();
+                }
+
+                readonly object IEnumerator.Current => Current;
             }
         }
 

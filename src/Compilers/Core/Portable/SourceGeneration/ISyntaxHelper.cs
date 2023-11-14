@@ -71,17 +71,9 @@ namespace Microsoft.CodeAnalysis
 
         private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
         {
-            if (node.RawKind == attributeListKind)
-                return true;
-
-            for (int i = 0, n = node.SlotCount; i < n; i++)
+            foreach (var current in node.EnumerateNodes())
             {
-                var child = node.GetSlot(i);
-
-                if (child is null || child.IsToken)
-                    continue;
-
-                if (ContainsAttributeList(child, attributeListKind))
+                if (current.RawKind == attributeListKind)
                     return true;
             }
 
