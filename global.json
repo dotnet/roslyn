@@ -5,7 +5,7 @@
     "rollForward": "disable"
   },
   "tools": {
-    "dotnet": "8.0.100-rc.1.23463.5",
+    "dotnet": "8.0.100",
     "vs": {
       "version": "17.7.2"
     },
