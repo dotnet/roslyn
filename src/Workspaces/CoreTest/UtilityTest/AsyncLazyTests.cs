@@ -29,19 +29,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(5, t.Result);
         }
 
-        [Fact]
-        public void SynchronousContinuationsDoNotRunWithinGetValueCallForCompletedTask()
-            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.RanToCompletion);
-
-        [Fact]
-        public void SynchronousContinuationsDoNotRunWithinGetValueCallForCancelledTask()
-            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Canceled);
-
-        [Fact]
-        public void SynchronousContinuationsDoNotRunWithinGetValueCallForFaultedTask()
-            => SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus.Faulted);
-
-        private static void SynchronousContinuationsDoNotRunWithinGetValueCallCore(TaskStatus expectedTaskStatus)
+        [Theory]
+        [InlineData(TaskStatus.RanToCompletion)]
+        [InlineData(TaskStatus.Canceled)]
+        [InlineData(TaskStatus.Faulted)]
+        public void SynchronousContinuationsDoNotRunWithinGetValueCall(TaskStatus expectedTaskStatus)
         {
             var synchronousComputationStartedEvent = new ManualResetEvent(initialState: false);
             var synchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);
@@ -224,14 +216,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
-        public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
-        {
-            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
-            CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: false);
-        }
-
-        private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore(Func<AsyncLazy<object>, CancellationToken, object> doGetValue, bool includeSynchronousComputation)
+        [Theory]
+        [CombinatorialData]
+        private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResult(bool includeSynchronousComputation)
         {
             var computations = 0;
             var requestCancellationTokenSource = new CancellationTokenSource();
@@ -258,11 +245,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 // Do a first request. Even though we will get a cancellation during the evaluation,
                 // since we handed a result back, that result must be cached.
-                doGetValue(lazy, requestCancellationTokenSource.Token);
+                lazy.GetValue(requestCancellationTokenSource.Token);
             });
 
             // And a second request. We'll let this one complete normally.
-            var secondRequestResult = doGetValue(lazy, CancellationToken.None);
+            var secondRequestResult = lazy.GetValue(CancellationToken.None);
 
             // We should have gotten the same cached result, and we should have only computed once.
             Assert.Same(createdObject, secondRequestResult);
