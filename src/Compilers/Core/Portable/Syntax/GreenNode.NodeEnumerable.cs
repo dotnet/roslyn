@@ -3,16 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
 internal abstract partial class GreenNode
 {
+    [NonCopyable]
     public ref struct NodeEnumerable(GreenNode node)
     {
         public readonly Enumerator GetEnumerator()
             => new Enumerator(node);
 
+        [NonCopyable]
         public ref struct Enumerator
         {
             private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack;
