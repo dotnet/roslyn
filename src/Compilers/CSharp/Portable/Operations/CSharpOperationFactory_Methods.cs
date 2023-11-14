@@ -204,9 +204,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                     property,
                                     boundObjectInitializerMember.Arguments,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
-                                    boundObjectInitializerMember.DefaultArguments,
-                                    boundObjectInitializerMember.Expanded,
-                                    boundObjectInitializerMember.Syntax);
+                                    boundObjectInitializerMember.DefaultArguments);
                     }
                 case BoundKind.IndexerAccess:
                     {
@@ -214,9 +212,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(boundIndexer.Indexer,
                                                boundIndexer.Arguments,
                                                boundIndexer.ArgsToParamsOpt,
-                                               boundIndexer.DefaultArguments,
-                                               boundIndexer.Expanded,
-                                               boundIndexer.Syntax);
+                                               boundIndexer.DefaultArguments);
                     }
                 case BoundKind.ObjectCreationExpression:
                     {
@@ -224,9 +220,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(objectCreation.Constructor,
                                                objectCreation.Arguments,
                                                objectCreation.ArgsToParamsOpt,
-                                               objectCreation.DefaultArguments,
-                                               objectCreation.Expanded,
-                                               objectCreation.Syntax);
+                                               objectCreation.DefaultArguments);
                     }
                 case BoundKind.Attribute:
                     var attribute = (BoundAttribute)containingExpression;
@@ -234,9 +228,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return DeriveArguments(attribute.Constructor,
                                            attribute.ConstructorArguments,
                                            attribute.ConstructorArgumentsToParamsOpt,
-                                           attribute.ConstructorDefaultArguments,
-                                           attribute.ConstructorExpanded,
-                                           attribute.Syntax);
+                                           attribute.ConstructorDefaultArguments);
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
@@ -244,8 +236,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCall.Arguments,
                                                boundCall.ArgsToParamsOpt,
                                                boundCall.DefaultArguments,
-                                               boundCall.Expanded,
-                                               boundCall.Syntax,
                                                boundCall.InvokedAsExtensionMethod);
                     }
                 case BoundKind.CollectionElementInitializer:
@@ -255,8 +245,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCollectionElementInitializer.Arguments,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
                                                boundCollectionElementInitializer.DefaultArguments,
-                                               boundCollectionElementInitializer.Expanded,
-                                               boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
                     }
                 case BoundKind.FunctionPointerInvocation:
@@ -266,8 +254,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundFunctionPointerInvocation.Arguments,
                                                default,
                                                BitVector.Empty,
-                                               false,
-                                               boundFunctionPointerInvocation.Syntax,
                                                false);
                     }
                 default:
@@ -280,8 +266,6 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<int> argumentsToParametersOpt,
             BitVector defaultArguments,
-            bool expanded,
-            SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
         {
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
@@ -294,11 +278,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
-                 compilation: (CSharpCompilation)_semanticModel.Compilation,
-                 syntax: invocationSyntax,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,
-                 expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);

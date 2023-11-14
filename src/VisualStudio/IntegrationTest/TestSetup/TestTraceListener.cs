@@ -3,12 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal class TestTraceListener : TraceListener
     {
+        private ImmutableList<Exception> _failures = ImmutableList<Exception>.Empty;
+
+        public static TestTraceListener Instance { get; } = new();
+
         public override void Fail(string? message, string? detailMessage)
         {
             if (string.IsNullOrEmpty(message))
@@ -91,13 +97,36 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Exit(string? message)
         {
-            FatalError.ReportAndPropagate(new Exception(message));
+            var reportedException = new Exception(message);
+            if (message?.Contains("Pretty-listing introduced errors in error-free code") ?? false)
+            {
+                // Ignore this known assertion failure
+                FatalError.ReportAndCatch(reportedException, ErrorSeverity.Critical);
+                return;
+            }
+
+            FatalError.ReportAndPropagate(reportedException, ErrorSeverity.Critical);
+            Instance.AddException(reportedException);
+        }
+
+        public void AddException(Exception exception)
+        {
+            ImmutableInterlocked.Update(ref _failures, static (failures, exception) => failures.Add(exception), exception);
+        }
+
+        public void VerifyNoErrorsAndReset()
+        {
+            var failures = Interlocked.Exchange(ref _failures, ImmutableList<Exception>.Empty);
+            if (!failures.IsEmpty)
+            {
+                throw new AggregateException(failures);
+            }
         }
 
         internal static void Install()
         {
             Trace.Listeners.Clear();
-            Trace.Listeners.Add(new TestTraceListener());
+            Trace.Listeners.Add(Instance);
         }
     }
 }

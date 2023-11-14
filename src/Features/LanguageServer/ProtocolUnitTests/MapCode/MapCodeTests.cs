@@ -101,8 +101,8 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
                     new MapCodeMapping
                     (
                         TextDocument: CreateTextDocumentIdentifier(documentUri),
-                        Contents:[codeBlock],
-                        FocusLocations:[ranges]
+                        Contents: [codeBlock],
+                        FocusLocations: [ranges]
                     )
                 ],
                 Updates: null

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DataContract]
     internal sealed partial record class Checksum(
-        [property: DataMember(Order = 0)] Checksum.HashData Hash) : IObjectWritable
+        [property: DataMember(Order = 0)] Checksum.HashData Hash)
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
@@ -82,8 +82,6 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
             => ToBase64String();
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
             => Hash.WriteTo(writer);

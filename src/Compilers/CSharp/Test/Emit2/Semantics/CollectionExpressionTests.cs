@@ -3223,12 +3223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(7,22): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // 0.cs(7,22): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         var y = F([..x]);
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(7, 22),
-                // 0.cs(8,25): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(7, 22),
+                // 0.cs(8,25): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         var z = F([1, ..x]);
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(8, 25));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(8, 25));
         }
 
         [Fact]
@@ -4929,9 +4929,9 @@ static class Program
                 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,9): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (3,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 // s = [.. new object()];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
         }
 
         [Fact]
@@ -6932,9 +6932,47 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,25): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (6,25): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         int[] y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "x").WithArguments("object", "GetEnumerator").WithLocation(6, 25));
+        }
+
+        [Fact]
+        public void SpreadElement_13()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [..null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0186: Use of null is not valid in this context
+                //         int[] x = [..null];
+                Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(5, 22));
+        }
+
+        [Fact]
+        public void SpreadElement_14()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] x = [..Main];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,22): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
+                //         int[] x = [..Main];
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(5, 22));
         }
 
         [Fact]
@@ -22687,6 +22725,149 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerable()
+        {
+            string source = """
+                using System.Collections;
+                ref struct S : IEnumerable
+                {
+                    public void Add(params S[] x) => throw null;
+                    public IEnumerator GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S F() => [[]];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable").WithArguments("S").WithLocation(2, 16),
+                // (4,28): error CS0611: Array elements cannot be of type 'S'
+                //     public void Add(params S[] x) => throw null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "S").WithArguments("S").WithLocation(4, 28),
+                // (9,21): error CS9203: A collection expression of type 'S' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S F() => [[]];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[[]]").WithArguments("S").WithLocation(9, 21));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImplementsIEnumerableT()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct S<T> : IEnumerable<T>
+                {
+                    public void Add(T t) => throw null;
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static S<int> F() => [1, 2, 3];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,19): error CS8343: 'S<T>': ref structs cannot implement interfaces
+                // ref struct S<T> : IEnumerable<T>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<T>").WithArguments("S<T>").WithLocation(3, 19),
+                // (11,26): error CS9203: A collection expression of type 'S<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static S<int> F() => [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[1, 2, 3]").WithArguments("S<int>").WithLocation(11, 26));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray_01()
+        {
+            string sourceA = """
+                #pragma warning disable 436
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                namespace System.Collections.Immutable
+                {
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]
+        [Fact]
+        public void RefStruct_ImmutableArray_02()
+        {
+            string sourceA = """
+                #pragma warning disable 436
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Runtime.CompilerServices;
+                namespace System.Collections.Immutable
+                {
+                    [CollectionBuilder(typeof(ImmutableArray), "Create")]
+                    public ref struct ImmutableArray<T>
+                    {
+                        public IEnumerator<T> GetEnumerator() => null;
+                    }
+                    public static class ImmutableArray
+                    {
+                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items) => default;
+                    }
+                }
+                namespace System.Runtime.InteropServices
+                {
+                    public static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static ImmutableArray<int> F1() => [1, 2, 3];
+                    static ImmutableArray<int> F2(int x, int y) => [x, y];
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //     static ImmutableArray<int> F2(int x, int y) => [x, y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+        }
+
         [Fact]
         public void ElementNullability_ArrayCollection()
         {
@@ -23523,9 +23704,9 @@ partial class Program
                 """;
 
             CreateCompilation(src).VerifyEmitDiagnostics(
-                // (3,18): error CS1579: foreach statement cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
+                // (3,18): error CS9212: Spread operator '..' cannot operate on variables of type 'bool' because 'bool' does not contain a public instance or extension definition for 'GetEnumerator'
                 // object[] y1 = [..(x is null)];
-                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
+                Diagnostic(ErrorCode.ERR_SpreadMissingMember, "(x is null)").WithArguments("bool", "GetEnumerator").WithLocation(3, 18)
                 );
         }
 

@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.Cci
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -736,7 +737,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property HasDeclarativeSecurity As Boolean
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return (_flags And MethodAttributes.HasSecurity) <> 0
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property RequiresSecurityObject As Boolean
+            Get
+                Return (_flags And MethodAttributes.RequireSecObject) <> 0
             End Get
         End Property
 
@@ -1036,6 +1043,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return InterlockedOperations.Initialize(_lazySignature, signature)
         End Function
+
+        Friend Overrides ReadOnly Property MetadataSignatureHandle As BlobHandle
+            Get
+                Try
+                    Return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle)
+                Catch ex As BadImageFormatException
+                    Return Nothing
+                End Try
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get

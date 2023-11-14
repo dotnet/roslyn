@@ -76,7 +76,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="$(MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion)" />
-    <PackageReference Include="NuGet.Frameworks" Version="$(NuGetFrameworksVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
@@ -117,34 +116,6 @@
         <CopyToOutput>false</CopyToOutput>
         <BuildAction>None</BuildAction>
       </Content>
-    </ItemGroup>
-  </Target>
-
-  <!--
-    Deploy a net472 version of the BuildHost process.
-  -->
-  <Target Name="DeployNetFrameworkBuildHost" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
-    <ItemGroup>
-      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
-        <TargetFramework>net472</TargetFramework>
-      </_NetFrameworkBuildHostProjectReference>
-    </ItemGroup>
-
-    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
-    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)"
-             Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup"
-             Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)"
-             RemoveProperties="PackRuntimeIdentifier">
-      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
-    </MSBuild>
-
-    <ItemGroup>
-      <!-- We set Pack="false" because we only care about the RID-specific folders -->
-      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
-               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
-               Pack="false"
-               TargetPath="BuildHost-net472\%(NetFrameworkBuildHostAssets.TargetPath)"
-               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

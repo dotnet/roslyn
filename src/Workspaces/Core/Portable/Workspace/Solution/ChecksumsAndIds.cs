@@ -13,22 +13,25 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// A paired list of IDs (either <see cref="ProjectId"/>s or <see cref="DocumentId"/>s), and the checksums for their
 /// corresponding <see cref="Project"/>s or <see cref="Document"/>s).
 /// </summary>
-internal readonly struct ChecksumsAndIds<TId> where TId : IObjectWritable
+internal readonly struct ChecksumsAndIds<TId>
 {
     public readonly ChecksumCollection Checksums;
     public readonly ImmutableArray<TId> Ids;
 
     private static readonly Func<ObjectReader, TId> s_readId;
+    private static readonly Action<ObjectWriter, TId> s_writeTo;
 
     static ChecksumsAndIds()
     {
         if (typeof(TId) == typeof(ProjectId))
         {
             s_readId = reader => (TId)(object)ProjectId.ReadFrom(reader);
+            s_writeTo = (writer, id) => ((ProjectId)(object)id!).WriteTo(writer);
         }
         else if (typeof(TId) == typeof(DocumentId))
         {
             s_readId = reader => (TId)(object)DocumentId.ReadFrom(reader);
+            s_writeTo = (writer, id) => ((DocumentId)(object)id!).WriteTo(writer);
         }
         else
         {
@@ -50,7 +53,7 @@ internal readonly struct ChecksumsAndIds<TId> where TId : IObjectWritable
     public void WriteTo(ObjectWriter writer)
     {
         this.Checksums.WriteTo(writer);
-        writer.WriteArray(this.Ids, static (writer, value) => value.WriteTo(writer));
+        writer.WriteArray(this.Ids, s_writeTo);
     }
 
     public static ChecksumsAndIds<TId> ReadFrom(ObjectReader reader)

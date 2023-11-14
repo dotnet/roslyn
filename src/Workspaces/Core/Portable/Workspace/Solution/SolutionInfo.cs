@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId) : IObjectWritable
+        internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
         {
             private Checksum? _lazyChecksum;
 
@@ -137,8 +137,6 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
         }
     }
 }

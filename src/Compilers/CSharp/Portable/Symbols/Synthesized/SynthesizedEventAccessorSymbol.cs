@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, bool isExpressionBodied, EventSymbol explicitlyImplementedEventOpt = null, string aliasQualifierOpt = null)
             : base(@event, null, @event.Location, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder, isIterator: false, isNullableAnalysisEnabled: false, isExpressionBodied: isExpressionBodied)
         {
+            Debug.Assert(IsAbstract || IsExtern || IsFieldLikeEventAccessor());
+        }
+
+        private bool IsFieldLikeEventAccessor()
+        {
+            return AssociatedEvent.HasAssociatedField;
         }
 
         public override bool IsImplicitlyDeclared
@@ -96,6 +103,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
+        internal override bool SynthesizesLoweredBoundBody
+        {
+            get
+            {
+                Debug.Assert(TryGetBodyBinder() is null);
+
+                if (IsFieldLikeEventAccessor())
+                {
+                    return true;
+                }
+
+                return base.SynthesizesLoweredBoundBody;
+            }
+        }
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        {
+            if (IsFieldLikeEventAccessor())
+            {
+                SourceEventSymbol fieldLikeEvent = AssociatedEvent;
+                if (fieldLikeEvent.Type.IsDelegateType())
+                {
+                    BoundBlock body = CSharp.MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(fieldLikeEvent, isAddMethod: MethodKind == MethodKind.EventAdd, compilationState.Compilation, diagnostics);
+
+                    if (body != null)
+                    {
+                        compilationState.AddSynthesizedMethod(this, body);
+                    }
+                }
+
+                return;
+            }
+
+            base.GenerateMethodBody(compilationState, diagnostics);
         }
     }
 }

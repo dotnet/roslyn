@@ -42,6 +42,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         SourceGeneratedDocumentIdentity documentIdentity,
         SourceText generatedSourceText,
         ParseOptions parseOptions,
+<<<<<<< HEAD
         LanguageServices languageServices,
         Checksum? originalSourceTextChecksum)
     {
@@ -60,6 +61,28 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         ParseOptions parseOptions,
         LanguageServices languageServices,
         Lazy<Checksum> lazyTextChecksum)
+||||||| b6b82d4037a
+        LanguageServices languageServices)
+=======
+        LanguageServices languageServices,
+        Checksum? originalSourceTextChecksum)
+    {
+        // If the caller explicitly provided us with the checksum for the source text, then we always defer to that.
+        // This happens on the host side, when we are given the data computed by the OOP side.
+        //
+        // If the caller didn't provide us with the checksum, then we'll compute it on demand.  This happens on the OOP
+        // side when we're actually producing the SG doc in the first place.
+        var lazyTextChecksum = new Lazy<Checksum>(() => originalSourceTextChecksum ?? ComputeChecksum(generatedSourceText));
+        return Create(documentIdentity, generatedSourceText, parseOptions, languageServices, lazyTextChecksum);
+    }
+
+    private static SourceGeneratedDocumentState Create(
+        SourceGeneratedDocumentIdentity documentIdentity,
+        SourceText generatedSourceText,
+        ParseOptions parseOptions,
+        LanguageServices languageServices,
+        Lazy<Checksum> lazyTextChecksum)
+>>>>>>> upstream/main
     {
         var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
         var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());

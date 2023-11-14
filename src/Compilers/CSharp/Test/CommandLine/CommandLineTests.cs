@@ -12492,6 +12492,304 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                using System;
+
+                class X
+                {
+                    public bool Select<T>(Func<int, T> selector) => true;
+                    public static int operator +(Action a, X right) => 0;
+                }
+
+                public class PrecedenceInversionClass
+                {
+                    void M1()
+                    {
+                        var src = new X();
+                        var b = false && from x in src select x; // Parsing warning -- CS8848: Operator 'from' cannot be used here due to precedence
+                    }
+                }
+
+                public class {} // Parsing error -- CS1001: Identifier expected";
+
+            var sourceDirectory = Temp.CreateDirectory();
+            var sourceFile = sourceDirectory.CreateFile("BuggyCode.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            // During the parsing stage, both CS8848 (a warning) and CS1001 (an unsuppressible error) will be detected.
+            // This test verifies that CS8848 is correctly suppressed, and that CS1001 is correctly reported.
+            var precedenceInversionWarningSuppressor = new DiagnosticSuppressorForId("CS8848");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_PrecedenceInversion, "from"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.Id,
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.Justification);
+
+            // CS8848 is automatically suppressed if the warning level is <5.
+            // Set the warning level to 5 to ensure that it will not get automatically suppressed, and leave it up to the `precedenceInversionWarningSuppressor` to suppress it.
+            var output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    additionalFlags: new[] { "/warn:5" },
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    analyzers: new[] { precedenceInversionWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS8848", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            // During the parsing stage, both CS8848 (a warning) and CS1001 (an unsuppressible error) will be detected.
+            // This test verifies that CS8848 is correctly suppressed even when elevated as an error (using `warnaserror`), and that CS1001 is correctly reported.
+            output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warn:5", "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    errorlog: true,
+                    analyzers: new[] { precedenceInversionWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS8848", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS8848", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxDeclarationError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                partial struct MyPartialStruct
+                {
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
+                    {
+                        MyInt = value;
+                    }
+                }
+
+                public abstract class MyAbstractClass
+                {
+                    // error CS0180: Methods cannot be both extern and abstract -- this is a declaration error
+                    public extern abstract void MyFaultyMethod()
+                    {
+                    }
+                }";
+            var sourceDirectory = Temp.CreateDirectory();
+            var sourceFile = sourceDirectory.CreateFile("NotGenerated.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            const string GeneratedCode =
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedCode, "Generated.cs");
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS0180` is reported.
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
+
+            var output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0180", output, StringComparison.Ordinal);
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS0180` is reported.
+            output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    errorlog: true,
+                    analyzers: new[] { partialStructWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0180", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxBindingError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                // warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
+                    {
+                        MyInt = value;
+                    }
+                }
+
+                public class MyClass
+                {
+                    void MyPrivateMethod()
+                    {
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var sourceDir = Temp.CreateDirectory();
+            var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            const string GeneratedSource =
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedSource, "Generated.cs");
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS1001` is reported.
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
+
+            var output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS1001` is reported.
+            output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    errorlog: true,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSyntaxError()
@@ -13286,19 +13584,28 @@ generated_code = auto");
         [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
-        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
+            bool useGlobalConfig,
             DiagnosticSeverity defaultSeverity,
             DiagnosticSeverity? severityInConfigFile,
             DiagnosticSeverity expectedEffectiveSeverity)
@@ -13313,9 +13620,20 @@ generated_code = auto");
             if (severityInConfigFile.HasValue)
             {
                 var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
-                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+
+                TempFile analyzerConfig;
+                if (useGlobalConfig)
+                {
+                    analyzerConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
+                else
+                {
+                    analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
 
                 additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
             }

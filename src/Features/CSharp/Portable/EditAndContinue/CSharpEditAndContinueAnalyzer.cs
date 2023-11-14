@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var node = displayNode ?? _newNode ?? _oldNode;
                 var displayName = GetDisplayName(node!, _kind);
 
-                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: new[] { displayName }));
+                _diagnostics.Add(new RudeEditDiagnostic(kind, span, node, arguments: [displayName]));
             }
 
             private TextSpan GetSpan()
@@ -2560,7 +2560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     rudeEditKind,
                     GetDiagnosticSpan(newNode, EditKind.Insert),
                     newNode,
-                    arguments: new[] { GetDisplayName(newNode, EditKind.Insert) }));
+                    arguments: [GetDisplayName(newNode, EditKind.Insert)]));
             }
         }
 

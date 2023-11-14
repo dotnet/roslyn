@@ -11710,21 +11710,30 @@ expectedOutput:="2").
             VerifyIL("Test.TestINop(Of T)(T)",
             <![CDATA[
 {
-  // Code size       36 (0x24)
+  // Code size       60 (0x3c)
   .maxstack  3
-  .locals init (T V_0)
+  .locals init (T V_0,
+            T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Test.Nop(Of T)(T) As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. "T"
-  IL_0011:  callvirt   "Function I.get_IntPropI() As Integer"
-  IL_0016:  ldc.i4.1
-  IL_0017:  add.ovf
-  IL_0018:  constrained. "T"
-  IL_001e:  callvirt   "Sub I.set_IntPropI(Integer)"
-  IL_0023:  ret
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_0021
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function I.get_IntPropI() As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub I.set_IntPropI(Integer)"
+  IL_003b:  ret
 }
 ]]>)
         End Sub
@@ -13035,9 +13044,10 @@ End class
             VerifyIL("test(Of T).Repro1(T)",
             <![CDATA[
 {
-  // Code size       77 (0x4d)
+      // Code size       77 (0x4d)
   .maxstack  4
-  .locals init (Integer& V_0)
+  .locals init (Integer& V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
   IL_0006:  ldflda     "c0.x As Integer"
@@ -13048,23 +13058,27 @@ End class
   IL_000f:  ldc.i4.1
   IL_0010:  add.ovf
   IL_0011:  stind.i4
-  IL_0012:  ldarga.s   V_0
-  IL_0014:  ldarga.s   V_0
-  IL_0016:  constrained. "T"
-  IL_001c:  callvirt   "Function c0.get_P1() As Integer"
-  IL_0021:  ldc.i4.1
-  IL_0022:  add.ovf
-  IL_0023:  constrained. "T"
+  IL_0012:  ldarg.0
+  IL_0013:  dup
+  IL_0014:  stloc.1
+  IL_0015:  box        "T"
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function c0.get_P1() As Integer"
+  IL_0027:  ldc.i4.1
+  IL_0028:  add.ovf
   IL_0029:  callvirt   "Sub c0.set_P1(Integer)"
-  IL_002e:  ldarga.s   V_0
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldarga.s   V_0
-  IL_0033:  ldc.i4.1
-  IL_0034:  constrained. "T"
-  IL_003a:  callvirt   "Function c0.get_Item(Integer) As Integer"
-  IL_003f:  ldc.i4.1
-  IL_0040:  add.ovf
-  IL_0041:  constrained. "T"
+  IL_002e:  ldarg.0
+  IL_002f:  dup
+  IL_0030:  stloc.1
+  IL_0031:  box        "T"
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldc.i4.1
+  IL_003a:  constrained. "T"
+  IL_0040:  callvirt   "Function c0.get_Item(Integer) As Integer"
+  IL_0045:  ldc.i4.1
+  IL_0046:  add.ovf
   IL_0047:  callvirt   "Sub c0.set_Item(Integer, Integer)"
   IL_004c:  ret
 }

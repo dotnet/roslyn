@@ -4544,7 +4544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                     }
 
-                    BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+                    BindDefaultArgumentsAndParamsArray(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -4758,7 +4758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, diagnostics, inferredType: out _, out builder) ||
+                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
@@ -5360,7 +5360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArguments((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        var indexer = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -6146,7 +6146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+                BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -6235,11 +6235,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CoClassAttribute contains the type information of the original CoClass for the interface.
             // We replace the interface creation with CoClass object creation for this case.
 
-            // NOTE: We don't attempt binding interface creation to CoClass creation if we are within an attribute argument.
-            // NOTE: This is done to prevent a cycle in an error scenario where we have a "new InterfaceType" expression in an attribute argument.
+            // NOTE: We don't attempt binding interface creation to CoClass creation if we are within an attribute argument or default parameter value.
+            // NOTE: This is done to prevent a cycle in an error scenario where we have a "new InterfaceType" expression in an attribute argument/default parameter value.
             // NOTE: Accessing IsComImport/ComImportCoClass properties on given type symbol would attempt ForceCompeteAttributes, which would again try binding all attributes on the symbol.
             // NOTE: causing infinite recursion. We avoid this cycle by checking if we are within in context of an Attribute argument.
-            if (!this.InAttributeArgument && type.IsComImport)
+            if (!this.InAttributeArgument && !this.InParameterDefaultValue && type.IsComImport)
             {
                 NamedTypeSymbol coClassType = type.ComImportCoClass;
                 if ((object)coClassType != null)
@@ -7745,7 +7745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+                // If we're in a parameter default value or attribute argument, this is an error scenario, so avoid checking
+                // for COM imported types to avoid a binding cycle.
+                bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
@@ -9075,7 +9077,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver is not null);
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-            bool allowRefOmittedArguments = receiver.IsExpressionOfComImportType();
+            // We don't consider when we're in default parameter values or attribute arguments so that we avoid cycles. This is an error scenario,
+            // so we don't care if we accidentally miss a parameter being applicable.
+            bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && receiver.IsExpressionOfComImportType();
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
@@ -9745,7 +9749,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
+                // We check for being in a default parameter value or attribute to avoid a cycle. If we're binding these,
+                // this entire expression is bad, so we don't care whether this is a COM import type and we can safely
+                // just pass false here.
+                bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methodGroup.Methods,
                     methodGroup.TypeArguments,
@@ -9785,7 +9792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node)
         {
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
@@ -9854,6 +9861,113 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 method = null;
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// For C# 13 onwards, returns one of the methods from the method group if all instance methods, or extension methods
+        /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
+        /// The particular method returned is not important since the caller is interested in the signature only.
+        /// </summary>
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
+        {
+            if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
+            {
+                return GetUniqueSignatureFromMethodGroup_CSharp10(node);
+            }
+
+            MethodSymbol? method = selectMethodForSignature(node);
+
+            if (method is null)
+            {
+                return null;
+            }
+
+            int arity = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
+            if (method.Arity != arity)
+            {
+                return null;
+            }
+            else if (arity > 0)
+            {
+                return method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
+            }
+
+            return method;
+
+            static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
+            {
+                if (method is null)
+                {
+                    method = candidate;
+                    return true;
+                }
+                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
+                {
+                    return true;
+                }
+                method = null;
+                return false;
+            }
+
+            MethodSymbol? selectMethodForSignature(BoundMethodGroup node)
+            {
+                MethodSymbol? method = null;
+                if (node.ResultKind == LookupResultKind.Viable)
+                {
+                    foreach (var m in node.Methods)
+                    {
+                        switch (node.ReceiverOpt)
+                        {
+                            case BoundTypeExpression:
+                            case null: // if `using static Class` is in effect, the receiver is missing
+                                if (!m.IsStatic) continue;
+                                break;
+                            case BoundThisReference { WasCompilerGenerated: true }:
+                                break;
+                            default:
+                                if (m.IsStatic) continue;
+                                break;
+                        }
+
+                        if (!isCandidateUnique(ref method, m))
+                        {
+                            return null;
+                        }
+                    }
+
+                    if (method is not null)
+                    {
+                        return method;
+                    }
+                }
+
+                if (node.SearchExtensionMethods)
+                {
+                    var receiver = node.ReceiverOpt!;
+                    foreach (var scope in new ExtensionMethodScopes(this))
+                    {
+                        var methodGroup = MethodGroup.GetInstance();
+                        PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
+                        foreach (var m in methodGroup.Methods)
+                        {
+                            if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
+                                !isCandidateUnique(ref method, reduced))
+                            {
+                                methodGroup.Free();
+                                return null;
+                            }
+                        }
+                        methodGroup.Free();
+
+                        if (method is not null)
+                        {
+                            return method;
+                        }
+                    }
+                }
+
+                return null;
             }
         }
 

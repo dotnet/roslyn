@@ -336,7 +336,7 @@ partial interface T3
                 Punctuation.CloseCurly);
         }
 
-        private static readonly string[] s_contextualKeywordsOnlyValidInMethods = new string[] { "where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending" };
+        private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
 
         /// <summary>
         /// Check for items only valid within a method declaration

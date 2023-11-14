@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     {
                         CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                         Title = title,
-                        Arguments = new object[] { new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray()) }
+                        Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors.ToArray())]
                     };
 
                     builder.Add(new LSP.CodeAction

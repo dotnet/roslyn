@@ -69,23 +69,35 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsAttributeList(SyntaxNode root)
             => ContainsAttributeList(root.Green, this.AttributeListKind);
 
-        private static bool ContainsAttributeList(GreenNode node, int attributeListKind)
+        private static bool ContainsAttributeList(GreenNode root, int attributeListKind)
         {
-            if (node.RawKind == attributeListKind)
-                return true;
-
-            for (int i = 0, n = node.SlotCount; i < n; i++)
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            try
             {
-                var child = node.GetSlot(i);
+                stack.Push(root);
 
-                if (child is null || child.IsToken)
-                    continue;
+                while (stack.TryPop(out var node))
+                {
+                    if (node.RawKind == attributeListKind)
+                        return true;
 
-                if (ContainsAttributeList(child, attributeListKind))
-                    return true;
+                    for (int i = 0, n = node.SlotCount; i < n; i++)
+                    {
+                        var child = node.GetSlot(i);
+
+                        if (child is null || child.IsToken)
+                            continue;
+
+                        stack.Push(child);
+                    }
+                }
+
+                return false;
             }
-
-            return false;
+            finally
+            {
+                stack.Free();
+            }
         }
     }
 }

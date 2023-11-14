@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode : IObjectWritable
+    internal abstract class GreenNode
     {
         private string GetDebuggerDisplay()
         {
@@ -418,63 +417,6 @@ namespace Microsoft.CodeAnalysis
                 return this.GetTrailingTriviaWidth() != 0;
             }
         }
-        #endregion
-
-        #region Serialization 
-        // use high-bit on Kind to identify serialization of extra info
-        private const UInt16 ExtendedSerializationInfoMask = unchecked((UInt16)(1u << 15));
-
-        internal GreenNode(ObjectReader reader)
-        {
-            var kindBits = reader.ReadUInt16();
-            _kind = (ushort)(kindBits & ~ExtendedSerializationInfoMask);
-
-            if ((kindBits & ExtendedSerializationInfoMask) != 0)
-            {
-                var diagnostics = (DiagnosticInfo[])reader.ReadValue();
-                if (diagnostics != null && diagnostics.Length > 0)
-                {
-                    this.flags |= NodeFlags.ContainsDiagnostics;
-                    s_diagnosticsTable.Add(this, diagnostics);
-                }
-
-                var annotations = (SyntaxAnnotation[])reader.ReadValue();
-                if (annotations != null && annotations.Length > 0)
-                {
-                    this.flags |= NodeFlags.ContainsAnnotations;
-                    s_annotationsTable.Add(this, annotations);
-                }
-            }
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => ShouldReuseInSerialization;
-
-        internal virtual bool ShouldReuseInSerialization => this.IsCacheable;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            this.WriteTo(writer);
-        }
-
-        internal virtual void WriteTo(ObjectWriter writer)
-        {
-            var kindBits = (UInt16)_kind;
-            var hasDiagnostics = this.GetDiagnostics().Length > 0;
-            var hasAnnotations = this.GetAnnotations().Length > 0;
-
-            if (hasDiagnostics || hasAnnotations)
-            {
-                kindBits |= ExtendedSerializationInfoMask;
-                writer.WriteUInt16(kindBits);
-                writer.WriteValue(hasDiagnostics ? this.GetDiagnostics() : null);
-                writer.WriteValue(hasAnnotations ? this.GetAnnotations() : null);
-            }
-            else
-            {
-                writer.WriteUInt16(kindBits);
-            }
-        }
-
         #endregion
 
         #region Annotations 

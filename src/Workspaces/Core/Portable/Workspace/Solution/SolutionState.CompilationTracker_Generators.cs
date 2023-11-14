@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -98,7 +99,12 @@ internal partial class SolutionState
             if (client is null)
                 return null;
 
+            // We're going to be making multiple calls over to OOP.  No point in resyncing data multiple times.  Keep a
+            // single connection, and keep this solution instance alive (and synced) on both sides of the connection
+            // throughout the calls.
+            var listenerProvider = solution.Services.ExportProvider.GetExports<IAsynchronousOperationListenerProvider>().First().Value;
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+            using var _ = RemoteKeepAliveSession.Create(solution, listenerProvider.GetListener(FeatureAttribute.Workspace));
 
             // First, grab the info from our external host about the generated documents it has for this project.
             var projectId = this.ProjectState.Id;
