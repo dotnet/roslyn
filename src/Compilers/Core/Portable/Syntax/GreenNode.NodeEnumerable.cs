@@ -44,19 +44,15 @@ internal abstract partial class GreenNode
                     {
                         while (currentEnumerator.MoveNext())
                         {
-                            var current = currentEnumerator.Current;
-                            if (current is null)
-                                continue;
+                            _current = currentEnumerator.Current;
 
                             // push back this enumerator back onto the stack as it may still have more elements to give.
                             _stack.Push(currentEnumerator);
 
                             // also push the children of this current node so we'll walk into those.
-                            if (!current.IsToken)
-                                _stack.Push(current.ChildNodesAndTokens().GetEnumerator());
+                            if (!_current.IsToken)
+                                _stack.Push(_current.ChildNodesAndTokens().GetEnumerator());
 
-                            // Finally, return the current node we ran into back to the caller.
-                            _current = current;
                             return true;
                         }
                     }
