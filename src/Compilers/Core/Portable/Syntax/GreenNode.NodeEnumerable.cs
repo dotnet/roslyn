@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis;
@@ -15,13 +13,19 @@ internal abstract partial class GreenNode
         public readonly Enumerator GetEnumerator()
             => new Enumerator(node);
 
-        public ref struct Enumerator(GreenNode node)
+        public ref struct Enumerator
         {
-            private readonly GreenNode _node = node;
-            private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance();
+            private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack;
 
             private bool _started;
-            private GreenNode _current = null!;
+            private GreenNode _current;
+
+            public Enumerator(GreenNode node)
+            {
+                _current = node;
+                _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance();
+                _stack.Push(node.ChildNodesAndTokens().GetEnumerator());
+            }
 
             public readonly void Dispose()
                 => _stack.Free();
@@ -33,9 +37,9 @@ internal abstract partial class GreenNode
             {
                 if (!_started)
                 {
+                    // First call that starts the whole process.  We don't actually want to start processing the stack
+                    // yet.  We just want to return the original node (which we already stored into _current).
                     _started = true;
-                    _current = _node;
-                    _stack.Push(_node.ChildNodesAndTokens().GetEnumerator());
                     return true;
                 }
                 else
