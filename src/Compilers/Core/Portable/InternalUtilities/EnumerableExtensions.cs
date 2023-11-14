@@ -387,13 +387,7 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-#if NET
-            var count = source.TryGetNonEnumeratedCount(out var val) ? val : 0;
-#else
-            var count = 0;
-#endif
-
-            var builder = ArrayBuilder<TResult>.GetInstance(count);
+            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 builder.AddRange(selector(item));
 
@@ -405,13 +399,7 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-#if NET
-            var count = source.TryGetNonEnumeratedCount(out var val) ? val : 0;
-#else
-            var count = 0;
-#endif
-
-            var builder = ArrayBuilder<TResult>.GetInstance(count);
+            var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
                 builder.AddRange(selector(item, arg));
 
