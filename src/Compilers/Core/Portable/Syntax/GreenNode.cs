@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class GreenNode
+    internal abstract partial class GreenNode
     {
         private string GetDebuggerDisplay()
         {
@@ -192,37 +192,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Enumerates all nodes of the tree rooted by this node (including this node).
+        /// Enumerates all green nodes of the tree rooted by this node (including this node).  This includes normal
+        /// nodes, list nodes, and tokens.  The nodes will be returned in depth-first order.  This will not descend 
+        /// into trivia or structured trivia.
         /// </summary>
-        internal IEnumerable<GreenNode> EnumerateNodes()
-        {
-            yield return this;
-
-            var stack = new Stack<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>(24);
-            stack.Push(this.ChildNodesAndTokens().GetEnumerator());
-
-            while (stack.Count > 0)
-            {
-                var en = stack.Pop();
-                if (!en.MoveNext())
-                {
-                    // no more down this branch
-                    continue;
-                }
-
-                var current = en.Current;
-                stack.Push(en); // put it back on stack (struct enumerator)
-
-                yield return current;
-
-                if (!current.IsToken)
-                {
-                    // not token, so consider children
-                    stack.Push(current.ChildNodesAndTokens().GetEnumerator());
-                    continue;
-                }
-            }
-        }
+        public NodeEnumerable EnumerateNodes()
+            => new NodeEnumerable(this);
 
         /// <summary>
         /// Find the slot that contains the given offset.
