@@ -127,6 +127,11 @@
         <target state="translated">パターン変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 式に変更</target>
@@ -150,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">生文字列に変換する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -310,11 +320,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">this' 修飾子を削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">

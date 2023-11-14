@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
 
             var exprSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (exprSymbol is not IFieldSymbol { IsConst: true } field)
+            if (exprSymbol is not IFieldSymbol { IsConst: true })
                 return false;
 
             // See if interpreting the same expression as a type in this location binds.

@@ -11918,5 +11918,31 @@ class B : A
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
+        public void IsStandardImplicitConversion_NullLiteral()
+        {
+            var source = """
+                class C
+                {
+                    void M(S? s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+
+                readonly struct S
+                {
+                    public static implicit operator S(bool? x) => default;
+                    public static bool operator ==(S left, S right) => false;
+                    public static bool operator !=(S left, S right) => true;
+                    public override bool Equals(object obj) => false;
+                    public override int GetHashCode() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

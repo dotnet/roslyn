@@ -11,20 +11,20 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     {
         internal class AsyncToken : IAsyncToken
         {
-            private readonly AsynchronousOperationListener _listener;
-
             private bool _disposed;
 
             public AsyncToken(AsynchronousOperationListener listener)
             {
-                _listener = listener;
+                Listener = listener;
 
                 listener.Increment_NoLock();
             }
 
+            public AsynchronousOperationListener Listener { get; }
+
             public void Dispose()
             {
-                using (_listener._gate.DisposableWait(CancellationToken.None))
+                using (Listener._gate.DisposableWait(CancellationToken.None))
                 {
                     if (_disposed)
                     {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _disposed = true;
-                    _listener.Decrement_NoLock(this);
+                    Listener.Decrement_NoLock(this);
                 }
             }
         }

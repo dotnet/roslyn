@@ -13,7 +13,7 @@ namespace Roslyn.Utilities
     /// Explicitly a reference type so that the consumer of this in <see cref="BKTree"/> can safely operate on an
     /// instance without having to lock to ensure it sees the entirety of the value written out.
     /// </summary>>
-    internal sealed class SpellChecker(BKTree bKTree) : IObjectWritable
+    internal sealed class SpellChecker(BKTree bKTree)
     {
         private const string SerializationFormat = "4";
 
@@ -35,8 +35,6 @@ namespace Roslyn.Utilities
                     similarWords.Add(current);
             }
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
         {

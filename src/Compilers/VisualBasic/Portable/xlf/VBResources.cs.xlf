@@ -42,6 +42,11 @@
         <target state="translated">Atribut System.Runtime.CompilerServices.RequiredMemberAttribute je vyhrazen pouze pro použití kompilátoru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>

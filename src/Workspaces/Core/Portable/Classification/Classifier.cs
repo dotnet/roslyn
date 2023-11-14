@@ -21,9 +21,12 @@ namespace Microsoft.CodeAnalysis.Classification
     public static class Classifier
     {
         internal static PooledObject<SegmentedList<ClassifiedSpan>> GetPooledList(out SegmentedList<ClassifiedSpan> classifiedSpans)
+            => GetPooledList<ClassifiedSpan>(out classifiedSpans);
+
+        internal static PooledObject<SegmentedList<T>> GetPooledList<T>(out SegmentedList<T> classifiedSpans)
         {
-            var pooledObject = new PooledObject<SegmentedList<ClassifiedSpan>>(
-                SharedPools.Default<SegmentedList<ClassifiedSpan>>(),
+            var pooledObject = new PooledObject<SegmentedList<T>>(
+                SharedPools.Default<SegmentedList<T>>(),
                 static p =>
                 {
                     var result = p.Allocate();

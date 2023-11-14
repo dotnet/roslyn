@@ -43,11 +43,11 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
         {
             Title = string.Format(FeaturesResources._0_references_unquoted, "-"),
             CommandIdentifier = ClientReferencesCommand,
-            Arguments = new object[]
-            {
+            Arguments =
+            [
                 resolveData.TextDocument.Uri,
                 request.Range.Start
-            }
+            ]
         };
 
         // If the request is for an older version of the document, return a request with '- references'
@@ -69,11 +69,11 @@ internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler
             {
                 Title = referenceCount.Value.GetDescription(),
                 CommandIdentifier = ClientReferencesCommand,
-                Arguments = new object[]
-                {
-                        resolveData.TextDocument.Uri,
-                        request.Range.Start
-                }
+                Arguments =
+                [
+                    resolveData.TextDocument.Uri,
+                    request.Range.Start,
+                ],
             };
 
         }

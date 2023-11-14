@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis
             Guid telemetryId = default,
             bool isSubmission = false,
             bool hasAllInformation = true,
-            bool runAnalyzers = true) : IChecksummedObject, IObjectWritable
+            bool runAnalyzers = true)
         {
             /// <summary>
             /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -586,8 +586,6 @@ namespace Microsoft.CodeAnalysis
                     newRunAnalyzers);
             }
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -650,8 +648,8 @@ namespace Microsoft.CodeAnalysis
                     runAnalyzers: runAnalyzers);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+            public Checksum Checksum
+                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
         }
     }
 }

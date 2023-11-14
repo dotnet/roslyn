@@ -1131,7 +1131,7 @@ End Class
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName:="C.M",
                 expr:="M(y)")
-            Dim parameter = testData.GetMethodData("<>x.<>m0(ByRef Object)").Method.Parameters.Single()
+            Dim parameter = testData.GetMethodData("<>x.<>m0(ByRef Object)").Method.ParameterSymbols.Single()
             Assert.Equal(RefKind.Ref, parameter.RefKind)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{

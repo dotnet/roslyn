@@ -116,8 +116,8 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
             Range = caret.Range,
             Context = new CodeActionContext
             {
-                Diagnostics = new[]
-                {
+                Diagnostics =
+                [
                     new LSP.Diagnostic
                     {
                         Code = AddImportDiagnosticIds.CS0103
@@ -126,7 +126,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
                     {
                         Code = "SomeCode"
                     }
-                }
+                ]
             }
         };
 
@@ -157,14 +157,14 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
             Range = caret.Range,
             Context = new CodeActionContext
             {
-                Diagnostics = new[]
-                {
+                Diagnostics =
+                [
                     new LSP.Diagnostic
                     {
                         // async method lack of await.
                         Code = "CS1998"
                     }
-                }
+                ]
             }
         };
 

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver,
                 ImmutableArray<TypeWithAnnotations>.Empty,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 hasImplicitReceiver: false,
                 resultDiscarded: true).ToExpression();

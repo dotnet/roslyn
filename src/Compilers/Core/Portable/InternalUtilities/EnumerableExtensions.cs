@@ -561,7 +561,7 @@ namespace Roslyn.Utilities
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
 #endif
         {
-            return source.OrderBy(Comparisons<T>.Comparer);
+            return source.OrderBy(Comparer<T>.Default);
         }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
@@ -576,23 +576,18 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
         {
-            return source.ThenBy(Comparisons<T>.Comparer);
+            return source.ThenBy(Comparer<T>.Default);
         }
 
-        private static class Comparisons<T> where T : IComparable<T>
-        {
-            public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
-
-            public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
-        }
-
-        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
+        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T>? comparer = null)
         {
             using var e = enumerable.GetEnumerator();
             if (!e.MoveNext())
             {
                 return true;
             }
+
+            comparer ??= Comparer<T>.Default;
 
             var previous = e.Current;
             while (e.MoveNext())

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
         private readonly IImmutableSet<string> _kinds;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IStreamingProgressTracker _progress_doNotAccessDirectly;
 
         private readonly Document? _activeDocument;
@@ -47,13 +49,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Solution solution,
             INavigateToSearchCallback callback,
             string searchPattern,
-            IImmutableSet<string> kinds)
+            IImmutableSet<string> kinds,
+            IAsynchronousOperationListener listener)
         {
             _host = host;
             _solution = solution;
             _callback = callback;
             _searchPattern = searchPattern;
             _kinds = kinds;
+            _listener = listener;
             _progress_doNotAccessDirectly = new StreamingProgressTracker((current, maximum, ct) =>
             {
                 callback.ReportProgress(current, maximum);
@@ -80,7 +84,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
+            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
         }
 
         private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -174,6 +178,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             if (isFullyLoaded)
             {
+                // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
+                // solution we're searching stays pinned between us and it while this is happening.
+                using var _ = RemoteKeepAliveSession.Create(_solution, _listener);
+
                 // We may do up to two passes.  One for loaded docs.  One for source generated docs.
                 await AddProgressItemsAsync(
                     projectCount * ((searchRegularDocuments ? 1 : 0) + (searchGeneratedDocuments ? 1 : 0)),
@@ -191,25 +199,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // we're fully loaded (and thus have all the information necessary to properly run generators).
                 if (searchRegularDocuments)
                 {
-                    // We do at least two passes.  One for cached docs.  One for normal docs.
-                    await AddProgressItemsAsync(
-                        projectCount * 2,
-                        cancellationToken).ConfigureAwait(false);
-
+                    await AddProgressItemsAsync(projectCount, cancellationToken).ConfigureAwait(false);
                     await SearchCachedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
 
-                    // If searching cached data returned any results, then we're done.  We've at least shown some results
-                    // to the user.  That will hopefully serve them well enough until the solution fully loads.
-                    if (seenItems.Count > 0)
-                        return;
-
-                    await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
-
-                    // Report a telemetry event to track if we found uncached items after failing to find cached items.
-                    // In practice if we see that we are always finding uncached items, then it's likely something
-                    // has broken in the caching system since we would expect to normally find values there.  Specifically
-                    // we expect: foundFullItems <<< not foundFullItems.
-                    Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
+                    // Note: we only bother searching cached documents during this time.  Telemetry shows no meaningful
+                    // change if we do a full search after this point.  That prevents us from showing the user a
+                    // glacially slow progress meter as we load everything and end up finding nothing.
                 }
             }
         }

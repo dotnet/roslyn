@@ -303,16 +303,16 @@ namespace Roslyn.Test.Utilities
             => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeAction: null, codeActionPath: null);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
+            => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, List<Type>? extraExportedTypes = null)
+            => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, extraExportedTypes: extraExportedTypes);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions);
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, List<Type>? extraExportedTypes = null)
+            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, extraExportedTypes: extraExportedTypes);
 
-        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions);
+        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, List<Type>? extraExportedTypes = null)
+            => CreateTestLspServerAsync([markup], LanguageNames.VisualBasic, mutatingLspWorkspace, initializationOptions, extraExportedTypes: extraExportedTypes);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(
             string[] markups, string languageName, bool mutatingLspWorkspace, InitializationOptions? initializationOptions, List<Type>? excludedTypes = null, List<Type>? extraExportedTypes = null, bool commonReferences = true)
@@ -668,6 +668,14 @@ namespace Roslyn.Test.Utilities
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
             }
 
+            public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
+            }
+
             public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
             {
                 return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
@@ -675,14 +683,6 @@ namespace Roslyn.Test.Utilities
                     Start = new LSP.Position { Line = change.Line, Character = change.Column },
                     End = new LSP.Position { Line = change.Line, Character = change.Column }
                 }, change.Text)).ToArray());
-            }
-
-            public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
-            {
-                var didChangeParams = CreateDidChangeTextDocumentParams(
-                    documentUri,
-                    changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
-                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
             public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)

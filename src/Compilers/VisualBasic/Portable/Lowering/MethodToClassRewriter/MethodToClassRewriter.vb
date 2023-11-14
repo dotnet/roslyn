@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Rewrites field.
         ''' </summary>
-        Private Function VisitFieldSymbol(field As FieldSymbol) As FieldSymbol
+        Friend Function VisitFieldSymbol(field As FieldSymbol) As FieldSymbol
             Dim substitution As TypeSubstitution = Me.TypeMap
 
             If substitution IsNot Nothing Then

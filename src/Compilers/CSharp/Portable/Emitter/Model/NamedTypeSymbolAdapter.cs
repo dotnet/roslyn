@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericTypeInstanceReference,
         Cci.ISpecializedNestedTypeReference
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         bool Cci.ITypeReference.IsEnum
         {
             get { return AdaptedNamedTypeSymbol.TypeKind == TypeKind.Enum; }
@@ -810,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType == null && AdaptedNamedTypeSymbol.ContainingModule is SourceModuleSymbol);
 
-                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol) == Cci.TypeMemberVisibility.Public;
+                return AdaptedNamedTypeSymbol.MetadataVisibility == Cci.TypeMemberVisibility.Public;
             }
         }
 
@@ -846,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType != null);
                 CheckDefinitionInvariant();
 
-                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol);
+                return AdaptedNamedTypeSymbol.MetadataVisibility;
             }
         }
 

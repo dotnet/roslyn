@@ -1549,12 +1549,27 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
+            if (_projectIdToTrackerMap.Count == 0)
+                return _projectIdToTrackerMap;
 
+            using var _ = ArrayBuilder<KeyValuePair<ProjectId, ICompilationTracker>>.GetInstance(_projectIdToTrackerMap.Count, out var newTrackerInfo);
+            var allReused = true;
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState, translate: null));
+            {
+                var localTracker = tracker;
+                if (!CanReuse(id))
+                {
+                    localTracker = tracker.Fork(tracker.ProjectState, translate: null);
+                    allReused = false;
+                }
 
-            return builder.ToImmutable();
+                newTrackerInfo.Add(new KeyValuePair<ProjectId, ICompilationTracker>(id, localTracker));
+            }
+
+            if (allReused)
+                return _projectIdToTrackerMap;
+
+            return ImmutableDictionary.CreateRange(newTrackerInfo);
 
             // Returns true if 'tracker' can be reused for project 'id'
             bool CanReuse(ProjectId id)
@@ -1644,7 +1659,7 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (Services.GetService<IWorkpacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                    if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
                         return this;
                     }
@@ -1866,7 +1881,9 @@ namespace Microsoft.CodeAnalysis
 
             if (existingGeneratedState != null)
             {
-                newGeneratedState = existingGeneratedState.WithUpdatedGeneratedContent(sourceText, existingGeneratedState.ParseOptions);
+                newGeneratedState = existingGeneratedState
+                    .WithText(sourceText)
+                    .WithParseOptions(existingGeneratedState.ParseOptions);
 
                 // If the content already matched, we can just reuse the existing state
                 if (newGeneratedState == existingGeneratedState)
@@ -1881,7 +1898,9 @@ namespace Microsoft.CodeAnalysis
                     documentIdentity,
                     sourceText,
                     projectState.ParseOptions!,
-                    projectState.LanguageServices);
+                    projectState.LanguageServices,
+                    // Just compute the checksum from the source text passed in.
+                    originalSourceTextChecksum: null);
             }
 
             var projectId = documentIdentity.DocumentId.ProjectId;

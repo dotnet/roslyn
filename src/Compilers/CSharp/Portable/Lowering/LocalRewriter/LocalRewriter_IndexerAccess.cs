@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess node,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,

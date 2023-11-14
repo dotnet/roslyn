@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DataContract]
     internal sealed partial record class Checksum(
-        [property: DataMember(Order = 0)] Checksum.HashData Hash) : IObjectWritable
+        [property: DataMember(Order = 0)] Checksum.HashData Hash)
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
@@ -82,8 +83,6 @@ namespace Microsoft.CodeAnalysis
         public override string ToString()
             => ToBase64String();
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
         public void WriteTo(ObjectWriter writer)
             => Hash.WriteTo(writer);
 
@@ -100,6 +99,9 @@ namespace Microsoft.CodeAnalysis
 
         public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
             = checksums => string.Join("|", checksums.Select(c => c.ToString()));
+
+        public static Func<ProjectStateChecksums, string> GetProjectChecksumsLogInfo { get; }
+            = checksums => checksums.Checksum.ToString();
 
         // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
         // standard calls to EqualityComparer<HashData>.Default.Equals
