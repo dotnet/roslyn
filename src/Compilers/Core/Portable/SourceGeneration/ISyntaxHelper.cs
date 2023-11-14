@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
-        private static readonly ObjectPool<Stack<GreenNode>> s_nodeStackPool = new ObjectPool<Stack<GreenNode>>(static () => new Stack<GreenNode>());
-
         public abstract bool IsCaseSensitive { get; }
         protected abstract int AttributeListKind { get; }
 
@@ -73,14 +71,13 @@ namespace Microsoft.CodeAnalysis
 
         private static bool ContainsAttributeList(GreenNode root, int attributeListKind)
         {
-            var stack = s_nodeStackPool.Allocate();
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
             try
             {
                 stack.Push(root);
 
-                while (stack.Count > 0)
+                while (stack.TryPop(out var node))
                 {
-                    var node = stack.Pop();
                     if (node.RawKind == attributeListKind)
                         return true;
 
@@ -99,8 +96,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                stack.Clear();
-                s_nodeStackPool.Free(stack);
+                stack.Free();
             }
         }
     }
