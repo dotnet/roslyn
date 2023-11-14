@@ -24,16 +24,8 @@
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.149-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
-<<<<<<< HEAD
-    <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.9.1-preview</VisualStudioEditorPackagesVersion>
-||||||| b6b82d4037a
-    <CodeStyleAnalyzerVersion>4.6.0</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.7.188</VisualStudioEditorPackagesVersion>
-=======
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.7.188</VisualStudioEditorPackagesVersion>
->>>>>>> upstream/main
+    <VisualStudioEditorPackagesVersion>17.9.1-preview</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>6.0.0-rtm.21518.12</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerClientPackagesVersion>17.7.4-preview</MicrosoftVisualStudioLanguageServerClientPackagesVersion>
@@ -49,14 +41,8 @@
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>4.1.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-<<<<<<< HEAD
     <MicrosoftVisualStudioThreadingPackagesVersion>17.8.14</MicrosoftVisualStudioThreadingPackagesVersion>
-||||||| b6b82d4037a
-    <MicrosoftVisualStudioThreadingPackagesVersion>17.7.30</MicrosoftVisualStudioThreadingPackagesVersion>
-=======
-    <MicrosoftVisualStudioThreadingPackagesVersion>17.7.30</MicrosoftVisualStudioThreadingPackagesVersion>
     <MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>17.9.12-alpha</MicrosoftVisualStudioThreadingAnalyzersPackagesVersion>
->>>>>>> upstream/main
     <MicrosoftTestPlatformVersion>17.4.1</MicrosoftTestPlatformVersion>
   </PropertyGroup>
   <!--
@@ -97,15 +83,8 @@
     <MicrosoftBuildRuntimeVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildUtilitiesCoreVersion>
-<<<<<<< HEAD
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.9.3-alpha</MicrosoftVisualStudioRpcContractsVersion>
-||||||| b6b82d4037a
-    <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
-    <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
-=======
-    <MicrosoftVisualStudioRpcContractsVersion>17.5.14-alpha</MicrosoftVisualStudioRpcContractsVersion>
->>>>>>> upstream/main
     <MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>7.0.0-preview.23525.7</MicrosoftAspNetCoreRazorExternalAccessRoslynWorkspaceVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
