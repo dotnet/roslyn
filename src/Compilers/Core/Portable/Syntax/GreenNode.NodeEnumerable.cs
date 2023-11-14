@@ -56,7 +56,7 @@ internal abstract partial class GreenNode
                 {
                     while (_stack.TryPop(out var currentEnumerator))
                     {
-                        while (currentEnumerator.MoveNext())
+                        if (currentEnumerator.MoveNext())
                         {
                             _current = currentEnumerator.Current;
 
