@@ -499,51 +499,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             return null;
         }
-
-        /*private static CodeAction? FindCodeAction(ImmutableArray<CodeAction> codeActions, string[] titlePath, bool isFixAllAction, int index)
-        {
-            Contract.ThrowIfTrue(index < 0 || index >= titlePath.Length);
-
-            CodeAction? matchingAction = null;
-            foreach (var action in codeActions)
-            {
-                if (action.Title == titlePath[index])
-                {
-                    matchingAction = action;
-                    if (index == titlePath.Length - 1) 
-                    {
-                        if (isFixAllAction)
-                        {
-                            if (matchingAction is FixAllCodeAction)
-                            {
-                                return matchingAction;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            return matchingAction;
-                        }
-                    }
-
-                    break;
-                }
-            }
-
-            if (matchingAction == null)
-            {
-                return null;
-            }
-
-            if (index < titlePath.Length - 1)
-            {
-                return FindCodeAction(matchingAction.NestedCodeActions, titlePath, isFixAllAction, index + 1);
-            }
-
-            return matchingAction;
-        }*/
     }
 }
