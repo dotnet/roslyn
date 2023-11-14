@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
             await service.SearchDocumentAsync(
-                _activeDocument, _searchPattern, _kinds, _activeDocument,
+                _activeDocument, _searchPattern, _kinds,
                 r => _callback.AddItemAsync(project, r, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -221,38 +221,54 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             using var result = TemporaryArray<ImmutableArray<Project>>.Empty;
 
-            using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
-
-            // First, if there's an active document, search that project first, prioritizing that active document and
-            // all visible documents from it.
-            if (_activeDocument != null)
+            // Get the initial set of project groups.  But filter out any projects that don't have an associated search
+            // service.  No point examining them or adding progress items for them.
+            foreach (var group in GetOrderedProjectsToProcessWorker())
             {
-                processedProjects.Add(_activeDocument.Project);
-                result.Add(ImmutableArray.Create(_activeDocument.Project));
+                var groupCopy = group.WhereAsArray(p => _host.GetNavigateToSearchService(p) != null);
+                if (!groupCopy.IsEmpty)
+                    result.Add(groupCopy);
             }
-
-            // Next process all visible docs that were not from the active project.
-            using var buffer = TemporaryArray<Project>.Empty;
-            foreach (var doc in _visibleDocuments)
-            {
-                if (processedProjects.Add(doc.Project))
-                    buffer.Add(doc.Project);
-            }
-
-            if (buffer.Count > 0)
-                result.Add(buffer.ToImmutableAndClear());
-
-            // Finally, process the remainder of projects
-            foreach (var project in _solution.Projects)
-            {
-                if (processedProjects.Add(project))
-                    buffer.Add(project);
-            }
-
-            if (buffer.Count > 0)
-                result.Add(buffer.ToImmutableAndClear());
 
             return result.ToImmutableAndClear();
+
+            ImmutableArray<ImmutableArray<Project>> GetOrderedProjectsToProcessWorker()
+            {
+                using var result = TemporaryArray<ImmutableArray<Project>>.Empty;
+
+                using var _ = PooledHashSet<Project>.GetInstance(out var processedProjects);
+
+                // First, if there's an active document, search that project first, prioritizing that active document and
+                // all visible documents from it.
+                if (_activeDocument != null)
+                {
+                    processedProjects.Add(_activeDocument.Project);
+                    result.Add(ImmutableArray.Create(_activeDocument.Project));
+                }
+
+                // Next process all visible docs that were not from the active project.
+                using var buffer = TemporaryArray<Project>.Empty;
+                foreach (var doc in _visibleDocuments)
+                {
+                    if (processedProjects.Add(doc.Project))
+                        buffer.Add(doc.Project);
+                }
+
+                if (buffer.Count > 0)
+                    result.Add(buffer.ToImmutableAndClear());
+
+                // Finally, process the remainder of projects
+                foreach (var project in _solution.Projects)
+                {
+                    if (processedProjects.Add(project))
+                        buffer.Add(project);
+                }
+
+                if (buffer.Count > 0)
+                    result.Add(buffer.ToImmutableAndClear());
+
+                return result.ToImmutableAndClear();
+            }
         }
 
         /// <summary>
@@ -260,15 +276,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// precedence when searching.  This allows results to get to the user more quickly for common cases (like using
         /// nav-to to find results in the file you currently have open
         /// </summary>
-        private ImmutableArray<Document> GetPriorityDocuments(Project project)
+        private ImmutableArray<Document> GetPriorityDocuments(ImmutableArray<Project> projects)
         {
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-            if (_activeDocument?.Project == project)
+            using var _1 = PooledHashSet<Project>.GetInstance(out var projectsSet);
+            projectsSet.AddRange(projects);
+
+            using var _2 = ArrayBuilder<Document>.GetInstance(out var result);
+            if (_activeDocument?.Project != null && projectsSet.Contains(_activeDocument.Project))
                 result.Add(_activeDocument);
 
             foreach (var doc in _visibleDocuments)
             {
-                if (doc.Project == project)
+                if (projectsSet.Contains(doc.Project))
                     result.Add(doc);
             }
 
@@ -280,7 +299,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, Project, Func<INavigateToSearchResult, Task>, Task> processProjectAsync,
+            Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -290,31 +309,32 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // rest of the results following soon after as best as we can find them.
             foreach (var projectGroup in orderedProjects)
             {
+                var groups = projectGroup.GroupBy(p => _host.GetNavigateToSearchService(p) ?? throw ExceptionUtilities.Unreachable());
+
                 if (!parallel)
                 {
-                    foreach (var project in projectGroup)
-                        await SearchCoreAsync(project).ConfigureAwait(false);
+                    foreach (var group in groups)
+                        await SearchCoreAsync(group).ConfigureAwait(false);
                 }
                 else
                 {
-                    var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p), cancellationToken));
+                    var allTasks = groups.Select(SearchCoreAsync);
                     await Task.WhenAll(allTasks).ConfigureAwait(false);
+
                 }
             }
 
             return;
 
-            async Task SearchCoreAsync(Project project)
+            async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
             {
-                try
-                {
-                    // If they don't even support the service, then always show them as having done the
-                    // complete search.  That way we don't call back into this project ever.
-                    var service = _host.GetNavigateToSearchService(project);
-                    if (service == null)
-                        return;
+                await Task.Yield();
 
-                    await processProjectAsync(service, project, result =>
+                var searchService = grouping.Key;
+                await processProjectAsync(
+                    searchService,
+                    grouping.ToImmutableArray(),
+                    (project, result) =>
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects
@@ -326,13 +346,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         }
 
                         return _callback.AddItemAsync(project, result, cancellationToken);
-                    }).ConfigureAwait(false);
-                }
-                finally
-                {
-                    // after each project is searched, increment our progress.
-                    await ProgressItemsCompletedAsync(count: 1, cancellationToken).ConfigureAwait(false);
-                }
+                    },
+                    () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
             }
         }
 
@@ -349,7 +364,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, ps, cb1, cb2) => s.SearchProjectsAsync(
+                    _solution, ps, GetPriorityDocuments(ps), _searchPattern, _kinds, _activeDocument, cb1, cb2, cancellationToken),
                 cancellationToken);
         }
 
@@ -366,7 +382,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                async (service, projects, onItemFound, onProjectCompleted) =>
+                {
+                    // if the language doesn't support searching cached docs, immediately transition the project to the
+                    // completed state.
+                    if (service is not IAdvancedNavigateToSearchService advancedService)
+                    {
+                        foreach (var project in projects)
+                            await onProjectCompleted().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await advancedService.SearchCachedDocumentsAsync(
+                            _solution, projects, GetPriorityDocuments(projects), _searchPattern, _kinds, _activeDocument,
+                            onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                    }
+                },
                 cancellationToken);
         }
 
@@ -375,17 +406,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
-            // creating and processing the entire compilation for a project, which itself may require dependent compilations
-            // as references.  These dependents might also be skeleton references in the case of cross language projects.
+            // creating and processing the entire compilation for a project, which itself may require dependent
+            // compilations as references.  These dependents might also be skeleton references in the case of cross
+            // language projects.
             //
-            // As such, we always want to compute the information for one project before moving onto a project that depends on
-            // it.  That way information is available as soon as possible, and then computation for it immediately benefits 
-            // what comes next.  Importantly, this avoids the problem of picking a project deep in the dependency tree, which
-            // then pulls on N other projects, forcing results for this single project to pay that full price (that would 
-            // be paid when we hit these through a normal topological walk).
+            // As such, we always want to compute the information for one project before moving onto a project that
+            // depends on it.  That way information is available as soon as possible, and then computation for it
+            // immediately benefits what comes next.  Importantly, this avoids the problem of picking a project deep in
+            // the dependency tree, which then pulls on N other projects, forcing results for this single project to pay
+            // that full price (that would be paid when we hit these through a normal topological walk).
             //
-            // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process in
-            // the desired order if we process serially.
+            // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process
+            // in the desired order if we process serially.
             var allProjects = _solution.GetProjectDependencyGraph()
                                        .GetDependencySets(cancellationToken)
                                        .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
@@ -394,7 +426,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                async (service, projects, onItemFound, onProjectCompleted) =>
+                {
+                    // if the language doesn't support searching generated docs, immediately transition the project to the
+                    // completed state.
+                    if (service is not IAdvancedNavigateToSearchService advancedService)
+                    {
+                        foreach (var project in projects)
+                            await onProjectCompleted().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await advancedService.SearchGeneratedDocumentsAsync(
+                            _solution, projects, _searchPattern, _kinds, _activeDocument, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                    }
+                },
                 cancellationToken);
         }
     }
