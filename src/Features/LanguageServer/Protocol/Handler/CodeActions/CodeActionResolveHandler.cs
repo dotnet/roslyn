@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return codeAction;
             }
 
+            // If the CodeAction has a NestedCodeAction, then we need further resolution
+            // to obtain the user-selected action.
             if (data.NestedCodeAction is { NestedActions.Length: > 0 })
             {
                 return codeAction;

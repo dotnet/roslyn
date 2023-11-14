@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -201,8 +202,94 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
+        var data = GetCodeActionResolveData(inline);
+        Assert.NotNull(data);
+
+        // Asserts that there are NestedActions on Inline
+        Assert.NotNull(data!.NestedCodeAction);
+
+        // Asserts that there is a Command present on an action with nested actions
+        Assert.NotNull(inline.Command);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
+            {
+                private static async void {|caret:XYZ|}()
+                {
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+                Diagnostics =
+                [
+                    new LSP.Diagnostic
+                    {
+                        // async method lack of await.
+                        Code = "CS1998"
+                    }
+                ]
+            }
+        };
+
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        Assert.Equal(3, results.Length);
+        Assert.Equal("Suppress or configure issues", results[2].Title);
+        var data = GetCodeActionResolveData(results[2]);
+        Assert.NotNull(data);
+
+        // Asserts that there are NestedActions present
+        Assert.NotNull(data!.NestedCodeAction);
+
+        //Asserts that a Nested Action could be a Fix All Action
+        Assert.Equal("Fix All: in Source", data.NestedCodeAction!.NestedActions[1].Title);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
+            {
+                private void XYZ()
+                {
+                    var a = {|caret:A()|};
+                }
+
+                private int A() => 1;
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+            }
+        };
+
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
         // Assert that nested code actions aren't enumerated.
-        Assert.Equal(6, results.Length);
+        var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
+        var resolvedAction = await RunGetCodeActionResolveAsync(testLspServer, inline);
+        Assert.Null(resolvedAction.Edit);
     }
 
     private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
@@ -212,6 +299,22 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
         return result.Cast<VSInternalCodeAction>().ToArray();
+    }
+
+    private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(
+        TestLspServer testLspServer,
+        CodeAction codeAction)
+    {
+        var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
+            LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
+        Assert.NotNull(result);
+        return (VSInternalCodeAction)result!;
+    }
+
+    private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
+    {
+        return ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
+
     }
 
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
