@@ -76,6 +76,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents;
         }
 
+        /// <summary>
+        /// Get all regular and additional <see cref="TextDocument"/>s for the given <paramref name="documentUri"/>.
+        /// </summary>
+        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        {
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
+            var documents = documentIds
+                .Select(solution.GetDocument)
+                .Concat(documentIds.Select(solution.GetAdditionalDocument))
+                .WhereNotNull()
+                .ToImmutableArray();
+            return documents;
+        }
+
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
             => solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
