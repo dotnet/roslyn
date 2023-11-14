@@ -387,7 +387,13 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance();
+#if NET
+            var count = source.TryGetNonEnumeratedCount(out var val) ? val : 0;
+#else
+            var count = 0;
+#endif
+
+            var builder = ArrayBuilder<TResult>.GetInstance(count);
             foreach (var item in source)
                 builder.AddRange(selector(item));
 
