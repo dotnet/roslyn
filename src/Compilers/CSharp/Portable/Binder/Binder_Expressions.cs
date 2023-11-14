@@ -4544,7 +4544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                     }
 
-                    BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+                    BindDefaultArgumentsAndParamsArray(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -5360,7 +5360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = BindIndexerDefaultArguments((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        var indexer = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
@@ -6146,7 +6146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+                BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

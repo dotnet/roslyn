@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps);
 
                 rewrittenArguments = MakeArguments(
-                    syntax,
                     rewrittenArguments,
                     indexer,
                     expanded,

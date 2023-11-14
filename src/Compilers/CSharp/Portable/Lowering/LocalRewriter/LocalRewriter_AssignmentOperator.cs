@@ -312,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,
