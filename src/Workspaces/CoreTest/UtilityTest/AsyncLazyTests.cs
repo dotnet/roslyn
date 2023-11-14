@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 });
 
             // Second, start a synchronous request. While we are in the GetValue, we will record which thread is being occupied by the request
-            Thread synchronousRequestThread = null;
+            Thread? synchronousRequestThread = null;
             Task.Factory.StartNew(() =>
             {
                 try
@@ -108,8 +106,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // And wait for our continuation to run
             asyncContinuation.Wait();
 
+            AssertEx.NotNull(asyncContinuationRanSynchronously, "The continuation never ran.");
             Assert.False(asyncContinuationRanSynchronously.Value, "The continuation did not run asynchronously.");
-            Assert.Equal(expectedTaskStatus, observedAntecedentTaskStatus.Value);
+            Assert.Equal(expectedTaskStatus, observedAntecedentTaskStatus!.Value);
         }
 
         [Fact]
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var computeFunctionRunning = new ManualResetEvent(initialState: false);
 
             AsyncLazy<object> lazy;
-            Func<CancellationToken, object> synchronousComputation = null;
+            Func<CancellationToken, object>? synchronousComputation = null;
 
             if (includeSynchronousComputation)
             {
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             catch (AggregateException ex)
             {
-                var operationCancelledException = (OperationCanceledException)ex.Flatten().InnerException;
+                var operationCancelledException = (OperationCanceledException)ex.Flatten().InnerException!;
                 Assert.Equal(cancellationTokenSource.Token, operationCancelledException.CancellationToken);
             }
         }
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var computations = 0;
             var requestCancellationTokenSource = new CancellationTokenSource();
-            object createdObject = null;
+            object? createdObject = null;
 
             Func<CancellationToken, object> synchronousComputation = c =>
             {
