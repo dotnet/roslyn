@@ -10,24 +10,21 @@ namespace Microsoft.CodeAnalysis;
 
 internal abstract partial class GreenNode
 {
-    public struct NodeEnumerable(GreenNode node) : IEnumerable<GreenNode>
+    public ref struct NodeEnumerable(GreenNode node)
     {
         public readonly Enumerator GetEnumerator()
-            => new(node);
+            => new Enumerator(node);
 
-        IEnumerator<GreenNode> IEnumerable<GreenNode>.GetEnumerator()
-            => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
-
-        public struct Enumerator(GreenNode node) : IEnumerator<GreenNode>
+        public ref struct Enumerator(GreenNode node)
         {
             private readonly GreenNode _node = node;
             private readonly ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator> _stack = ArrayBuilder<Syntax.InternalSyntax.ChildSyntaxList.Enumerator>.GetInstance();
 
             private bool _started;
             private GreenNode _current = null!;
+
+            public readonly void Dispose()
+                => _stack.Free();
 
             public readonly GreenNode Current
                 => _current;
@@ -67,20 +64,6 @@ internal abstract partial class GreenNode
 
                 return false;
             }
-
-            public void Reset()
-            {
-                _started = false;
-                _stack.Clear();
-                _current = null!;
-            }
-
-            public readonly void Dispose()
-            {
-                _stack.Free();
-            }
-
-            readonly object IEnumerator.Current => Current;
         }
     }
 }
