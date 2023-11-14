@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -225,6 +226,85 @@ namespace Microsoft.CodeAnalysis.CSharp
         string ISymbolInternal.Name => this.Name;
 
         string ISymbolInternal.MetadataName => this.MetadataName;
+
+        public Cci.TypeMemberVisibility MetadataVisibility
+        {
+            get
+            {
+                //
+                // We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                //
+                // Top-level:
+                //   private                       -> public
+                //   protected                     -> public (compiles with a warning)
+                //   public
+                //   internal                      -> public
+                //
+                // In a nested class:
+                //
+                //   private
+                //   protected
+                //   public
+                //   internal                      -> public
+                //
+                switch (DeclaredAccessibility)
+                {
+                    case Accessibility.Public:
+                        return Cci.TypeMemberVisibility.Public;
+
+                    case Accessibility.Private:
+                        if (ContainingType?.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level private member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Private;
+                        }
+
+                    case Accessibility.Internal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Assembly;
+                        }
+
+                    case Accessibility.Protected:
+                        if (ContainingType.TypeKind == TypeKind.Submission)
+                        {
+                            // top-level protected member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.Family;
+                        }
+
+                    case Accessibility.ProtectedAndInternal:
+                        Debug.Assert(ContainingType.TypeKind != TypeKind.Submission);
+                        return Cci.TypeMemberVisibility.FamilyAndAssembly;
+
+                    case Accessibility.ProtectedOrInternal:
+                        if (ContainingAssembly.IsInteractive)
+                        {
+                            // top-level or nested protected internal member:
+                            return Cci.TypeMemberVisibility.Public;
+                        }
+                        else
+                        {
+                            return Cci.TypeMemberVisibility.FamilyOrAssembly;
+                        }
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility);
+                }
+            }
+        }
 
         ISymbolInternal ISymbolInternal.ContainingSymbol => this.ContainingSymbol;
 
@@ -1694,6 +1774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.IsAbstract;
             }
         }
+
+        bool ISymbolInternal.IsExtern
+            => IsExtern;
 
         Accessibility ISymbolInternal.DeclaredAccessibility
         {

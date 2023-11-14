@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
 
             // Handle continuation in a local function to avoid capturing arguments when this path is avoided
-            return DelaySlow(delayTask, cancellationTokenSource, cancellationToken);
+            return DelaySlowAsync(delayTask, cancellationTokenSource, cancellationToken);
 
-            static Task<bool> DelaySlow(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
+            static Task<bool> DelaySlowAsync(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
             {
                 return delayTask.ContinueWith(
                     task =>

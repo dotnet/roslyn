@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes()
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
 
             ' Mapping from previous compilation to the current.
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly

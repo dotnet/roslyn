@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),

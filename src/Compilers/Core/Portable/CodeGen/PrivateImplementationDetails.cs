@@ -534,6 +534,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public abstract ImmutableArray<byte> MappedData { get; }
 
+        public bool IsEncDeleted => false;
+
         public bool IsCompileTimeConstant => false;
 
         public bool IsNotSerialized => false;
@@ -685,6 +687,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public IEnumerable<Cci.TypeReferenceWithAttributes> Interfaces(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
+
+        public bool IsEncDeleted => false;
 
         public bool IsAbstract => false;
 

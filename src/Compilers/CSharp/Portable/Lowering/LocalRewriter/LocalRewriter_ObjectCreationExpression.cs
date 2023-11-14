@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 ImmutableArray<BoundExpression>.Empty,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 isDelegateCall: false,
                 expanded: false,

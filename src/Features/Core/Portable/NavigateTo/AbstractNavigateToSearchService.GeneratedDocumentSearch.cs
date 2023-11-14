@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
 
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    // Sync and search the full solution snapshot.  While this function is called serially per project,
+                    // we want to operate on the same solution snapshot on the OOP side per project so that we can
+                    // benefit from things like cached compilations.  If we produced different snapshots, those
+                    // compilations would not be shared and we'd have to rebuild them.
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
                         service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),

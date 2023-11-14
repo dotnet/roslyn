@@ -307,9 +307,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
+        /// <param name="baselineProject">Project used to create the initial baseline, if the baseline does not exist yet.</param>
+        /// <param name="baselineCompilation">Compilation used to create the initial baseline, if the baseline does not exist yet.</param>
         /// <returns>True unless the project outputs can't be read.</returns>
         internal bool TryGetOrCreateEmitBaseline(
-            Project project,
+            Project baselineProject,
+            Compilation baselineCompilation,
             out ImmutableArray<Diagnostic> diagnostics,
             [NotNullWhen(true)] out ProjectBaseline? baseline,
             [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
@@ -318,15 +321,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
                 {
                     diagnostics = ImmutableArray<Diagnostic>.Empty;
                     return true;
                 }
             }
 
-            var outputs = GetCompilationOutputs(project);
-            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+            var outputs = GetCompilationOutputs(baselineProject);
+            if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
@@ -336,16 +339,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
                 {
                     metadataReaderProvider.Dispose();
                     debugInfoReaderProvider.Dispose();
                     return true;
                 }
 
-                baseline = new ProjectBaseline(project.Id, initialBaseline, generation: 0);
+                baseline = new ProjectBaseline(baselineProject.Id, initialBaseline, generation: 0);
 
-                _projectBaselines.Add(project.Id, baseline);
+                _projectBaselines.Add(baselineProject.Id, baseline);
                 _initialBaselineModuleReaders.Add(metadataReaderProvider);
                 _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
@@ -354,6 +357,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static unsafe bool TryCreateInitialBaseline(
+            Compilation compilation,
             CompilationOutputs compilationOutputs,
             ProjectId projectId,
             out ImmutableArray<Diagnostic> diagnostics,
@@ -396,6 +400,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadataReader.MetadataPointer, metadataReader.MetadataLength);
 
                 baseline = EmitBaseline.CreateInitialBaseline(
+                    compilation,
                     moduleMetadata,
                     debugInfoReader.GetDebugInfo,
                     debugInfoReader.GetLocalSignature,
