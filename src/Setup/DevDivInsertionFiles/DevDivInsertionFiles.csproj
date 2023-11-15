@@ -125,7 +125,6 @@
       <_Dependency Remove="System.Collections.Immutable"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
-      <_Dependency Remove="System.IO.Hashing"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Memory"/>
       <_Dependency Remove="System.Numerics.Vectors"/>
