@@ -55,7 +55,7 @@ stages:
     parameters:
       EnableCompliance: ${{ parameters.EnableCompliance }}
       EnableAPIScan: ${{ parameters.EnableAPIScan }}
-      windowsPool: VSEngSS-MicroBuild2022-1ES
+      windowsPool: VSEngSS-MicroBuild2019-1ES
       RunTests: ${{ parameters.RunTests }}
 
 - template: prepare-insertion-stages.yml
