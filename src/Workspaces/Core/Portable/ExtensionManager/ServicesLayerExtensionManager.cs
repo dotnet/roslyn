@@ -5,25 +5,18 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
-[ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Default), Shared]
+[ExportWorkspaceService(typeof(IExtensionManager), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ServicesLayerExtensionManager() : IWorkspaceServiceFactory
+internal class ServicesLayerExtensionManager() : AbstractExtensionManager
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new ExtensionManager();
-
-    private sealed class ExtensionManager : AbstractExtensionManager
+    protected override void HandleNonCancellationException(object provider, Exception exception)
     {
-        protected override void HandleNonCancellationException(object provider, Exception exception)
-        {
-            Debug.Assert(exception is not OperationCanceledException);
-            DisableProvider(provider);
-        }
+        Debug.Assert(exception is not OperationCanceledException);
+        DisableProvider(provider);
     }
 }
