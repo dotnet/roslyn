@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -34,22 +36,15 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
     [WpfFact]
     public async Task TestExternalAccessRazorHandlerInvoked()
     {
-        var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""RazorProj"">
-        <AdditionalDocument FilePath=""C:\Test.razor""></AdditionalDocument>
-    </Project>
-</Workspace>";
-
-        var testWorkspace = CreateWorkspace(options: null, mutatingLspWorkspace: false, workspaceKind: null);
-        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
-
-        var languageClient = testWorkspace.ExportProvider.GetExportedValues<ILanguageClient>().OfType<RazorCohostLanguageClient>().Single();
-        await languageClient.ActivateAsync(CancellationToken.None);
-
-        var serverAccessor = languageClient.GetTestAccessor().LanguageServer!.GetTestAccessor();
-
-        await serverAccessor.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = new() });
+        var workspaceXml = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="RazorProj">
+                    <AdditionalDocument FilePath="C:\Test.razor"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
+        var testWorkspace = CreateWorkspace(workspaceXml);
+        var server = await InitializeLanguageServerAsync(testWorkspace);
 
         var document = testWorkspace.CurrentSolution.Projects.Single().AdditionalDocuments.Single();
         var request = new TextDocumentPositionParams
@@ -64,11 +59,117 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             }
         };
 
-        var response = await serverAccessor.ExecuteRequestAsync<TextDocumentPositionParams, TestRequest>(RazorHandler.MethodName, request);
+        var response = await server.GetTestAccessor().ExecuteRequestAsync<TextDocumentPositionParams, TestRequest>(RazorHandler.MethodName, request);
 
         Assert.NotNull(response);
         Assert.Equal(document.GetURI(), response.DocumentUri);
         Assert.Equal(document.Project.Id.Id, response.ProjectId);
+    }
+
+    [WpfFact]
+    public async Task TestProjectContextHandler()
+    {
+        var workspaceXml = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="RazorProj">
+                    <AdditionalDocument FilePath="C:\Test.razor"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
+        var testWorkspace = CreateWorkspace(workspaceXml);
+        var server = await InitializeLanguageServerAsync(testWorkspace);
+
+        var document = testWorkspace.CurrentSolution.Projects.Single().AdditionalDocuments.Single();
+        var request = new VSGetProjectContextsParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                Uri = document.GetURI(),
+            }
+        };
+
+        var response = await server.GetTestAccessor().ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList?>(VSMethods.GetProjectContextsName, request);
+
+        Assert.NotNull(response);
+        var projectContext = Assert.Single(response?.ProjectContexts);
+        Assert.Equal(ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id), projectContext.Id);
+    }
+
+    [WpfFact]
+    public async Task TestDocumentSync()
+    {
+        var workspaceXml = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="RazorProj">
+                    <AdditionalDocument FilePath="C:\Test.razor"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
+        var testWorkspace = CreateWorkspace(workspaceXml);
+        var server = await InitializeLanguageServerAsync(testWorkspace);
+
+        var document = testWorkspace.CurrentSolution.Projects.Single().AdditionalDocuments.Single();
+        var didOpenRequest = new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                Uri = document.GetURI(),
+                Text = "Original text"
+            }
+        };
+
+        await server.GetTestAccessor().ExecuteRequestAsync<DidOpenTextDocumentParams, NoValue?>(Methods.TextDocumentDidOpenName, didOpenRequest);
+
+        var workspaceManager = server.GetLspServices().GetRequiredService<LspWorkspaceManager>();
+        Assert.True(workspaceManager.GetTrackedLspText().TryGetValue(document.GetURI(), out var trackedText));
+        Assert.Equal("Original text", trackedText.Text.ToString());
+
+        var didChangeRequest = new DidChangeTextDocumentParams
+        {
+            TextDocument = new VersionedTextDocumentIdentifier
+            {
+                Uri = document.GetURI()
+            },
+            ContentChanges =
+            [
+                new TextDocumentContentChangeEvent
+                {
+                    Range = new VisualStudio.LanguageServer.Protocol.Range
+                    {
+                        Start = new Position(0, 0),
+                        End = new Position(0, 0)
+                    },
+                    Text = "Not The "
+                }
+            ]
+        };
+
+        await server.GetTestAccessor().ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeRequest);
+
+        Assert.True(workspaceManager.GetTrackedLspText().TryGetValue(document.GetURI(), out trackedText));
+        Assert.Equal("Not The Original text", trackedText.Text.ToString());
+    }
+
+    private TestWorkspace CreateWorkspace(string workspaceXml)
+    {
+        var testWorkspace = CreateWorkspace(options: null, mutatingLspWorkspace: false, workspaceKind: null);
+        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
+        return testWorkspace;
+    }
+
+    private static async Task<AbstractLanguageServer<RequestContext>> InitializeLanguageServerAsync(TestWorkspace testWorkspace)
+    {
+        var languageClient = testWorkspace.ExportProvider.GetExportedValues<ILanguageClient>().OfType<RazorCohostLanguageClient>().Single();
+        await languageClient.ActivateAsync(CancellationToken.None);
+
+        var server = languageClient.GetTestAccessor().LanguageServer;
+        Assert.NotNull(server);
+
+        var serverAccessor = server!.GetTestAccessor();
+
+        await serverAccessor.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = new() });
+
+        return server;
     }
 
     internal class TestRequest(Uri documentUri, Guid projectId)

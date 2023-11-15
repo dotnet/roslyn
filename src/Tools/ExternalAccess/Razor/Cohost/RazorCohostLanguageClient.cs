@@ -68,6 +68,14 @@ internal sealed class RazorCohostLanguageClient(
         var razorCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
         Contract.ThrowIfNull(razorCapabilities);
 
+        // We support a few things on this side, so lets make sure they're set
+        razorCapabilities.ProjectContextProvider = true;
+        razorCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+        {
+            OpenClose = true,
+            Change = TextDocumentSyncKind.Incremental
+        };
+
         return razorCapabilities;
     }
 
