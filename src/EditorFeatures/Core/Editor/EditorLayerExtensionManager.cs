@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
@@ -52,7 +53,11 @@ internal sealed class EditorLayerExtensionManager(
         {
             Debug.Assert(exception is not OperationCanceledException);
 
-            if (provider is CodeFixProvider or CodeFixes.FixAllProvider or CodeRefactoringProvider or CodeRefactorings.FixAllProvider)
+            if (provider is CodeFixProvider
+                or CodeRefactoringProvider
+                or CodeRefactorings.FixAllProvider
+                or CodeFixes.FixAllProvider
+                or CompletionProvider)
             {
                 if (!IsIgnored(provider))
                 {
