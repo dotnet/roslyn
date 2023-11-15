@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [ExportWorkspaceService(typeof(IExtensionManager), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionManager(ILoggerFactory loggerFactory) : AbstractExtensionManager
+internal sealed class LanguageServerExtensionManager(ILoggerFactory loggerFactory) : AbstractExtensionManager
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(ExtensionManager));
+    private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(LanguageServerExtensionManager));
 
     protected override void HandleNonCancellationException(object provider, Exception exception)
         => _logger.Log(LogLevel.Error, exception, $"{provider.GetType()} threw an exception.");
