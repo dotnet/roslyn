@@ -3079,8 +3079,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
     <value>Apply using directive placement preferences</value>
   </data>
-  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
-    <value>Remove unnecessary Imports or usings</value>
+  <data name="Remove_unnecessary_imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary imports or usings</value>
   </data>
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
