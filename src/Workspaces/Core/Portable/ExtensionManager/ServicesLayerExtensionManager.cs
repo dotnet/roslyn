@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [ExportWorkspaceService(typeof(IExtensionManager), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class ServicesLayerExtensionManager() : AbstractExtensionManager
+internal sealed class ServicesLayerExtensionManager() : AbstractExtensionManager
 {
     protected override void HandleNonCancellationException(object provider, Exception exception)
     {
