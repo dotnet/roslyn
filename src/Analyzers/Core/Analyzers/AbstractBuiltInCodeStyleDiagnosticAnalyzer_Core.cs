@@ -87,6 +87,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected abstract void InitializeWorker(AnalysisContext context);
 
+        protected static bool IsAnalysisLevelGreaterThanOrEquals(int minAnalysisLevel, AnalyzerOptions analyzerOptions)
+        {
+            // See https://github.com/dotnet/roslyn/pull/70794 for details.
+            const string AnalysisLevelKey = "build_property.EffectiveAnalysisLevelStyle";
+
+            return analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(AnalysisLevelKey, out var value)
+                && double.TryParse(value, out var version)
+                && version >= minAnalysisLevel;
+        }
+
         protected bool ShouldSkipAnalysis(SemanticModelAnalysisContext context, NotificationOption2? notification)
             => ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, notification, context.CancellationToken);
 
@@ -168,8 +178,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 return false;
 
             // If the severity is explicitly configured with `option_name = option_value:severity`,
-            // we should skip analysis if the configured severity is lesser than the mininum reported severity.
-            if (notification.HasValue && notification.Value.IsExplicitlySpecified)
+            // we should skip analysis if the configured severity is lesser than the minimum reported severity.
+            // Additionally, notification based severity configuration is respected on build only for AnalysisLevel >= 9.
+            if (notification.HasValue
+                && notification.Value.IsExplicitlySpecified
+                && IsAnalysisLevelGreaterThanOrEquals(9, analyzerOptions))
             {
                 return notification.Value.Severity.ToDiagnosticSeverity() < _minimumReportedSeverity.Value;
             }
