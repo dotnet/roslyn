@@ -1672,6 +1672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static SourceTextLexer CreateLexer(SourceText sourceText, CSharpParseOptions? options = null)
+        {
+            return new SourceTextLexer(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
+        }
+
         /// <summary>
         /// Parse a NameSyntax node using the grammar rule for names.
         /// </summary>
