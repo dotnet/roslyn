@@ -257,5 +257,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// This method is called after the language server has been activated, but connection has not been established.
         /// </summary>
         public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractInProcLanguageClient _instance;
+
+            internal TestAccessor(AbstractInProcLanguageClient instance)
+            {
+                _instance = instance;
+            }
+
+            public AbstractLanguageServer<RequestContext>? LanguageServer => _instance._languageServer;
+        }
     }
 }
