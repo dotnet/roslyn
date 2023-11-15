@@ -12183,5 +12183,146 @@ namespace A
                 Assert.Contains("point +", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = "int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar(<%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar() => true;
+    private bool Bar(int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = ", int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string <%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+    public static bool Bar(this string, int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_DirectInvoke()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        Ext.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
     End Class
 End Namespace
