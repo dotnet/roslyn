@@ -7,7 +7,7 @@ steps:
 - powershell: '&"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /RootSuffix Exp /ResetSettings General.vssettings /Command File.Exit'
   failOnStderr: true
   displayName: ⚙ Prepare Visual Studio
-  condition: eq(variables['RunTests'], 'true')
+  condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - task: MSBuild@1
   inputs:
@@ -29,7 +29,7 @@ steps:
     command: test
     arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests/Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_unit_net472.binlog"
     testRunTitle: net472-unit-$(Agent.JobName)
-  condition: eq(variables['RunTests'], 'true')
+  condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - task: DotNetCoreCLI@2
   displayName: 🧪 dotnet test -f net46
@@ -37,7 +37,7 @@ steps:
     command: test
     arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net46 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net46.binlog"
     testRunTitle: net46-$(Agent.JobName)
-  condition: eq(variables['RunTests'], 'true')
+  condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - task: DotNetCoreCLI@2
   displayName: 🧪 dotnet test -f net472
@@ -45,12 +45,12 @@ steps:
     command: test
     arguments: $(Build.Repository.LocalPath)/src/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.csproj --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings" /bl:"$(Build.ArtifactStagingDirectory)/build_logs/test_net472.binlog"
     testRunTitle: net472-$(Agent.JobName)
-  condition: eq(variables['RunTests'], 'true')
+  condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - powershell: test/EqualExceptionLegacy/Test.ps1 -binlog "$(Build.ArtifactStagingDirectory)/build_logs/EqualExceptionLegacy.binlog"
   failOnStderr: false
   displayName: 🧪 Test EqualExceptionLegacy
-  condition: eq(variables['RunTests'], 'true')
+  condition: and(succeededOrFailed(), ${{ parameters.RunTests }})
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
