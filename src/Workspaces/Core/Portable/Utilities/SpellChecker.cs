@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
@@ -14,14 +13,12 @@ namespace Roslyn.Utilities
     /// Explicitly a reference type so that the consumer of this in <see cref="BKTree"/> can safely operate on an
     /// instance without having to lock to ensure it sees the entirety of the value written out.
     /// </summary>>
-    internal sealed class SpellChecker(Checksum checksum, BKTree bKTree) : IObjectWritable, IChecksummedObject
+    internal sealed class SpellChecker(BKTree bKTree) : IObjectWritable
     {
-        private const string SerializationFormat = "3";
+        private const string SerializationFormat = "4";
 
-        public Checksum Checksum { get; } = checksum;
-
-        public SpellChecker(Checksum checksum, IEnumerable<string> corpus)
-            : this(checksum, BKTree.Create(corpus))
+        public SpellChecker(IEnumerable<string> corpus)
+            : this(BKTree.Create(corpus))
         {
         }
 
@@ -44,7 +41,6 @@ namespace Roslyn.Utilities
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            Checksum.WriteTo(writer);
             bKTree.WriteTo(writer);
         }
 
@@ -55,10 +51,9 @@ namespace Roslyn.Utilities
                 var formatVersion = reader.ReadString();
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var checksum = Checksum.ReadFrom(reader);
                     var bkTree = BKTree.ReadFrom(reader);
                     if (bkTree != null)
-                        return new SpellChecker(checksum, bkTree.Value);
+                        return new SpellChecker(bkTree.Value);
                 }
             }
             catch

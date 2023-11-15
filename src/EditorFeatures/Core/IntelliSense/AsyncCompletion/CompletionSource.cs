@@ -156,19 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             CompletionOptions options)
         {
-            // The trigger reason guarantees that user wants a completion.
-            if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
-                AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
-            {
-                return true;
-            }
-
-            // Enter does not trigger completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\n')
-            {
-                return false;
-            }
-
             //The user may be trying to invoke snippets through question-tab.
             // We may provide a completion after that.
             // Otherwise, tab should not be a completion trigger.
@@ -268,6 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var showCompletionItemFilters = _editorOptionsService.GlobalOptions.GetOption(CompletionViewOptionsStorage.ShowCompletionItemFilters, document.Project.Language);
                 var options = _editorOptionsService.GlobalOptions.GetCompletionOptions(document.Project.Language) with
                 {
+                    PerformSort = false,
                     UpdateImportCompletionCacheInBackground = true,
                     TargetTypedCompletionFilter = showCompletionItemFilters // Compute targeted types if filter is enabled
                 };
@@ -290,10 +278,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // which combined with our behavior of not showing expanded items until ready (and only adding them during
                     // completion list refresh) means increased chance that users won't see those items for the first few characters typed.
                     // This does mean we might do unnecessary work if any regular provider is `exclusive`, but such cases are relatively infrequent
-                    // and we'd like to have expanded items available when they are needed.
+                    // and we'd like to have expanded items available when they are needed. As these results come back potentially after
+                    // presentation (and sorting) of the non-expanded results, we need these results to come back already sorted.
                     var expandedItemsTaskCancellationToken = _expandedItemsTaskCancellationSeries.CreateNext(cancellationToken);
                     var expandedItemsTask = Task.Run(() => GetCompletionContextWorkerAsync(session, document, trigger, triggerLocation,
-                                                                        options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly },
+                                                                        options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly, PerformSort = true },
                                                                         expandedItemsTaskCancellationToken),
                                                      expandedItemsTaskCancellationToken);
 
@@ -417,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
                 completionList.SuggestionModeItem.DisplayText,
-                completionList.SuggestionModeItem.Properties.TryGetValue(CommonCompletionItem.DescriptionProperty, out var description) ? description : string.Empty);
+                completionList.SuggestionModeItem.TryGetProperty(CommonCompletionItem.DescriptionProperty, out var description) ? description : string.Empty);
 
             return (new(completionItemList, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters, isIncomplete: false, null), completionList);
         }

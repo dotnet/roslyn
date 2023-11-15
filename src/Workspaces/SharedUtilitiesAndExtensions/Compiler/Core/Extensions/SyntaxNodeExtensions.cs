@@ -287,34 +287,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TSyntaxNode? FindInnermostCommonNode<TSyntaxNode>(this IEnumerable<SyntaxNode> nodes) where TSyntaxNode : SyntaxNode
             => (TSyntaxNode?)nodes.FindInnermostCommonNode(t => t is TSyntaxNode);
 
-        /// <summary>
-        /// create a new root node from the given root after adding annotations to the tokens
-        /// 
-        /// tokens should belong to the given root
-        /// </summary>
-        public static SyntaxNode AddAnnotations(this SyntaxNode root, IEnumerable<Tuple<SyntaxToken, SyntaxAnnotation>> pairs)
-        {
-            Contract.ThrowIfNull(root);
-            Contract.ThrowIfNull(pairs);
-
-            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
-            return root.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
-        }
-
-        /// <summary>
-        /// create a new root node from the given root after adding annotations to the nodes
-        /// 
-        /// nodes should belong to the given root
-        /// </summary>
-        public static SyntaxNode AddAnnotations(this SyntaxNode root, IEnumerable<Tuple<SyntaxNode, SyntaxAnnotation>> pairs)
-        {
-            Contract.ThrowIfNull(root);
-            Contract.ThrowIfNull(pairs);
-
-            var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
-            return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
-        }
-
         public static TextSpan GetContainedSpan(this IEnumerable<SyntaxNode> nodes)
         {
             Contract.ThrowIfNull(nodes);

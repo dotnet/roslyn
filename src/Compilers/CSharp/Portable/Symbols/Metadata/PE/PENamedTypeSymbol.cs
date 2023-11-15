@@ -2392,18 +2392,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private AttributeUsageInfo DecodeAttributeUsageInfo()
         {
-            var handle = this.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle);
-
-            if (!handle.IsNil)
+            if (this.ContainingPEModule.Module.HasAttributeUsageAttribute(_handle, new MetadataDecoder(ContainingPEModule), out AttributeUsageInfo info))
             {
-                var decoder = new MetadataDecoder(ContainingPEModule);
-                TypedConstant[] positionalArgs;
-                KeyValuePair<string, TypedConstant>[] namedArgs;
-                if (decoder.GetCustomAttribute(handle, out positionalArgs, out namedArgs))
-                {
-                    AttributeUsageInfo info = AttributeData.DecodeAttributeUsageAttribute(positionalArgs[0], namedArgs.AsImmutableOrNull());
-                    return info.HasValidAttributeTargets ? info : AttributeUsageInfo.Default;
-                }
+                return info.HasValidAttributeTargets ? info : AttributeUsageInfo.Default;
             }
 
             return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;

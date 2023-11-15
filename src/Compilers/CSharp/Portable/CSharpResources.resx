@@ -7782,6 +7782,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
     <value>ref readonly parameters</value>
   </data>
+  <data name="IDS_StringEscapeCharacter" xml:space="preserve">
+    <value>string escape character</value>
+  </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
     <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
   </data>
@@ -7806,10 +7809,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
   </data>
   <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
     <value>This version of '{0}' cannot be used with collection expressions.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
   </data>
 </root>

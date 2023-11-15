@@ -141,7 +141,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         //     of these tests and convert them to unit-tests.
         //     -->
         //<!-- TODO(https://github.com/dotnet/roslyn/issues/4235)
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/70582")]
         public void VerifyReturnIndentCurrentLine()
         {
             VisualStudio.InteractiveWindow.ClearScreen();

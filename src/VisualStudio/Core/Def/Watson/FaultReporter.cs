@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         private const int P5MethodNameDefaultIndex = 5;
 
-        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create("Roslyn.Utilities.Contract.");
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create("Roslyn.Utilities.Contract.", "System.Linq.");
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.
