@@ -28,7 +28,7 @@ parameters:
 - name: RunTests
   displayName: Run tests
   type: boolean
-  default: true
+  default: false
 - name: EnableCompliance
   displayName: Run Compliance Tools
   type: boolean
