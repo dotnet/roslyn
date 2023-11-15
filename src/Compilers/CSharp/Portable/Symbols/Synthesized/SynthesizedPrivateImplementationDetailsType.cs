@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool MightContainExtensionMethods => false;
 
-        public override string Name => _privateImplementationDetails.Name!;
+        public override string Name => _privateImplementationDetails.Name;
 
         public override IEnumerable<string> MemberNames => SpecializedCollections.EmptyEnumerable<string>();
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => ImmutableArray<Symbol>.Empty;
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => SpecializedCollections.EmptyEnumerable<FieldSymbol>();
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => throw ExceptionUtilities.Unreachable();
 
         internal override bool GetGuidString(out string? guidString)
         {
