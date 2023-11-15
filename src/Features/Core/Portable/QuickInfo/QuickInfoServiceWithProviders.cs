@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
@@ -54,22 +55,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders())
             {
-                try
-                {
-                    if (!extensionManager.IsDisabled(provider))
+                var info = await extensionManager.PerformFunctionAsync(
+                    provider,
+                    () =>
                     {
                         var context = new QuickInfoContext(document, position, options, cancellationToken);
 
-                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
-                        if (info != null)
-                        {
-                            return info;
-                        }
-                    }
-                }
-                catch (Exception e) when (extensionManager.HandleException(provider, e))
-                {
-                }
+                        return provider.GetQuickInfoAsync(context);
+                    },
+                    defaultValue: null).ConfigureAwait(false);
+                if (info != null)
+                    return info;
             }
 
             return null;
@@ -82,22 +78,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders().OfType<CommonQuickInfoProvider>())
             {
-                try
-                {
-                    if (!extensionManager.IsDisabled(provider))
+                var info = await extensionManager.PerformFunctionAsync(
+                    provider,
+                    () =>
                     {
                         var context = new CommonQuickInfoContext(_services.SolutionServices, semanticModel, position, options, cancellationToken);
 
-                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
-                        if (info != null)
-                        {
-                            return info;
-                        }
-                    }
-                }
-                catch (Exception e) when (extensionManager.HandleException(provider, e))
-                {
-                }
+                        return provider.GetQuickInfoAsync(context);
+                    },
+                    defaultValue: null).ConfigureAwait(false);
+                if (info != null)
+                    return info;
             }
 
             return null;
