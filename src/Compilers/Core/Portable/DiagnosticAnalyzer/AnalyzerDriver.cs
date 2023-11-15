@@ -1343,8 +1343,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 static bool containsGeneratedCodeToken(SyntaxNode root)
                 {
-                    return root.DescendantTokens().Any(token => string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal) ||
-                                                                string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal));
+                    return root.DescendantTokens().Any(static token => string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal) ||
+                                                                       string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal));
                 }
             }
         }
