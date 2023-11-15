@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // it for completions.  If that throws, then the provider will be moved to the disabled state.
             await extensionManager.PerformActionAsync(
                 provider,
-                async () => await provider.ProvideCompletionsAsync(context).ConfigureAwait(false)).ConfigureAwait(false);
+                () => provider.ProvideCompletionsAsync(context)).ConfigureAwait(false);
 
             return context;
         }
