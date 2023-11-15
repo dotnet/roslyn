@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Telemetry
             if (!IsEnabled)
                 return;
 
-            if (!logMessage.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string metricName)
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string metricName)
                 throw ExceptionUtilities.Unreachable();
 
-            if (!logMessage.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
                 throw ExceptionUtilities.Unreachable();
 
             var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<int>(metricName, _histogramConfiguration));
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             if (!IsEnabled)
                 return null;
 
-            if (!logMessage.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string)
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string)
                 throw ExceptionUtilities.Unreachable();
 
             return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
