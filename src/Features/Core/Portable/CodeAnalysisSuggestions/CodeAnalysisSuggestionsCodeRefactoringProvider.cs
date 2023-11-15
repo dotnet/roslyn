@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeAnalysisSuggestions;
@@ -33,29 +34,27 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
     {
     }
 
-    protected override CodeActionRequestPriority ComputeRequestPriority() => CodeActionRequestPriority.Low;
+    protected override CodeActionRequestPriority ComputeRequestPriority()
+        => CodeActionRequestPriority.Low;
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, span, cancellationToken) = context;
 
         var configService = document.Project.Solution.Services.GetRequiredService<ICodeAnalysisSuggestionsConfigService>();
-        var ruleConfigData = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, cancellationToken).ConfigureAwait(false);
-        if (ruleConfigData.IsEmpty)
+        var diagnosticsByCategory = await configService.TryGetCodeAnalysisSuggestionsConfigDataAsync(document.Project, isExplicitlyInvoked: false, cancellationToken).ConfigureAwait(false);
+        if (diagnosticsByCategory.IsEmpty)
             return;
 
-        var codeFixService = document.Project.Solution.Services.ExportProvider.GetExports<ICodeFixService>().FirstOrDefault()?.Value;
-        if (codeFixService == null)
-            return;
-
-        var (actions, totalViolations) = await GetCodeAnalysisSuggestionActionsAsync(ruleConfigData, document, codeFixService, cancellationToken).ConfigureAwait(false);
+        // Compute the code analysis suggestions along with the count of total diagnostics/improvements.
+        var (actions, totalDiagnostics) = await GetCodeAnalysisSuggestionActionsAsync(diagnosticsByCategory, document, span, cancellationToken).ConfigureAwait(false);
         if (actions.Length > 0)
         {
-            Debug.Assert(totalViolations > 0);
+            Debug.Assert(totalDiagnostics > 0);
 
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    string.Format(FeaturesResources.Code_analysis_improvements_0, totalViolations),
+                    string.Format(FeaturesResources.Code_analysis_improvements_0, totalDiagnostics),
                     actions,
                     isInlinable: false,
                     CodeActionPriority.Low),
@@ -63,37 +62,46 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
         }
     }
 
-    private static async Task<(ImmutableArray<CodeAction> Actions, int TotalViolations)> GetCodeAnalysisSuggestionActionsAsync(
-        ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)> configData,
+    private static async Task<(ImmutableArray<CodeAction> Actions, int TotalDiagnostics)> GetCodeAnalysisSuggestionActionsAsync(
+        ImmutableArray<(string Category, ImmutableArray<DiagnosticData> Diagnostics)> diagnosticsByCategory,
         Document document,
-        ICodeFixService codeFixService,
+        TextSpan span,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var location = root.GetLocation();
+        var codeFixService = document.Project.Solution.Services.ExportProvider.GetExports<ICodeFixService>().First().Value;
 
-        using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actionsBuilder);
-        using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var nestedActionsBuilder);
-        using var _3 = ArrayBuilder<CodeAction>.GetInstance(out var nestedNestedActionsBuilder);
-        var totalViolations = 0;
-        foreach (var (category, diagnosticsById) in configData)
+        using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+        using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
+        using var _3 = ArrayBuilder<CodeAction>.GetInstance(out var nestedNestedActions);
+        var totalDiagnostics = 0;
+        foreach (var (category, diagnosticsForCategory) in diagnosticsByCategory)
         {
-            var totalViolationsForCategory = 0;
+            // Group diagnostics by ID and sort in descending order of diagnostic count for each ID.
+            // We want to prioritize showing the suggestions for diagnostic IDs that have maximum violations.
+            var diagnosticsById = diagnosticsForCategory.GroupBy(d => d.Id)
+                .Select(group => (group.Key, group.AsImmutable()))
+                .OrderByDescending(idAndDiagnostics => idAndDiagnostics.Item2.Length);
+
+            var totalDiagnosticsForCategory = 0;
             foreach (var (id, diagnostics) in diagnosticsById)
             {
-                Debug.Assert(diagnostics.All(d => string.Equals(d.Category, category, StringComparison.OrdinalIgnoreCase)));
+                Debug.Assert(diagnostics.All(d => d.Category == category));
+                Debug.Assert(diagnostics.All(d => d.DataLocation.DocumentId != null));
+                Debug.Assert(diagnostics.All(d => d.DataLocation.DocumentId?.ProjectId == document.Project.Id));
 
-                var (diagnosticData, documentForFix) = GetPreferredDiagnosticAndDocument(diagnostics, document);
-                var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                if (SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
+                var diagnosticAndDocument = await GetPreferredDiagnosticAndDocumentAsync(diagnostics, document, span, cancellationToken).ConfigureAwait(false);
+                if (!diagnosticAndDocument.HasValue)
                     continue;
 
-                if (documentForFix != null)
+                var (diagnostic, documentForDiagnostic) = diagnosticAndDocument.Value;
+
+                // We only show code fix if the preferred diagnostic is in the current document.
+                if (documentForDiagnostic == document)
                 {
-                    var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForFix, diagnostic.Location.SourceSpan, id, diagnostic.Severity, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
+                    var codeFixCollection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(documentForDiagnostic, diagnostic.Location.SourceSpan, id, diagnostic.Severity, CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
                     if (codeFixCollection != null)
                     {
-                        nestedNestedActionsBuilder.AddRange(codeFixCollection.Fixes.Select(f => f.Action));
+                        nestedNestedActions.AddRange(codeFixCollection.Fixes.Select(f => f.Action));
                     }
                     else
                     {
@@ -101,46 +109,41 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
                         // TODO: Can we add some code action such that it shows a preview of the diagnostic span with squiggle?
                     }
                 }
-                else
+
+                // Add configure severity fix if diagnostic has configurable severity.
+                if (!SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic))
                 {
-                    // This is either a project diagnostic with no location OR a dummy diagnostic created from descriptor without background analysis.
-                    // Append this document's span as it location so we can show configure severity code fix for it.
-                    diagnostic = Diagnostic.Create(diagnostic.Descriptor, location);
+                    var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
+                    nestedNestedActions.Add(nestedNestedAction);
                 }
 
-                var nestedNestedAction = ConfigureSeverityLevelCodeFixProvider.CreateSeverityConfigurationCodeAction(diagnostic, document.Project);
-                nestedNestedActionsBuilder.Add(nestedNestedAction);
-
-                var totalInCurrentProject = diagnostics.Where(dd => dd.ProjectId == document.Project.Id).Count();
-                if (totalInCurrentProject > 0)
-                {
-                    // {0} ({1}): {2}
-                    var title = string.Format(FeaturesResources.Code_analysis_improvements_diagnostic_id_based_title,
-                        diagnostic.Id, totalInCurrentProject, diagnostic.Descriptor.Title);
-                    var nestedAction = CodeAction.Create(title, nestedNestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
-                    nestedActionsBuilder.Add(nestedAction);
-                    totalViolationsForCategory += totalInCurrentProject;
-                }
+                // {0} ({1}): {2}
+                var title = string.Format(FeaturesResources.Code_analysis_improvements_diagnostic_id_based_title,
+                    diagnostic.Id, diagnostics.Length, diagnostic.Descriptor.Title);
+                var nestedAction = CodeAction.Create(title, nestedNestedActions.ToImmutableAndClear(), isInlinable: false);
+                nestedActions.Add(nestedAction);
+                totalDiagnosticsForCategory += diagnostics.Length;
             }
 
-            if (nestedActionsBuilder.Count == 0)
+            if (nestedActions.Count == 0)
                 continue;
 
-            Debug.Assert(totalViolationsForCategory > 0);
-            totalViolations += totalViolationsForCategory;
+            Debug.Assert(totalDiagnosticsForCategory > 0);
+            totalDiagnostics += totalDiagnosticsForCategory;
 
             // Add code action to Configure severity for the entire 'Category'
             var categoryConfigurationAction = ConfigureSeverityLevelCodeFixProvider.CreateBulkSeverityConfigurationCodeAction(category, document.Project);
-            nestedActionsBuilder.Add(categoryConfigurationAction);
+            nestedActions.Add(categoryConfigurationAction);
 
             // {0} ({1})
             var categoryBasedTitle = string.Format(FeaturesResources.Code_analysis_improvements_category_based_title,
-                category, totalViolationsForCategory);
-            var action = CodeAction.Create(categoryBasedTitle, nestedActionsBuilder.ToImmutableAndClear(), isInlinable: false);
-            actionsBuilder.Add(action);
+                category, totalDiagnosticsForCategory);
+            var action = CodeAction.Create(categoryBasedTitle, nestedActions.ToImmutableAndClear(), isInlinable: false);
+            actions.Add(action);
         }
 
-        if (actionsBuilder.Count > 0)
+        // If we have non-zero actions, then also add a nested item to disable showing these code analysis suggestions.
+        if (actions.Count > 0)
         {
             var disablingAction = CodeAction.Create(FeaturesResources.Do_not_show_Code_analysis_improvements,
                 createChangedSolution: cancellationToken =>
@@ -150,34 +153,70 @@ internal sealed partial class CodeAnalysisSuggestionsCodeRefactoringProvider
                     return Task.FromResult(document.Project.Solution);
                 },
                 equivalenceKey: nameof(FeaturesResources.Do_not_show_Code_analysis_improvements));
-            actionsBuilder.Add(disablingAction);
+            actions.Add(disablingAction);
         }
 
-        return (actionsBuilder.ToImmutable(), totalViolations);
+        return (actions.ToImmutable(), totalDiagnostics);
 
-        static (DiagnosticData, Document?) GetPreferredDiagnosticAndDocument(ImmutableArray<DiagnosticData> diagnostics, Document document)
+        static async Task<(Diagnostic Diagnostic, Document Document)?> GetPreferredDiagnosticAndDocumentAsync(ImmutableArray<DiagnosticData> diagnostics, Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            (DiagnosticData diagnostic, DocumentId? documentId)? preferredDiagnosticAndDocumentId = null;
-            foreach (var diagnostic in diagnostics)
+            Debug.Assert(diagnostics.Length > 0);
+
+            // We prefer diagnostic in the given document that is closest to the lightbulb span.
+            Diagnostic? preferredDiagnostic = null;
+            var minDistance = int.MaxValue;
+
+            foreach (var diagnosticData in diagnostics)
             {
-                if (diagnostic.DocumentId == document.Id)
+                // We expect all diagnostics to have a source location in some document in the given project.
+                Debug.Assert(diagnosticData.DocumentId != null);
+                Debug.Assert(diagnosticData.ProjectId == document.Project.Id);
+
+                var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                Debug.Assert(diagnostic.Location.IsInSource);
+
+                if (diagnosticData.DocumentId == document.Id)
                 {
-                    return (diagnostic, document);
-                }
-                else if (!preferredDiagnosticAndDocumentId.HasValue &&
-                    diagnostic.DocumentId?.ProjectId == document.Project.Id)
-                {
-                    preferredDiagnosticAndDocumentId = (diagnostic, diagnostic.DocumentId);
+                    var distance = GetDistance(span, diagnostic.Location.SourceSpan);
+                    if (distance < minDistance)
+                    {
+                        preferredDiagnostic = diagnostic;
+                        minDistance = distance;
+                    }
                 }
             }
 
-            if (preferredDiagnosticAndDocumentId.HasValue)
+            if (preferredDiagnostic != null)
             {
-                return (preferredDiagnosticAndDocumentId.Value.diagnostic,
-                    document.Project.GetDocument(preferredDiagnosticAndDocumentId.Value.documentId!));
+                return (preferredDiagnostic, document);
             }
 
-            return (diagnostics.First(), null);
+            // All the computed diagnostics are in other documents in this project, we have no specific preference amongst those.
+            // Return the valid diagnostic/document pair in the project.
+            foreach (var diagnosticData in diagnostics)
+            {
+                Debug.Assert(diagnosticData.DocumentId != document.Id);
+
+                if (document.Project.GetDocument(diagnosticData.DocumentId!) is not { } otherDocument)
+                    continue;
+
+                preferredDiagnostic = await diagnosticData.ToDiagnosticAsync(otherDocument.Project, cancellationToken).ConfigureAwait(false);
+                return (preferredDiagnostic, otherDocument);
+            }
+
+            return null;
+
+            static int GetDistance(TextSpan span1, TextSpan span2)
+            {
+                if (span1.IntersectsWith(span2))
+                    return 0;
+
+                var diff = span2.Start - span1.End;
+                if (diff > 0)
+                    return diff;
+
+                return span1.Start - span2.End;
+            }
         }
     }
 }

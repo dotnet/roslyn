@@ -182,13 +182,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Invoke suggested action executed callbacks in background, we don't want to block the UI thread on these callbacks.
                 _ = Task.Run(() =>
                 {
-                    // Ensure that the callbacks are executed serially by acquiring a lock on the SourceProvider.
-                    lock (SourceProvider)
+                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
                     {
-                        foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                        {
-                            actionCallback.Value.OnSuggestedActionExecuted(this);
-                        }
+                        actionCallback.Value.OnSuggestedActionExecuted(this);
                     }
                 }, cancellationToken);
             }

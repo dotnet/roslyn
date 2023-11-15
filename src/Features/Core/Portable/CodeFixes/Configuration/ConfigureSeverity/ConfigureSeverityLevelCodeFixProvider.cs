@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
             => Task.FromResult(GetConfigurations(project, diagnostics));
 
-        internal static CodeAction CreateSeverityConfigurationCodeAction(Diagnostic diagnostic, Project project)
+        public static CodeAction CreateSeverityConfigurationCodeAction(Diagnostic diagnostic, Project project)
         {
-            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
             foreach (var (value, title) in s_editorConfigSeverityStrings)
             {
                 nestedActions.Add(
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                         value));
             }
 
-            return new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
+            return new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutable());
         }
 
-        internal static CodeAction CreateBulkSeverityConfigurationCodeAction(string? category, Project project)
+        public static CodeAction CreateBulkSeverityConfigurationCodeAction(string? category, Project project)
         {
-            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
             foreach (var (value, title) in s_editorConfigSeverityStrings)
             {
                 nestedActions.Add(
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                         value));
             }
 
-            return new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);
+            return new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutable(), category);
         }
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics)

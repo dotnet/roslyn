@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -50,6 +51,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService
 
         private static FirstPartyAnalyzerConfigSummary? CreateAnalyzerConfigSummary(TreeOptions treeOptions, TreeOptions globalOptions)
         {
+            // Regular expressions for detecting 'CAxxxx' and 'IDExxxx' diagnostic IDs.
             const string CodeQualityPattern = "[cC][aA][0-9]{4}";
             const string CodeStylePattern = "[iI][dD][eE][0-9]{4}";
 
@@ -58,7 +60,7 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService
             using var _1 = PooledHashSet<string>.GetInstance(out var configuredCodeQualityIdsBuilder);
             using var _2 = PooledHashSet<string>.GetInstance(out var configuredCodeStyleIdsBuilder);
             using var _3 = PooledHashSet<string>.GetInstance(out var uniqueWarningAndErrorIds);
-            foreach (var (diagnosticId, severity) in GetAllOptionPairs(treeOptions, globalOptions))
+            foreach (var (diagnosticId, severity) in treeOptions.Concat(globalOptions))
             {
                 HandleEntry(diagnosticId, severity, uniqueWarningAndErrorIds, configuredCodeQualityIdsBuilder, CodeQualityPattern, ref codeQualityWarningAndErrorIdCount);
                 HandleEntry(diagnosticId, severity, uniqueWarningAndErrorIds, configuredCodeStyleIdsBuilder, CodeStylePattern, ref codeStyleWarningAndErrorIdCount);
@@ -67,15 +69,6 @@ internal sealed partial class VisualStudioCodeAnalysisSuggestionsConfigService
             var codeQualitySummary = new AnalyzerConfigSummary(codeQualityWarningAndErrorIdCount, configuredCodeQualityIdsBuilder.ToImmutableHashSet(), CodeQualityPattern);
             var codeStyleSummary = new AnalyzerConfigSummary(codeStyleWarningAndErrorIdCount, configuredCodeStyleIdsBuilder.ToImmutableHashSet(), CodeStylePattern);
             return new FirstPartyAnalyzerConfigSummary(codeQualitySummary, codeStyleSummary);
-
-            static IEnumerable<(string DiagnosticId, ReportDiagnostic severity)> GetAllOptionPairs(TreeOptions treeOptions, TreeOptions globalOptions)
-            {
-                foreach (var (diagnosticId, severity) in treeOptions)
-                    yield return (diagnosticId, severity);
-
-                foreach (var (diagnosticId, severity) in globalOptions)
-                    yield return (diagnosticId, severity);
-            }
 
             static void HandleEntry(
                 string diagnosticId,

@@ -23,12 +23,17 @@ internal interface ICodeAnalysisSuggestionsConfigService : IWorkspaceService
     /// Compute project-wide code analysis diagnostics for first party analyzers/fixes that are relevant
     /// for the user and/or the code base to improve the code quality and/or code style of the code base.
     /// </summary>
+    /// <param name="project">Project to compute diagnostics.</param>
+    /// <param name="isExplicitlyInvoked">
+    /// Indicates if this method call is from an explicit user invocation or not.
+    /// If explicitly invoked by the user, then this API will force compute all the project-wide diagnostics.
+    /// Otherwise, it will only operate on the already computed and cached diagnostics from background analysis.
+    /// </param>
     /// <returns>
-    /// Returns an array of tuples '(Category, DiagnosticsById)', where 'Category' is the diagnostic category
-    /// of the corresponding diagnostics in the 'DiagnosticsById' map. 'DiagnosticsById' is a dictionary from
-    /// diagnostic ID to array of diagnostics with that ID that are reported in the current project.
+    /// Returns an array of tuples '(Category, Diagnostics)', where 'Category' is the diagnostic category
+    /// of the corresponding diagnostics in the 'Diagnostics' array.
     /// </returns>
-    public Task<ImmutableArray<(string Category, ImmutableDictionary<string, ImmutableArray<DiagnosticData>> DiagnosticsById)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken);
+    public Task<ImmutableArray<(string Category, ImmutableArray<DiagnosticData> Diagnostics)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool isExplicitlyInvoked, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICodeAnalysisSuggestionsConfigService), ServiceLayer.Default), Shared]
@@ -40,6 +45,6 @@ internal sealed class DefaultCodeAnalysisSuggestionsConfigService : ICodeAnalysi
     {
     }
 
-    public Task<ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, CancellationToken cancellationToken)
-        => Task.FromResult(ImmutableArray<(string, ImmutableDictionary<string, ImmutableArray<DiagnosticData>>)>.Empty);
+    public Task<ImmutableArray<(string Category, ImmutableArray<DiagnosticData> Diagnostics)>> TryGetCodeAnalysisSuggestionsConfigDataAsync(Project project, bool isExplicitlyInvoked, CancellationToken cancellationToken)
+        => Task.FromResult(ImmutableArray<(string, ImmutableArray<DiagnosticData>)>.Empty);
 }
