@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1313,16 +1314,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 static ImmutableHashSet<ISymbol> computeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, INamedTypeSymbol generatedCodeAttribute, CancellationToken cancellationToken)
                 {
+                    var root = tree.GetRoot(cancellationToken);
+
                     // PERF: Bail out early if file doesn't have "GeneratedCode" text.
-                    var walker = new GeneratedCodeTokenWalker(cancellationToken);
-                    walker.Visit(tree.GetRoot(cancellationToken));
-                    if (!walker.HasGeneratedCodeIdentifier)
-                    {
+                    if (!containsGeneratedCodeToken(root))
                         return ImmutableHashSet<ISymbol>.Empty;
-                    }
 
                     var model = compilation.GetSemanticModel(tree);
-                    var root = tree.GetRoot(cancellationToken);
                     var span = root.FullSpan;
                     var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
                     model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
@@ -1341,6 +1339,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     declarationInfoBuilder.Free();
                     return generatedSymbolsBuilder != null ? generatedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+                }
+
+                static bool containsGeneratedCodeToken(SyntaxNode root)
+                {
+                    return root.DescendantTokens().Any(token => string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal) ||
+                                                                string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal));
                 }
             }
         }
