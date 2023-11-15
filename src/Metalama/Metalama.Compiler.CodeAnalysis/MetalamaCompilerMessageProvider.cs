@@ -270,7 +270,7 @@ namespace Metalama.Compiler
                 ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}).",
-                ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.",
+                ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.{0}",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
