@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 internal sealed class EditorLayerExtensionManager(
     [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers) : IWorkspaceServiceFactory
 {
-    private readonly List<IExtensionErrorHandler> _errorHandlers = errorHandlers.ToList();
+    private readonly ImmutableArray<IExtensionErrorHandler> _errorHandlers = errorHandlers.ToImmutableArray();
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
@@ -43,12 +44,8 @@ internal sealed class EditorLayerExtensionManager(
     internal sealed class ExtensionManager(
         IErrorReportingService errorReportingService,
         IErrorLoggerService errorLoggerService,
-        List<IExtensionErrorHandler> errorHandlers) : AbstractExtensionManager
+        ImmutableArray<IExtensionErrorHandler> errorHandlers) : AbstractExtensionManager
     {
-        private readonly List<IExtensionErrorHandler> _errorHandlers = errorHandlers;
-        private readonly IErrorReportingService _errorReportingService = errorReportingService;
-        private readonly IErrorLoggerService _errorLoggerService = errorLoggerService;
-
         protected override void HandleNonCancellationException(object provider, Exception exception)
         {
             Debug.Assert(exception is not OperationCanceledException);
@@ -65,7 +62,7 @@ internal sealed class EditorLayerExtensionManager(
 
                     var providerType = provider.GetType();
 
-                    _errorReportingService?.ShowGlobalErrorInfo(
+                    errorReportingService?.ShowGlobalErrorInfo(
                         message: string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, providerType.Name),
                         TelemetryFeatureName.GetExtensionName(providerType),
                         exception,
@@ -92,14 +89,14 @@ internal sealed class EditorLayerExtensionManager(
             {
 
                 this.DisableProvider(provider);
-                _errorHandlers.Do(h => h.HandleError(provider, exception));
+                errorHandlers.Do(h => h.HandleError(provider, exception));
             }
 
-            _errorLoggerService?.LogException(provider, exception);
+            errorLoggerService?.LogException(provider, exception);
         }
 
         private void ShowDetailedErrorInfo(Exception exception)
-            => _errorReportingService.ShowDetailedErrorInfo(exception);
+            => errorReportingService.ShowDetailedErrorInfo(exception);
 
         private static void LogLeaveDisabled(object provider)
             => LogAction(CodefixInfobar_LeaveDisabled, provider);
