@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.VsixInstaller
     {
         public static void Main(string[] args)
         {
+            if (args is null)
+            {
+                throw new ArgumentNullException(nameof(args));
+            }
+
             var rootSuffix = args[0];
             var installationPath = args[1];
             var vsixFiles = args.Skip(2).ToArray();

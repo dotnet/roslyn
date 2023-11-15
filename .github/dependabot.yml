@@ -1,9 +1,13 @@
 # Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
 - package-ecosystem: nuget
   directory: /
   schedule:
-    interval: monthly
+    interval: weekly
+  ignore:
+  # This package has unlisted versions on nuget.org that are not supported. Avoid them.
+  - dependency-name: dotnet-format
+    versions: ["6.x", "7.x", "8.x"]

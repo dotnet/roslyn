@@ -1,0 +1,58 @@
+trigger: none # We only want to trigger manually or based on resources
+pr: none
+
+# Source archival requirements come from a compliance tenet. Review a sample task here: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1550985
+# Source code should be archived within 30 days of the release date, and at least every quarter if your product is releasing more than once every 6 months.
+# If your sources on GitHub are public open source project, then using GitHub Public Archive is sufficient.
+schedules:
+- cron: "13 13 13 */3 *" # Every three months
+  displayName: Periodic source archival
+  branches:
+    include:
+    - main
+
+parameters:
+- name: notes
+  displayName: Notes to include in the SCA request
+  type: string
+  default: ' ' # optional parameters require a non-empty default.
+- name: whatif
+  displayName: Only simulate the request
+  type: boolean
+  default: false
+
+variables:
+- group: VS Core team # Expected to provide ManagerAlias, SourceCodeArchivalUri
+
+pool:
+  name: AzurePipelines-EO
+  vmImage: AzurePipelinesUbuntu20.04compliant
+
+steps:
+- checkout: self
+  clean: true
+  fetchDepth: 0
+- powershell: tools/Install-DotNetSdk.ps1
+  displayName: ⚙ Install .NET SDK
+- task: NuGetAuthenticate@1
+  displayName: 🔏 Authenticate NuGet feeds
+  inputs:
+    forceReinstallCredentialProvider: true
+- script: dotnet tool restore
+  displayName: ⚙️ Restore CLI tools
+- powershell: azure-pipelines/variables/_pipelines.ps1
+  failOnStderr: true
+  displayName: ⚙ Set pipeline variables based on source
+- powershell: >
+    $TeamAlias = '$(TeamEmail)'.Substring(0, '$(TeamEmail)'.IndexOf('@'))
+
+    azure-pipelines/Archive-SourceCode.ps1
+    -ManagerAlias '$(ManagerAlias)'
+    -TeamAlias $TeamAlias
+    -BusinessGroupName '$(BusinessGroupName)'
+    -ProductName '$(SymbolsFeatureName)'
+    -ProductLanguage English
+    -Notes '${{ parameters.notes }}'
+    -Verbose
+    -WhatIf:$${{ parameters.whatif }}
+  displayName: 🗃️ Submit archival request

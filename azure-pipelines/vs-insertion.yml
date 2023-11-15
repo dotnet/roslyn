@@ -12,39 +12,46 @@ resources:
       - Real signed
       - auto-insertion
 
-stages:
-- stage: VS
+jobs:
+- job: insertion
   displayName: VS insertion
-  jobs:
-  - deployment: insertion
-    pool: VSEng-ReleasePool
-    environment: No-Approval
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - powershell: |
-              Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
-            displayName: Set pipeline name
-          - template: release-deployment-prep.yml
-          - download: CI
-            artifact: VSInsertion-Windows
-            displayName: Download VSInsertion-Windows artifact
-          - task: NuGetCommand@2
-            displayName: Push CoreXT packages to VS feed
-            inputs:
-              command: push
-              packagesToPush: $(Pipeline.Workspace)/CI/VSInsertion-windows/*.nupkg
-              publishVstsFeed: 97a41293-2972-4f48-8c0e-05493ae82010
-              allowPackageConflicts: true
-          - task: MicroBuildInsertVsPayload@4
-            displayName: Insert VS Payload
-            inputs:
-              TeamName: $(TeamName)
-              TeamEmail: $(TeamEmail)
-              InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
-              InsertionBuildPolicy: Request Perf DDRITs
-              AutoCompletePR: true
-              AutoCompleteMergeStrategy: Squash
-          - task: MicroBuildCleanup@1
-            displayName: Send Telemetry
+  pool: VSEngSS-MicroBuild2022-1ES
+  steps:
+  - checkout: none
+  - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+    displayName: ⚙️ Set pipeline name
+  - task: UseDotNet@2
+    displayName: ⚙️ Install .NET SDK
+    inputs:
+      packageType: sdk
+      version: 6.x
+  - task: NuGetAuthenticate@1
+    displayName: 🔏 Authenticate NuGet feeds
+    inputs:
+      forceReinstallCredentialProvider: true
+  - template: release-deployment-prep.yml
+  - download: CI
+    artifact: VSInsertion-Windows
+    displayName: 🔻 Download VSInsertion-Windows artifact
+  - script: dotnet nuget push $(Pipeline.Workspace)\CI\VSInsertion-windows\*.nupkg -s https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json -k azdo --skip-duplicate
+    displayName: 📦 Push CoreXT packages to VS feed
+  - task: MicroBuildInsertVsPayload@4
+    displayName: 🏭 Insert VS Payload
+    inputs:
+      TeamName: $(TeamName)
+      TeamEmail: $(TeamEmail)
+      InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
+      InsertionBuildPolicy: Request Perf DDRITs
+      AutoCompletePR: true
+      AutoCompleteMergeStrategy: Squash
+  - task: MicroBuildCleanup@1
+    displayName: ☎️ Send Telemetry
+  - powershell: |
+      $contentType = 'application/json';
+      $headers = @{ Authorization = 'Bearer $(System.AccessToken)' };
+      $rawRequest = @{ daysValid = 365 * 2; definitionId = $(resources.pipeline.CI.pipelineID); ownerId = 'User:$(Build.RequestedForId)'; protectPipeline = $false; runId = $(resources.pipeline.CI.runId) };
+      $request = ConvertTo-Json @($rawRequest);
+      Write-Host $request
+      $uri = "$(System.CollectionUri)$(System.TeamProject)/_apis/build/retention/leases?api-version=6.0-preview.1";
+      Invoke-RestMethod -uri $uri -method POST -Headers $headers -ContentType $contentType -Body $request;
+    displayName: 🗻 Retain inserted builds

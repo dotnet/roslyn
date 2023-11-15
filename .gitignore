@@ -9,6 +9,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.lutconfig
+launchSettings.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -138,6 +140,7 @@ _TeamCity*
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
+/coveragereport/
 
 # NCrunch
 _NCrunch_*
@@ -346,3 +349,6 @@ MigrationBackup/
 
 # dotnet tool local install directory
 .store/
+
+# mac-created file to track user view preferences for a directory
+.DS_Store

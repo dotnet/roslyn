@@ -1,0 +1,58 @@
+parameters:
+- name: ArchiveSymbols
+  type: boolean
+  default: true
+
+stages:
+- stage: release
+  displayName: Publish
+  condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
+  jobs:
+  - ${{ if parameters.ArchiveSymbols }}:
+    - job: symbol_archive
+      displayName: Archive symbols
+      pool: VSEngSS-MicroBuild2022-1ES
+      steps:
+      - checkout: none
+      - download: current
+        artifact: Variables-Windows
+        displayName: 🔻 Download Variables-Windows artifact
+      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        displayName: ⚙️ Set pipeline variables based on artifacts
+      - download: current
+        artifact: symbols-legacy
+        displayName: 🔻 Download symbols-legacy artifact
+      - task: MicroBuildArchiveSymbols@4
+        displayName: 🔣 Archive symbols to Symweb
+        inputs:
+          SymbolsFeatureName: $(SymbolsFeatureName)
+          SymbolsProject: VS
+          SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
+          azureSubscription: Symbols Upload (DevDiv)
+      - task: MicroBuildCleanup@1
+        displayName: ☎️ Send Telemetry
+
+  # - job: push
+  #   displayName: azure-public/vs-impl feed
+  #   ${{ if parameters.ArchiveSymbols }}:
+  #     dependsOn: symbol_archive
+  #   pool:
+  #     name: AzurePipelines-EO
+  #     vmImage: AzurePipelinesUbuntu20.04compliant
+  #   steps:
+  #   - checkout: none
+  #   - download: current
+  #     artifact: deployables-Windows
+  #     displayName: 🔻 Download deployables-Windows artifact
+  #   - task: UseDotNet@2
+  #     displayName: ⚙️ Install .NET SDK
+  #     inputs:
+  #       packageType: sdk
+  #       version: 6.x
+  #   - task: NuGetAuthenticate@1
+  #     displayName: 🔏 Authenticate NuGet feeds
+  #     inputs:
+  #       nuGetServiceConnections: azure-public/vs-impl
+  #       forceReinstallCredentialProvider: true
+  #   - script: dotnet nuget push $(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg -s https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json --api-key azdo --skip-duplicate
+  #     displayName: 📦 Push nuget packages

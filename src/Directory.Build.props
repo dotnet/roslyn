@@ -1,5 +1,11 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, Directory.Build.props))' != '' " />
+  <!-- Include and reference README in nuget package, if a README is in the project directory. -->
+  <PropertyGroup>
+    <PackageReadmeFile Condition="Exists('README.md')">README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Condition="Exists('README.md')" Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <!-- We always want a good debugging experience in integration tests -->
   <PropertyGroup>
@@ -23,4 +29,5 @@
     <None Include="$(CodeAnalysisRuleSet)" Condition="'$(CodeAnalysisRuleSet)' != ''" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
 </Project>

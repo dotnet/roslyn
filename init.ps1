@@ -28,6 +28,8 @@
     No effect if -NoPrerequisites is specified.
 .PARAMETER NoRestore
     Skips the package restore step.
+.PARAMETER NoToolRestore
+    Skips the dotnet tool restore step.
 .PARAMETER Signing
     Install the MicroBuild signing plugin for building test-signed builds on desktop machines.
 .PARAMETER Localization
@@ -39,13 +41,17 @@
     Install the MicroBuild setup plugin for building VSIXv3 packages.
 .PARAMETER OptProf
     Install the MicroBuild OptProf plugin for building optimized assemblies on desktop machines.
+.PARAMETER Sbom
+    Install the MicroBuild SBOM plugin.
 .PARAMETER AccessToken
     An optional access token for authenticating to Azure Artifacts authenticated feeds.
+.PARAMETER Interactive
+    Runs NuGet restore in interactive mode. This can turn authentication failures into authentication challenges.
 #>
-[CmdletBinding(SupportsShouldProcess=$true)]
+[CmdletBinding(SupportsShouldProcess = $true)]
 Param (
-    [ValidateSet('repo','user','machine')]
-    [string]$InstallLocality='user',
+    [ValidateSet('repo', 'user', 'machine')]
+    [string]$InstallLocality = 'user',
     [Parameter()]
     [switch]$NoPrerequisites,
     [Parameter()]
@@ -55,6 +61,8 @@ Param (
     [Parameter()]
     [switch]$NoRestore,
     [Parameter()]
+    [switch]$NoToolRestore,
+    [Parameter()]
     [switch]$Signing,
     [Parameter()]
     [switch]$Localization,
@@ -63,10 +71,15 @@ Param (
     [Parameter()]
     [switch]$OptProf,
     [Parameter()]
-    [string]$AccessToken
+    [switch]$SBOM,
+    [Parameter()]
+    [string]$AccessToken,
+    [Parameter()]
+    [switch]$Interactive
 )
 
 $EnvVars = @{}
+$PrependPath = @()
 
 if (!$NoPrerequisites) {
     if (!$NoNuGetCredProvider) {
@@ -86,22 +99,35 @@ if (!$NoPrerequisites) {
 }
 
 # Workaround nuget credential provider bug that causes very unreliable package restores on Azure Pipelines
-$env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS=20
-$env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS=20
+$env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS = 20
+$env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS = 20
 
 Push-Location $PSScriptRoot
 try {
     $HeaderColor = 'Green'
 
+    $RestoreArguments = @()
+    if ($Interactive)
+    {
+        $RestoreArguments += '--interactive'
+    }
+
     if (!$NoRestore -and $PSCmdlet.ShouldProcess("NuGet packages", "Restore")) {
         Write-Host "Restoring NuGet packages" -ForegroundColor $HeaderColor
-        dotnet restore
+        dotnet restore @RestoreArguments
         if ($lastexitcode -ne 0) {
             throw "Failure while restoring packages."
         }
     }
 
-    $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
+    if (!$NoToolRestore -and $PSCmdlet.ShouldProcess("dotnet tool", "restore")) {
+      dotnet tool restore @RestoreArguments
+      if ($lastexitcode -ne 0) {
+          throw "Failure while restoring dotnet CLI tools."
+      }
+    }
+
+    $InstallNuGetPkgScriptPath = "$PSScriptRoot\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
     $MicroBuildPackageSource = 'https://pkgs.dev.azure.com/devdiv/_packaging/MicroBuildToolset%40Local/nuget/v3/index.json'
@@ -113,7 +139,7 @@ try {
 
     if ($Setup) {
         Write-Host "Installing MicroBuild SwixBuild plugin..." -ForegroundColor $HeaderColor
-        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.SwixBuild -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+        & $InstallNuGetPkgScriptPath Microsoft.VisualStudioEng.MicroBuild.Plugins.SwixBuild -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
     }
 
     if ($OptProf) {
@@ -129,7 +155,15 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
-    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
+    if ($SBOM) {
+        Write-Host "Installing MicroBuild SBOM plugin" -ForegroundColor $HeaderColor
+        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Sbom -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+        $PkgMicrosoft_ManifestTool_CrossPlatform = & $InstallNuGetPkgScriptPath Microsoft.ManifestTool.CrossPlatform -source 'https://1essharedassets.pkgs.visualstudio.com/1esPkgs/_packaging/SBOMTool/nuget/v3/index.json' -Verbosity $nugetVerbosity
+        $EnvVars['GenerateSBOM'] = "true"
+        $EnvVars['PkgMicrosoft_ManifestTool_CrossPlatform'] = $PkgMicrosoft_ManifestTool_CrossPlatform
+    }
+
+    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars -PrependPath $PrependPath | Out-Null
 }
 catch {
     Write-Error $error[0]

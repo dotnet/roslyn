@@ -1,19 +1,21 @@
+parameters:
+  EnableCompliance:
+  EnableAPIScan:
+
 steps:
 - task: MicroBuildCodesignVerify@3
-  displayName: Verify Signed Files
+  displayName: 🔍 Verify Signed Files
   inputs:
     TargetFolders: |
       $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - task: MicroBuildCleanup@1
   condition: succeededOrFailed()
-  displayName: MicroBuild Cleanup
-
-- task: ComponentGovernanceComponentDetection@0
-  displayName: Component Detection
+  displayName: ⚙️ MicroBuild Cleanup
 
 - task: Ref12Analyze@0
-  displayName: Ref12 (Codex) Analyze
+  displayName: 📑 Ref12 (Codex) Analyze
   inputs:
     codexoutputroot: $(Build.ArtifactStagingDirectory)\Codex
     workflowArguments: |
@@ -22,7 +24,10 @@ steps:
       /repoName:$(Build.Repository.Name)
       /additionalCodexArguments:-bld
       /additionalCodexArguments:$(Build.ArtifactStagingDirectory)/build_logs
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Agent.OS'], 'Windows_NT'))
   continueOnError: true
 
-- template: secure-development-tools.yml
+- ${{ if eq(parameters.EnableCompliance, 'true') }}:
+  - template: secure-development-tools.yml
+    parameters:
+      EnableAPIScan: ${{ parameters.EnableAPIScan }}

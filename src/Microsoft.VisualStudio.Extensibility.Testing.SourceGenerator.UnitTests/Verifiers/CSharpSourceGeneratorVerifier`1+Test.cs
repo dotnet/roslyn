@@ -69,6 +69,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 
             protected override async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
             {
+                if (project is null)
+                {
+                    throw new ArgumentNullException(nameof(project));
+                }
+
                 var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile), "Resources", _testMethod);
 
                 var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);

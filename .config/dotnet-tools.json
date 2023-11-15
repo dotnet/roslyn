@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "powershell": {
+      "version": "6.2.7",
+      "commands": [
+        "pwsh"
+      ]
+    },
+    "dotnet-format": {
+      "version": "5.1.250801",
+      "commands": [
+        "dotnet-format"
+      ]
+    },
+    "dotnet-coverage": {
+      "version": "17.9.3",
+      "commands": [
+        "dotnet-coverage"
+      ]
+    },
+    "nbgv": {
+      "version": "3.6.133",
+      "commands": [
+        "nbgv"
+      ]
+    }
+  }
+}

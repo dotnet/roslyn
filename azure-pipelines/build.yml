@@ -1,11 +1,29 @@
 parameters:
-  windowsPool: Hosted Windows 2019 with VS2019
+- name: windowsPool
+  type: object
+  default:
+    vmImage: windows-2019-vs2019
+- name: RunTests
+  type: boolean
+  default: true
+- name: EnableCompliance
+  type: boolean
+  default: false
+- name: EnableAPIScan
+  type: boolean
+  default: false
 
 jobs:
 - job: Windows
   pool: ${{ parameters.windowsPool }}
+  timeoutInMinutes: 180 # Give plenty of time due to real signing
+  variables:
+  - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+    # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
+    - group: VSCloudServices-APIScan # Expected to provide ApiScanClientId, ApiScanSecret, ApiScanTenant
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
 
   - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
@@ -13,27 +31,34 @@ jobs:
 
   - template: install-dependencies.yml
 
-  - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
-    displayName: Set build number
+  - script: dotnet nbgv cloud -ca
+    displayName: ⚙ Set build number
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.before.yml
 
   - template: dotnet.yml
+    parameters:
+      RunTests: ${{ parameters.RunTests }}
 
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     - template: microbuild.after.yml
+      parameters:
+        EnableCompliance: ${{ parameters.EnableCompliance }}
+        EnableAPIScan: ${{ parameters.EnableAPIScan }}
 
 - job: WrapUp
   dependsOn:
   - Windows
-  pool:
-    vmImage: Ubuntu 20.04
+  pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
   condition: succeededOrFailed()
   steps:
   - checkout: self
+    fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
     clean: true
   - template: install-dependencies.yml
     parameters:
       initArgs: -NoRestore
-  - template: publish-codecoverage.yml
+  - template: publish-symbols.yml
+  - ${{ if parameters.RunTests }}:
+    - template: publish-codecoverage.yml
