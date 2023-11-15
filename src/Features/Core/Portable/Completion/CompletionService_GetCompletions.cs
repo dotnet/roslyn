@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
+
             var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
