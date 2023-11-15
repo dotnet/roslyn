@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             return (assemblyName, realPath, resourceAssemblyCultureNames);
 
             // Discover the culture names for any satellite dlls related to this analyzer. These 
-            // need to be understood when handling the resource loading in ceratin cases.
+            // need to be understood when handling the resource loading in certain cases.
             static ImmutableHashSet<string> getResourceAssemblyCultureNames(string originalAnalyzerPath)
             {
                 var path = Path.GetDirectoryName(originalAnalyzerPath)!;
