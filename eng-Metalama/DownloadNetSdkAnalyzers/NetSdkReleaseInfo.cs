@@ -67,8 +67,6 @@ static class NetSdkReleaseInfo
 
                 if (!netSdkReleases.Releases.ContainsKey(sdkVersion))
                 {
-                    Console.Error.WriteLine($"Downloading .Net SDK {sdkVersion}.");
-
                     var sdkZip = release.Sdk.Files.Single(file => file.Name == "dotnet-sdk-win-x64.zip");
 
                     var downloader = await NetSdkDownloader.CreateAsync(sdkZip.Url, sdkVersion);
