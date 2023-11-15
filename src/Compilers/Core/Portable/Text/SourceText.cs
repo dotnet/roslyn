@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
         internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
+        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128());
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
@@ -37,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private ImmutableArray<byte> _lazyChecksum;
         private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+
+        private ImmutableArray<byte> _lazyContentHash;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
@@ -598,6 +604,66 @@ namespace Microsoft.CodeAnalysis.Text
             return _lazyChecksum;
         }
 
+        /// <summary>
+        /// Produces a hash of this <see cref="SourceText"/> based solely on the contents it contains.  Two different
+        /// <see cref="SourceText"/> instances that are <see cref="ContentEquals"/> will have the same content hash. Two
+        /// instances of <see cref="SourceText"/> with different content are virtually certain to not have the same
+        /// hash.  This hash can be used for fingerprinting of text instances, but does not provide cryptographic
+        /// guarantees.
+        /// </summary>
+        /// <remarks>
+        /// The implementation of this function uses the XxHash128 <see
+        /// href="https://learn.microsoft.com/en-us/dotnet/api/system.io.hashing.xxhash128"/>.  However, this is not
+        /// guaranteed, and future versions of Roslyn may change this.
+        /// <para/>
+        ///
+        /// This hash is safe to use across platforms and across processes, as long as the same version of Roslyn is
+        /// used in all those locations.  As such, it is safe to use as a fast proxy for comparing text instances in
+        /// different memory spaces.  Different versions of Roslyn may produce different content hashes.
+        /// </remarks>
+        public ImmutableArray<byte> GetContentHash()
+        {
+            if (_lazyContentHash.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyContentHash, computeContentHash());
+            }
+
+            return _lazyContentHash;
+
+            ImmutableArray<byte> computeContentHash()
+            {
+                var hash = s_contentHashPool.Allocate();
+                var charBuffer = s_charArrayPool.Allocate();
+                var charBufferLength = charBuffer.Length;
+                try
+                {
+                    // Grab chunks of this SourceText, copying into 'charBuffer'.  Then reinterpret that buffer as a
+                    // Span<byte> and append into the running hash.
+                    for (int index = 0, length = this.Length; index < length; index += charBufferLength)
+                    {
+                        var charsToCopy = Math.Min(charBufferLength, length - index);
+                        this.CopyTo(
+                            sourceIndex: index, destination: charBuffer,
+                            destinationIndex: 0, count: charsToCopy);
+
+                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0..charsToCopy)));
+                    }
+
+                    Span<byte> destination = stackalloc byte[128 / 8];
+                    hash.GetHashAndReset(destination);
+                    return destination.ToImmutableArray();
+                }
+                finally
+                {
+                    s_charArrayPool.Free(charBuffer);
+
+                    // Technically not needed.  But adding this reset out of paranoia.
+                    hash.Reset();
+                    s_contentHashPool.Free(hash);
+                }
+            }
+        }
+
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
@@ -1058,6 +1124,11 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 return true;
             }
+
+            var leftContentHash = _lazyContentHash;
+            var rightContentHash = other._lazyContentHash;
+            if (!leftContentHash.IsDefault && !rightContentHash.IsDefault)
+                return leftContentHash.SequenceEqual(rightContentHash);
 
             // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
             ImmutableArray<byte> leftChecksum = _lazyChecksum;
