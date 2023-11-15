@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             // in their project file to enable IDE0005 on build.
 
             var compilation = context.Compilation;
-            if (compilation.Options.WarningLevel < 8)
+            if (!IsAnalysisLevelGreaterThanOrEquals(8, context.Options))
                 return;
 
             var tree = compilation.SyntaxTrees.FirstOrDefault(tree => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, context.CancellationToken));
