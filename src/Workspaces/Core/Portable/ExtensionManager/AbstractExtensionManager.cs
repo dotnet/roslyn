@@ -12,7 +12,7 @@ internal abstract class AbstractExtensionManager : IExtensionManager
     private readonly ConcurrentSet<object> _disabledProviders = new(ReferenceEqualityComparer.Instance);
     private readonly ConcurrentSet<object> _ignoredProviders = new(ReferenceEqualityComparer.Instance);
 
-    protected abstract void HandleExceptionWorker(object provider, Exception exception);
+    protected abstract void HandleNonCancellationException(object provider, Exception exception);
 
     protected void DisableProvider(object provider)
         => _disabledProviders.Add(provider);
@@ -34,10 +34,7 @@ internal abstract class AbstractExtensionManager : IExtensionManager
         if (exception is OperationCanceledException)
             return false;
 
-        HandleExceptionWorker(provider, exception);
+        HandleNonCancellationException(provider, exception);
         return true;
     }
-
-    // DisableProvider(provider);
-
 }

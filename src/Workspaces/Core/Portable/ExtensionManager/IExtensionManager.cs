@@ -13,7 +13,7 @@ internal interface IExtensionManager : IWorkspaceService
 
     /// <summary>
     /// Returns <see langword="true"/> to make it easy to use in an exception filter.  Note: will be called with any
-    /// exception, so this should not do anything in the case of cancellation.
+    /// exception, so this should not do anything in the case of <see cref="OperationCanceledException"/>.
     /// </summary>
     bool HandleException(object provider, Exception exception);
 }

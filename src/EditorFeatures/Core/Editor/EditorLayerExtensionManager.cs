@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -47,13 +48,15 @@ internal sealed class EditorLayerExtensionManager(
         private readonly IErrorReportingService _errorReportingService = errorReportingService;
         private readonly IErrorLoggerService _errorLoggerService = errorLoggerService;
 
-        public override void HandleException(object provider, Exception exception)
+        protected override void HandleNonCancellationException(object provider, Exception exception)
         {
+            Debug.Assert(exception is not OperationCanceledException);
+
             if (provider is CodeFixProvider or CodeFixes.FixAllProvider or CodeRefactoringProvider or CodeRefactorings.FixAllProvider)
             {
                 if (!IsIgnored(provider))
                 {
-                    base.HandleException(provider, exception);
+                    this.DisableProvider(provider);
 
                     var providerType = provider.GetType();
 
@@ -82,7 +85,8 @@ internal sealed class EditorLayerExtensionManager(
             }
             else
             {
-                base.HandleException(provider, exception);
+
+                this.DisableProvider(provider);
                 _errorHandlers.Do(h => h.HandleError(provider, exception));
             }
 

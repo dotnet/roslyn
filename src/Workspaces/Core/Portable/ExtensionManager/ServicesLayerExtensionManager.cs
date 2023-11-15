@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -19,7 +20,10 @@ internal class ServicesLayerExtensionManager() : IWorkspaceServiceFactory
 
     private sealed class ExtensionManager : AbstractExtensionManager
     {
-        protected override void HandleExceptionWorker(object provider, Exception exception)
-            => DisableProvider(provider);
+        protected override void HandleNonCancellationException(object provider, Exception exception)
+        {
+            Debug.Assert(exception is not OperationCanceledException);
+            DisableProvider(provider);
+        }
     }
 }

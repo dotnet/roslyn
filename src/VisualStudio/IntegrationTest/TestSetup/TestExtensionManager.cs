@@ -19,18 +19,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup;
 [Shared, ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Host)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class TestExtensionManager([Import] TestExtensionErrorHandler errorHandler) : IWorkspaceServiceFactory
+internal sealed class TestExtensionManager(
+    [Import] TestExtensionErrorHandler errorHandler) : IWorkspaceServiceFactory
 {
-    private readonly TestExtensionErrorHandler _errorHandler = errorHandler;
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new ExtensionManager(_errorHandler);
+        => new ExtensionManager(errorHandler);
 
-    private class ExtensionManager(TestExtensionErrorHandler errorHandler) : AbstractExtensionManager
+    private sealed class ExtensionManager(TestExtensionErrorHandler errorHandler) : AbstractExtensionManager
     {
         private readonly TestExtensionErrorHandler _errorHandler = errorHandler;
 
-        protected override void HandleExceptionWorker(object provider, Exception exception)
+        protected override void HandleNonCancellationException(object provider, Exception exception)
         {
             Debug.Assert(exception is not OperationCanceledException);
             _errorHandler.HandleError(provider, exception);
