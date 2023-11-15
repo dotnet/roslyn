@@ -742,8 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                           includeNullability: this.ShouldCheckConstraints && includeNullability,
                                           errorPositions: default(ImmutableArray<bool>),
                                           syntax: syntax,
-                                          diagnostics: diagnostics,
-                                          basesBeingResolved: basesBeingResolved);
+                                          diagnostics: diagnostics);
         }
 
         internal static void ReportMissingTupleElementNamesAttributesIfNeeded(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)

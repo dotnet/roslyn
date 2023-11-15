@@ -217,10 +217,62 @@ namespace System
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
-        public void ExplicitInterfaceImplementation()
+        public void MissingRest()
         {
             var source = """
-                #nullable enable
+                (int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8) tuple = (1, 2, 3, 4, 5, 6, 7, 8);
+                (_, _, _, _, _, _, _, int x) = tuple;
+                System.Console.WriteLine(x);
+                
+                namespace System
+                {
+                    public struct ValueTuple<T1>
+                    {
+                        public T1 Item1;
+                
+                        public ValueTuple(T1 item1)
+                        {
+                            Item1 = item1;
+                        }
+                    }
+                
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        // public TRest Rest;
+                
+                        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+                        {
+                            Item1 = item1;
+                            Item2 = item2;
+                            Item3 = item3;
+                            Item4 = item4;
+                            Item5 = item5;
+                            Item6 = item6;
+                            Item7 = item7;
+                            // Rest = rest;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, assemblyName: "comp");
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (2,32): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (_, _, _, _, _, _, _, int x) = tuple;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "tuple").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Indexer_Partial()
+        {
+            var source = """
                 namespace System
                 {
                     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
@@ -233,19 +285,263 @@ namespace System
                         public T6 Item6;
                         public T7 Item7;
                         public TRest Rest;
-                        object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
+                        object System.Runtime.CompilerServices.ITuple.this[int index] => throw null;
                     }
                 }
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (4,67): error CS0535: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' does not implement interface member 'IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))'
+                // (3,67): error CS0535: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' does not implement interface member 'IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))'
                 //     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> : System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)> where TRest : struct
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))").WithLocation(4, 67),
-                // (14,17): error CS0540: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.ITuple.this[int]': containing type does not implement interface 'ITuple'
-                //         object? System.Runtime.CompilerServices.ITuple.this[int index] => throw null!;
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.System.Runtime.CompilerServices.ITuple.this[int]", "System.Runtime.CompilerServices.ITuple").WithLocation(14, 17));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest))").WithLocation(3, 67),
+                // (13,16): error CS0540: 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.ITuple.this[int]': containing type does not implement interface 'ITuple'
+                //         object System.Runtime.CompilerServices.ITuple.this[int index] => throw null;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "System.Runtime.CompilerServices.ITuple").WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.System.Runtime.CompilerServices.ITuple.this[int]", "System.Runtime.CompilerServices.ITuple").WithLocation(13, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Indexer()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        public int Length => throw null;
+                        object System.Runtime.CompilerServices.ITuple.this[int index] => throw null;
+                        bool System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Property()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        int System.Runtime.CompilerServices.ITuple.Length => throw null;
+                        public object this[int index] => throw null;
+                        bool System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Event()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        public int Length => throw null;
+                        public object this[int index] => throw null;
+                        public bool Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => throw null;
+                        event D System.Runtime.CompilerServices.ITuple.Tupled
+                        {
+                            add => throw null;
+                            remove => throw null;
+                        }
+                    }
+
+                    public interface IEquatable<T>
+                    {
+                        bool Equals(T other);
+                    }
+
+                    public class Object { }
+                    public class ValueType { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct IntPtr { }
+                    public class Exception { }
+                    public class MulticastDelegate { }
+                    public struct ValueTuple<T> { }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface ITuple
+                        {
+                            event D Tupled;
+                            int Length { get; }
+                            object this[int index] { get; }
+                        }
+                    }
+
+                    public delegate void D();
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_Operator()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        public int Length => throw null;
+                        public object this[int index] => throw null;
+                        public bool Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => throw null;
+                        static System.Runtime.CompilerServices.ITuple System.Runtime.CompilerServices.ITuple.operator +(System.Runtime.CompilerServices.ITuple a, System.Runtime.CompilerServices.ITuple b) => throw null;
+                    }
+
+                    public interface IEquatable<T>
+                    {
+                        bool Equals(T other);
+                    }
+
+                    public class Object { }
+                    public class ValueType { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct IntPtr { }
+                    public class Exception { }
+                    public class String { }
+                    public struct ValueTuple<T> { }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface ITuple
+                        {
+                            abstract static ITuple operator +(ITuple a, ITuple b);
+                            int Length { get; }
+                            object this[int index] { get; }
+                        }
+
+                        public static class RuntimeFeature
+                        {
+                            public const string VirtualStaticsInInterfaces = nameof(VirtualStaticsInInterfaces);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_ConversionOperator()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.IEquatable<(T1, T2, T3, T4, T5, T6, T7, TRest)>,
+                        System.Runtime.CompilerServices.ITuple<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        public int Length => throw null;
+                        public object this[int index] => throw null;
+                        public bool Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => throw null;
+                        static explicit System.Runtime.CompilerServices.ITuple<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>>.operator string(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> x) => throw null;
+                    }
+
+                    public interface IEquatable<T>
+                    {
+                        bool Equals(T other);
+                    }
+
+                    public class Object { }
+                    public class ValueType { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public struct IntPtr { }
+                    public class Exception { }
+                    public class String { }
+                    public struct ValueTuple<T> { }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface ITuple<T> where T : ITuple<T>
+                        {
+                            abstract static explicit operator string(T x);
+                            int Length { get; }
+                            object this[int index] { get; }
+                        }
+
+                        public static class RuntimeFeature
+                        {
+                            public const string VirtualStaticsInInterfaces = nameof(VirtualStaticsInInterfaces);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }
