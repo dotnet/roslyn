@@ -57,7 +57,7 @@ internal sealed class CodeActionFixAllResolveHandler(
 
         Contract.ThrowIfNull(data.CodeActionPath);
         var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: true);
-         
+
         var fixAllCodeAction = (FixAllCodeAction)codeActionToResolve;
         Contract.ThrowIfNull(fixAllCodeAction);
 
