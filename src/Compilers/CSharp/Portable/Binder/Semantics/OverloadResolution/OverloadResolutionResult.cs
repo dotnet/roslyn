@@ -25,8 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class OverloadResolutionResult<TMember> where TMember : Symbol
     {
+        private enum ResultState
+        {
+            Unknown,
+            HasBest,
+            NoBest,
+            StackOverflow
+        }
+
         private MemberResolutionResult<TMember> _bestResult;
-        private ThreeState _bestResultState;
+        private ResultState _bestResultState;
         internal readonly ArrayBuilder<MemberResolutionResult<TMember>> ResultsBuilder;
 
         // Create an overload resolution result from a single result.
@@ -38,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void Clear()
         {
             _bestResult = default(MemberResolutionResult<TMember>);
-            _bestResultState = ThreeState.Unknown;
+            _bestResultState = ResultState.Unknown;
             this.ResultsBuilder.Clear();
         }
 
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnsureBestResultLoaded();
 
-                return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
+                return _bestResultState == ResultState.HasBest && _bestResult.Result.IsValid;
             }
         }
 
@@ -65,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnsureBestResultLoaded();
 
-                Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
+                Debug.Assert(_bestResultState == ResultState.HasBest && _bestResult.Result.IsValid);
                 return _bestResult;
             }
         }
 
         private void EnsureBestResultLoaded()
         {
-            if (!_bestResultState.HasValue())
+            if (_bestResultState == ResultState.Unknown)
             {
                 _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
             }
@@ -90,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnsureBestResultLoaded();
 
-                Debug.Assert(_bestResultState == ThreeState.True);
+                Debug.Assert(_bestResultState == ResultState.HasBest);
                 return _bestResult;
             }
         }
@@ -145,23 +153,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.ToImmutableAndFree();
         }
 
-        private static ThreeState TryGetBestResult(ArrayBuilder<MemberResolutionResult<TMember>> allResults, out MemberResolutionResult<TMember> best)
+        private static ResultState TryGetBestResult(ArrayBuilder<MemberResolutionResult<TMember>> allResults, out MemberResolutionResult<TMember> best)
         {
             best = default(MemberResolutionResult<TMember>);
-            ThreeState haveBest = ThreeState.False;
+            ResultState haveBest = ResultState.NoBest;
 
             foreach (var pair in allResults)
             {
                 if (pair.Result.IsValid)
                 {
-                    if (haveBest == ThreeState.True)
+                    if (haveBest == ResultState.HasBest)
                     {
                         Debug.Assert(false, "How did we manage to get two methods in the overload resolution results that were both better than every other method?");
                         best = default(MemberResolutionResult<TMember>);
-                        return ThreeState.False;
+                        return ResultState.NoBest;
                     }
 
-                    haveBest = ThreeState.True;
+                    haveBest = ResultState.HasBest;
                     best = pair;
                 }
             }
@@ -169,6 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: There might be a situation in which there were no valid results but we still want to identify a "best of a bad lot" result for
             // TODO: error reporting.
             return haveBest;
+        }
+
+        /// <summary>
+        /// Called when overload resolution was about to stack overflow during resolution. This is effectively a failure, and means that we will report ERR_InsufficientStack
+        /// for the program
+        /// </summary>
+        internal void SetOverflow()
+        {
+            Debug.Assert(_bestResultState == ResultState.Unknown);
+            _bestResultState = ResultState.StackOverflow;
+            _bestResult = default(MemberResolutionResult<TMember>);
+            ResultsBuilder.Clear();
         }
 
         /// <summary>
@@ -210,6 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This kind is only used for default(MemberResolutionResult<T>), so we should never see it in
             // the candidate list.
             AssertNone(MemberResolutionKind.None);
+
+            if (_bestResultState == ResultState.StackOverflow)
+            {
+                // We stack overflowed during overload resolution. Just report and return.
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, location);
+                return;
+            }
 
             var symbols = StaticCast<Symbol>.From(memberGroup);
 

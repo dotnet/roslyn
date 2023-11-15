@@ -285,122 +285,130 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return expression;
 
             BoundExpression result;
-            switch (expression)
+            try
             {
-                case BoundUnconvertedSwitchExpression expr:
-                    {
-                        var commonType = expr.Type;
-                        var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
-                        bool hasErrors = expression.HasErrors;
-                        if (commonType is null)
+                RuntimeHelpers.EnsureSufficientExecutionStack();
+                switch (expression)
+                {
+                    case BoundUnconvertedSwitchExpression expr:
                         {
-                            diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
-                            commonType = CreateErrorType();
-                            hasErrors = true;
-                        }
-                        result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                    }
-                    break;
-                case BoundUnconvertedConditionalOperator op:
-                    {
-                        TypeSymbol type = op.Type;
-                        bool hasErrors = op.HasErrors;
-                        if (type is null)
-                        {
-                            Debug.Assert(op.NoCommonTypeError != 0);
-                            type = CreateErrorType();
-                            hasErrors = true;
-                            object trueArg = op.Consequence.Display;
-                            object falseArg = op.Alternative.Display;
-                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
+                            var commonType = expr.Type;
+                            var exprSyntax = (SwitchExpressionSyntax)expr.Syntax;
+                            bool hasErrors = expression.HasErrors;
+                            if (commonType is null)
                             {
-                                // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
-                                // type name from different assemblies, so we disambiguate the display.
-                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
-                                trueArg = distinguisher.First;
-                                falseArg = distinguisher.Second;
+                                diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, exprSyntax.SwitchKeyword.GetLocation());
+                                commonType = CreateErrorType();
+                                hasErrors = true;
+                            }
+                            result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                        }
+                        break;
+                    case BoundUnconvertedConditionalOperator op:
+                        {
+                            TypeSymbol type = op.Type;
+                            bool hasErrors = op.HasErrors;
+                            if (type is null)
+                            {
+                                Debug.Assert(op.NoCommonTypeError != 0);
+                                type = CreateErrorType();
+                                hasErrors = true;
+                                object trueArg = op.Consequence.Display;
+                                object falseArg = op.Alternative.Display;
+                                if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
+                                {
+                                    // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
+                                    // type name from different assemblies, so we disambiguate the display.
+                                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                                    trueArg = distinguisher.First;
+                                    falseArg = distinguisher.Second;
+                                }
+
+                                diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
                             }
 
-                            diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
+                            result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                         }
+                        break;
+                    case BoundTupleLiteral sourceTuple:
+                        {
+                            var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
+                            foreach (var arg in sourceTuple.Arguments)
+                            {
+                                boundArgs.Add(BindToNaturalType(arg, diagnostics, reportNoTargetType));
+                            }
+                            result = new BoundConvertedTupleLiteral(
+                                sourceTuple.Syntax,
+                                sourceTuple,
+                                wasTargetTyped: false,
+                                boundArgs.ToImmutableAndFree(),
+                                sourceTuple.ArgumentNamesOpt,
+                                sourceTuple.InferredNamesOpt,
+                                sourceTuple.Type, // same type to keep original element names
+                                sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
+                        }
+                        break;
+                    case BoundDefaultLiteral defaultExpr:
+                        {
+                            if (reportNoTargetType)
+                            {
+                                // In some cases, we let the caller report the error
+                                diagnostics.Add(ErrorCode.ERR_DefaultLiteralNoTargetType, defaultExpr.Syntax.GetLocation());
+                            }
 
-                        result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                    }
-                    break;
-                case BoundTupleLiteral sourceTuple:
-                    {
-                        var boundArgs = ArrayBuilder<BoundExpression>.GetInstance(sourceTuple.Arguments.Length);
-                        foreach (var arg in sourceTuple.Arguments)
-                        {
-                            boundArgs.Add(BindToNaturalType(arg, diagnostics, reportNoTargetType));
+                            result = new BoundDefaultExpression(
+                                defaultExpr.Syntax,
+                                targetType: null,
+                                defaultExpr.ConstantValueOpt,
+                                CreateErrorType(),
+                                hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                         }
-                        result = new BoundConvertedTupleLiteral(
-                            sourceTuple.Syntax,
-                            sourceTuple,
-                            wasTargetTyped: false,
-                            boundArgs.ToImmutableAndFree(),
-                            sourceTuple.ArgumentNamesOpt,
-                            sourceTuple.InferredNamesOpt,
-                            sourceTuple.Type, // same type to keep original element names
-                            sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
-                    }
-                    break;
-                case BoundDefaultLiteral defaultExpr:
-                    {
-                        if (reportNoTargetType)
+                        break;
+                    case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
                         {
-                            // In some cases, we let the caller report the error
-                            diagnostics.Add(ErrorCode.ERR_DefaultLiteralNoTargetType, defaultExpr.Syntax.GetLocation());
+                            // This is a context in which the stackalloc could be either a pointer
+                            // or a span.  For backward compatibility we treat it as a pointer.
+                            var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                            result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
                         }
+                        break;
+                    case BoundUnconvertedObjectCreationExpression expr:
+                        {
+                            if (reportNoTargetType && !expr.HasAnyErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, expr.Syntax.GetLocation(), expr.Display);
+                            }
 
-                        result = new BoundDefaultExpression(
-                            defaultExpr.Syntax,
-                            targetType: null,
-                            defaultExpr.ConstantValueOpt,
-                            CreateErrorType(),
-                            hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
-                    }
-                    break;
-                case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
-                    {
-                        // This is a context in which the stackalloc could be either a pointer
-                        // or a span.  For backward compatibility we treat it as a pointer.
-                        var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
-                        result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
-                    }
-                    break;
-                case BoundUnconvertedObjectCreationExpression expr:
-                    {
-                        if (reportNoTargetType && !expr.HasAnyErrors)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, expr.Syntax.GetLocation(), expr.Display);
+                            result = BindObjectCreationForErrorRecovery(expr, diagnostics);
                         }
-
-                        result = BindObjectCreationForErrorRecovery(expr, diagnostics);
-                    }
-                    break;
-                case BoundUnconvertedInterpolatedString unconvertedInterpolatedString:
-                    {
-                        result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
-                    }
-                    break;
-                case BoundBinaryOperator unconvertedBinaryOperator:
-                    {
-                        result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
-                    }
-                    break;
-                case BoundUnconvertedCollectionExpression expr:
-                    {
-                        if (reportNoTargetType && !expr.HasAnyErrors)
+                        break;
+                    case BoundUnconvertedInterpolatedString unconvertedInterpolatedString:
                         {
-                            diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
+                            result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                         }
-                        result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
-                    }
-                    break;
-                default:
-                    result = expression;
-                    break;
+                        break;
+                    case BoundBinaryOperator unconvertedBinaryOperator:
+                        {
+                            result = RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+                        }
+                        break;
+                    case BoundUnconvertedCollectionExpression expr:
+                        {
+                            if (reportNoTargetType && !expr.HasAnyErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_CollectionExpressionNoTargetType, expr.Syntax.GetLocation());
+                            }
+                            result = BindCollectionExpressionForErrorRecovery(expr, CreateErrorType(), diagnostics);
+                        }
+                        break;
+                    default:
+                        result = expression;
+                        break;
+                }
+            }
+            catch (InsufficientExecutionStackException)
+            {
+                result = new BoundBadExpression(expression.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type: CreateErrorType());
             }
 
             return result?.WithWasConverted();
@@ -5049,6 +5057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression BindObjectCreationForErrorRecovery(BoundUnconvertedObjectCreationExpression node, BindingDiagnosticBag diagnostics)
         {
+            RuntimeHelpers.EnsureSufficientExecutionStack();
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
             var result = MakeBadExpressionForObjectCreation(node.Syntax, CreateErrorType(), arguments, node.InitializerOpt, typeSyntax: node.Syntax, diagnostics);
             arguments.Free();

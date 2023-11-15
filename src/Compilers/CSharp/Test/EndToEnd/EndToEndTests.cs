@@ -721,5 +721,45 @@ $@"        if (F({i}))
             Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
                 step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        public void ExtremelyNestedCollectionExpressionDoesNotOverflow()
+        {
+            var code = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection : IEnumerable
+                {
+                    void M()
+                    {
+                        MyCollection collection = [{{new string('[', 1_000)}}{{new string(']', 1_000)}}];
+                    }
+
+                    public void Add(MyCollection c)
+                    {
+
+                    }
+
+                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+
+                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+                }
+                """;
+
+            var compilation = CreateCompilation(code);
+
+            // Can't use VerifyDiagnostics, where we overflow changes based on the system. So we just want to verify that we don't crash and properly report an ERR_InsufficientStack.
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.Single(diagnostics);
+            Assert.Equal((int)ErrorCode.ERR_InsufficientStack, diagnostics[0].Code);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var collectionExpression = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().First();
+
+            Assert.NotNull(model.GetOperation(collectionExpression));
+        }
     }
 }

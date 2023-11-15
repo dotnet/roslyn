@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -182,21 +184,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkOverriddenOrHidden = !(isExtensionMethodResolution &&
                 members.All(static m => m.ContainingSymbol is NamedTypeSymbol { BaseTypeNoUseSiteDiagnostics.SpecialType: SpecialType.System_Object }));
 
-            // First, attempt overload resolution not getting complete results.
-            PerformMemberOverloadResolution(
-                results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
-                returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
-                ref useSiteInfo, inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
-
-            if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
+            try
             {
-                // We didn't get a single good result. Get full results of overload resolution and return those.
-                result.Clear();
+                // First, attempt overload resolution not getting complete results.
                 PerformMemberOverloadResolution(
-                    results, members, typeArguments, receiver, arguments,
-                    completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
-                    allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
-                    ref useSiteInfo, inferWithDynamic: false, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
+                    results, members, typeArguments, receiver, arguments, completeResults: false, isMethodGroupConversion,
+                    returnRefKind, returnType, allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
+                    ref useSiteInfo, inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
+
+                if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
+                {
+                    // We didn't get a single good result. Get full results of overload resolution and return those.
+                    result.Clear();
+                    PerformMemberOverloadResolution(
+                        results, members, typeArguments, receiver, arguments,
+                        completeResults: true, isMethodGroupConversion, returnRefKind, returnType,
+                        allowRefOmittedArguments, isFunctionPointerResolution, callingConventionInfo,
+                        ref useSiteInfo, inferWithDynamic: false, allowUnexpandedForm: allowUnexpandedForm, checkOverriddenOrHidden: checkOverriddenOrHidden);
+                }
+            }
+            catch (InsufficientExecutionStackException)
+            {
+                result.SetOverflow();
             }
         }
 
@@ -265,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // With this information, we can efficiently skip checks where the (potentially)
             // overriding or hiding member is not in a subtype of the type containing the
             // (potentially) overridden or hidden member.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt = null;
             if (checkOverriddenOrHidden && members.Count > 50) // TODO: fine-tune this value
             {

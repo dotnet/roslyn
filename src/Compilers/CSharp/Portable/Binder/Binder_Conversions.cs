@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -775,6 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
+            RuntimeHelpers.EnsureSufficientExecutionStack();
             var syntax = node.Syntax;
             var builder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
             foreach (var element in node.Elements)
