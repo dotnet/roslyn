@@ -346,5 +346,71 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We expect that in this case, we should still get the same value back
             Assert.Equal(await asynchronousRequest, valueReturnedFromSynchronousRequest);
         }
+
+        [Fact]
+        public async Task AsynchronousResultThatWasCancelledDoesNotBreakSynchronousRequest()
+        {
+            // We're going to do the following sequence of operations:
+            //
+            // 1. Start an asynchronous request
+            // 2. Cancel the asynchronous request (but it's still consuming CPU because it hasn't observed the cancellation yet)
+            // 3. Start a synchronous request
+            // 4. Let the asynchronous request complete, as if the cancellation was never observed
+            // 5. Complete the synchronous request
+            var synchronousComputationStartedEvent = new ManualResetEvent(initialState: false);
+            var synchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);
+            var asynchronousComputationReadyToComplete = new ManualResetEvent(initialState: false);
+            var asynchronousComputationShouldCompleteEvent = new ManualResetEvent(initialState: false);
+
+            var asynchronousRequestCancellationToken = new CancellationTokenSource();
+
+            var lazy = new AsyncLazy<string>(
+                asynchronousComputeFunction: ct =>
+                {
+                    asynchronousRequestCancellationToken.Cancel();
+
+                    // Now wait until the cancellation is sent to this underlying computation
+                    while (!ct.IsCancellationRequested)
+                        Thread.Yield();
+
+                    // Now we're ready to complete, so this is when we want to pause
+                    asynchronousComputationReadyToComplete.Set();
+                    asynchronousComputationShouldCompleteEvent.WaitOne();
+
+                    return Task.FromResult("Returned from asynchronous computation: " + Guid.NewGuid());
+                },
+                synchronousComputeFunction: _ =>
+                {
+                    // Let the test know we've started, and we'll continue once asked
+                    synchronousComputationStartedEvent.Set();
+                    synchronousComputationShouldCompleteEvent.WaitOne();
+                    return "Returned from synchronous computation: " + Guid.NewGuid();
+                });
+
+            // Steps 1 and 2: start asynchronous computation and wait until it's running; this will cancel itself once it's started
+            var asynchronousRequest = Task.Run(() => lazy.GetValueAsync(asynchronousRequestCancellationToken.Token));
+
+            asynchronousComputationReadyToComplete.WaitOne();
+
+            // Step 3: while the async request is cancelled but still "thinking", let's start the synchronous request
+            var synchronousRequest = Task.Run(() => lazy.GetValue(CancellationToken.None));
+            synchronousComputationStartedEvent.WaitOne();
+
+            // Step 4: let the asynchronous compute function now complete
+            asynchronousComputationShouldCompleteEvent.Set();
+
+            // At some point the asynchronous computation value is now going to be cached
+            string? asyncResult;
+            while (!lazy.TryGetValue(out asyncResult))
+                Thread.Yield();
+
+            // Step 5: let the synchronous request complete
+            synchronousComputationShouldCompleteEvent.Set();
+
+            var synchronousResult = await synchronousRequest;
+
+            // We expect that in this case, the synchronous result should have been thrown away since the async result was computed first
+            Assert.Equal(asyncResult, synchronousResult);
+        }
     }
 }
