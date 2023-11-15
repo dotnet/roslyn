@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var completionListResult = await GetFilteredCompletionListAsync(request, context, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
+            var completionListResult = await GetFilteredCompletionListAsync(
+                request, context, documentText, document, completionOptions, completionService, capabilityHelper, cancellationToken).ConfigureAwait(false);
+
             if (completionListResult == null)
                 return null;
 
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document document,
             CompletionOptions completionOptions,
             CompletionService completionService,
+            CompletionCapabilityHelper capabilityHelper,
             CancellationToken cancellationToken)
         {
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -94,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
-                var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                var originalTrigger = CompletionTrigger.Invoke;
                 result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
             }
             else
@@ -108,12 +111,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var resultId = result.Value.ResultId;
+            var (completionList, resultId) = result.Value;
+
+            // By default, Roslyn would treat continuous alphabetical text as a single word for completion purpose.
+            // e.g. when user triggers completion at the location of {$} in "pub{$}class", the span would cover "pubclass",
+            // which is used for subsequent matching and commit.
+            // This works fine for VS async-completion, where we have full control of entire completion process.
+            // However, the insert mode in VSCode (i.e. the mode our LSP server supports) expects us to return TextEdit that only
+            // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
+            // adjust the span accordingly.
+            if (!capabilityHelper.SupportVSInternalClientCapabilities && position < completionList.Span.End)
+            {
+                var defaultSpan = new TextSpan(completionList.Span.Start, length: position - completionList.Span.Start);
+                completionList = completionList.WithSpan(defaultSpan);
+            }
 
             var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
-            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionTrigger, sourceText);
+            var (filteredCompletionList, isIncomplete) = FilterCompletionList(completionList, completionListMaxSize, completionTrigger, sourceText);
 
-            return (completionList, isIncomplete, resultId);
+            return (filteredCompletionList, isIncomplete, resultId);
         }
 
         private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(

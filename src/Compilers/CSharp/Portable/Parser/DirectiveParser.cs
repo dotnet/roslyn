@@ -6,22 +6,25 @@
 
 using System;
 using System.Diagnostics;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-    internal class DirectiveParser : SyntaxParser
+    internal sealed class DirectiveParser : SyntaxParser
     {
         private const int MAX_DIRECTIVE_IDENTIFIER_WIDTH = 128;
 
-        private readonly DirectiveStack _context;
+        private DirectiveStack _context;
 
-        internal DirectiveParser(Lexer lexer, DirectiveStack context)
-            : base(lexer, LexerMode.Directive, null, null, false)
+        internal DirectiveParser(Lexer lexer)
+            : base(lexer, LexerMode.Directive, oldTree: null, changes: null, allowModeReset: false)
         {
+        }
+
+        public void ReInitialize(DirectiveStack context)
+        {
+            base.ReInitialize();
             _context = context;
         }
 

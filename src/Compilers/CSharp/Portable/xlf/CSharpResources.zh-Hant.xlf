@@ -427,6 +427,11 @@
         <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionImmutableArray">
+        <source>This version of '{0}' cannot be used with collection expressions.</source>
+        <target state="translated">此版本的 '{0}' 無法與集合運算式一起使用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
         <target state="new">There is no target type for the collection expression.</target>
@@ -557,11 +562,6 @@
         <target state="translated">'else' 無法開始陳述式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">無法更新，因為推斷的委派型別已變更。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">無法使用 'UnmanagedCallersOnly' 將應用程式進入點屬性化。</target>
@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInterpolatedString">
         <source>Expected interpolated string</source>
-        <target state="new">Expected interpolated string</target>
+        <target state="translated">預期為差補字串</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -942,6 +942,11 @@
         <target state="translated">介面中的執行個體屬性不可有初始設定式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">無法攔截 '{0}'，因為它不是一般成員方法的叫用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">方法 '{0}' 必須是非泛型或具有 arity {1}，才能符合 '{2}'。</target>
@@ -979,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorGlobalNamespace">
         <source>An interceptor cannot be declared in the global namespace.</source>
-        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <target state="translated">無法在全域命名空間中宣告攔截器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
@@ -1059,7 +1064,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">未在此命名空間中啟用「攔截器」實驗功能。將 '{0}' 新增至您的專案。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1110,6 +1115,11 @@
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
         <target state="translated">參考要編制索引的執行個體的差補字串處理常式轉換無法用於索引子成員初始化程式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1847,6 +1857,11 @@
         <target state="translated">單一元素解構模式需要一些其他語法才能使其明確。建議在右括弧 ')' 後新增捨棄指示項 '_'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">記錄成員 '{0}' 不可以是靜態。</target>
@@ -2327,6 +2342,11 @@
         <target state="translated">指標</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' 運算子不應該用於非同步方法中的參數或區域變數。</target>
@@ -2495,6 +2515,26 @@
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">參數會擷取至包含類型的狀態，且其值也會傳遞給基礎建構函式。值也可能由基礎類別擷取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -4166,7 +4206,7 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -4181,7 +4221,7 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.

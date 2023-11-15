@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class TopLevelSyntaxTreeIndex : IObjectWritable
+    internal sealed partial class TopLevelSyntaxTreeIndex
     {
         public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)

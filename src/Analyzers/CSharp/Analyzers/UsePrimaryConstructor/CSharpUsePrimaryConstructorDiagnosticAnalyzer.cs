@@ -204,8 +204,8 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer : AbstractBu
 
             for (var containingType = startSymbol.ContainingType; containingType != null; containingType = containingType.ContainingType)
             {
-                var containgTypeAnalyzer = TryGetOrCreateAnalyzer(containingType);
-                RegisterFieldOrPropertyAnalysisIfNecessary(containgTypeAnalyzer);
+                var containingTypeAnalyzer = TryGetOrCreateAnalyzer(containingType);
+                RegisterFieldOrPropertyAnalysisIfNecessary(containingTypeAnalyzer);
             }
 
             // Now try to make the analyzer for this type.

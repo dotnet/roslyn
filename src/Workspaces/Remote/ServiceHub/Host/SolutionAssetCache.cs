@@ -218,22 +218,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
 
             var checksums = await _remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            Recurse(checksums);
-
-            return;
-
-            void Recurse(ChecksumWithChildren checksums)
-            {
-                pinnedChecksums.Add(checksums.Checksum);
-                foreach (var child in checksums.Children)
-                {
-                    if (child is ChecksumWithChildren childChecksums)
-                        Recurse(childChecksums);
-                    else if (child is Checksum childChecksum)
-                        pinnedChecksums.Add(childChecksum);
-                }
-            }
+            checksums.AddAllTo(pinnedChecksums);
         }
 
         private sealed class Entry

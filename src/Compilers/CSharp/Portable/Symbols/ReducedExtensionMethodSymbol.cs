@@ -599,6 +599,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            return _reducedFrom.HasAsyncMethodBuilderAttribute(out builderArgument);
+        }
+
 #nullable enable
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol

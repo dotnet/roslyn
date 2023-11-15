@@ -193,9 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </param>
             private async Task<VoidResult> RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
                 if (cancellationToken.IsCancellationRequested)
                     return default;
 
@@ -251,9 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
                     await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
                     if (cancellationToken.IsCancellationRequested)
                         return default;
 
@@ -397,7 +393,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
             {
-                var snapshot = spansToInvalidate.First().Snapshot;
+                var firstSpanToInvalidate = spansToInvalidate.First();
+                var snapshot = firstSpanToInvalidate.Snapshot;
+
+                // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
+                //   full snapshot is being invalidated.
+                if (firstSpanToInvalidate.Length == snapshot.Length)
+                    return Array.Empty<ITagSpan<TTag>>();
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),

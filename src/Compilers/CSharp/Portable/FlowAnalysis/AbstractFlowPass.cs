@@ -1981,11 +1981,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitCollectionExpression(ImmutableArray<BoundExpression> elements)
+        private void VisitCollectionExpression(ImmutableArray<BoundNode> elements)
         {
             foreach (var element in elements)
             {
-                VisitRvalue(element);
+                if (element is BoundExpression expression)
+                {
+                    VisitRvalue(expression);
+                }
+                else
+                {
+                    Visit(element);
+                }
             }
         }
 
@@ -3056,7 +3063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitRvalue(node.Value);
+            Visit(node.Value);
             return null;
         }
 
@@ -3072,7 +3079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSequencePointExpression(BoundSequencePointExpression node)
         {
-            VisitRvalue(node.Expression);
+            Visit(node.Expression);
             return null;
         }
 

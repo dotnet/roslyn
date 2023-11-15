@@ -221,11 +221,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
                 return null;
 
-            // TODO: support updating if there is a single 'int capacity' argument provided.
-            var arguments = syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreationExpression);
-            if (arguments.Count != 0)
-                return null;
-
             var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.

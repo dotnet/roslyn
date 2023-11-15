@@ -106,7 +106,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
                 ConversionOperatorDeclarationSyntax conversion => conversion.Type,
                 OperatorDeclarationSyntax op => op.ReturnType,
                 BasePropertyDeclarationSyntax property => property.Type,
-                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } accessor => baseProperty.Type,
+                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => baseProperty.Type,
                 _ => null,
             };
         }

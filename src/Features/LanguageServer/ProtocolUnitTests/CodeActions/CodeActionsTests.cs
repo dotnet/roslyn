@@ -116,8 +116,8 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
             Range = caret.Range,
             Context = new CodeActionContext
             {
-                Diagnostics = new[]
-                {
+                Diagnostics =
+                [
                     new LSP.Diagnostic
                     {
                         Code = AddImportDiagnosticIds.CS0103
@@ -126,7 +126,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
                     {
                         Code = "SomeCode"
                     }
-                }
+                ]
             }
         };
 
@@ -157,19 +157,19 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
             Range = caret.Range,
             Context = new CodeActionContext
             {
-                Diagnostics = new[]
-                {
+                Diagnostics =
+                [
                     new LSP.Diagnostic
                     {
                         // async method lack of await.
                         Code = "CS1998"
                     }
-                }
+                ]
             }
         };
 
         var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-        Assert.Single(results);
+        Assert.Equal(2, results.Length);
         Assert.Equal("Make method synchronous", results[0].Title);
     }
 

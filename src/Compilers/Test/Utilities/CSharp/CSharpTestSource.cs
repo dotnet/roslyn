@@ -39,19 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var stringText = SourceText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
             var tree = SyntaxFactory.ParseSyntaxTree(stringText, options ?? TestOptions.RegularPreview, path);
-            CheckSerializable(tree);
             return tree;
-        }
-
-        private static void CheckSerializable(SyntaxTree tree)
-        {
-            using var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-
-            // verify absence of exception:
-            _ = CSharpSyntaxNode.DeserializeFrom(stream);
         }
 
         public SyntaxTree[] GetSyntaxTrees(CSharpParseOptions parseOptions, string sourceFileName = "")

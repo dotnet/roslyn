@@ -17,17 +17,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
+        EnforceOnBuildValues.MakeStructMemberReadOnly,
+        CSharpCodeStyleOptions.PreferReadOnlyStructMember,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
-               EnforceOnBuildValues.MakeStructMemberReadOnly,
-               CSharpCodeStyleOptions.PreferReadOnlyStructMember,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -175,14 +171,30 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             if (operation is IInvalidOperation)
                 return true;
 
-            if (operation is IInstanceReferenceOperation instanceOperation &&
-                InstanceReferencePotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+            if (ReferencesThisInstance(operation, cancellationToken) &&
+                OperationPotentiallyMutatesThis(semanticModel, owningMethod, operation, cancellationToken))
             {
                 return true;
             }
         }
 
         return false;
+
+        static bool ReferencesThisInstance(IOperation operation, CancellationToken cancellationToken)
+        {
+            // An actual usage of `this` or `base` in the code.
+            if (operation is IInstanceReferenceOperation)
+                return true;
+
+            // A primary constructor parameter implicitly references 'this' instance.
+            if (operation is IParameterReferenceOperation { Parameter: var parameter } &&
+                parameter.IsPrimaryConstructor(cancellationToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static bool IsPotentiallyValueType(IOperation? instance)
@@ -193,10 +205,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
     }
 
-    private static bool InstanceReferencePotentiallyMutatesThis(
+    private static bool OperationPotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
-        IInstanceReferenceOperation instanceOperation,
+        IOperation instanceOperation,
         CancellationToken cancellationToken)
     {
         // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
@@ -206,6 +218,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         {
             return true;
         }
+
+        // We only care if operation is a value type when looking at if it is somehow mutated with the operations that
+        // are performed on it.  In other words.  `valueType.X = 0` is not allowed while `referenceType.X = 0` is fine
+        // (since the former actually mutates storage in 'this' which would prevent this method from becoming readonly.
+        if (!IsPotentiallyValueType(instanceOperation))
+            return false;
 
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
         for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)

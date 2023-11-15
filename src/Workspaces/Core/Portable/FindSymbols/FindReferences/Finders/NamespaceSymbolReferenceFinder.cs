@@ -4,14 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
         /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
         /// </summary>
-        private static async Task AddNamedReferencesAsync(
+        private static async ValueTask AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
             FindReferencesDocumentState state,

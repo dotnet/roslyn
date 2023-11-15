@@ -427,6 +427,11 @@
         <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionImmutableArray">
+        <source>This version of '{0}' cannot be used with collection expressions.</source>
+        <target state="translated">Diese Version von „{0}“ kann nicht mit Auflistungsausdrücken verwendet werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
         <target state="new">There is no target type for the collection expression.</target>
@@ -557,11 +562,6 @@
         <target state="translated">Eine Anweisung kann nicht mit "else" beginnen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Die Aktualisierung kann nicht durchgeführt werden, da sich ein abgeleiteter Delegattyp geändert hat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Anwendungseinstiegspunkte können nicht mit dem Attribut "UnmanagedCallersOnly" versehen werden.</target>
@@ -579,7 +579,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInterpolatedString">
         <source>Expected interpolated string</source>
-        <target state="new">Expected interpolated string</target>
+        <target state="translated">Interpolierte Zeichenfolge erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -942,6 +942,11 @@
         <target state="translated">Instanzeigenschaften in Schnittstellen können keine Initialisierer aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">"{0}" kann nicht abgefangen werden, da es sich nicht um einen Aufruf einer normalen Membermethode handelt.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
         <target state="translated">Die methode '{0}' muss nicht generisch sein oder eine Stelligkeit aufweisen, die {1} '{2}' entspricht.</target>
@@ -979,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorGlobalNamespace">
         <source>An interceptor cannot be declared in the global namespace.</source>
-        <target state="new">An interceptor cannot be declared in the global namespace.</target>
+        <target state="translated">Ein Interceptor kann nicht im globalen Namespace deklariert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
@@ -1059,7 +1064,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1110,6 +1115,11 @@
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
         <target state="translated">Handler-Konvertierungen interpolierter Zeichenfolgen die auf die Instanz verweisen, die gerade indiziert wird, können nicht in Indexer-Member-Initialisierern verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1847,6 +1857,11 @@
         <target state="translated">Ein aus einem Element bestehendes deconstruct-Muster erfordert zur Vermeidung einer Mehrdeutigkeit eine etwas andere Syntax. Es wird empfohlen, nach der schließenden Klammer ")" einen discard-Kennzeichner "_" hinzuzufügen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">Der Datensatzmember "{0}" darf nicht statisch sein.</target>
@@ -2327,6 +2342,11 @@
         <target state="translated">Zeiger</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Der Operator '&amp;' sollte nicht für Parameter oder lokale Variablen in asynchronen Methoden verwendet werden.</target>
@@ -2495,6 +2515,26 @@
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase_Title">
         <source>Parameter is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">Der Parameter wird im Zustand des einschließenden Typs erfasst und sein Wert wird auch an den Basiskonstruktor übergeben. Der Wert kann auch von der Basisklasse erfasst werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="new">Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="new">Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="new">Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -4166,7 +4206,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Fehler beim Generieren der Quelle durch den Generator "{0}". Dies trägt nicht zur Ausgabe bei, und es können Kompilierungsfehler auftreten. Ausnahme vom Typ "{1}" mit Meldung "{2}".
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.
@@ -4181,7 +4221,7 @@
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+        <target state="translated">Fehler beim Initialisieren des Generators "{0}". Dies trägt nicht zur Ausgabe bei, und es können Kompilierungsfehler auftreten. Ausnahme vom Typ "{1}" mit Meldung "{2}".
 {3}</target>
         <note>{0} is the name of the generator that failed.
 {1} is the type of exception that was thrown.

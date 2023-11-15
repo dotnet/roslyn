@@ -2758,6 +2758,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_AwaitForEachMissingMemberWrongAsync" xml:space="preserve">
     <value>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</value>
   </data>
+  <data name="ERR_SpreadMissingMember" xml:space="preserve">
+    <value>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</value>
+  </data>
   <data name="ERR_PossibleAsyncIteratorWithoutYield" xml:space="preserve">
     <value>The body of an async-iterator method must contain a 'yield' statement.</value>
   </data>
@@ -7284,9 +7287,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternSpanCharCannotBeStringNull" xml:space="preserve">
     <value>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</value>
   </data>
-  <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
-    <value>Cannot update because an inferred delegate type has changed.</value>
-  </data>
   <data name="WRN_CompileTimeCheckedOverflow" xml:space="preserve">
     <value>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</value>
   </data>
@@ -7602,6 +7602,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>
   </data>
+  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
+    <value>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</value>
+  </data>
   <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
     <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
   </data>
@@ -7779,6 +7782,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
     <value>ref readonly parameters</value>
   </data>
+  <data name="IDS_StringEscapeCharacter" xml:space="preserve">
+    <value>string escape character</value>
+  </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
     <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
   </data>
@@ -7803,7 +7809,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
     <value>Ref field should be ref-assigned before use.</value>
   </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate" xml:space="preserve">
+    <value>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</value>
+  </data>
+  <data name="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title" xml:space="preserve">
+    <value>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</value>
+  </data>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
+  </data>
+  <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
+    <value>This version of '{0}' cannot be used with collection expressions.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
   </data>
 </root>
