@@ -97,7 +97,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             Contract.ThrowIfNull(data.CodeActionPath);
             var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: false);
-            Contract.ThrowIfNull(codeActionToResolve);
 
             // LSP currently has no way to report progress for code action computation.
             var operations = await codeActionToResolve.GetOperationsAsync(
