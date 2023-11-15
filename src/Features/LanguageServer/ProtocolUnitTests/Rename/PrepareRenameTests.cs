@@ -20,7 +20,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
         var markup =
 @"class A
 {
-    void {|caret:|}M()
+    void {|caret:|}{|range:M|}()
     {
     }
 }";
@@ -28,7 +28,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
         var renameLocation = testLspServer.GetLocations("caret").First();
 
         var results = await RunPrepareRenameAsync(testLspServer, CreatePrepareRenameParams(renameLocation));
-        Assert.True(results?.DefaultBehavior);
+        Assert.Equal(testLspServer.GetLocations("range").Single().Range, results);
     }
 
     [Theory, CombinatorialData]
@@ -37,7 +37,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
         var markup =
 @"class A
 {
-    void M{|caret:|}()
+    void {|range:M|}{|caret:|}()
     {
     }
 }";
@@ -45,7 +45,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
         var renameLocation = testLspServer.GetLocations("caret").First();
 
         var results = await RunPrepareRenameAsync(testLspServer, CreatePrepareRenameParams(renameLocation));
-        Assert.True(results?.DefaultBehavior);
+        Assert.Equal(testLspServer.GetLocations("range").Single().Range, results);
     }
 
     [Theory, CombinatorialData]
@@ -73,8 +73,8 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
             TextDocument = CreateTextDocumentIdentifier(location.Uri)
         };
 
-    private static async Task<LSP.DefaultBehaviorPrepareRename?> RunPrepareRenameAsync(TestLspServer testLspServer, LSP.PrepareRenameParams prepareRenameParams)
+    private static async Task<LSP.Range?> RunPrepareRenameAsync(TestLspServer testLspServer, LSP.PrepareRenameParams prepareRenameParams)
     {
-        return await testLspServer.ExecuteRequestAsync<LSP.PrepareRenameParams, LSP.DefaultBehaviorPrepareRename?>(LSP.Methods.TextDocumentPrepareRenameName, prepareRenameParams, CancellationToken.None);
+        return await testLspServer.ExecuteRequestAsync<LSP.PrepareRenameParams, LSP.Range?>(LSP.Methods.TextDocumentPrepareRenameName, prepareRenameParams, CancellationToken.None);
     }
 }
