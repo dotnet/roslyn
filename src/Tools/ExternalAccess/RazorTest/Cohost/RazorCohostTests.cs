@@ -52,13 +52,23 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         await serverAccessor.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = new() });
 
         var document = testWorkspace.CurrentSolution.Projects.Single().AdditionalDocuments.Single();
-        var request = new TestRequest(document.GetURI(), document.Project.Id.Id);
+        var request = new TextDocumentPositionParams
+        {
+            TextDocument = new VSTextDocumentIdentifier
+            {
+                Uri = document.GetURI(),
+                ProjectContext = new VSProjectContext
+                {
+                    Id = document.Project.Id.Id.ToString()
+                }
+            }
+        };
 
-        var response = await serverAccessor.ExecuteRequestAsync<TestRequest, TestRequest>(RazorHandler.MethodName, request);
+        var response = await serverAccessor.ExecuteRequestAsync<TextDocumentPositionParams, TestRequest>(RazorHandler.MethodName, request);
 
         Assert.NotNull(response);
-        Assert.Equal(request.DocumentUri, response.DocumentUri);
-        Assert.Equal(request.ProjectId, response.ProjectId);
+        Assert.Equal(document.GetURI(), response.DocumentUri);
+        Assert.Equal(document.Project.Id.Id, response.ProjectId);
     }
 
     internal class TestRequest(Uri documentUri, Guid projectId)
@@ -71,7 +81,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
     [ExportRazorStatelessLspService(typeof(RazorHandler)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-    internal class RazorHandler() : AbstractRazorDocumentRequestHandler<TestRequest, TestRequest>
+    internal class RazorHandler() : AbstractRazorCohostDocumentRequestHandler<TextDocumentPositionParams, TestRequest>
     {
         internal const string MethodName = "testMethod";
 
@@ -79,12 +89,12 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         protected override bool RequiresLSPSolution => true;
 
-        protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TestRequest request)
+        protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
         {
-            return new RazorTextDocumentIdentifier(request.DocumentUri, request.ProjectId.ToString());
+            return new RazorTextDocumentIdentifier(request.TextDocument.Uri, (request.TextDocument as VSTextDocumentIdentifier)?.ProjectContext?.Id);
         }
 
-        protected override Task<TestRequest> HandleRequestAsync(TestRequest request, RazorRequestContext context, CancellationToken cancellationToken)
+        protected override Task<TestRequest> HandleRequestAsync(TextDocumentPositionParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
         {
             Assert.NotNull(context.Solution);
             AssertEx.NotNull(context.TextDocument);
