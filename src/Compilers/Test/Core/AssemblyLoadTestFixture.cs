@@ -159,8 +159,6 @@ namespace AnalyzerWithLoc
             AnalyzerWithLoc = GenerateDll("AnalyzerWithLoc", _directory, AnalyzerWithLocSource);
 
             const string AnalyzerWithLocResourceEnGBSource = @"
-using System.Text;
-
 [assembly: System.Reflection.AssemblyTitle(""AnalyzerWithLoc"")]
 [assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
 [assembly: System.Reflection.AssemblyCulture(""en-GB"")]
