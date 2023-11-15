@@ -951,7 +951,7 @@ $@"class Program
 
         private static bool HaveMatchingSignatures(IMethodSymbol methodA, IMethodSymbol methodB)
         {
-            return MemberSignatureComparer.MethodGroupSignatureComparer.Equals(methodA.GetSymbol<MethodSymbol>(), methodB.GetSymbol<MethodSymbol>());
+            return MemberSignatureComparer.CSharp10MethodGroupSignatureComparer.Equals(methodA.GetSymbol<MethodSymbol>(), methodB.GetSymbol<MethodSymbol>());
         }
 
         public static IEnumerable<object?[]> GetExpressionData()
@@ -2809,6 +2809,30 @@ public static class DExt
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_SameSignatureDifferentArities()
+        {
+            var source = """
+var x = new C().M;
+x();
+
+public class C
+{
+    public void M() { System.Console.Write("ran"); }
+    public void M<T>() => throw null;
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9));
+
+            comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]

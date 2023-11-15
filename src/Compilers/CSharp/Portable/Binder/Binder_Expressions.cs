@@ -9848,7 +9848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = candidate;
                     return true;
                 }
-                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
+                if (MemberSignatureComparer.CSharp10MethodGroupSignatureComparer.Equals(method, candidate))
                 {
                     return true;
                 }

@@ -329,6 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
+        /// Compare signatures of methods from a method group (only used in logic for older language version).
+        /// </summary>
+        internal static readonly MemberSignatureComparer CSharp10MethodGroupSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            refKindCompareMode: RefKindCompareMode.ConsiderDifferences,
+            considerCallingConvention: false,
+            considerArity: true,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
         /// Compare signatures of methods from a method group.
         /// </summary>
         internal static readonly MemberSignatureComparer MethodGroupSignatureComparer = new MemberSignatureComparer(
