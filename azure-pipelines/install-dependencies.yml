@@ -3,12 +3,12 @@ parameters:
 
 steps:
 
-- task: NuGetAuthenticate@1
-  displayName: 🔏 Authenticate NuGet feeds
-  inputs:
-    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
-      nuGetServiceConnections: azure-public/msft_consumption
-    forceReinstallCredentialProvider: true
+#- task: NuGetAuthenticate@1
+#  displayName: 🔏 Authenticate NuGet feeds
+#  inputs:
+#    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+#      nuGetServiceConnections: azure-public/msft_consumption
+#    forceReinstallCredentialProvider: true
 
 - powershell: |
     $AccessToken = '$(System.AccessToken)' # Avoid specifying the access token directly on the init.ps1 command line to avoid it showing up in errors
