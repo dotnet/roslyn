@@ -209,7 +209,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         // Asserts that there are NestedActions on Inline
         Assert.NotNull(data!.NestedCodeActions);
         Assert.NotEmpty(data!.NestedCodeActions);
-        
+
         // Asserts that there is a Command present on an action with nested actions
         Assert.NotNull(inline.Command);
     }
