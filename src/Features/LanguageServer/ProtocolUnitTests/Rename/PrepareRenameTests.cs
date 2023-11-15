@@ -49,6 +49,24 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     }
 
     [Theory, CombinatorialData]
+    public async Task TestPrepareRenameWithAtSymbolAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"class A
+{
+    void M()
+    {
+        var {|caret:|}{|range:@foo|} = 1;
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var renameLocation = testLspServer.GetLocations("caret").First();
+
+        var results = await RunPrepareRenameAsync(testLspServer, CreatePrepareRenameParams(renameLocation));
+        Assert.Equal(testLspServer.GetLocations("range").Single().Range, results);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestPrepareRenameInvalidLocationAsync(bool mutatingLspWorkspace)
     {
         var markup =
