@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
             IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(e => CreateBoundCollectionExpressionElement(expr, e));
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(e => CreateBoundCollectionExpressionElement(e));
             return new CollectionExpressionOperation(
                 constructMethod,
                 elements,
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
                     case CollectionExpressionTypeKind.ImmutableArray:
-                        // PROTOTYPE: Return the [CollectionBuilder] method?
+                        // https://github.com/dotnet/roslyn/issues/70880: Return the [CollectionBuilder] method.
                         return null;
                     case CollectionExpressionTypeKind.List:
                         Debug.Assert(expr.Type is { });
@@ -1261,42 +1261,22 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
+        private IOperation CreateBoundCollectionExpressionElement(BoundNode element)
         {
-            switch (expr.CollectionTypeKind)
+            if (element is BoundCollectionExpressionSpreadElement spreadElement)
             {
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
-                    return element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(spreadElement, getAddArgument(getIteratorBody(spreadElement))),
-                        BoundCollectionElementInitializer collectionInitializer => Create(collectionInitializer.Arguments[0]),
-                        BoundDynamicCollectionElementInitializer dynamicInitializer => Create(dynamicInitializer.Arguments[0]),
-                        _ => Create(element),
-                    };
-                default:
-                    return element switch
-                    {
-                        BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(spreadElement, getIteratorBody(spreadElement)),
-                        _ => Create(element),
-                    };
+                var iteratorBody = ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
+                return CreateBoundCollectionExpressionSpreadElement(spreadElement, getUnderlyingExpression(iteratorBody));
             }
+            return Create(getUnderlyingExpression((BoundExpression)element));
 
-            static BoundExpression? getIteratorBody(BoundCollectionExpressionSpreadElement spreadElement)
+            [return: NotNullIfNotNull("element")] static BoundExpression? getUnderlyingExpression(BoundExpression? element)
             {
-                return ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
-            }
-
-            [return: NotNullIfNotNull("expr")] static BoundExpression? getAddArgument(BoundExpression? expr)
-            {
-                return expr switch
+                return element switch
                 {
-                    // PROTOTYPE: This is not robust. What if there is no applicable Add() method and
-                    // the expression is actually an invocation, and perhaps with no arguments?
-                    BoundCall call => call.Arguments[0],
-                    BoundDynamicInvocation dynamicInvocation => dynamicInvocation.Arguments[0],
-                    // PROTOTYPE: We should look for specific BoundExpression kinds rather than just allowing any.
-                    _ => expr,
+                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                    _ => element,
                 };
             }
         }
