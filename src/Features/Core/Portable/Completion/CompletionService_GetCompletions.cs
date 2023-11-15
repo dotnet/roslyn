@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -79,10 +80,16 @@ namespace Microsoft.CodeAnalysis.Completion
             // Phase 4: If any items were provided, all augmenting providers are asked for items
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
             var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-            triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+
+            // Filter out any providers that crashed and were disabled.
+            triggeredProviders = triggeredProviders
+                .Except(additionalAugmentingProviders)
+                .Where(p => !extensionManager.IsDisabled(p))
+                .ToImmutableArray();
 
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
             // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
@@ -318,8 +325,17 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
-            await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+            try
+            {
+                await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+            }
             return context;
         }
 

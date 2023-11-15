@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportWorkspaceService(typeof(IExtensionManager), ServiceLayer.Host), Shared]
-internal class ExtensionManager : IExtensionManager
+internal sealed class ExtensionManager : AbstractExtensionManager
 {
     private readonly ILogger _logger;
 

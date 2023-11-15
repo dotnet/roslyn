@@ -209,15 +209,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
                 return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
             }
-            catch (OperationCanceledException)
+            catch (Exception e) when (extensionManager.HandleException(provider, e))
             {
-                // We don't want to catch operation canceled exceptions in the catch block 
-                // below. So catch is here and rethrow it.
-                throw;
-            }
-            catch (Exception e)
-            {
-                extensionManager.HandleException(provider, e);
             }
 
             return null;

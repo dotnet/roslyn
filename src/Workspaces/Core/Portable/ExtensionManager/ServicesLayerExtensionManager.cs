@@ -7,22 +7,19 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Extensions
+namespace Microsoft.CodeAnalysis.Extensions;
+
+[ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Default), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class ServicesLayerExtensionManager() : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Default), Shared]
-    internal class ServicesLayerExtensionManager : IWorkspaceServiceFactory
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new ExtensionManager();
+
+    private sealed class ExtensionManager : AbstractExtensionManager
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ServicesLayerExtensionManager()
-        {
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new ExtensionManager();
-
-        private class ExtensionManager : AbstractExtensionManager
-        {
-        }
+        protected override void HandleExceptionWorker(object provider, Exception exception)
+            => DisableProvider(provider);
     }
 }

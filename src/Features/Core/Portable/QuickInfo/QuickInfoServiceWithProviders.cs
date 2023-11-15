@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
@@ -66,13 +67,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                         }
                     }
                 }
-                catch (OperationCanceledException)
+                catch (Exception e) when (extensionManager.HandleException(provider, e))
                 {
-                    throw;
-                }
-                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
-                {
-                    extensionManager.HandleException(provider, e);
                 }
             }
 
@@ -99,13 +95,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                         }
                     }
                 }
-                catch (OperationCanceledException)
+                catch (Exception e) when (extensionManager.HandleException(provider, e))
                 {
-                    throw;
-                }
-                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
-                {
-                    extensionManager.HandleException(provider, e);
                 }
             }
 
