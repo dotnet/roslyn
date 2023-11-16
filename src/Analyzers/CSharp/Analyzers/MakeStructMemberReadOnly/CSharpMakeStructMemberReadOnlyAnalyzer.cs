@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -14,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -44,13 +40,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 if (!ShouldAnalyze(context, out var option))
                     return;
 
-                var methodToDiagnostic = PooledDictionary<IMethodSymbol, Diagnostic>.GetInstance();
-
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification.Severity, methodToDiagnostic));
-
-                context.RegisterSymbolEndAction(
-                    context => ProcessResults(context, option.Notification.Severity, methodToDiagnostic));
+                    context => AnalyzeBlock(context, option.Notification.Severity));
             }, SymbolKind.NamedType);
 
             static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
@@ -98,49 +89,11 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
                 return true;
             }
-
-            void ProcessResults(
-                SymbolAnalysisContext context, ReportDiagnostic severity, PooledDictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
-            {
-                var cancellationToken = context.CancellationToken;
-
-                // Group accessors to their corresponding property.  If all are going to be marked readonly, then mark
-                // the property instead.
-                foreach (var group in methodToDiagnostic.GroupBy(kvp => kvp.Key.AssociatedSymbol as IPropertySymbol))
-                {
-                    var owningProperty = group.Key;
-                    if (owningProperty is not null)
-                    {
-                        var getMethodIsReadOnly = owningProperty.GetMethod is null || owningProperty.GetMethod.IsReadOnly || group.Contains(kvp => owningProperty.GetMethod.Equals(kvp.Key));
-                        var setMethodIsReadOnly = owningProperty.SetMethod is null || owningProperty.SetMethod.IsReadOnly || group.Contains(kvp => owningProperty.SetMethod.Equals(kvp.Key));
-
-                        if (getMethodIsReadOnly && setMethodIsReadOnly &&
-                            owningProperty.DeclaringSyntaxReferences is [var reference, ..] &&
-                            reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax propertyDeclaration)
-                        {
-                            context.ReportDiagnostic(DiagnosticHelper.Create(
-                                Descriptor,
-                                propertyDeclaration.Identifier.GetLocation(),
-                                severity,
-                                additionalLocations: ImmutableArray.Create(propertyDeclaration.GetLocation()),
-                                properties: null));
-                            continue;
-                        }
-                    }
-
-                    // Just report for each method distinctly.
-                    foreach (var (_, diagnostic) in group)
-                        context.ReportDiagnostic(diagnostic);
-                }
-
-                methodToDiagnostic.Free();
-            }
         });
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        ReportDiagnostic severity,
-        Dictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
+        ReportDiagnostic severity)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -163,15 +116,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return;
         }
 
-        lock (methodToDiagnostic)
-        {
-            methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
-                Descriptor,
-                location,
-                severity,
-                additionalLocations: ImmutableArray.Create(additionalLocation),
-                properties: null);
-        }
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            location,
+            severity,
+            additionalLocations: ImmutableArray.Create(additionalLocation),
+            properties: null));
     }
 
     private static (Location? location, Location? additionalLocation) GetDiagnosticLocation(
@@ -188,8 +138,13 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
         }
 
         // An init accessor in a readonly property is already readonly.  No need to analyze it.
-        if (owningMethod.IsInitOnly && owningMethod.AssociatedSymbol is IPropertySymbol { IsReadOnly: true })
+        if (owningMethod.IsInitOnly &&
+            owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
+            reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
+            property.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+        {
             return default;
+        }
 
         var methodReference = owningMethod.DeclaringSyntaxReferences[0];
         var declaration = methodReference.GetSyntax(cancellationToken);
