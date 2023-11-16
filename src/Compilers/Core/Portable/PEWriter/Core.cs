@@ -13,6 +13,10 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IDefinition : IReference
     {
+        /// <summary>
+        /// True if the definition represents a definition deleted during EnC.
+        /// </summary>
+        bool IsEncDeleted { get; }
     }
 
     /// <summary>

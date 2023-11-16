@@ -4,12 +4,15 @@
 
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Harness;
 
@@ -25,8 +28,10 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         static AbstractIntegrationTest()
         {
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ThrowingTraceListener());
+            // Make sure to run the module initializer for Roslyn.Test.Utilities before installing TestTraceListener, or
+            // it will replace it with ThrowingTraceListener later.
+            RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
+            TestTraceListener.Install();
 
             IdeStateCollector.RegisterCustomState(
                 "Pending asynchronous operations",
@@ -71,6 +76,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
             }
 
+            await TestServices.Workarounds.RemoveConflictingKeyBindingsAsync(HangMitigatingCancellationToken);
             await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
             await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
 
@@ -94,6 +100,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
 
             await base.DisposeAsync();
+
+            TestTraceListener.Instance.VerifyNoErrorsAndReset();
         }
     }
 }

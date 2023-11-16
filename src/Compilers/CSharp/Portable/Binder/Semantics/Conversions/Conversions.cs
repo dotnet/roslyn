@@ -129,6 +129,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (_binder.InParameterDefaultValue || _binder.InAttributeArgument)
+            {
+                // We don't consider when we're in default parameter values or attributes to avoid cycles. This is an error scenario,
+                // so we don't care if we accidentally miss a parameter being applicable.
+                return Conversion.NoConversion;
+            }
+
             if (destination is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
             {
                 return Conversion.InterpolatedStringHandler;

@@ -13,14 +13,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
-    <Compile Include="..\TestUtilities\Input\ButtonBaseExtensions.cs" Link="InProcess\ButtonBaseExtensions.cs" />
-    <Compile Include="..\TestUtilities\Input\ComboBoxExtensions.cs" Link="InProcess\ComboBoxExtensions.cs" />
-    <Compile Include="..\TestUtilities\IntegrationHelper.cs" Link="IntegrationHelper.cs" />
-    <Compile Include="..\TestUtilities\Interop\NativeMethods.cs" Link="NativeMethods.cs" />
-    <Compile Include="..\TestUtilities\TestUtilities.cs" Link="TestUtilities.cs" />
-    <Compile Include="..\TestUtilities\WellKnownCommandNames.cs" Link="WellKnownCommandNames.cs" />
-    <Compile Include="..\TestUtilities\WellKnownProjectTemplates.cs" Link="WellKnownProjectTemplates.cs" />
-    <Compile Include="..\TestUtilities\QuickInfoToStringConverter.cs" Link="QuickInfoToStringConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\LongClass.txt" />
@@ -56,6 +48,7 @@
     <ProjectReference Include="..\..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" />
     <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="InputSimulatorPlus" Version="$(InputSimulatorPlusVersion)" />

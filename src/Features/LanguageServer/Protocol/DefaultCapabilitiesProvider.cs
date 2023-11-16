@@ -54,7 +54,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.DefinitionProvider = true;
             capabilities.DocumentHighlightProvider = true;
-            capabilities.RenameProvider = true;
+            capabilities.RenameProvider = new RenameOptions
+            {
+                PrepareProvider = true,
+            };
             capabilities.ImplementationProvider = true;
             capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
             capabilities.CompletionProvider = new VisualStudio.LanguageServer.Protocol.CompletionOptions

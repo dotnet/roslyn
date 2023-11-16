@@ -3118,6 +3118,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration, syntaxMap, newSymbol.IsStatic,
                                     isMemberWithDeletedInitializer: isOldDeclarationWithInitializer && !isNewDeclarationWithInitializer);
+
+                                // Syntax map will be aggregated into one created for the constructor edit.
+                                // It should not be set on the edit of the member with an initializer.
+                                syntaxMap = null;
                             }
 
                             if (isConstructorWithMemberInitializers)

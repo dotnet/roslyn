@@ -3404,6 +3404,37 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_Signature_ReturnType_Anonymous()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var x = (int* a, int b) => a;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var x = (int* a, int b) => b;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int* a, int b)", GetResource("lambda")));
+        }
+
+        [Fact]
         public void Lambdas_Update_Signature_BodySyntaxOnly()
         {
             var src1 = @"

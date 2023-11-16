@@ -376,7 +376,7 @@ class D
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Remove Unnecessary Usings",
+                "Remove unnecessary usings",
                 applyFix: true,
                 fixAllScope: scope,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -393,7 +393,7 @@ class D
             await TestServices.Editor.MoveCaretAsync(generatedSourcePosition, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Remove Unnecessary Usings",
+                "Remove unnecessary usings",
                 applyFix: true,
                 fixAllScope: FixAllScope.Document,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -405,7 +405,7 @@ class D
             await TestServices.Editor.MoveCaretAsync(generatedSourcePosition, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Remove Unnecessary Usings",
+                "Remove unnecessary usings",
                 applyFix: true,
                 fixAllScope: null,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -457,7 +457,7 @@ class D
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Remove Unnecessary Usings",
+                "Remove unnecessary usings",
                 applyFix: true,
                 fixAllScope: scope,
                 cancellationToken: HangMitigatingCancellationToken);

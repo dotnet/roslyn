@@ -110,3 +110,11 @@ PR: https://github.com/dotnet/roslyn/pull/70365
 Continuation of the deprecation that happened in 4.8.0 (see information above).  In 4.9.0 this functionality is now entirely removed, and will issue both an obsoletion error, and will throw at runtime if the APIs are used.
 
 PR: https://github.com/dotnet/roslyn/pull/70277
+
+### Changes in `Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline` method
+
+A new required parameter `Compilation` has been added. Existing overloads without this parameter no longer work and throw `NotSupportedException`.
+
+### Changes in `Microsoft.CodeAnalysis.Emit.SemanticEdit` constructors
+
+The value of `preserveLocalVariables` passed to the constructors is no longer used.

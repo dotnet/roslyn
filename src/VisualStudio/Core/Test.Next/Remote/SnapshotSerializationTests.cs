@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath)
+            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
                 => throw new FileNotFoundException(fullPath);
         }
 

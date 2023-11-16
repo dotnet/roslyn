@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The default implementation is to simply load in place.
         /// </summary>
-        /// <param name="fullPath"></param>
-        /// <returns></returns>
-        protected override string PreparePathToLoad(string fullPath) => fullPath;
+        protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> satelliteCultureNames) => fullPath;
 
         /// <summary>
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is

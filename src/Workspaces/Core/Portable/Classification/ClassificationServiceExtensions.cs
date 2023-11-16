@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static void AddSyntacticClassifications(
             this IClassificationService classificationService,
             SolutionServices services,
-            SyntaxNode root,
+            SyntaxNode? root,
             TextSpan textSpan,
             SegmentedList<ClassifiedSpan> result,
             CancellationToken cancellationToken)
