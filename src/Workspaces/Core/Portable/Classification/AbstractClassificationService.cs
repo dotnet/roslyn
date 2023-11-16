@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public void AddSyntacticClassifications(
-            SolutionServices services, SyntaxNode? root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var classificationService = services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxClassificationService>();
             classificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
