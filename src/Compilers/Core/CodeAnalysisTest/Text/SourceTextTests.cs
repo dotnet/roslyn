@@ -213,6 +213,60 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
+        public void ContentEqualsLarge()
+        {
+            var random = new Random();
+            var builder = new StringBuilder();
+
+            // 100k characters will both ensure that a chunked LargeText is used *and* that we have to break the text up
+            // into chunks when testing equality.
+            for (int i = 0; i < 100_000; i++)
+                builder.Append((char)('a' + random.Next(26)));
+
+            // Try all permutations of encodings and algorithms.  None of them should affect the final result.
+            var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
+            var hashAlgorithms = new[] { SourceHashAlgorithm.Sha1, SourceHashAlgorithm.Sha256 };
+
+            var randomText = builder.ToString();
+
+            var allSourceTexts = new List<SourceText>();
+
+            foreach (var encoding in encodings)
+            {
+                // Make normal StringText objects that just wrap the string.
+                allSourceTexts.Add(new StringText(randomText, encodingOpt: encoding));
+
+                // Make LargeText versions that break the strings up into chunks.  This will help ensure that regardless
+                // of which SourceText we have that equality works properly.
+                foreach (var algorithm in hashAlgorithms)
+                    allSourceTexts.Add(LargeText.Decode(new StringReader(randomText), randomText.Length, encoding, algorithm));
+            }
+
+            foreach (var sourceText1 in allSourceTexts)
+            {
+                foreach (var sourceText2 in allSourceTexts)
+                    Assert.True(sourceText1.ContentEquals(sourceText2));
+            }
+        }
+
+        [Fact]
+        public void ContentEqualUnaffectedByEncoding()
+        {
+            var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
+
+            foreach (var encoding1 in encodings)
+            {
+                var sourceText1 = new StringText("；", encoding1); // chinese semicolon
+
+                foreach (var encoding2 in encodings)
+                {
+                    var sourceText2 = new StringText(";", encoding2); // normal ascii semicolon
+                    Assert.False(sourceText1.ContentEquals(sourceText2));
+                }
+            }
+        }
+
+        [Fact]
         public void IsBinary()
         {
             Assert.False(SourceText.IsBinary(""));
