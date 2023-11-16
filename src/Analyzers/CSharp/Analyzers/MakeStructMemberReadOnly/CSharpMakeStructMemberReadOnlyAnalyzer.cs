@@ -103,6 +103,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             {
                 var cancellationToken = context.CancellationToken;
 
+                // No need to lock the dictionary here.  Processing only is called once, after all mutation work is done.
                 foreach (var (method, diagnostic) in methodToDiagnostic)
                 {
                     if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
