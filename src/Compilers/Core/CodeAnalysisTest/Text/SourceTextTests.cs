@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
-        public void ContentEqualUnaffectedByEncoding()
+        public void ContentEqualUnaffectedByEncoding1()
         {
             var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
 
@@ -269,6 +269,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
                         Assert.True(sourceText1.GetChecksum().SequenceEqual(sourceText2.GetChecksum()));
                 }
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70752")]
+        public void ContentEqualUnaffectedByEncoding2()
+        {
+            var sourceText1 = new StringText("；", Encoding.ASCII); // chinese semicolon
+            var sourceText2 = new StringText("?", Encoding.ASCII); // what a non-ascii char will map to.
+
+            var checksum1 = sourceText1.GetChecksum();
+            var checksum2 = sourceText2.GetChecksum();
+
+            Assert.True(checksum1.SequenceEqual(checksum2));
+
+            // This should return false, but is thrown off by the calls to GetChecksum above.  This is a bad bug that
+            // will be fixed once we resolve https://github.com/dotnet/roslyn/issues/70752
+            Assert.False(sourceText1.ContentEquals(sourceText2));
         }
 
         [Fact]
