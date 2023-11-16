@@ -178,7 +178,8 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             return default;
         }
 
-        // An init accessor in a readonly property is already readonly.  No need to analyze it.
+        // An init accessor in a readonly property is already readonly.  No need to analyze it.  Note: there is no way
+        // to tell this symbolically.  We have to check to the syntax here.
         if (owningMethod.IsInitOnly &&
             owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
             reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
