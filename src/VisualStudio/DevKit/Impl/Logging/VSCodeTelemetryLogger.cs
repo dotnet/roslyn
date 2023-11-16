@@ -48,7 +48,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         _telemetrySession = session;
     }
 
-    public void Log(string name, ReadOnlyMemory<Property> properties)
+    public void Log(string name, List<Property> properties)
     {
         Debug.Assert(_telemetrySession != null);
 
@@ -69,7 +69,7 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
         };
     }
 
-    public void LogBlockEnd(int blockId, ReadOnlyMemory<Property> properties, CancellationToken cancellationToken)
+    public void LogBlockEnd(int blockId, List<Property> properties, CancellationToken cancellationToken)
     {
         var found = _pendingScopes.TryRemove(blockId, out var scope);
         Debug.Assert(found);
@@ -183,9 +183,9 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
             _ => throw new InvalidCastException($"Unexpected value for scope: {scope}")
         };
 
-    private static void SetProperties(TelemetryEvent telemetryEvent, ReadOnlyMemory<Property> properties)
+    private static void SetProperties(TelemetryEvent telemetryEvent, List<Property> properties)
     {
-        foreach (var property in properties.Span)
+        foreach (var property in properties)
         {
             telemetryEvent.Properties.Add(property.Name, property.Value);
         }

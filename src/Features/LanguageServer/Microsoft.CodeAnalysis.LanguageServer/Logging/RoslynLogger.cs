@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
         private static ITelemetryReporter? _telemetryReporter;
-        private static readonly ObjectPool<Property[]> s_propertyArrayPool = new(() => new Property[16]);
+        private static readonly ObjectPool<List<Property>> s_propertyPool = new(() => new());
 
         private RoslynLogger()
         {
@@ -102,8 +102,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                 return;
             }
 
+            using var pooledObject = s_propertyPool.GetPooledObject();
+            var properties = pooledObject.Object;
+
             var name = GetEventName(functionId);
-            var properties = GetProperties(functionId, logMessage, delta: null);
+            AddProperties(properties, functionId, logMessage, delta: null);
 
             try
             {
@@ -140,7 +143,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                 return;
             }
 
-            var properties = GetProperties(functionId, logMessage, delta);
+            using var pooledObject = s_propertyPool.GetPooledObject();
+            var properties = pooledObject.Object;
+
+            AddProperties(properties, functionId, logMessage, delta);
             try
             {
                 _telemetryReporter.LogBlockEnd(blockId, properties, cancellationToken);
@@ -231,38 +237,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                                         _ => LogType.Trace
                                     };
 
-        private static ReadOnlyMemory<Property> GetProperties(FunctionId id, LogMessage logMessage, int? delta)
+        private static void AddProperties(List<Property> properties, FunctionId id, LogMessage logMessage, int? delta)
         {
-            using var pooledObject = s_propertyArrayPool.GetPooledObject();
-
-            var properties = pooledObject.Object;
-            var propCount = 0;
-
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
-                // If the given properties array isn't large enough, allocate one
-                if (kvLogMessage.Properties.Count + 1 >= properties.Length)
-                    properties = new Property[properties.Length + 1];
-
                 foreach (var (name, val) in kvLogMessage.Properties)
                 {
-                    properties[propCount] = new(GetPropertyName(id, name), val);
-                    propCount++;
+                    properties.Add(new(GetPropertyName(id, name), val));
                 }
             }
             else
             {
-                properties[propCount] = new(GetPropertyName(id, "Message"), logMessage.GetMessage());
-                propCount++;
+                properties.Add(new(GetPropertyName(id, "Message"), logMessage.GetMessage()));
             }
 
             if (delta.HasValue)
             {
-                properties[propCount] = new(GetPropertyName(id, "Delta"), delta.Value);
-                propCount++;
+                properties.Add(new(GetPropertyName(id, "Delta"), delta.Value));
             }
-
-            return new ReadOnlyMemory<Property>(properties, 0, propCount);
         }
     }
 }
