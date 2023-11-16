@@ -1068,13 +1068,13 @@ namespace Microsoft.CodeAnalysis.Text
             var buffer1 = s_charArrayPool.Allocate();
             var buffer2 = s_charArrayPool.Allocate();
             Debug.Assert(buffer1.Length == buffer2.Length);
+            Debug.Assert(buffer1.Length == CharBufferSize);
 
-            var bufferLength = buffer1.Length;
             try
             {
-                for (int position = 0, length = this.Length; position < length; position += bufferLength)
+                for (int position = 0, length = this.Length; position < length; position += CharBufferSize)
                 {
-                    var count = Math.Min(this.Length - position, bufferLength);
+                    var count = Math.Min(this.Length - position, CharBufferSize);
                     this.CopyTo(sourceIndex: position, buffer1, destinationIndex: 0, count);
                     other.CopyTo(sourceIndex: position, buffer2, destinationIndex: 0, count);
 
