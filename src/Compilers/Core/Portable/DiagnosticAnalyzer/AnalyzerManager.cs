@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class AnalyzerManager
     {
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
-        private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
+        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
         public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(SpecializedCollections.SingletonEnumerable(analyzer));
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+        private Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            var analyzerExecutionContextMap = new Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext>();
             foreach (var analyzer in analyzers)
             {
-                builder.Add(analyzer, new AnalyzerExecutionContext(analyzer));
+                analyzerExecutionContextMap.Add(analyzer, new AnalyzerExecutionContext(analyzer));
             }
 
-            return builder.ToImmutable();
+            return analyzerExecutionContextMap;
         }
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
