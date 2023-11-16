@@ -446,7 +446,7 @@ internal partial class SyntacticClassificationTaggerProvider
             // threadpool does work.
             var root = lastProcessedDocumentOrRoot.TryGetFirst(out var tempRoot)
                 ? tempRoot
-                : lastProcessedDocumentOrRoot.Second.GetRequiredSyntaxRootSynchronously(cancellationToken);
+                : lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
 
             classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 

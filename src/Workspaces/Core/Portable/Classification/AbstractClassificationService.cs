@@ -173,13 +173,16 @@ namespace Microsoft.CodeAnalysis.Classification
 
         public async Task AddSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             AddSyntacticClassifications(document.Project.Solution.Services, root, textSpans, result, cancellationToken);
         }
 
         public void AddSyntacticClassifications(
-            SolutionServices services, SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SolutionServices services, SyntaxNode? root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
+            if (root is null)
+                return;
+
             var classificationService = services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxClassificationService>();
             classificationService.AddSyntacticClassifications(root, textSpans, result, cancellationToken);
         }
