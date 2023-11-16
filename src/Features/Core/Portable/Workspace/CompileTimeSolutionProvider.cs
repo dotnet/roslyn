@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -29,15 +30,18 @@ namespace Microsoft.CodeAnalysis.Host
         [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), WorkspaceKind.Host), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly IAsynchronousOperationListener _asyncListener;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
             {
+                _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new CompileTimeSolutionProvider(workspaceServices.Workspace);
+                => new CompileTimeSolutionProvider(workspaceServices.Workspace, _asyncListener);
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
@@ -51,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         private readonly object _gate = new();
 
+        private readonly IAsynchronousOperationListener _asyncListener;
+
         /// <summary>
         /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
@@ -62,8 +68,10 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Solution? _lastCompileTimeSolution;
 
-        public CompileTimeSolutionProvider(Workspace workspace)
+        public CompileTimeSolutionProvider(Workspace workspace, IAsynchronousOperationListener asyncListener)
         {
+            _asyncListener = asyncListener;
+
             workspace.WorkspaceChanged += (s, e) =>
             {
                 if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
@@ -97,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Host
                 var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
+                using var _1 = ArrayBuilder<ProjectId>.GetInstance(out var projectsWithDesignTimeDocuments);
                 foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
                 {
-                    using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
-                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
+                    using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
+                    using var _3 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
                     foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                     {
@@ -113,11 +122,17 @@ namespace Microsoft.CodeAnalysis.Host
                     // only remove design-time only documents when source-generated ones replace them
                     if (configIdsToRemove.Count > 0)
                     {
+                        var addedProject = false;
                         foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
                             if (documentState.Attributes.DesignTimeOnly || IsRazorDesignTimeDocument(documentState))
                             {
                                 documentIdsToRemove.Add(documentState.Id);
+                                if (!addedProject)
+                                {
+                                    addedProject = true;
+                                    projectsWithDesignTimeDocuments.Add(documentState.Id.ProjectId);
+                                }
                             }
                         }
 
@@ -137,7 +152,28 @@ namespace Microsoft.CodeAnalysis.Host
                 compileTimeSolution = _designTimeToCompileTimeSolution.GetValue(designTimeSolution, _ => compileTimeSolution);
                 _lastCompileTimeSolution = compileTimeSolution;
 
+                if (projectsWithDesignTimeDocuments.Count > 0)
+                {
+                    var options = designTimeSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+                    if (options.TriggerGeneratorsWhenDebugSessionStarts)
+                    {
+                        var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CompileTimeSolutionProvider));
+                        _ = LoadSourceGeneratedDocumentsAsync(compileTimeSolution, projectsWithDesignTimeDocuments, CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                    }
+                }
+
                 return compileTimeSolution;
+            }
+        }
+
+        private static async Task LoadSourceGeneratedDocumentsAsync(Solution solution, ArrayBuilder<ProjectId> projectsWithDesignTimeDocuments, CancellationToken cancellationToken)
+        {
+            foreach (var projectId in projectsWithDesignTimeDocuments)
+            {
+                var project = solution.GetRequiredProject(projectId);
+
+                // We want to run the source generators, but no need to pre-allocate lots of source generator documents
+                _ = await solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
             }
         }
 

@@ -18,7 +18,8 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableSharedSyntaxTrees: globalOptions.GetOption(DisableSharedSyntaxTrees),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
-            RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly));
+            RunSourceGeneratorsInSameProcessOnly: globalOptions.GetOption(RunSourceGeneratorsInSameProcessOnly),
+            TriggerGeneratorsWhenDebugSessionStarts: globalOptions.GetOption(TriggerGeneratorsWhenDebugSessionStarts));
 
     public static readonly Option2<StorageDatabase> Database = new(
         "dotnet_storage_database", WorkspaceConfigurationOptions.Default.CacheStorage, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<StorageDatabase>());
@@ -47,4 +48,7 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
+
+    public static readonly Option2<bool> TriggerGeneratorsWhenDebugSessionStarts = new(
+        "dotnet_trigger_generators_when_debug_session_starts", WorkspaceConfigurationOptions.Default.TriggerGeneratorsWhenDebugSessionStarts);
 }
