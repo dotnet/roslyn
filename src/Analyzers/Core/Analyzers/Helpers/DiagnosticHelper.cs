@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var hasCustomConfigurableTag = false;
                 foreach (var customTag in descriptor.CustomTags)
                 {
-                    if (customTag == WellKnownDiagnosticTags.CustomConfigurable)
+                    if (customTag == WellKnownDiagnosticTags.CustomSeverityConfigurable)
                     {
                         hasCustomConfigurableTag = true;
                         if (!isCustomConfigured)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 if (isCustomConfigured && !hasCustomConfigurableTag)
-                    yield return WellKnownDiagnosticTags.CustomConfigurable;
+                    yield return WellKnownDiagnosticTags.CustomSeverityConfigurable;
             }
         }
 

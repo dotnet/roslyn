@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
             {
-                Debug.Assert(option != null == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomConfigurable));
+                Debug.Assert(option != null == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
             }
         }

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (isCustomConfigurable)
             {
-                customTagsBuilder.Add(WellKnownDiagnosticTags.CustomConfigurable);
+                customTagsBuilder.Add(WellKnownDiagnosticTags.CustomSeverityConfigurable);
             }
 
             if (isUnnecessary)
