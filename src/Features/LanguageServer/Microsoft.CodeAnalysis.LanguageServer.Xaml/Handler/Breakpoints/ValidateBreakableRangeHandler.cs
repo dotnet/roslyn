@@ -10,19 +10,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-/// <summary>
-/// Handle a completion request.
-/// </summary>
-[ExportXamlStatelessLspService(typeof(CompletionHandler)), Shared]
-[XamlMethod(LSP.Methods.TextDocumentCompletionName)]
-internal class CompletionHandler : XamlRequestHandlerBase<LSP.CompletionParams, LSP.CompletionList?>
+[ExportXamlStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
+[XamlMethod(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
+internal sealed class ValidateBreakableRangeHandler : XamlRequestHandlerBase<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CompletionHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CompletionParams, LSP.CompletionList?> xamlHandler)
+    public ValidateBreakableRangeHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?> xamlHandler)
         : base(xamlHandler)
     {
     }
 
-    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
+    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
+        => request.TextDocument;
 }

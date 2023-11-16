@@ -4,27 +4,29 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
 [ExportXamlLspServiceFactory(typeof(CompletionResolveHandler)), Shared]
 internal sealed class CompletionResolveHandlerFactory : ILspServiceFactory
 {
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IXamlRequestHandler<CompletionItem, CompletionItem> _xamlHandler;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CompletionResolveHandlerFactory(IGlobalOptionService globalOptions)
+    public CompletionResolveHandlerFactory([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CompletionItem, LSP.CompletionItem> xamlHandler)
     {
-        _globalOptions = globalOptions;
+        _xamlHandler = xamlHandler;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var documentCache = lspServices.GetRequiredService<DocumentCache>();
-        return new CompletionResolveHandler(_globalOptions, documentCache);
+        return new CompletionResolveHandler(_xamlHandler, documentCache);
     }
 }

@@ -10,17 +10,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportXamlStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
-    [XamlMethod(LSP.Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : XamlRequestHandlerBase<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>
+    [ExportXamlStatelessLspService(typeof(RenameHandler)), Shared]
+    [XamlMethod(LSP.Methods.TextDocumentRenameName)]
+    internal class RenameHandler : XamlRequestHandlerBase<LSP.RenameParams, LSP.WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]> xamlHandler)
-            : base(xamlHandler)
+        public RenameHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.RenameParams, LSP.WorkspaceEdit?> xamlHandler)
+        : base(xamlHandler)
         {
         }
 
-        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentRangeFormattingParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.RenameParams request) => request.TextDocument;
     }
 }

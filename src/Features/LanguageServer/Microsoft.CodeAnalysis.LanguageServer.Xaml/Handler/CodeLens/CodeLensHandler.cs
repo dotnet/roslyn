@@ -6,20 +6,23 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportXamlStatelessLspService(typeof(HoverHandler)), Shared]
-[XamlMethod(Methods.TextDocumentHoverName)]
-internal sealed class HoverHandler : XamlRequestHandlerBase<TextDocumentPositionParams, Hover?>
+[ExportXamlStatelessLspService(typeof(CodeLensHandler)), Shared]
+[XamlMethod(LSP.Methods.TextDocumentCodeLensName)]
+internal sealed class CodeLensHandler : XamlRequestHandlerBase<LSP.CodeLensParams, LSP.CodeLens[]?>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public HoverHandler([Import(AllowDefault = true)] IXamlRequestHandler<TextDocumentPositionParams, Hover?> xamlHandler)
+    public CodeLensHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?> xamlHandler)
         : base(xamlHandler)
     {
     }
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
+        => request.TextDocument;
 }
+

@@ -6,23 +6,21 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-/// <summary>
-/// Handle a completion request.
-/// </summary>
-[ExportXamlStatelessLspService(typeof(CompletionHandler)), Shared]
-[XamlMethod(LSP.Methods.TextDocumentCompletionName)]
-internal class CompletionHandler : XamlRequestHandlerBase<LSP.CompletionParams, LSP.CompletionList?>
+[ExportXamlStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
+[XamlMethod(LSP.Methods.TextDocumentDocumentSymbolName)]
+internal sealed class DocumentSymbolsHandler : XamlRequestHandlerBase<RoslynDocumentSymbolParams, object[]>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CompletionHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CompletionParams, LSP.CompletionList?> xamlHandler)
+    public DocumentSymbolsHandler([Import(AllowDefault = true)] IXamlRequestHandler<RoslynDocumentSymbolParams, object[]> xamlHandler)
         : base(xamlHandler)
     {
     }
 
-    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
+    public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 }

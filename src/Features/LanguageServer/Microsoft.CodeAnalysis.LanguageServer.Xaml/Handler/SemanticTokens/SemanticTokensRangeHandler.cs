@@ -10,17 +10,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportXamlStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
-    [XamlMethod(LSP.Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : XamlRequestHandlerBase<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>
+    [ExportXamlStatelessLspService(typeof(SemanticTokensRangeHandler)), Shared]
+    [XamlMethod(LSP.Methods.TextDocumentSemanticTokensRangeName)]
+    internal class SemanticTokensRangeHandler : XamlRequestHandlerBase<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]> xamlHandler)
-            : base(xamlHandler)
+        public SemanticTokensRangeHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens> xamlHandler)
+        : base(xamlHandler)
         {
         }
 
-        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentRangeFormattingParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request) => request.TextDocument;
     }
 }

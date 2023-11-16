@@ -1,215 +1,65 @@
-abstract Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition!
-const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes.Comment = "Comment" -> string!
-const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes.Member = "Member" -> string!
-const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes.Namespaces = "Namespaces" -> string!
-const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes.Region = "Region" -> string!
-const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes.Type = "Type" -> string!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.IXamlAutoInsertService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.IXamlAutoInsertService.GetAutoInsertAsync(Microsoft.CodeAnalysis.TextDocument! document, char typedChar, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.XamlAutoInsertResult!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.XamlAutoInsertResult
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.XamlAutoInsertResult.CaretOffset.get -> int?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.XamlAutoInsertResult.TextChange.get -> Microsoft.CodeAnalysis.Text.TextChange
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.AutoInsert.XamlAutoInsertResult.XamlAutoInsertResult(Microsoft.CodeAnalysis.Text.TextChange textChange, int? caretOffset) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.Commands.IXamlCommandService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.Commands.IXamlCommandService.ExecuteCommandAsync(Microsoft.CodeAnalysis.TextDocument! document, string! command, object![]? commandArguments, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.IXamlCompletionService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.IXamlCompletionService.GetCompletionsAsync(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext! completionContext, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionResult?>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.IXamlCompletionService.GetSymbolAsync(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext! completionContext, string! label, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ISymbol?>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters.Characters.get -> System.Collections.Immutable.ImmutableArray<char>
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters.NonInsertCharacters.get -> System.Collections.Immutable.ImmutableArray<char>
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext.Document.get -> Microsoft.CodeAnalysis.TextDocument!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext.Offset.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext.TriggerChar.get -> char
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionContext.XamlCompletionContext(Microsoft.CodeAnalysis.TextDocument! document, int offset, char triggerChar = '\0') -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.CommitCharacters.get -> string![]?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.CommitCharacters.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Description.get -> Microsoft.VisualStudio.Text.Adornments.ClassifiedTextElement?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Description.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Detail.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Detail.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.DisplayText.get -> string!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.EventDescription.get -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.EventDescription.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.FilterText.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.FilterText.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Icon.get -> Microsoft.VisualStudio.Text.Adornments.ImageElement?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Icon.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.InsertText.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.InsertText.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.IsSnippet.get -> bool?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.IsSnippet.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Kind.get -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Kind.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Preselect.get -> bool?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Preselect.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.RetriggerCompletion.get -> bool?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.RetriggerCompletion.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.SortText.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.SortText.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Span.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Symbol.get -> Microsoft.CodeAnalysis.ISymbol?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.Symbol.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.XamlCommitCharacters.get -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.XamlCommitCharacters.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem.XamlCompletionItem(string! displayText) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.AttachedPropertyTypePrefix = 18 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.AttachedPropertyValue = 17 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Attribute = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.CData = 7 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Comment = 6 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.ConditionalArgument = 25 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.ConditionValue = 24 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.DataBoundProperty = 21 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Element = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.ElementName = 22 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.EndTag = 9 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Event = 5 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.EventHandlerDescription = 11 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.LocalResource = 19 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.MarkupExtensionClass = 12 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.MarkupExtensionParameter = 13 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.MarkupExtensionValue = 14 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Method = 30 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.NamespaceValue = 23 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Prefix = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.ProcessingInstruction = 8 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.PropertyElement = 3 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.PropertyValue = 16 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.RegionEnd = 28 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.RegionStart = 27 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Snippet = 29 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.SystemResource = 20 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Type = 15 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.TypePrefix = 10 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Unusable = 26 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind.Value = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionKind
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionResult
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionResult.ApplicableToSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionResult.Completions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem!>
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionResult.XamlCompletionResult(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCompletionItem!> completions, Microsoft.CodeAnalysis.Text.TextSpan? applicableToSpan) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription.ClassName.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription.EventName.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription.Parameters.get -> System.Collections.Immutable.ImmutableArray<(string! Name, string! ParameterType, string! Modifier)>?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription.ReturnType.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlEventDescription.XamlEventDescription(string? className, string? eventName, string? returnType, System.Collections.Immutable.ImmutableArray<(string! Name, string! ParameterType, string! Modifier)>? parameters) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.IXamlGoToDefinitionService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.IXamlGoToDefinitionService.GetDefinitionsAsync(Microsoft.CodeAnalysis.TextDocument! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition!>>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.XamlDefinition() -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.XamlDefinition(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition! original) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Column.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.FilePath.get -> string!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Line.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.XamlSourceDefinition(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition! original) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.XamlSourceDefinition(string! filePath, int line, int column) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.XamlSourceDefinition(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan? span) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.Symbol.get -> Microsoft.CodeAnalysis.ISymbol!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.XamlSymbolDefinition(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition! original) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.XamlSymbolDefinition(Microsoft.CodeAnalysis.ISymbol! symbol) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.IXamlPullDiagnosticService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.IXamlPullDiagnosticService.GetDiagnosticReportAsync(Microsoft.CodeAnalysis.TextDocument! document, string? previousResultId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Code.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Code.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.CustomTags.get -> string![]?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.CustomTags.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.ExtendedMessage.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.ExtendedMessage.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.GetHelpLinkUri() -> System.Uri?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.HelpLink.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.HelpLink.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Length.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Length.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Message.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Message.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Offset.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Offset.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Severity.get -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Severity.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Tool.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.Tool.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic.XamlDiagnostic() -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic!>?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport.Diagnostics.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport.ResultId.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport.ResultId.set -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticReport.XamlDiagnosticReport(string? resultId = null, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnostic!>? diagnostics = null) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity.Error = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity.Hidden = 3 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity.HintedSuggestion = 4 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity.Message = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity.Warning = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Diagnostics.XamlDiagnosticSeverity
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.IXamlFormattingService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.IXamlFormattingService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.TextDocument! document, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions! options, char typedChar, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.IXamlFormattingService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.TextDocument! document, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions! options, Microsoft.CodeAnalysis.Text.TextSpan? textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions.InsertSpaces.get -> bool
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions.OtherOptions.get -> System.Collections.Generic.IDictionary<string!, object!>?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions.TabSize.get -> int
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Formatting.XamlFormattingOptions.XamlFormattingOptions(int tabSize, bool insertSpaces, System.Collections.Generic.IDictionary<string!, object!>? otherOptions) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.IXamlQuickInfoService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.IXamlQuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.TextDocument! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo.Description.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo.Symbol.get -> Microsoft.CodeAnalysis.ISymbol?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.QuickInfo.XamlQuickInfo.XamlQuickInfo(Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>! description, Microsoft.CodeAnalysis.ISymbol? symbol) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.IXamlStructureService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.IXamlStructureService.GetStructureTagsAsync(Microsoft.CodeAnalysis.TextDocument! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTag!>>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTag
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTag.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTag.Type.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTag.XamlStructureTag(string? type, Microsoft.CodeAnalysis.Text.TextSpan textSpan) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Structure.XamlStructureTypes
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Telemetry.IRequestScope
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Telemetry.IRequestScope.RecordFailure(System.Exception? exception = null) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Telemetry.IXamlLanguageServerFeedbackService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.Telemetry.IXamlLanguageServerFeedbackService.CreateRequestScope(Microsoft.CodeAnalysis.DocumentId? documentId, string! methodName) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Telemetry.IRequestScope!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.IXamlTypeRenameService
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.IXamlTypeRenameService.GetTypeRenameAsync(Microsoft.CodeAnalysis.TextDocument! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.XamlTypeRenameResult!>!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.XamlTypeRenameResult
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.XamlTypeRenameResult.Ranges.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.XamlTypeRenameResult.WordPattern.get -> string?
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.TypeRename.XamlTypeRenameResult.XamlTypeRenameResult(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> ranges, string? wordPattern) -> void
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.Equals(object? obj) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.ToString() -> string!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.EqualityContract.get -> System.Type!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Equals(object? obj) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.PrintMembers(System.Text.StringBuilder! builder) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.ToString() -> string!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.EqualityContract.get -> System.Type!
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.Equals(object? obj) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.PrintMembers(System.Text.StringBuilder! builder) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.ToString() -> string!
-override sealed Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? other) -> bool
-override sealed Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? other) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters.Create(char[]! characters, params char[]! nonInsertCharacters) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters!
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters.Create(System.Collections.Immutable.ImmutableArray<char> characters, params char[]! nonInsertCharacters) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters!
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters.Create(System.Collections.Immutable.ImmutableArray<char> characters, System.Collections.Immutable.ImmutableArray<char>? nonInsertCharacters) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.Completion.XamlCommitCharacters!
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition? right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition? right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition? right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition? right) -> bool
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.EqualityContract.get -> System.Type!
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition? other) -> bool
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlDefinition.PrintMembers(System.Text.StringBuilder! builder) -> bool
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSourceDefinition? other) -> bool
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.Definitions.XamlSymbolDefinition? other) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.DataId.get -> long
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.DataId.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.DataIdResolveData(long DataId, long DocumentId) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.DataIdResolveData(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData! original) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.Deconstruct(out long DataId, out long DocumentId) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.DescriptionService(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetDescriptionAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>!>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetMarkupContent(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> tags, string! language, bool featureSupportsMarkdown) -> Microsoft.VisualStudio.LanguageServer.Protocol.MarkupContent!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IDescriptionService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IDescriptionService.GetDescriptionAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>!>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IDescriptionService.GetMarkupContent(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> tags, string! language, bool featureSupportsMarkdown) -> Microsoft.VisualStudio.LanguageServer.Protocol.MarkupContent!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ILocationService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ILocationService.GetLocationAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.Location?>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ILocationService.GetSymbolDefinitionLocationsAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.Location![]!>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveDataService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveDataService.FromResolveData(Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, object? resolveData) -> (object? data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier? document)
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveDataService.ToResolveData(Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, object! data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier! document) -> object!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService.GetLocationAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.Location?>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService.GetSymbolDefinitionLocationsAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.Location![]!>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService.LocationService(Microsoft.CodeAnalysis.MetadataAsSource.IMetadataAsSourceFileService! metadataAsSourceFileService, Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ResolveDataService
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ResolveDataService.FromResolveData(Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, object? lspData) -> (object? data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier? document)
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ResolveDataService.ResolveDataService() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ResolveDataService.ToResolveData(Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, object! data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier! document) -> object!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlHoverResultCreation
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ClientCapabilities.get -> Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.GetRequiredLspService<T>() -> T!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument?
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.XamlRequestContext() -> void
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.DataId.get -> long
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.DataId.init -> void
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.Deconstruct(out long DataId, out long DocumentId) -> void
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.ResolveData(long DataId, long DocumentId) -> void
+Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.ResolveData(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData! original) -> void
+Microsoft.VisualStudio.DesignTools.Xaml.IXamlDocumentRequestHandler<TRequest, TResponse>
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.<Clone>$() -> Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentIdResolveData!
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.EqualityContract.get -> System.Type!
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.PrintMembers(System.Text.StringBuilder! builder) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.ToString() -> string!
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.DocumentIdResolveData!
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.EqualityContract.get -> System.Type!
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.Equals(object? obj) -> bool
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.GetHashCode() -> int
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.PrintMembers(System.Text.StringBuilder! builder) -> bool
+override Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.ToString() -> string!
+override sealed Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.Equals(Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentIdResolveData? other) -> bool
+override sealed Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DocumentIdResolveData? other) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? left, Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlHoverResultCreation.CreateHoverAsync(Microsoft.CodeAnalysis.TextDocument! document, Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem! info, Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities! clientCapabilities, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServer.Protocol.Hover!>!
+static Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.FromRequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext
+static Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.operator !=(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? left, Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? right) -> bool
+static Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.operator ==(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? left, Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? right) -> bool
+virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? other) -> bool
+virtual Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.Equals(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? other) -> bool

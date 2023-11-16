@@ -10,17 +10,17 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
 {
-    [ExportXamlStatelessLspService(typeof(FormatDocumentRangeHandler)), Shared]
-    [XamlMethod(LSP.Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : XamlRequestHandlerBase<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>
+    [ExportXamlStatelessLspService(typeof(DocumentHighlightsHandler)), Shared]
+    [XamlMethod(LSP.Methods.TextDocumentDocumentHighlightName)]
+    internal class DocumentHighlightsHandler : XamlRequestHandlerBase<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FormatDocumentRangeHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]> xamlHandler)
+        public DocumentHighlightsHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]?> xamlHandler)
             : base(xamlHandler)
         {
         }
 
-        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentRangeFormattingParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
     }
 }

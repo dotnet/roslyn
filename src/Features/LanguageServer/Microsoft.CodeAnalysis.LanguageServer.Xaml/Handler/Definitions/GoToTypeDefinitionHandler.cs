@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler.Definitions;
+namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 
-[ExportXamlStatelessLspService(typeof(GoToDefinitionHandler)), Shared]
-[XamlMethod(LSP.Methods.TextDocumentDefinitionName)]
-internal class GoToDefinitionHandler : XamlRequestHandlerBase<LSP.TextDocumentPositionParams, LSP.Location[]>
+[ExportXamlStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
+[XamlMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
+internal class GoToTypeDefinitionHandler : XamlRequestHandlerBase<LSP.TextDocumentPositionParams, LSP.Location[]>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GoToDefinitionHandler(IXamlRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]> xamlHandler)
+    public GoToTypeDefinitionHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]> xamlHandler)
         : base(xamlHandler)
     {
     }
