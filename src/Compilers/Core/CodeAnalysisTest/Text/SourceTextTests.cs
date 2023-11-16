@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70752")]
+        [Fact]
         public void ContentEqualUnaffectedByEncoding2()
         {
             var sourceText1 = new StringText("；", Encoding.ASCII); // chinese semicolon

@@ -634,19 +634,19 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var hash = s_contentHashPool.Allocate();
                 var charBuffer = s_charArrayPool.Allocate();
-                var charBufferLength = charBuffer.Length;
+                Debug.Assert(charBuffer.Length == CharBufferSize);
                 try
                 {
                     // Grab chunks of this SourceText, copying into 'charBuffer'.  Then reinterpret that buffer as a
                     // Span<byte> and append into the running hash.
-                    for (int index = 0, length = this.Length; index < length; index += charBufferLength)
+                    for (int index = 0, length = this.Length; index < length; index += CharBufferSize)
                     {
-                        var charsToCopy = Math.Min(charBufferLength, length - index);
+                        var charsToCopy = Math.Min(CharBufferSize, length - index);
                         this.CopyTo(
                             sourceIndex: index, destination: charBuffer,
                             destinationIndex: 0, count: charsToCopy);
 
-                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0..charsToCopy)));
+                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
                     }
 
                     Span<byte> destination = stackalloc byte[128 / 8];
@@ -1125,18 +1125,19 @@ namespace Microsoft.CodeAnalysis.Text
                 return true;
             }
 
+            // Content hashing provides strong enough guarantees (see
+            // https://github.com/Cyan4973/xxHash/wiki/Collision-ratio-comparison#testing-128-bit-hashes-) to be certain
+            // about content equality based solely on hash equality.
+            //
+            // DO NOT examine '_lazyChecksum' in this method.  Checksums (as opposed to hashes) do not provide the same
+            // guarantee.  Indeed, due to the user of lossy encodings, it's easily possible to have source texts with
+            // different contents that produce the same checksums.  As an example, the Encoding.ASCII encoding maps many
+            // System.Char values down to the ascii `?` character, leading to easy collisions at the checksum level.
+
             var leftContentHash = _lazyContentHash;
             var rightContentHash = other._lazyContentHash;
             if (!leftContentHash.IsDefault && !rightContentHash.IsDefault)
                 return leftContentHash.SequenceEqual(rightContentHash);
-
-            // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
-            ImmutableArray<byte> leftChecksum = _lazyChecksum;
-            ImmutableArray<byte> rightChecksum = other._lazyChecksum;
-            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
-            {
-                return leftChecksum.SequenceEqual(rightChecksum);
-            }
 
             return ContentEqualsImpl(other);
         }
