@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
 {
     public class RazorPredefinedProviderNameTests
     {
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/58263")]
+        [Theory]
         [InlineData(typeof(PredefinedCodeFixProviderNames), typeof(RazorPredefinedCodeFixProviderNames))]
         [InlineData(typeof(PredefinedCodeRefactoringProviderNames), typeof(RazorPredefinedCodeRefactoringProviderNames))]
         internal void RoslynNamesExistAndValuesMatchInRazorNamesClass(Type roslynProviderNamesType, Type razorProviderNamesType)
