@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly IThreadingContext _threadingContext;
-#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
 
-        private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+        private readonly Lazy<ISmartRenameSessionFactory>? _smartRenameSessionFactory;
 #pragma warning restore CS0618
 
         public const string AdornmentLayerName = "RoslynRenameDashboard";
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
-            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
+            [Import(AllowDefault = true)] Lazy<ISmartRenameSessionFactory>? smartRenameSessionFactory)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
