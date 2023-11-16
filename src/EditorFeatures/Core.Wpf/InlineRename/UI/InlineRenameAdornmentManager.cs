@@ -8,13 +8,13 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
         private readonly IThreadingContext _threadingContext;
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-        private readonly Lazy<ISmartRenameSessionFactory>? _smartRenameSessionFactory;
+        private readonly Lazy<ISmartRenameSessionFactoryWrapper>? _smartRenameSessionFactory;
 #pragma warning restore CS0618
 
         private readonly IAdornmentLayer _adornmentLayer;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
 #pragma warning disable CS0618  // Editor team use Obsolete attribute to mark potential changing API
-            Lazy<ISmartRenameSessionFactory>? smartRenameSessionFactory)
+            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
 #pragma warning restore CS0618
         {
             _renameService = renameService;

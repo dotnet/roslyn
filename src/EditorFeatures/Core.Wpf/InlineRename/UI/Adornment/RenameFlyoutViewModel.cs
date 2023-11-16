@@ -9,12 +9,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
@@ -24,30 +23,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.SmartRename;
-
-namespace Microsoft.VisualStudio.Text.Editor.SmartRename
-{
-    [Obsolete("Matching editor API")]
-    internal interface ISmartRenameSessionFactory
-    {
-        ISmartRenameSession CreateSmartRenameSession(SnapshotSpan span);
-    }
-
-    internal interface ISmartRenameSession : INotifyPropertyChanged, IDisposable
-    {
-        bool IsAvailable { get; }
-        bool HasSuggestions { get; }
-        bool IsInProgress { get; }
-        string StatusMessage { get; }
-        bool StatusMessageVisibility { get; }
-        IEnumerable<string> SuggestedNames { get; }
-
-        Task GetSuggestionsAsync(CancellationToken cancellationToken);
-        void OnCancel();
-        void OnSuccess(string name);
-    }
-}
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -70,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
-            Lazy<ISmartRenameSessionFactory>? smartRenameSessionFactory)
+            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
 #pragma warning restore CS0618 
         {
             _session = session;
@@ -85,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession);
+                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value);
                 SmartRenameViewModel.OnSelectedSuggestedNameChanged += OnSuggestedNameSelected;
             }
 
