@@ -449,8 +449,6 @@ internal partial class SyntacticClassificationTaggerProvider
 
             classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
-            lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
-
             _lastLineCache.Update(span, tempList);
             classifiedSpans.AddRange(tempList);
         }
