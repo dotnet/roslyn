@@ -8,24 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(PrepareRenameHandler)), Shared]
-[Method(Methods.TextDocumentPrepareRenameName)]
+[Method(LSP.Methods.TextDocumentPrepareRenameName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<PrepareRenameParams, DefaultBehaviorPrepareRename?>
+internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<LSP.PrepareRenameParams, LSP.Range?>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(PrepareRenameParams request)
+    public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.PrepareRenameParams request)
         => request.TextDocument;
 
-    public async Task<DefaultBehaviorPrepareRename?> HandleRequestAsync(PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.Range?> HandleRequestAsync(LSP.PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         Contract.ThrowIfNull(document);
@@ -37,9 +37,7 @@ internal class PrepareRenameHandler() : ILspServiceDocumentRequestHandler<Prepar
         if (symbolicRenameInfo.IsError)
             return null;
 
-        return new DefaultBehaviorPrepareRename
-        {
-            DefaultBehavior = true,
-        };
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        return ProtocolConversions.TextSpanToRange(symbolicRenameInfo.TriggerToken.Span, text);
     }
 }
