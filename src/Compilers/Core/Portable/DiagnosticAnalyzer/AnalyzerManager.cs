@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class AnalyzerManager
     {
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
+        // Not created as ImmutableDictionary for perf considerations, but should be treated as immutable
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
         public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
