@@ -20,14 +20,11 @@ using Microsoft.VisualStudio.Text.Differencing;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
 {
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
-    internal class EditorTextDifferencingService : IDocumentTextDifferencingService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
     {
-        private readonly ITextDifferencingSelectorService _differenceSelectorService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
-            => _differenceSelectorService = differenceSelectorService;
+        private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
             => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);

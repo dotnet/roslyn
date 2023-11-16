@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddBaseListTypes(params Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax!
@@ -105,3 +106,11 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSpreadEl
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.CollectionExpression = 9076 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionElement = 9077 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SpreadElement = 9078 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+=======
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+>>>>>>> dotnet/main

@@ -95,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected virtual bool CancelOnNewWork { get; }
 
+        protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
+        {
+        }
+
         /// <summary>
         /// Comparer used to check if two tags are the same.  Used so that when new tags are produced, they can be
         /// appropriately 'diffed' to determine what changes to actually report in <see cref="ITagger{T}.TagsChanged"/>.
@@ -259,26 +263,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        private readonly struct DiffResult
+        private readonly struct DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
         {
-            public readonly NormalizedSnapshotSpanCollection Added;
-            public readonly NormalizedSnapshotSpanCollection Removed;
-
-            public DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
-            {
-                Added = added ?? NormalizedSnapshotSpanCollection.Empty;
-                Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
-            }
+            public readonly NormalizedSnapshotSpanCollection Added = added ?? NormalizedSnapshotSpanCollection.Empty;
+            public readonly NormalizedSnapshotSpanCollection Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
 
             public int Count => Added.Count + Removed.Count;
         }
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
         {
-            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider;
-
-            public TestAccessor(AbstractAsynchronousTaggerProvider<TTag> provider)
-                => _provider = provider;
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _provider = provider;
 
             internal Task ProduceTagsAsync(TaggerContext<TTag> context)
                 => _provider.ProduceTagsAsync(context, CancellationToken.None);

@@ -9,12 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TagSpanIntervalTree<TTag>
     {
-        private readonly struct IntervalIntrospector : IIntervalIntrospector<TagNode>
+        private readonly struct IntervalIntrospector(ITextSnapshot snapshot) : IIntervalIntrospector<TagNode>
         {
-            public readonly ITextSnapshot Snapshot;
-
-            public IntervalIntrospector(ITextSnapshot snapshot)
-                => this.Snapshot = snapshot;
+            public readonly ITextSnapshot Snapshot = snapshot;
 
             public int GetStart(TagNode value)
                 => value.GetStart(this.Snapshot);

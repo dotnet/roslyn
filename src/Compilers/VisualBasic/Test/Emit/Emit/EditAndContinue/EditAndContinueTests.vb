@@ -10,9 +10,8 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Roslyn.Test.MetadataUtilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -56,19 +55,19 @@ End Class
 
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             ' Semantic errors are reported only for the bodies of members being emitted.
             Dim diffError = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diffError.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_NameNotDeclared1, "Unknown").WithArguments("Unknown").WithLocation(4, 17))
 
             Dim diffGood = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diffGood.EmitResult.Diagnostics.Verify()
             diffGood.VerifyIL("C.G", "
@@ -111,11 +110,11 @@ End Class
 
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_TypeInItsInheritsClause1, "Bad").WithArguments("Bad").WithLocation(9, 12))
@@ -150,7 +149,7 @@ End Class
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
                 Dim diff1 = compilation1.EmitDifference(generation0, ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -210,7 +209,7 @@ End Class
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
                 CheckNames(reader0, reader0.GetParameterDefNames(), "i")
 
@@ -236,6 +235,52 @@ End Class
                         Handle(1, TableIndex.Param),
                         Handle(2, TableIndex.StandAloneSig))
                 End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub ModifyMethod_ParameterModifiers_RefOut()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Public Sub F(ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+                    ",
+                    validator:=Sub(g)
+                               End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Runtime.InteropServices
+Class C
+    Public Sub F(<Out> ByRef x As Integer)
+        x = 1
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyTypeDefNames()
+                                   g.VerifyMethodDefNames("F")
+
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(1, TableIndex.Param, EditAndContinueOperation.Default)
+                                   })
+
+                                   g.VerifyEncMapDefinitions(
+                                   {
+                                       Handle(2, TableIndex.MethodDef),
+                                       Handle(1, TableIndex.Param)
+                                   })
+                               End Sub).
+                Verify()
             End Using
         End Sub
 
@@ -269,7 +314,7 @@ End Class
 
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M2").PartialImplementationPart
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M2").PartialImplementationPart
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -353,7 +398,7 @@ End Class
 
                 Dim type1 = compilation1.GetMember(Of NamedTypeSymbol)("A")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("A.M")
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, type1)))
@@ -485,7 +530,7 @@ End Class
 
                 Dim method0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
                 Dim method1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -535,7 +580,7 @@ End Namespace
 </compilation>)
 
             Dim bytes = compilation0.EmitToArray()
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes), EmptyLocalsProvider)
             Dim compilation1 = compilation0.WithSource(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -643,167 +688,6 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(829353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829353")>
-        <Fact()>
-        Public Sub PrivateImplementationDetails_ArrayInitializer_FromMetadata()
-            Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Class C
-    Shared Sub M()
-        Dim a As Integer() = {1, 2, 3}
-        System.Console.Write(a(0))
-    End Sub
-End Class
-]]></file>
-                           </compilation>
-            Dim sources1 = <compilation>
-                               <file name="a.vb"><![CDATA[
-Class C
-    Shared Sub M()
-        Dim a As Integer() = {1, 2, 3}
-        System.Console.Write(a(1))
-    End Sub
-End Class
-]]></file>
-                           </compilation>
-            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources0, TestOptions.DebugDll.WithModuleName("MODULE"))
-            Dim compilation1 = compilation0.WithSource(sources1)
-
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Dim methodData0 = testData0.GetMethodData("C.M")
-            methodData0.VerifyIL("
-{
-  // Code size       29 (0x1d)
-  .maxstack  3
-  .locals init (Integer() V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""Integer""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
-  IL_000d:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldelem.i4
-  IL_0016:  call       ""Sub System.Console.Write(Integer)""
-  IL_001b:  nop
-  IL_001c:  ret
-}
-")
-            Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider)
-
-            Dim testData1 = New CompilationTestData()
-            Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
-            Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(edit))
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       30 (0x1e)
-  .maxstack  4
-  .locals init (Integer() V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""Integer""
-  IL_0007:  dup
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  stelem.i4
-  IL_000b:  dup
-  IL_000c:  ldc.i4.1
-  IL_000d:  ldc.i4.2
-  IL_000e:  stelem.i4
-  IL_000f:  dup
-  IL_0010:  ldc.i4.2
-  IL_0011:  ldc.i4.3
-  IL_0012:  stelem.i4
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  ldelem.i4
-  IL_0017:  call       ""Sub System.Console.Write(Integer)""
-  IL_001c:  nop
-  IL_001d:  ret
-}
-")
-        End Sub
-
-        ''' <summary>
-        ''' Should not generate method for string switch since
-        ''' the CLR only allows adding private members.
-        ''' </summary>
-        <WorkItem(834086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834086")>
-        <Fact()>
-        Public Sub PrivateImplementationDetails_ComputeStringHash()
-            Dim sources = <compilation>
-                              <file name="a.vb"><![CDATA[
-Class C
-    Shared Function F(s As String)
-        Select Case s
-            Case "1"
-                Return 1
-            Case "2"
-                Return 2
-            Case "3"
-                Return 3
-            Case "4"
-                Return 4
-            Case "5"
-                Return 5
-            Case "6"
-                Return 6
-            Case "7"
-                Return 7
-            Case Else
-                Return 0
-        End Select
-    End Function
-End Class
-]]></file>
-                          </compilation>
-            Const ComputeStringHashName As String = "ComputeStringHash"
-            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntime(sources, TestOptions.DebugDll)
-            Dim compilation1 = compilation0.WithSource(sources)
-
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-            Dim methodData0 = testData0.GetMethodData("C.F")
-            Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider)
-
-            ' Should have generated call to ComputeStringHash and
-            ' added the method to <PrivateImplementationDetails>.
-            Dim actualIL0 = methodData0.GetMethodIL()
-            Assert.True(actualIL0.Contains(ComputeStringHashName))
-
-            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim reader0 = md0.MetadataReader
-                CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", ComputeStringHashName)
-
-                Dim testData1 = New CompilationTestData()
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-                Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
-                Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(edit))
-
-                ' Should not have generated call to ComputeStringHash nor
-                ' added the method to <PrivateImplementationDetails>.
-                Dim actualIL1 = diff1.GetMethodIL("C.F")
-                Assert.False(actualIL1.Contains(ComputeStringHashName))
-
-                Using md1 = diff1.GetMetadata()
-                    Dim reader1 = md1.Reader
-                    Dim readers = {reader0, reader1}
-                    CheckNames(readers, reader1.GetMethodDefNames(), "F")
-                End Using
-            End Using
-        End Sub
-
         ''' <summary>
         ''' Avoid adding references from method bodies
         ''' other than the changed methods.
@@ -845,7 +729,7 @@ End Module
                 CheckNames(reader0, reader0.GetMethodDefNames(), "F", "G")
                 CheckNames(reader0, reader0.GetMemberRefNames(), ".ctor", ".ctor", ".ctor", ".ctor", "WriteLine")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -911,12 +795,12 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifyIL("C.F", "
 {
@@ -1141,7 +1025,7 @@ End Class
 
             Using md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray())
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
 
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -1223,12 +1107,12 @@ End Class
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim methodData0 = testData0.GetMethodData("C.M")
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
                 diff1.VerifyIL("C.M", <![CDATA[
 {
   // Code size       11 (0xb)
@@ -1321,14 +1205,14 @@ End Class
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
                 Dim reader0 = md0.MetadataReader
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C`1", "IA", "IC", "S")
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, methodData0.EncDebugInfoProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, methodData0.EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M1")
 
                 ' Disallow edits that require NoPIA references.
                 Dim method1A = compilation1A.GetMember(Of MethodSymbol)("C.M1")
                 Dim diff1A = compilation1A.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0))))
 
                 diff1A.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
@@ -1339,7 +1223,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
                 Dim method1B = compilation1B.GetMember(Of MethodSymbol)("C.M1")
                 Dim diff1B = compilation1B.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0))))
                 diff1B.VerifyIL("C(Of T).M1", <![CDATA[
 {
   // Code size        9 (0x9)
@@ -1402,12 +1286,12 @@ End Class
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
                 diff1.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
@@ -1433,7 +1317,9 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
 
         <Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
         Public Sub EventFields()
-            Dim source0 = MarkedSource("
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
 Imports System
 
 Class C
@@ -1444,8 +1330,13 @@ Class C
         Return 1
     End Function
 End Class
-")
-            Dim source1 = MarkedSource("
+",
+                validator:=
+                Sub()
+
+                End Sub).
+                AddGeneration(
+                    source:="
 Imports System
 
 Class C
@@ -1456,26 +1347,11 @@ Class C
         Return 10
     End Function
 End Class
-")
-            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll)
-
-            compilation0.AssertNoDiagnostics()
-
-            Dim compilation1 = compilation0.WithSource(source1.Tree)
-
-            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-
-            Dim v0 = CompileAndVerify(compilation0)
-            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
-            Dim diff1 = compilation1.EmitDifference(
-               generation0,
-                ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables:=True)))
-
-            diff1.VerifyIL("C.F", "
+",
+                edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                validator:=
+                Sub(g)
+                    g.VerifyIL("C.F", "
 {
   // Code size       26 (0x1a)
   .maxstack  3
@@ -1499,6 +1375,321 @@ End Class
   IL_0019:  ret
 }
 ")
+                End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Event_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(3)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.raise_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.E"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            ' We should update the Event table entry to indicate that the event has been deleted:
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+            System.Console.WriteLine(30)
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   30
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Event_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(1)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(2)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    validator:=
+                        Sub(g)
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Boolean)
+        AddHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(10)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Boolean))
+            System.Console.WriteLine(20)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' New event is added to the Event table associated with the new accessors.
+                            ' Events can't be overloaded on type so we will update the existing Event table entry.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Custom Event E As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(100)
+        End AddHandler
+        RemoveHandler(value As System.Action(Of Integer))
+            System.Console.WriteLine(200)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.add_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider:=Function(c) c.GetMember("C.remove_E"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.add_E")),
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.remove_E"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' We do not update raise_E since its signature has not changed.
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyDeletedMembers("C: {add_E, remove_E}")
+
+                            ' Updating existing members, no new additions.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(7, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(8, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                                Row(9, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}
+")
+                        End Sub).
+                    Verify()
+            End Using
         End Sub
 
         <Fact>
@@ -1519,7 +1710,7 @@ Class C
 End Class
 "
 
-            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, TargetFramework:=TargetFramework.NetStandard20)
+            Dim compilation0 = CreateCompilation(source0, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetStandard20)
             Dim compilation1 = compilation0.WithSource(source1)
             Dim compilation2 = compilation1.WithSource(source2)
 
@@ -1536,7 +1727,7 @@ End Class
 
             Assert.Equal(3, reader0.CustomAttributes.Count)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+            Dim generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider)
 
@@ -1666,7 +1857,7 @@ End Class" & attributeSource
 
             CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "MetadataUpdateOriginalTypeAttribute")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+            Dim generation0 = CreateInitialBaseline(compilation0,
                 md0,
                 EmptyLocalsProvider)
 
@@ -1734,7 +1925,7 @@ End Class" & attributeSource
                     SemanticEdit.Create(SemanticEditKind.Replace, Nothing, c1)))
 
             Dim md1 = diff1.GetMetadata()
-            ValidateReplacedType(diff1, {reader0, md1.Reader})
+            validateReplacedType(diff1, {reader0, md1.Reader})
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -1811,11 +2002,11 @@ End Class
                 ' Use empty LocalVariableNameProvider for original locals and
                 ' use preserveLocalVariables: true for the edit so that existing
                 ' locals are retained even though all are unrecognized.
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap:=Function(s) Nothing, preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap:=Function(s) Nothing)))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     Dim readers = {reader0, reader1}
@@ -1846,7 +2037,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(837315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837315")>
-        Public Sub AddingSetAccessor()
+        Public Sub Property_Insert_Setter()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1900,11 +2091,11 @@ End Module</file>
                 Dim prop1 = compilation1.GetMember(Of PropertySymbol)("Module1.GetName")
                 Dim method1 = prop1.SetMethod
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, method1, preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, method1)))
 
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
@@ -1924,7 +2115,7 @@ End Module</file>
         End Sub
 
         <Fact>
-        Public Sub PropertyGetterReturnValueVariable()
+        Public Sub Property_GetterReturnValueVariable()
             Dim source0 =
 <compilation>
     <file name="a.vb">
@@ -1960,11 +2151,11 @@ End Module</file>
                 Dim getter0 = compilation0.GetMember(Of PropertySymbol)("Module1.P").GetMethod
                 Dim getter1 = compilation1.GetMember(Of PropertySymbol)("Module1.P").GetMethod
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("Module1.get_P").EncDebugInfoProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("Module1.get_P").EncDebugInfoProvider)
 
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, getter0, getter1, preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, getter0, getter1)))
 
                 diff1.VerifyIL("Module1.get_P", "
 {
@@ -1978,6 +2169,417 @@ End Module</file>
   IL_0008:  ldloc.0
   IL_0009:  ret
 }")
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
+        Public Sub Property_TypeChange()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(1)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(2)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Boolean)
+        Get
+            Console.WriteLine(10)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Boolean))
+            Console.WriteLine(20)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' New property is added to the Property table associated with the new accessors.
+                            ' Properties can be overloaded on name and signature, so we need to insert a new entry for the new signature.
+                            '
+                            ' We keep the existing entry as is, which is not ideal since reflection now returns both the old and the new properties rather than just the new one.
+                            ' Consider updating the existing Property table entry to change the property name to _deleted.
+                            ' TODO: https://github.com/dotnet/roslyn/issues/69834
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P
+                                Row(2, TableIndex.Property, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000006
+  IL_0005:  throw
+}
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   20
+  IL_0003:  call       0x0A000007
+  IL_0008:  nop
+  IL_0009:  ret
+}")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Action(Of Integer)
+        Get
+            Console.WriteLine(100)
+            Return Nothing
+        End Get
+        Set(value As Action(Of Integer))
+            Console.WriteLine(200)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.get_P")),
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.set_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' old accessors are updated to throw, new accessors are added:
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            ' Changing the signature back updates the the original property and accessors.
+                            ' No new property/method is added.
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<bool> get_P
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<bool>)
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default), ' Action<int> get_P
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default), ' set_P(Action<int>)
+                                Row(1, TableIndex.Property, EditAndContinueOperation.Default),  ' Action<int> P
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<int> P <-> Action<int> get_P
+                                Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<int> P <-> set_P(Action<int>)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   100
+  IL_0003:  call       0x0A000008
+  IL_0008:  nop
+  IL_0009:  ldnull
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0xc8
+  IL_0006:  call       0x0A000008
+  IL_000b:  nop
+  IL_000c:  ret
+}
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000009
+  IL_0005:  throw
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_Delete()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.set_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P", "set_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+
+                            g.VerifyMethodDefNames("get_P")
+                            g.VerifyDeletedMembers("C: {P, get_P, set_P}")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Property_DeleteGetter()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    WriteOnly Property P As Integer
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.get_P"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            ' deleted getter is updated to throw:
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000005
+  IL_0005:  throw
+}")
+                        End Sub).
+                        AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, symbolProvider:=Function(c) c.GetMember("C.get_P"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyDeletedMembers("C: {get_P}")
+
+                            g.VerifyMethodDefNames("get_P")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyIL("
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  IL_0005:  ldloc.0
+  IL_0006:  ret
+}")
+                        End Sub).
+                    Verify()
             End Using
         End Sub
 
@@ -2021,11 +2623,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -2175,7 +2777,7 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.M")
             Dim methodN = compilation0.GetMember(Of MethodSymbol)("B.N")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+            Dim generation0 = CreateInitialBaseline(compilation0,
                 ModuleMetadata.CreateFromImage(bytes0),
                 Function(m)
                     Select Case MetadataTokens.GetRowNumber(m)
@@ -2190,7 +2792,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
 
             diff1.VerifyIL("
 {
@@ -2214,7 +2816,7 @@ End Class
 }
 ")
 
-            diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff1.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2244,7 +2846,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1))))
 
             diff2.VerifyIL("
 {
@@ -2266,7 +2868,7 @@ End Class
 }
 ")
 
-            diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff2.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2301,7 +2903,7 @@ End Class
 
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2))))
 
             diff3.VerifyIL("
 {
@@ -2324,7 +2926,7 @@ End Class
 }
 ")
 
-            diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
+            diff3.VerifyPdb({&H6000001UI, &H6000002UI, &H6000003UI, &H6000004UI, &H6000005UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2387,17 +2989,17 @@ End Class
             Dim compilation2 = compilation1.WithSource(sources2)
 
             Dim bytes0 = compilation0.EmitToArray()
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, method1, Nothing, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, method1, Nothing)))
 
             Dim method2 = compilation2.GetMember(Of MethodSymbol)("C.M")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1))))
             diff2.VerifyIL("C.M", <![CDATA[
 {
   // Code size       10 (0xa)
@@ -2413,7 +3015,7 @@ End Class
   IL_0009:  ret
 }
 ]]>.Value)
-            diff2.VerifyPdb({&H06000002UI},
+            diff2.VerifyPdb({&H6000002UI},
 <symbols>
     <files>
         <file id="1" name="" language="VB"/>
@@ -2473,10 +3075,10 @@ End Class
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.Main")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.Main").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.Main").EncDebugInfoProvider)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
             diff1.VerifyIL("C.Main", "
 {
   // Code size       17 (0x11)
@@ -2546,11 +3148,11 @@ End Class
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
             Dim modMeta = ModuleMetadata.CreateFromImage(bytes0)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(modMeta, testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, modMeta, testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", <![CDATA[
 {
@@ -2632,11 +3234,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -2726,11 +3328,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -2811,11 +3413,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -2946,11 +3548,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -3127,11 +3729,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -3306,11 +3908,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -3502,11 +4104,11 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
             diff1.VerifyIL("C.M", "
 {
@@ -3657,9 +4259,9 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -3758,9 +4360,9 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -3859,9 +4461,9 @@ End Class
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
 
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -3900,8 +4502,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub PreserveLocalSlotsImplicitNamedArgXml()
-            Dim sources0 = <compilation>
-                               <file name="a.vb"><![CDATA[
+            Dim source = "
 Option Explicit Off
 
 Class A(Of T)
@@ -3912,27 +4513,23 @@ Class C
     Shared Function F() As C
         Return Nothing
     End Function
+
     Shared Sub F(qq As Object)
     End Sub
+
     Shared Sub M(o As Object)
-        F(qq:=<qq a="qq"></>)        'does not declare qq
-
-        qq = 5
-        Dim aa = qq
+        F(qq:=<qq a=""qq""></>)        'does not declare qq
+        <N:0>qq</N:0> = 5
+        Dim <N:1>aa</N:1> = qq
     End Sub
-End Class
-]]></file>
-                           </compilation>
+End Class"
 
-            Dim compilation0 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
-            Dim compilation1 = compilation0.Clone()
-
-            Dim testData0 = New CompilationTestData()
-            Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
-
-            Dim actualIL0 = testData0.GetMethodData("C.M").GetMethodIL()
-            Dim expectedIL0 =
-            <![CDATA[
+            Using New EditAndContinueTest(references:=If(RuntimeUtilities.IsCoreClrRuntime, Nothing, {SystemXmlLinqRef})).
+                AddBaseline(
+                    source,
+                    validator:=
+                    Sub(g)
+                        g.VerifyIL("C.M", "
 {
   // Code size       88 (0x58)
   .maxstack  3
@@ -3940,49 +4537,41 @@ End Class
   Object V_1, //aa
   System.Xml.Linq.XElement V_2)
   IL_0000:  nop
-  IL_0001:  ldstr      "qq"
-  IL_0006:  ldstr      ""
-  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
+  IL_0001:  ldstr      ""qq""
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0010:  newobj     ""Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)""
   IL_0015:  stloc.2
   IL_0016:  ldloc.2
-  IL_0017:  ldstr      "a"
-  IL_001c:  ldstr      ""
-  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0026:  ldstr      "qq"
-  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
-  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+  IL_0017:  ldstr      ""a""
+  IL_001c:  ldstr      """"
+  IL_0021:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0026:  ldstr      ""qq""
+  IL_002b:  newobj     ""Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)""
+  IL_0030:  callvirt   ""Sub System.Xml.Linq.XContainer.Add(Object)""
   IL_0035:  nop
   IL_0036:  ldloc.2
-  IL_0037:  ldstr      ""
-  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+  IL_0037:  ldstr      """"
+  IL_003c:  callvirt   ""Sub System.Xml.Linq.XContainer.Add(Object)""
   IL_0041:  nop
   IL_0042:  ldloc.2
-  IL_0043:  call       "Sub C.F(Object)"
+  IL_0043:  call       ""Sub C.F(Object)""
   IL_0048:  nop
   IL_0049:  ldc.i4.5
-  IL_004a:  box        "Integer"
+  IL_004a:  box        ""Integer""
   IL_004f:  stloc.0
   IL_0050:  ldloc.0
-  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0051:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_0056:  stloc.1
   IL_0057:  ret
-}
-]]>.Value
-
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL0, actualIL0)
-
-            Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
-            Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
-
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.M").EncDebugInfoProvider)
-
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)
-            Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(edit))
-
-            diff1.VerifyIL("C.M", <![CDATA[
+}")
+                    End Sub).
+                AddGeneration(
+                    source,
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifyIL("C.M", "
 {
   // Code size       88 (0x58)
   .maxstack  3
@@ -3991,35 +4580,38 @@ End Class
   [unchanged] V_2,
   System.Xml.Linq.XElement V_3)
   IL_0000:  nop
-  IL_0001:  ldstr      "qq"
-  IL_0006:  ldstr      ""
-  IL_000b:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0010:  newobj     "Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)"
+  IL_0001:  ldstr      ""qq""
+  IL_0006:  ldstr      """"
+  IL_000b:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0010:  newobj     ""Sub System.Xml.Linq.XElement..ctor(System.Xml.Linq.XName)""
   IL_0015:  stloc.3
   IL_0016:  ldloc.3
-  IL_0017:  ldstr      "a"
-  IL_001c:  ldstr      ""
-  IL_0021:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0026:  ldstr      "qq"
-  IL_002b:  newobj     "Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)"
-  IL_0030:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+  IL_0017:  ldstr      ""a""
+  IL_001c:  ldstr      """"
+  IL_0021:  call       ""Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName""
+  IL_0026:  ldstr      ""qq""
+  IL_002b:  newobj     ""Sub System.Xml.Linq.XAttribute..ctor(System.Xml.Linq.XName, Object)""
+  IL_0030:  callvirt   ""Sub System.Xml.Linq.XContainer.Add(Object)""
   IL_0035:  nop
   IL_0036:  ldloc.3
-  IL_0037:  ldstr      ""
-  IL_003c:  callvirt   "Sub System.Xml.Linq.XContainer.Add(Object)"
+  IL_0037:  ldstr      """"
+  IL_003c:  callvirt   ""Sub System.Xml.Linq.XContainer.Add(Object)""
   IL_0041:  nop
   IL_0042:  ldloc.3
-  IL_0043:  call       "Sub C.F(Object)"
+  IL_0043:  call       ""Sub C.F(Object)""
   IL_0048:  nop
   IL_0049:  ldc.i4.5
-  IL_004a:  box        "Integer"
+  IL_004a:  box        ""Integer""
   IL_004f:  stloc.0
   IL_0050:  ldloc.0
-  IL_0051:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0051:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
   IL_0056:  stloc.1
   IL_0057:  ret
 }
-]]>.Value)
+")
+                    End Sub).
+                Verify()
+            End Using
         End Sub
 
         <Fact>
@@ -4056,7 +4648,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             v0.VerifyIL("C.F", "
 {
   // Code size        9 (0x9)
@@ -4071,7 +4663,7 @@ End Class
 ")
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifyIL("C.F", "
 {
@@ -4091,7 +4683,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifyIL("C.F", "
 {
@@ -4143,11 +4735,11 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifyIL("C.F", "
 {
@@ -4163,7 +4755,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifyIL("C.F", "
 {
@@ -4233,7 +4825,7 @@ End Namespace
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0),
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0),
                                                                      testData0.GetMethodData("M.B.M").EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.B.M")
                 Dim reader0 = md0.MetadataReader
@@ -4247,7 +4839,7 @@ End Namespace
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.B.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
 
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
@@ -4357,7 +4949,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("B.G")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.G")
@@ -4369,7 +4961,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -4396,7 +4988,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2))))
 
             Dim md2 = diff2.GetMetadata()
             Dim reader2 = md2.Reader
@@ -4428,7 +5020,7 @@ End Class
 
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3))))
 
             Dim md3 = diff3.GetMetadata()
             Dim reader3 = md3.Reader
@@ -4531,7 +5123,7 @@ End Class
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(
+                Dim generation0 = CreateInitialBaseline(compilation0,
                     ModuleMetadata.CreateFromImage(bytes0),
                     Function(m)
                         Select Case md0.MetadataReader.GetString(md0.MetadataReader.GetMethodDefinition(m).Name)
@@ -4548,7 +5140,7 @@ End Class
                 Dim method1G = compilation1.GetMember(Of MethodSymbol)("C.G")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetEquivalentNodesMap(method1F, method0F), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetEquivalentNodesMap(method1F, method0F))))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_1`2") ' one additional type
@@ -4556,7 +5148,7 @@ End Class
                     Dim method2G = compilation2.GetMember(Of MethodSymbol)("C.G")
                     Dim diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetEquivalentNodesMap(method2G, method1G), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetEquivalentNodesMap(method2G, method1G))))
                     Using md2 = diff2.GetMetadata()
                         Dim reader2 = md2.Reader
                         CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames()) ' no additional types
@@ -4564,7 +5156,7 @@ End Class
                         Dim method3G = compilation3.GetMember(Of MethodSymbol)("C.G")
                         Dim diff3 = compilation3.EmitDifference(
                         diff2.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetEquivalentNodesMap(method3G, method2G), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetEquivalentNodesMap(method3G, method2G))))
                         Using md3 = diff3.GetMetadata()
                             Dim reader3 = md3.Reader
                             CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
@@ -4604,7 +5196,7 @@ End Class
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0),
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0),
                                                                      testData0.GetMethodData("C.M").EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
                 Dim reader0 = md0.MetadataReader
@@ -4617,7 +5209,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_3`2")
@@ -4688,7 +5280,7 @@ End Class
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0),
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0),
                                                                      testData0.GetMethodData("C.M").EncDebugInfoProvider)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
                 Dim reader0 = md0.MetadataReader
@@ -4699,7 +5291,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_1`1")
@@ -4728,7 +5320,7 @@ End Class
                     Dim method2 = compilation2.GetMember(Of MethodSymbol)("C.M")
                     Dim diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1))))
                     Using md2 = diff2.GetMetadata()
                         Dim reader2 = md2.Reader
                         CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames())
@@ -4791,7 +5383,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim expectedIL = "
 {
@@ -4852,7 +5444,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -4863,7 +5455,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {_Closure$__}",
@@ -4926,7 +5518,7 @@ End Class
 }
 ")
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -4934,7 +5526,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifyIL("C.F", "
 {
@@ -4960,7 +5552,7 @@ End Class
 ")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifyIL("C.F", "
 {
@@ -5038,12 +5630,12 @@ End Class
             Dim moduleMetadata0 = DirectCast(metadata0.GetMetadataNoCopy(), AssemblyMetadata).GetModules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(
+            Dim generation0 = CreateInitialBaseline(compilation0,
                 moduleMetadata0,
                 Function(m) Nothing)
             Dim testData1 = New CompilationTestData()
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -5124,7 +5716,7 @@ End Module
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
             compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -5160,11 +5752,11 @@ End Module
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
 
             Dim diff0 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))))
 
             diff0.VerifyIL("
 {
@@ -5184,6 +5776,602 @@ End Module
         End Sub
 
 #End Region
+
+        <Fact>
+        Public Sub Lambda_Delete()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a1 = New Action(Sub() Console.WriteLine(1))
+        Dim a2 = New Action(<N:0>Sub() Console.WriteLine(2)</N:0>)
+    End Sub 
+End Class
+",
+                    validator:=Sub(g)
+
+                               End Sub
+                    ).
+                AddGeneration(
+                    source:="
+Imports System
+                        
+Class C
+    Sub F()
+        Dim a2 = New Action(<N:0>Sub() Console.WriteLine(2)</N:0>)
+    End Sub 
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-1, _Lambda$__1-1}")
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1")
+                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "MissingMethodException", "Console")
+                        g.VerifyMemberRefNames(".ctor", ".ctor", ".ctor", "WriteLine")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(2, TableIndex.StandAloneSig)
+                        })
+
+                        g.VerifyIL("
+{
+    // Code size       39 (0x27)
+    .maxstack  2
+    IL_0000:  nop
+    IL_0001:  ldsfld     0x04000003
+    IL_0006:  brfalse.s  IL_000f
+    IL_0008:  ldsfld     0x04000003
+    IL_000d:  br.s       IL_0025
+    IL_000f:  ldsfld     0x04000001
+    IL_0014:  ldftn      0x06000006
+    IL_001a:  newobj     0x0A000009
+    IL_001f:  dup
+    IL_0020:  stsfld     0x04000003
+    IL_0025:  stloc.2
+    IL_0026:  ret
+}
+{
+    // Code size        6 (0x6)
+    .maxstack  8
+    IL_0000:  newobj     0x0A00000A
+    IL_0005:  throw
+}
+{
+    // Code size        9 (0x9)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldc.i4.2
+    IL_0002:  call       0x0A00000B
+    IL_0007:  nop
+    IL_0008:  ret
+}
+")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Method_Delete_WithLambda()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                        source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a1 = new Action(Sub() Console.WriteLine(1))
+    End Sub
+End Class
+",
+                    validator:=
+                    Sub(g)
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers()
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0")
+                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyMemberRefNames(".ctor")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef)
+                        })
+
+                        g.VerifyIL("
+{
+  // Code size        6 (0x6)
+  .maxstack  8
+  IL_0000:  newobj     0x0A000008
+  IL_0005:  throw
+}
+")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a1 = new Action(Sub() Console.WriteLine(1))
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1#2-0#2, _Lambda$__1#2-0#2}")
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", ".ctor", "_Lambda$__1#2-0#2")
+                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "Console")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                           Handle(3, TableIndex.Field),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(2, TableIndex.StandAloneSig)
+                        })
+
+                        g.VerifyIL("
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000003
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000003
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000001
+  IL_0014:  ldftn      0x06000006
+  IL_001a:  newobj     0x0A00000A
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000003
+  IL_0025:  stloc.0
+  IL_0026:  ret
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000B
+  IL_0006:  ret
+}
+{
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       0x0A00000C
+  IL_0007:  nop
+  IL_0008:  ret
+}
+                            ")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(g)
+                        ' unchanged from previous generation:
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1#2-0#2, _Lambda$__1#2-0#2}")
+
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#2-0#2")
+                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyMemberRefNames(".ctor")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef)
+                        })
+
+                        g.VerifyIL("
+{
+    // Code size        6 (0x6)
+    .maxstack  8
+    IL_0000:  newobj     0x0A00000D
+    IL_0005:  throw
+}
+                            ")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Method_Delete_WithLambda_AddedMethod()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+",
+                    validator:=
+                    Sub(g)
+                    End Sub).
+                AddGeneration(' Add method with a lambda
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a1 = new Action(Sub() Console.WriteLine(1))
+    End Sub
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1#1-0#1, _Lambda$__1#1-0#1}")
+
+                        g.VerifyTypeDefNames("_Closure$__")
+                        g.VerifyMethodDefNames("F", ".ctor", ".cctor", "_Lambda$__1#1-0#1")
+                    End Sub).
+                AddGeneration(' Delete the method
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+                        ",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1#1-0#1, _Lambda$__1#1-0#1}")
+
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1")
+                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyMemberRefNames(".ctor")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef)
+                        })
+
+                        g.VerifyIL("
+{
+    // Code size        6 (0x6)
+    .maxstack  8
+    IL_0000:  newobj     0x0A000009
+    IL_0005:  throw
+}
+")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Method_Delete_WithLambda_MultipleGenerations()
+            Dim common = "
+Imports System
+Class A
+    Inherits Attribute
+End Class
+"
+            Using test = New EditAndContinueTest(verification:=Verification.Skipped)
+                test.AddBaseline(
+                    source:=common & "
+Class C(Of T)
+    <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
+        Dim a1 = new Action(Of Integer)(<N:1>Sub(x) Console.WriteLine(1)</N:1>)
+        Return Nothing
+    End Function
+End Class
+",
+                    validator:=
+                    Sub(g)
+                    End Sub).
+                AddGeneration(
+                    source:=common & "
+Class C(Of T)
+    <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
+        Dim a1 = new Action(Of Integer)(<N:1>Sub(x) Console.WriteLine(1)</N:1>)
+        Dim a2 = new Action(Of S)(<N:2>Sub(y) Console.WriteLine(2)</N:2>)
+        Return Nothing
+    End Function
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifySynthesizedMembers(
+                                "C(Of T): {_Closure$__1}",
+                                "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, _Lambda$__1-0, _Lambda$__1-1#1}")
+                        End Sub).
+                AddGeneration(
+                    source:=common & "
+Class C(Of T)
+    <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
+        Dim a1 = new Action(Of Integer)(<N:1>Sub(x) Console.WriteLine(1)</N:1>)
+        Dim a2 = new Action(Of S)(<N:2>Sub(y) Console.WriteLine(2)</N:2>)
+        Dim a3 = new Action(Of T)(<N:3>Sub(z) Console.WriteLine(3)</N:3>)
+        Return Nothing
+    End Function
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C(Of T): {_Closure$__1}",
+                            "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
+                    End Sub).
+                AddGeneration(
+                    source:=common & "
+Class C(Of T)
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C(Of T): {_Closure$__1}",
+                            "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
+
+                        g.VerifyTypeDefNames()
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1#1", "_Lambda$__1-2#2")
+                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+
+                        g.VerifyMemberRefNames(".ctor")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
+                            Handle(8, TableIndex.MethodDef)
+                        })
+
+                        g.VerifyIL("
+{
+    // Code size        6 (0x6)
+    .maxstack  8
+    IL_0000:  newobj     0x0A000023
+    IL_0005:  throw
+}
+")
+                    End Sub).
+                AddGeneration(' Add deleted method back with another lambda
+                    source:=common & "
+Class C(Of T)
+    <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
+        Dim a4 = new Action(Of T)(Sub(r) Console.WriteLine(4))
+        Return Nothing
+    End Function
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C(Of T): {_Closure$__1#4, _Closure$__1}",
+                            "C(Of T)._Closure$__1#4(Of $CLS0 As Structure): {$I1#4-0#4, _Lambda$__1#4-0#4}",
+                            "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
+
+                        g.VerifyTypeDefNames("_Closure$__1#4`1")
+                        g.VerifyMethodDefNames("F", ".ctor", ".cctor", "_Lambda$__1#4-0#4")
+                        g.VerifyTypeRefNames("Object", "ValueType", "Action`1", "CompilerGeneratedAttribute", "Console")
+                        g.VerifyMemberRefNames(".ctor", "$I1#4-0#4", "$I", "_Lambda$__1#4-0#4", ".ctor", ".ctor", ".ctor", "$I", "WriteLine")
+
+                        g.VerifyIL("
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x0A000025
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x0A000025
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x0A000026
+  IL_0014:  ldftn      0x0A000027
+  IL_001a:  newobj     0x0A000028
+  IL_001f:  dup
+  IL_0020:  stsfld     0x0A000025
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  initobj    0x1B000014
+  IL_002e:  br.s       IL_0030
+  IL_0030:  ldloc.0
+  IL_0031:  ret
+}
+{
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A000029
+  IL_0006:  ret
+}
+{
+  // Code size       11 (0xb)
+  .maxstack  8
+  IL_0000:  newobj     0x0A00002A
+  IL_0005:  stsfld     0x0A00002B
+  IL_000a:  ret
+}
+{
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.4
+  IL_0002:  call       0x0A00002C
+  IL_0007:  nop
+  IL_0008:  ret
+}
+")
+                    End Sub).
+                AddGeneration(' Delete the method again.
+                    source:=common & "
+Class C(Of T)
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C(Of T): {_Closure$__1#4, _Closure$__1}",
+                            "C(Of T)._Closure$__1#4(Of $CLS0 As Structure): {$I1#4-0#4, _Lambda$__1#4-0#4}",
+                            "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
+
+                        g.VerifyTypeDefNames()
+
+                        ' Only lambdas that were not deleted before are updated:
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#4-0#4")
+
+                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyMemberRefNames(".ctor")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyEncMapDefinitions(
+                        {
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(11, TableIndex.MethodDef)
+                        })
+
+                        g.VerifyIL("
+{
+    // Code size        6 (0x6)
+    .maxstack  8
+    IL_0000:  newobj     0x0A00002D
+    IL_0005:  throw
+}
+")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub SymWriterErrors()
@@ -5211,7 +6399,7 @@ End Module
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
 
                 Dim diff1 = compilation1.EmitDifference(
-                            EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                            CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider),
                             ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
                             testData:=New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
@@ -5254,7 +6442,7 @@ End Class
 
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -5317,8 +6505,8 @@ End Class
             Dim bytesB0 = compilationB0.EmitToArray()
             Dim mdA0 = ModuleMetadata.CreateFromImage(bytesA0)
             Dim mdB0 = ModuleMetadata.CreateFromImage(bytesB0)
-            Dim generationA0 = EmitBaseline.CreateInitialBaseline(mdA0, EmptyLocalsProvider)
-            Dim generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, EmptyLocalsProvider)
+            Dim generationA0 = CreateInitialBaseline(compilationA0, mdA0, EmptyLocalsProvider)
+            Dim generationB0 = CreateInitialBaseline(compilationB0, mdB0, EmptyLocalsProvider)
             Dim mA1 = compilationA1.GetMember(Of MethodSymbol)("A.M")
             Dim mX1 = compilationA1.GetMember(Of TypeSymbol)("X")
 
@@ -5382,7 +6570,7 @@ End Class"
             Dim testDataB0 = New CompilationTestData()
             Dim bytesB0 = compilationB0.EmitToArray(testData:=testDataB0)
             Dim mdB0 = ModuleMetadata.CreateFromImage(bytesB0)
-            Dim generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, testDataB0.GetMethodData("B.F").EncDebugInfoProvider())
+            Dim generationB0 = CreateInitialBaseline(compilationB0, mdB0, testDataB0.GetMethodData("B.F").EncDebugInfoProvider())
 
             Dim f0 = compilationB0.GetMember(Of MethodSymbol)("B.F")
             Dim f1 = compilationB1.GetMember(Of MethodSymbol)("B.F")
@@ -5390,7 +6578,7 @@ End Class"
 
             Dim diffB1 = compilationB1.EmitDifference(
                 generationB0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetEquivalentNodesMap(f1, f0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetEquivalentNodesMap(f1, f0))))
 
             diffB1.VerifyIL("B.F", "
 {
@@ -5409,7 +6597,7 @@ End Class"
 
             Dim diffB2 = compilationB2.EmitDifference(
                diffB1.NextGeneration,
-               ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables:=True)))
+               ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1))))
 
             diffB2.VerifyIL("B.F", "
 {
@@ -5464,14 +6652,14 @@ End Class
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -5607,14 +6795,14 @@ End Class")
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             Dim md1 = diff1.GetMetadata()
             Dim reader1 = md1.Reader
@@ -5753,13 +6941,13 @@ End Class
 
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             ' Pretend there was an update to C.E to ensure we haven't invalidated the test
 
             Dim diffError = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diffError.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_AmbiguousInImports2, "Timer").WithArguments("Timer", "System.Threading, System.Timers").WithLocation(7, 21))
@@ -5810,7 +6998,7 @@ End Class
 
             Dim v0 = CompileAndVerify(compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             ' Pretend there was an update to C.E to ensure we haven't invalidated the test
 
@@ -5829,16 +7017,356 @@ End Class
                 CheckNames(readers, reader1.GetMethodDefNames(), "M")
 
                 CheckEncLogDefinitions(reader1,
-                    Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                    Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
 
                 CheckEncMapDefinitions(reader1,
-                    Handle(2, TableIndex.MethodDef),
-                    Handle(1, TableIndex.Param),
-                    Handle(4, TableIndex.CustomAttribute))
+                    Handle(2, TableIndex.MethodDef))
             End Using
         End Sub
 
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_DataFields_Arrays()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10")
+                            g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3")
+                            g.VerifyMethodDefNames(".ctor")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C..ctor"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyFieldDefNames()
+                            g.VerifyMethodDefNames(".ctor")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(1, TableIndex.MethodDef)
+                            })
+
+                            g.VerifyIL("C..ctor", "
+{
+  // Code size       65 (0x41)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub Object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  newarr     ""Byte""
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  stelem.i1
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldc.i4.2
+  IL_0016:  stelem.i1
+  IL_0017:  dup
+  IL_0018:  ldc.i4.3
+  IL_0019:  ldc.i4.3
+  IL_001a:  stelem.i1
+  IL_001b:  dup
+  IL_001c:  ldc.i4.4
+  IL_001d:  ldc.i4.4
+  IL_001e:  stelem.i1
+  IL_001f:  dup
+  IL_0020:  ldc.i4.5
+  IL_0021:  ldc.i4.5
+  IL_0022:  stelem.i1
+  IL_0023:  dup
+  IL_0024:  ldc.i4.6
+  IL_0025:  ldc.i4.6
+  IL_0026:  stelem.i1
+  IL_0027:  dup
+  IL_0028:  ldc.i4.7
+  IL_0029:  ldc.i4.7
+  IL_002a:  stelem.i1
+  IL_002b:  dup
+  IL_002c:  ldc.i4.8
+  IL_002d:  ldc.i4.8
+  IL_002e:  stelem.i1
+  IL_002f:  dup
+  IL_0030:  ldc.i4.s   9
+  IL_0032:  ldc.i4.s   9
+  IL_0034:  stelem.i1
+  IL_0035:  dup
+  IL_0036:  ldc.i4.s   10
+  IL_0038:  ldc.i4.s   10
+  IL_003a:  stelem.i1
+  IL_003b:  stfld      ""C.b As Byte()""
+  IL_0040:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_ComputeStringHash()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Function F(s As String) As Integer
+        Select Case s
+            Case ""A_______""
+                Return 1
+            Case ""_B______""
+                Return 2
+            Case ""__C_____""
+                Return 3
+            Case ""___D____""
+                Return 4
+            Case ""____E___""
+                Return 5
+            Case ""_____F__""
+                Return 6
+            Case ""______G_""
+                Return 7
+            Case ""_______H""
+                Return 8
+            Case Else
+                Return 9
+        End Select
+    End Function
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>")
+                            g.VerifyMethodDefNames(".ctor", "F", "ComputeStringHash")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Function F(s As String) As Integer
+        Select Case s
+            Case ""A_______""
+                Return 10
+            Case ""_B______""
+                Return 20
+            Case ""__C_____""
+                Return 30
+            Case ""___D____""
+                Return 40
+            Case ""____E___""
+                Return 50
+            Case ""_____F__""
+                Return 60
+            Case ""______G_""
+                Return 70
+            Case ""_______H""
+                Return 80
+            Case Else
+                Return 90
+        End Select
+    End Function
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C.F"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<PrivateImplementationDetails>#1")
+                            g.VerifyMethodDefNames("F", "ComputeStringHash")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(4, TableIndex.TypeDef),
+                                Handle(2, TableIndex.MethodDef),
+                                Handle(4, TableIndex.MethodDef),
+                                Handle(1, TableIndex.Param),
+                                Handle(3, TableIndex.Param),
+                                Handle(5, TableIndex.CustomAttribute),
+                                Handle(3, TableIndex.StandAloneSig),
+                                Handle(4, TableIndex.StandAloneSig)
+                            })
+
+                            g.VerifyIL("C.F", "
+{
+  // Code size      332 (0x14c)
+  .maxstack  3
+  .locals init (Integer V_0, //F
+                String V_1,
+                UInteger V_2)
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
+  IL_0005:  call       ""Function ComputeStringHash(String) As UInteger""
+  IL_000a:  stloc.2
+  IL_000b:  ldloc.2
+  IL_000c:  ldc.i4     0x56f95d19
+  IL_0011:  bgt.un.s   IL_004f
+  IL_0013:  ldloc.2
+  IL_0014:  ldc.i4     0x480fa108
+  IL_0019:  bgt.un.s   IL_0035
+  IL_001b:  ldloc.2
+  IL_001c:  ldc.i4     0xc7c1536
+  IL_0021:  beq.s      IL_009e
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4     0x480fa108
+  IL_002b:  beq        IL_0104
+  IL_0030:  br         IL_0144
+  IL_0035:  ldloc.2
+  IL_0036:  ldc.i4     0x4cb374b7
+  IL_003b:  beq        IL_00d4
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldloc.2
+  IL_0043:  ldc.i4     0x56f95d19
+  IL_0048:  beq.s      IL_00b1
+  IL_004a:  br         IL_0144
+  IL_004f:  ldloc.2
+  IL_0050:  ldc.i4     0x7efadce5
+  IL_0055:  bgt.un.s   IL_0074
+  IL_0057:  ldloc.2
+  IL_0058:  ldc.i4     0x6b29f97a
+  IL_005d:  beq        IL_00e4
+  IL_0062:  br.s       IL_0064
+  IL_0064:  ldloc.2
+  IL_0065:  ldc.i4     0x7efadce5
+  IL_006a:  beq        IL_00f4
+  IL_006f:  br         IL_0144
+  IL_0074:  ldloc.2
+  IL_0075:  ldc.i4     0xc8d4cc33
+  IL_007a:  beq.s      IL_008b
+  IL_007c:  br.s       IL_007e
+  IL_007e:  ldloc.2
+  IL_007f:  ldc.i4     0xf3f3f8ec
+  IL_0084:  beq.s      IL_00c4
+  IL_0086:  br         IL_0144
+  IL_008b:  ldloc.1
+  IL_008c:  ldstr      ""A_______""
+  IL_0091:  ldc.i4.0
+  IL_0092:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0097:  brfalse.s  IL_0114
+  IL_0099:  br         IL_0144
+  IL_009e:  ldloc.1
+  IL_009f:  ldstr      ""_B______""
+  IL_00a4:  ldc.i4.0
+  IL_00a5:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00aa:  brfalse.s  IL_011a
+  IL_00ac:  br         IL_0144
+  IL_00b1:  ldloc.1
+  IL_00b2:  ldstr      ""__C_____""
+  IL_00b7:  ldc.i4.0
+  IL_00b8:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00bd:  brfalse.s  IL_0120
+  IL_00bf:  br         IL_0144
+  IL_00c4:  ldloc.1
+  IL_00c5:  ldstr      ""___D____""
+  IL_00ca:  ldc.i4.0
+  IL_00cb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00d0:  brfalse.s  IL_0126
+  IL_00d2:  br.s       IL_0144
+  IL_00d4:  ldloc.1
+  IL_00d5:  ldstr      ""____E___""
+  IL_00da:  ldc.i4.0
+  IL_00db:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00e0:  brfalse.s  IL_012c
+  IL_00e2:  br.s       IL_0144
+  IL_00e4:  ldloc.1
+  IL_00e5:  ldstr      ""_____F__""
+  IL_00ea:  ldc.i4.0
+  IL_00eb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_00f0:  brfalse.s  IL_0132
+  IL_00f2:  br.s       IL_0144
+  IL_00f4:  ldloc.1
+  IL_00f5:  ldstr      ""______G_""
+  IL_00fa:  ldc.i4.0
+  IL_00fb:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0100:  brfalse.s  IL_0138
+  IL_0102:  br.s       IL_0144
+  IL_0104:  ldloc.1
+  IL_0105:  ldstr      ""_______H""
+  IL_010a:  ldc.i4.0
+  IL_010b:  call       ""Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer""
+  IL_0110:  brfalse.s  IL_013e
+  IL_0112:  br.s       IL_0144
+  IL_0114:  nop
+  IL_0115:  ldc.i4.s   10
+  IL_0117:  stloc.0
+  IL_0118:  br.s       IL_014a
+  IL_011a:  nop
+  IL_011b:  ldc.i4.s   20
+  IL_011d:  stloc.0
+  IL_011e:  br.s       IL_014a
+  IL_0120:  nop
+  IL_0121:  ldc.i4.s   30
+  IL_0123:  stloc.0
+  IL_0124:  br.s       IL_014a
+  IL_0126:  nop
+  IL_0127:  ldc.i4.s   40
+  IL_0129:  stloc.0
+  IL_012a:  br.s       IL_014a
+  IL_012c:  nop
+  IL_012d:  ldc.i4.s   50
+  IL_012f:  stloc.0
+  IL_0130:  br.s       IL_014a
+  IL_0132:  nop
+  IL_0133:  ldc.i4.s   60
+  IL_0135:  stloc.0
+  IL_0136:  br.s       IL_014a
+  IL_0138:  nop
+  IL_0139:  ldc.i4.s   70
+  IL_013b:  stloc.0
+  IL_013c:  br.s       IL_014a
+  IL_013e:  nop
+  IL_013f:  ldc.i4.s   80
+  IL_0141:  stloc.0
+  IL_0142:  br.s       IL_014a
+  IL_0144:  nop
+  IL_0145:  ldc.i4.s   90
+  IL_0147:  stloc.0
+  IL_0148:  br.s       IL_014a
+  IL_014a:  ldloc.0
+  IL_014b:  ret
+}")
+                        End Sub).
+                    Verify()
+            End Using
+        End Sub
     End Class
 End Namespace

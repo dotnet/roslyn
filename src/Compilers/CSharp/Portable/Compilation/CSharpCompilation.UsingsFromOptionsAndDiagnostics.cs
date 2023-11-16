@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(diagnostics.DependenciesBag is object);
 
                 var corLibrary = compilation.SourceAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 foreach (var @using in UsingNamespacesOrTypes)
                 {
                     diagnostics.Clear();

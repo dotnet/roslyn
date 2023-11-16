@@ -107,7 +107,7 @@ namespace BuildBoss
                     PathComparer.Equals(relativeFileName, "Icon.png") ||
                     PathComparer.Equals(relativeFileName, "Init.cmd") ||
                     PathComparer.Equals(relativeFileName, "VS.Tools.Roslyn.nuspec") ||
-                    PathComparer.Equals(relativeFileName, "csc.exe") ||
+                    PathComparer.Equals(relativeFileName, "vbc.exe") ||
                     relativeFileName.EndsWith(".resources.dll", PathComparison) ||
                     relativeFileName.EndsWith(".rels", PathComparison) ||
                     relativeFileName.EndsWith(".psmdcp", PathComparison),
@@ -336,7 +336,7 @@ namespace BuildBoss
                 foreach (var part in GetPartsInFolder(package, folderRelativeName))
                 {
                     var name = part.GetName();
-                    if (Path.GetExtension(name) != ".dll")
+                    if (Path.GetExtension(name) is not (".dll" or ".exe"))
                     {
                         continue;
                     }

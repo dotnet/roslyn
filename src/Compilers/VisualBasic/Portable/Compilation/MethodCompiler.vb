@@ -263,11 +263,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.ProcessEmbeddedMethods()
                 End If
 
-                Dim privateImplClass = moduleBeingBuiltOpt.PrivateImplClass
+                ' all threads that were adding methods must be finished now, we can freeze the class:
+                Dim privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails()
                 If privateImplClass IsNot Nothing Then
-                    ' all threads that were adding methods must be finished now, we can freeze the class:
-                    privateImplClass.Freeze()
-
                     compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
             End If
@@ -853,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetDesignerInitializeComponentMethod(sourceTypeSymbol As SourceMemberContainerTypeSymbol) As MethodSymbol
 
-            If sourceTypeSymbol.TypeKind = TypeKind.Class AndAlso sourceTypeSymbol.GetAttributes().IndexOfAttribute(sourceTypeSymbol, AttributeDescription.DesignerGeneratedAttribute) > -1 Then
+            If sourceTypeSymbol.TypeKind = TypeKind.Class AndAlso sourceTypeSymbol.GetAttributes().IndexOfAttribute(AttributeDescription.DesignerGeneratedAttribute) > -1 Then
                 For Each member As Symbol In sourceTypeSymbol.GetMembers("InitializeComponent")
                     If member.Kind = SymbolKind.Method Then
                         Dim method = DirectCast(member, MethodSymbol)
@@ -1522,6 +1520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' now we have everything we need to build complete submission
             If method.IsScriptConstructor Then
                 Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance()
+                Debug.Assert(constructorInitializerOpt IsNot Nothing)
                 boundStatements.Add(constructorInitializerOpt)
                 boundStatements.AddRange(submissionInitialization)
                 boundStatements.Add(body)
@@ -1756,9 +1755,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        ByRef methodBodyBinder As Binder) As BoundBlock
 
             Debug.Assert(diagnostics.AccumulatesDiagnostics)
-
-            referencedConstructor = Nothing
-            injectDefaultConstructorCall = False
             methodBodyBinder = Nothing
 
             Dim body = method.GetBoundMethodBody(compilationState, diagnostics, methodBodyBinder)
@@ -1779,42 +1775,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             '  Instance constructor should return the referenced constructor in 'referencedConstructor'
             If method.MethodKind = MethodKind.Constructor Then
+                GetExplicitlyOrImplicitlyReferencedConstructor(method,
+                                                               If(body IsNot Nothing AndAlso body.Statements.Length > 0, body.Statements(0), Nothing),
+                                                               If(methodBodyBinder, containingTypeBinder),
+                                                               diagnostics, referencedConstructor, injectDefaultConstructorCall)
 
-                ' class constructors must inject call to the base
-                injectDefaultConstructorCall = Not method.ContainingType.IsValueType
-
-                ' Try find explicitly called constructor, it should be the first statement in the block
-                If body IsNot Nothing AndAlso body.Statements.Length > 0 Then
-
-                    Dim theFirstStatement As BoundStatement = body.Statements(0)
-
-                    '  Must be BoundExpressionStatement/BoundCall
-                    If theFirstStatement.HasErrors Then
-                        injectDefaultConstructorCall = False
-
-                    ElseIf theFirstStatement.Kind = BoundKind.ExpressionStatement Then
-
-                        Dim referencedMethod As MethodSymbol = TryGetMethodCalledInBoundExpressionStatement(DirectCast(theFirstStatement, BoundExpressionStatement))
-                        If referencedMethod IsNot Nothing AndAlso referencedMethod.MethodKind = MethodKind.Constructor Then
-                            referencedConstructor = referencedMethod
-                            injectDefaultConstructorCall = False
-                        End If
-                    End If
-
-                End If
-
-                ' If we didn't find explicitly referenced constructor, use implicitly generated call
-                If injectDefaultConstructorCall Then
-
-                    ' NOTE: We might generate an error in this call in case there is
-                    '       no parameterless constructor suitable for calling
-                    referencedConstructor = FindConstructorToCallByDefault(method, diagnostics, If(methodBodyBinder, containingTypeBinder))
-                End If
-
+                Debug.Assert(Not (injectDefaultConstructorCall AndAlso referencedConstructor IsNot Nothing) OrElse method.IsImplicitlyDeclared)
+            Else
+                referencedConstructor = Nothing
+                injectDefaultConstructorCall = False
             End If
 
             Return body
         End Function
+
+        Friend Shared Sub GetExplicitlyOrImplicitlyReferencedConstructor(method As MethodSymbol,
+                                                                          theFirstStatementOpt As BoundStatement,
+                                                                          binderForAccessibilityCheckOpt As Binder,
+                                                                          diagnostics As BindingDiagnosticBag,
+                                                                          ByRef referencedConstructor As MethodSymbol,
+                                                                          ByRef injectDefaultConstructorCall As Boolean)
+            referencedConstructor = Nothing
+
+            ' class constructors must inject call to the base
+            injectDefaultConstructorCall = Not method.ContainingType.IsValueType
+
+            ' Try find explicitly called constructor, it should be the first statement in the block
+            If theFirstStatementOpt IsNot Nothing Then
+
+                '  Must be BoundExpressionStatement/BoundCall
+                If theFirstStatementOpt.HasErrors Then
+                    injectDefaultConstructorCall = False
+
+                ElseIf theFirstStatementOpt.Kind = BoundKind.ExpressionStatement Then
+
+                    Dim referencedMethod As MethodSymbol = TryGetMethodCalledInBoundExpressionStatement(DirectCast(theFirstStatementOpt, BoundExpressionStatement))
+                    If referencedMethod IsNot Nothing AndAlso referencedMethod.MethodKind = MethodKind.Constructor Then
+                        referencedConstructor = referencedMethod
+                        injectDefaultConstructorCall = False
+                    End If
+                End If
+
+            End If
+
+            ' If we didn't find explicitly referenced constructor, use implicitly generated call
+            If injectDefaultConstructorCall Then
+
+                ' NOTE: We might generate an error in this call in case there is
+                '       no parameterless constructor suitable for calling
+                referencedConstructor = FindConstructorToCallByDefault(method, diagnostics, binderForAccessibilityCheckOpt)
+
+                If referencedConstructor Is Nothing AndAlso method.ContainingType.BaseTypeNoUseSiteDiagnostics Is Nothing Then
+                    ' possible if class System.Object in source doesn't have an explicit constructor
+                    injectDefaultConstructorCall = False
+                End If
+            End If
+        End Sub
 
         Private NotInheritable Class InitializeComponentCallTreeBuilder
             Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
@@ -2022,7 +2038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return candidate
         End Function
 
-        Private Shared Function BindDefaultConstructorInitializer(constructor As MethodSymbol,
+        Friend Shared Function BindDefaultConstructorInitializer(constructor As MethodSymbol,
                                                                   constructorToCall As MethodSymbol,
                                                                   diagnostics As BindingDiagnosticBag,
                                                                   Optional binderOpt As Binder = Nothing) As BoundExpressionStatement
@@ -2033,7 +2049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntaxNode As SyntaxNode = constructor.Syntax
 
-            Dim thisRef As New BoundMeReference(syntaxNode, constructor.ContainingType)
+            Dim thisRef As New BoundMyBaseReference(syntaxNode, constructorToCall.ContainingType)
             thisRef.SetWasCompilerGenerated()
 
             Dim baseInvocation As BoundExpression = Nothing

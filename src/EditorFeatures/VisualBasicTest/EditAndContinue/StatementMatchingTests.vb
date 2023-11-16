@@ -71,8 +71,8 @@ End If
             Dim m1 = MakeMethodBody(src1)
             Dim m2 = MakeMethodBody(src2)
 
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.RootNodes.First(), m2.RootNodes().First())}
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1391,12 +1391,14 @@ End Try
             Dim src1 = "Console.WriteLine(1   ) : Console.WriteLine( 1  )"
             Dim src2 = "Console.WriteLine(  1 ) : Console.WriteLine(   1)"
 
-            Dim m1 = DirectCast(MakeMethodBody(src1), MethodBlockSyntax)
-            Dim m2 = DirectCast(MakeMethodBody(src2), MethodBlockSyntax)
-            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
+            Dim m1 = MakeMethodBody(src1)
+            Dim m2 = MakeMethodBody(src2)
+            Dim b1 = DirectCast(m1.RootNodes.First(), MethodBlockSyntax)
+            Dim b2 = DirectCast(m2.RootNodes.First(), MethodBlockSyntax)
+            Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(b1.Statements(1), b2.Statements(0))}
 
             ' pre-matched:
-            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1410,7 +1412,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = SyntaxComparer.Statement.ComputeMatch(m1, m2)
+            match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From
@@ -1478,6 +1480,55 @@ F(Await y, Await x)
                 {"Await x", "Await x"},
                 {"Await y", "Await y"},
                 {"End Function", "End Function"}
+            }
+
+            expected.AssertEqual(actual)
+        End Sub
+
+        <Fact>
+        Public Sub For_ForEach_Using()
+            Dim src1 = "
+For Each a As Integer In {1}
+Next
+
+Using b As New C(1)
+End Using
+
+For c As Integer = 0 To 1
+Next
+"
+            Dim src2 = "
+For Each a As Integer In {2}
+Next
+
+Using b As New C(2)
+End Using
+
+For c As Integer = 0 To 2
+Next
+"
+            Dim match = GetMethodMatches(src1, src2, kind:=MethodKind.Regular)
+            Dim actual = ToMatchingPairs(match)
+
+            Dim expected = New MatchingPairs From
+            {
+                {"Sub F()", "Sub F()"},
+                {"For Each a As Integer In {1} Next", "For Each a As Integer In {2} Next"},
+                {"For Each a As Integer In {1}", "For Each a As Integer In {2}"},
+                {"a As Integer", "a As Integer"},
+                {"a", "a"},
+                {"Next", "Next"},
+                {"Using b As New C(1) End Using", "Using b As New C(2) End Using"},
+                {"Using b As New C(1)", "Using b As New C(2)"},
+                {"b As New C(1)", "b As New C(2)"},
+                {"b", "b"},
+                {"End Using", "End Using"},
+                {"For c As Integer = 0 To 1 Next", "For c As Integer = 0 To 2 Next"},
+                {"For c As Integer = 0 To 1", "For c As Integer = 0 To 2"},
+                {"c As Integer", "c As Integer"},
+                {"c", "c"},
+                {"Next", "Next"},
+                {"End Sub", "End Sub"}
             }
 
             expected.AssertEqual(actual)

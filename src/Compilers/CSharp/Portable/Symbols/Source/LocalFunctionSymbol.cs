@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
@@ -257,21 +257,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (specifically, local functions nested in expressions in the EE).
             if (compilation is object)
             {
-                var location = returnTypeSyntax.Location;
+                Location? location = null;
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                 }
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(returnType.Type))
                 {
-                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                 }
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     returnType.NeedsNullableAttribute())
                 {
-                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
+                    compilation.EnsureNullableAttributeExists(diagnostics, location ??= returnTypeSyntax.Location, modifyCompilation: false);
                     // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
                 }
             }

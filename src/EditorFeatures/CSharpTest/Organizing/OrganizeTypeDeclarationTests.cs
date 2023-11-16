@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1164,15 +1165,16 @@ $@"{typeKind} Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse(@"
+            using var workspace = TestWorkspace.Create(XElement.Parse("""
                 <Workspace>
-                    <Submission Language=""C#"" CommonReferences=""true"">  
+                    <Submission Language="C#" CommonReferences="true">
                         class C
                         {
                             object $$goo;
                         }
                     </Submission>
-                </Workspace> "),
+                </Workspace>
+                """),
                 workspaceKind: WorkspaceKind.Interactive,
                 composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
@@ -1182,7 +1184,8 @@ $@"{typeKind} Program
 
             var handler = new OrganizeDocumentCommandHandler(
                 workspace.GetService<IThreadingContext>(),
-                workspace.GlobalOptions);
+                workspace.GlobalOptions,
+                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

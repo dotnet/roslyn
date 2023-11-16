@@ -254,4 +254,7 @@
   <data name="Use_primary_constructor_and_remove_properties" xml:space="preserve">
     <value>Use primary constructor (and remove properties)</value>
   </data>
+  <data name="Use_collection_expression" xml:space="preserve">
+    <value>Use collection expression</value>
+  </data>
 </root>

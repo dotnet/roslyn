@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
             TypeWithAnnotations inferredType;
-            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, IsAsync, diagnostics, out inferredType, builder: out _);
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out inferredType, builder: out _);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ForEachEnumeratorInfo.Builder builder;
             TypeWithAnnotations inferredType;
-            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, IsAsync, diagnostics, out inferredType, out builder);
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(_syntax, _syntax.Expression, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out inferredType, out builder);
 
             // These occur when special types are missing or malformed, or the patterns are incompletely implemented.
             hasErrors |= builder.IsIncomplete;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 var expr = _syntax.Expression;
-                ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
                 var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = false;
             var expr = _syntax.Expression;
-            ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+            ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
 
             var placeholder = new BoundAwaitableValuePlaceholder(expr, awaitableType);
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
-            GetEnumeratorInfoAndInferCollectionElementType(_syntax, collectionSyntax, ref collectionExpr, IsAsync, diagnostics, out TypeWithAnnotations inferredType, builder: out _);
+            GetEnumeratorInfoAndInferCollectionElementType(_syntax, collectionSyntax, ref collectionExpr, isAsync: IsAsync, isSpread: false, diagnostics, out TypeWithAnnotations inferredType, builder: out _);
             return inferredType;
         }
     }
@@ -661,11 +661,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax collectionSyntax,
             ref BoundExpression collectionExpr,
             bool isAsync,
+            bool isSpread,
             BindingDiagnosticBag diagnostics,
             out TypeWithAnnotations inferredType,
             out ForEachEnumeratorInfo.Builder builder)
         {
-            bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, diagnostics, out builder);
+            Debug.Assert(!isAsync || !isSpread);
+
+            bool gotInfo = GetEnumeratorInfo(syntax, collectionSyntax, ref collectionExpr, isAsync, isSpread, diagnostics, out builder);
 
             if (!gotInfo)
             {
@@ -711,6 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(
                         syntax: exprSyntax,
                         receiverOpt: collectionExpr,
+                        initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(collectionExpr, nullableValueGetter),
                         method: nullableValueGetter);
                 }
                 else
@@ -748,8 +752,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="collectionExpr">The expression over which to iterate.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <returns>Partially populated (all but conversions) or null if there was an error.</returns>
-        private bool GetEnumeratorInfo(SyntaxNode syntax, ExpressionSyntax collectionSyntax, ref BoundExpression collectionExpr, bool isAsync, BindingDiagnosticBag diagnostics, out ForEachEnumeratorInfo.Builder builder)
+        private bool GetEnumeratorInfo(
+            SyntaxNode syntax,
+            ExpressionSyntax collectionSyntax,
+            ref BoundExpression collectionExpr,
+            bool isAsync,
+            bool isSpread,
+            BindingDiagnosticBag diagnostics,
+            out ForEachEnumeratorInfo.Builder builder)
         {
+            Debug.Assert(!isAsync || !isSpread);
+
             BoundExpression originalCollectionExpr = collectionExpr;
 
             EnumeratorResult found = GetEnumeratorInfoCore(syntax, collectionSyntax, ref collectionExpr, isAsync, diagnostics, out builder);
@@ -775,9 +788,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Retry with a different assumption about whether the foreach is async
             bool wrongAsync = GetEnumeratorInfoCore(syntax, collectionSyntax, ref originalCollectionExpr, !isAsync, BindingDiagnosticBag.Discarded, builder: out _) == EnumeratorResult.Succeeded;
 
-            var errorCode = wrongAsync
-                ? (isAsync ? ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync : ErrorCode.ERR_ForEachMissingMemberWrongAsync)
-                : (isAsync ? ErrorCode.ERR_AwaitForEachMissingMember : ErrorCode.ERR_ForEachMissingMember);
+            ErrorCode errorCode = (wrongAsync, isAsync, isSpread) switch
+            {
+                (true, true, _) => ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync,
+                (true, false, _) => ErrorCode.ERR_ForEachMissingMemberWrongAsync,
+                (false, true, _) => ErrorCode.ERR_AwaitForEachMissingMember,
+                (false, false, true) => ErrorCode.ERR_SpreadMissingMember,
+                (false, false, false) => ErrorCode.ERR_ForEachMissingMember,
+            };
 
             diagnostics.Add(errorCode, collectionSyntax.Location,
                 collectionExprType, isAsync ? WellKnownMemberNames.GetAsyncEnumeratorMethodName : WellKnownMemberNames.GetEnumeratorMethodName);
@@ -795,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             EnumeratorResult result;
 
-            if (!isAsync && collectionExpr.Type?.HasInlineArrayAttribute(out _) == true && collectionExpr.Type.TryGetInlineArrayElementField() is FieldSymbol elementField)
+            if (!isAsync && collectionExpr.Type?.HasInlineArrayAttribute(out _) == true && collectionExpr.Type.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
             {
                 WellKnownType wellKnownSpan;
                 bool usedAsValue = false;
@@ -824,6 +842,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 spanType = spanType.Construct(ImmutableArray.Create(elementField.TypeWithAnnotations));
                 spanType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, collectionExpr.Syntax.GetLocation(), diagnostics));
+
+                if (!TypeSymbol.IsInlineArrayElementFieldSupported(elementField))
+                {
+                    diagnostics.Add(ErrorCode.ERR_InlineArrayForEachNotSupported, collectionExpr.Syntax.GetLocation(), collectionExpr.Type);
+                    builder = new ForEachEnumeratorInfo.Builder();
+                    return EnumeratorResult.FailedAndReported;
+                }
 
                 var enumeratorInfoDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                 BoundExpression span = new BoundValuePlaceholder(collectionExpr.Syntax, spanType).MakeCompilerGenerated();
@@ -865,6 +890,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 enumeratorInfoDiagnostics.Free();
+
+                diagnostics.Add(ErrorCode.ERR_InlineArrayForEachNotSupported, collectionExpr.Syntax.GetLocation(), collectionExpr.Type);
+                builder = new ForEachEnumeratorInfo.Builder();
+                return EnumeratorResult.FailedAndReported;
             }
 
 #if DEBUG
@@ -1175,11 +1204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argsToParams = default(ImmutableArray<int>);
                     bool expanded = patternDisposeMethod.HasParamsParameter();
 
-                    BindDefaultArguments(
+                    BindDefaultArgumentsAndParamsArray(
                         syntax,
                         patternDisposeMethod.Parameters,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
+                        namesBuilder: null,
                         ref argsToParams,
                         out BitVector defaultArguments,
                         expanded,
@@ -1187,7 +1217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                     builder.NeedsDisposal = true;
-                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                    Debug.Assert(argsToParams.IsDefault);
+                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
 
                     if (!isAsync)
                     {
@@ -1398,18 +1429,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var argsToParams = overloadResolutionResult.ValidResult.Result.ArgsToParamsOpt;
                     var expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                    BindDefaultArguments(
+                    BindDefaultArgumentsAndParamsArray(
                         syntax,
                         result.Parameters,
                         analyzedArguments.Arguments,
                         analyzedArguments.RefKinds,
+                        analyzedArguments.Names,
                         ref argsToParams,
                         out BitVector defaultArguments,
                         expanded,
                         enableCallerInfo: true,
                         diagnostics);
 
-                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), argsToParams, defaultArguments, expanded);
+                    Debug.Assert(argsToParams.IsDefault);
+                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), defaultArguments, expanded);
                 }
             }
             else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)
@@ -1852,11 +1885,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<int> argsToParams = default;
-            BindDefaultArguments(
+            BindDefaultArgumentsAndParamsArray(
                 syntax,
                 method.Parameters,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
+                namesBuilder: null,
                 ref argsToParams,
                 defaultArguments: out BitVector defaultArguments,
                 expanded,
@@ -1864,7 +1898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 assertMissingParametersAreOptional);
 
-            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+            Debug.Assert(argsToParams.IsDefault);
+            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
         }
     }
 }

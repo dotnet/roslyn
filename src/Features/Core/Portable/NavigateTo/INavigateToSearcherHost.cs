@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
+    internal interface IWorkspaceNavigateToSearcherHostService : IWorkspaceService
+    {
+        ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
+    }
+
     internal class DefaultNavigateToSearchHost(
         Solution solution,
         IAsynchronousOperationListener asyncListener,
@@ -49,6 +54,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
+            var workspaceService = _solution.Workspace.Services.GetService<IWorkspaceNavigateToSearcherHostService>();
+            if (workspaceService != null)
+                return await workspaceService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
             var service = _solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded

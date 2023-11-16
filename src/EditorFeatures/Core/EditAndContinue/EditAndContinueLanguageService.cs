@@ -23,7 +23,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [Export(typeof(IEditAndContinueSolutionProvider))]
     [Export(typeof(EditAndContinueLanguageService))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class EditAndContinueLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class EditAndContinueLanguageService(
+        Lazy<IHostWorkspaceProvider> workspaceProvider,
+        Lazy<IManagedHotReloadService> debuggerService,
+        IDiagnosticAnalyzerService diagnosticService,
+        EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+        PdbMatchingSourceTextProvider sourceTextProvider,
+        IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class NoSessionException : InvalidOperationException
         {
@@ -35,13 +43,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private readonly PdbMatchingSourceTextProvider _sourceTextProvider;
-        private readonly IDiagnosticsRefresher _diagnosticRefresher;
-        private readonly Lazy<IManagedHotReloadService> _debuggerService;
-        private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
+        private readonly PdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
+        private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
+        private readonly Lazy<IManagedHotReloadService> _debuggerService = debuggerService;
+        private readonly IDiagnosticAnalyzerService _diagnosticService = diagnosticService;
+        private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource = diagnosticUpdateSource;
 
-        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
+        public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider = workspaceProvider;
 
         public bool IsSessionActive { get; private set; }
 
@@ -52,28 +60,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private Solution? _committedDesignTimeSolution;
 
         public event Action<Solution>? SolutionCommitted;
-
-        /// <summary>
-        /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
-        /// unless the host implements debugger components.
-        /// </summary>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueLanguageService(
-            Lazy<IHostWorkspaceProvider> workspaceProvider,
-            Lazy<IManagedHotReloadService> debuggerService,
-            IDiagnosticAnalyzerService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            PdbMatchingSourceTextProvider sourceTextProvider,
-            IDiagnosticsRefresher diagnosticRefresher)
-        {
-            WorkspaceProvider = workspaceProvider;
-            _debuggerService = debuggerService;
-            _diagnosticService = diagnosticService;
-            _diagnosticUpdateSource = diagnosticUpdateSource;
-            _sourceTextProvider = sourceTextProvider;
-            _diagnosticRefresher = diagnosticRefresher;
-        }
 
         public void SetFileLoggingDirectory(string? logDirectory)
         {

@@ -175,8 +175,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 browsableStateValue,
                                 previousDeclaration,
                                 inheritanceLevel,
-                                canFavorite: supportsFavorites,
-                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true));
+                                canFavorite: supportsFavorites && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName),
+                                isFavorite: favoritesMemberNames?.ContainsKey(memberName) == true && !previousDeclaration.HasFlag(DeclarationInfo.IncludeTypeInMemberName)));
                     }
                 }
 

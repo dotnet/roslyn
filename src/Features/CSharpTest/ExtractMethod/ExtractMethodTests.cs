@@ -596,9 +596,9 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-        public async Task TestMissingOnGoto()
+        public async Task TestOnGoto()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
                 """
                 delegate int del(int i);
 
@@ -612,6 +612,28 @@ new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodied
                         };
                     label2:
                         return;
+                    }
+                }
+                """,
+                """
+                delegate int del(int i);
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        del q = x =>
+                        {
+                            return {|Rename:NewMethod|}(x);
+                        };
+                    label2:
+                        return;
+                    }
+
+                    private static int NewMethod(int x)
+                    {
+                        goto label2;
+                        return x * x;
                     }
                 }
                 """);

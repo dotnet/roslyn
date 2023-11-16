@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -43,6 +45,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(checksum1, checksumA);
             Assert.NotEqual(checksum2, checksumA);
             Assert.NotEqual(checksum3, checksumA);
+        }
+
+        [Fact]
+        public void ValidateChecksumFromSpanSameAsChecksumFromBytes10()
+        {
+            const int max = 10;
+            var checksums = Enumerable.Range(0, max).Select(i => Checksum.Create($"{i}")).ToArray();
+
+            var checksumA = Checksum.Create(checksums.Select(c => c.Hash).ToArray().AsSpan());
+
+            // Running this test on multiple target frameworks with the same expectation ensures the results match
+            Assert.Equal(Checksum.FromBase64String("yOnAG9SVuhK/+wCM/WlpTl5e7h8="), checksumA);
+
+            for (var i = 0; i < max; i++)
+            {
+                for (var j = 0; j < max; j++)
+                {
+                    Assert.True((i == j) == (checksums[i] == checksums[j]));
+                }
+
+                Assert.NotEqual(checksums[i], checksumA);
+            }
         }
     }
 }

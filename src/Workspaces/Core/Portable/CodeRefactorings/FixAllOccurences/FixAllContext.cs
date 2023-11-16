@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        internal IProgressTracker ProgressTracker { get; }
+        public IProgress<CodeAnalysisProgress> Progress { get; }
 
         /// <summary>
         /// Project to fix all occurrences.
@@ -69,8 +70,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         object IFixAllContext.Provider => this.CodeRefactoringProvider;
 
-        IProgressTracker IFixAllContext.ProgressTracker => this.ProgressTracker;
-
         string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
 
         IFixAllContext IFixAllContext.With(
@@ -82,11 +81,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         internal FixAllContext(
             FixAllState state,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CancellationToken cancellationToken)
         {
             State = state;
-            this.ProgressTracker = progressTracker;
+            this.Progress = progressTracker;
             this.CancellationToken = cancellationToken;
         }
 
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 return this;
             }
 
-            return new FixAllContext(State, this.ProgressTracker, cancellationToken);
+            return new FixAllContext(State, this.Progress, cancellationToken);
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Optional<string?> codeActionEquivalenceKey = default)
         {
             var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-            return State == newState ? this : new FixAllContext(newState, ProgressTracker, CancellationToken);
+            return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
         }
 
         internal string GetDefaultFixAllTitle()

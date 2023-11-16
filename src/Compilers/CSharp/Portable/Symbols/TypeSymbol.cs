@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!reportedAnError && implementingType.DeclaringCompilation != null)
             {
-                CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(implementingType, implicitImpl, interfaceMember, isExplicit: false, diagnostics);
+                CheckModifierMismatchOnImplementingMember(implementingType, implicitImpl, interfaceMember, isExplicit: false, diagnostics);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1758,7 +1758,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckNullableReferenceTypeAndScopedMismatchOnImplementingMember(TypeSymbol implementingType, Symbol implementingMember, Symbol interfaceMember, bool isExplicit, BindingDiagnosticBag diagnostics)
+        /// <summary>
+        /// Reports warnings for some mismatches in parameter or return type modifiers (nullability, scoped, refness) between implementing and implemented member.
+        /// </summary>
+        internal static void CheckModifierMismatchOnImplementingMember(TypeSymbol implementingType, Symbol implementingMember, Symbol interfaceMember, bool isExplicit, BindingDiagnosticBag diagnostics)
         {
             if (!implementingMember.IsImplicitlyDeclared && !implementingMember.IsAccessor())
             {
@@ -1872,6 +1875,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     },
                                 (implementingType, isExplicit),
                                 allowVariance: true,
+                                invokedAsExtensionMethod: false);
+                        }
+
+                        if (checkParameterTypes)
+                        {
+                            SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
+                                implementedMethod, implementingMethod, diagnostics,
+                                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
+                                {
+                                    var (implementedParameter, implementingType) = arg;
+                                    var location = GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod);
+                                    // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                                    diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, implementingParameter, implementedParameter);
+                                },
+                                implementingType,
                                 invokedAsExtensionMethod: false);
                         }
 
@@ -2532,7 +2550,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal FieldSymbol? TryGetInlineArrayElementField()
         {
-            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { RefKind: RefKind.None } field ? field : null;
+            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { } field && IsInlineArrayElementFieldSupported(field) ? field : null;
+        }
+
+        internal static bool IsInlineArrayElementFieldSupported(FieldSymbol elementField)
+        {
+            return elementField is { RefKind: RefKind.None, IsFixedSizeBuffer: false };
         }
     }
 }

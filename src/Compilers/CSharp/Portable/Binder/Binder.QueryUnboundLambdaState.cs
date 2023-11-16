@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable();
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
             {
                 return _bodyFactory(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }

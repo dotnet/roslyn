@@ -10693,5 +10693,585 @@ class Base(int x);
   IL_0005:  ret
 }");
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_06001_CapturedParameterInsideCapturingAsyncInstanceMethod(bool isStruct)
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+" +
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    async Task<int> M()
+    {
+#line 100
+        ;
+#line 200
+        return y;
+    }
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>d__2.MoveNext",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<M>d__2 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+                isStruct ?
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""C C.<M>d__2.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}" :
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<M>d__2.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PrimaryConstructors_06002_CapturedParameterInsideCapturingIteratorInstanceMethod(bool isStruct)
+        {
+            var source =
+@"
+using System.Collections.Generic;
+" +
+(isStruct ? "struct" : "class") + @" C(int y)
+{
+    public IEnumerable<int> M()
+    {
+#line 100
+        yield return 9;
+#line 200
+        yield return y;
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>d__2.MoveNext",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<M>d__2 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+                isStruct ?
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""C C.<M>d__2.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}" :
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<M>d__2.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06003_CapturedParameterInsideCapturingInstanceMethodLambda_NoDisplayClass()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class C(int y)
+{
+    public int M()
+    {
+        System.Func<int> x = ()
+#line 100
+                                => y;
+#line 200
+        return x();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<M>b__2_0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<y>P""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06004_CapturedParameterInsideCapturingInstanceMethodLambda_WithDisplayClass()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class C(int y)
+{
+    public int M(int a)
+    {
+        System.Func<int> x = ()
+#line 100
+                                => y + a;
+#line 200
+        return x();
+    }
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass2_0.<M>b__0",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass2_0 <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C C.<>c__DisplayClass2_0.<>4__this""
+  IL_0006:  ldfld      ""int C.<y>P""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06005_NotCapturedParameterInsideAsyncLambda()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class C(int y)
+{
+    public System.Func<Task<int>> F = async Task<int> () =>
+                                      {
+#line 100
+                                          await Task.Yield();
+#line 200
+                                          return y;
+                                      };
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<<-ctor>b__0>d.MoveNext",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass0_0.<<-ctor>b__0>d <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                System.Runtime.CompilerServices.YieldAwaitable V_3,
+                C.<>c__DisplayClass0_0.<<-ctor>b__0>d V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_0.<<-ctor>b__0>d.<>4__this""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.y""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void PrimaryConstructors_06006_NotCapturedParameterInsideIteratorLocalFunction()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class C(int y)
+{
+    public System.Func<IEnumerable<int>> F = IEnumerable<int>() =>
+                                             {
+                                                 IEnumerable<int> local()
+                                                 {
+#line 100
+                                                     yield return 9;
+#line 200
+                                                     yield return y;
+                                                 };
+
+                                                 return local();
+                                             };
+}";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.<>c__DisplayClass0_0.<<-ctor>g__local|1>d.MoveNext",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "y");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(C.<>c__DisplayClass0_0.<<-ctor>g__local|1>d <>4__this)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_0.<<-ctor>g__local|1>d.<>4__this""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.y""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void InlineArrays_01_ElementAccess()
+        {
+            var source = @"
+class C
+{
+    static void M(Buffer4 b, int i)
+    {
+#line 100
+        ;
+#line 200
+
+        b[i]++;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4
+{
+    private int _element0;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.Net80,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "b[1]");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(Buffer4 b, System.Int32 i)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (System.Span<int> V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4, int>(ref Buffer4, int)""
+  IL_0008:  ldind.i4
+  IL_0009:  ret
+}");
+        }
+
+        [Fact]
+        public void InlineArrays_02_ElementAccess()
+        {
+            var source = @"
+class C
+{
+    static void M(Buffer4 b, int i)
+    {
+#line 100
+        ;
+#line 200
+
+        b[i]++;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4
+{
+    private int _element0;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.Net80,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "b[i]");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Int32 <>x.<>m0(Buffer4 b, System.Int32 i)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (System.Span<int> V_0,
+                System.Span<int> V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.4
+  IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldarg.1
+  IL_000c:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0011:  ldind.i4
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void InlineArrays_03_Slice()
+        {
+            var source = @"
+class C
+{
+    static void M(Buffer4 b, System.Range i)
+    {
+#line 100
+        ;
+#line 200
+
+        _ = b[i];
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4
+{
+    private int _element0;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.Net80,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "b[1..2]");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Span<System.Int32> <>x.<>m0(Buffer4 b, System.Range i)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3,
+                System.Span<int> V_4,
+                System.Span<int> V_5)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.4
+  IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_0008:  stloc.s    V_5
+  IL_000a:  ldloca.s   V_5
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0013:  ret
+}");
+        }
+
+        [Fact]
+        public void InlineArrays_04_Slice()
+        {
+            var source = @"
+class C
+{
+    static void M(Buffer4 b, System.Range i)
+    {
+#line 100
+        ;
+#line 200
+
+        _ = b[i];
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4
+{
+    private int _element0;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.Net80,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "b[i]");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Span<System.Int32> <>x.<>m0(Buffer4 b, System.Range i)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3,
+                System.Span<int> V_4,
+                System.Range V_5,
+                int V_6,
+                int V_7,
+                System.Index V_8,
+                System.Span<int> V_9)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.s    V_5
+  IL_0005:  ldloca.s   V_5
+  IL_0007:  call       ""System.Index System.Range.Start.get""
+  IL_000c:  stloc.s    V_8
+  IL_000e:  ldloca.s   V_8
+  IL_0010:  ldc.i4.4
+  IL_0011:  call       ""int System.Index.GetOffset(int)""
+  IL_0016:  stloc.s    V_6
+  IL_0018:  ldloca.s   V_5
+  IL_001a:  call       ""System.Index System.Range.End.get""
+  IL_001f:  stloc.s    V_8
+  IL_0021:  ldloca.s   V_8
+  IL_0023:  ldc.i4.4
+  IL_0024:  call       ""int System.Index.GetOffset(int)""
+  IL_0029:  ldloc.s    V_6
+  IL_002b:  sub
+  IL_002c:  stloc.s    V_7
+  IL_002e:  ldc.i4.4
+  IL_002f:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_0034:  stloc.s    V_9
+  IL_0036:  ldloca.s   V_9
+  IL_0038:  ldloc.s    V_6
+  IL_003a:  ldloc.s    V_7
+  IL_003c:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_0041:  ret
+}");
+        }
+
+        [Fact]
+        public void InlineArrays_05_Conversion()
+        {
+            var source = @"
+class C
+{
+    static void M(Buffer4 b)
+    {
+#line 100
+        ;
+#line 200
+
+        _ = (System.Span<int>)b;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4
+{
+    private int _element0;
+}
+";
+
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.Net80,
+                methodName: "C.M",
+                atLineNumber: 100, debugFormat: DebugInformationFormat.PortablePdb,
+                expr: "(System.Span<int>)b");
+
+            var methodData = testData.GetMethodData("<>x.<>m0");
+
+            Assert.True(methodData.Method.IsStatic);
+            AssertEx.Equal("System.Span<System.Int32> <>x.<>m0(Buffer4 b)", ((MethodSymbol)methodData.Method).ToTestDisplayString());
+            methodData.VerifyIL(
+@"
+{
+ // Code size        9 (0x9)
+ .maxstack  2
+ IL_0000:  ldarga.s   V_0
+ IL_0002:  ldc.i4.4
+ IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+ IL_0008:  ret
+}");
+        }
     }
 }

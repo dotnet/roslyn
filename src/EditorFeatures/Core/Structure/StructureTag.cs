@@ -14,46 +14,30 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
 #pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed class StructureTag : IStructureTag2, IEquatable<StructureTag>
+    internal sealed class StructureTag(AbstractStructureTaggerProvider tagProvider, BlockSpan blockSpan, ITextSnapshot snapshot) : IStructureTag2, IEquatable<StructureTag>
 #pragma warning restore CS0618 // Type or member is obsolete
     {
-        private readonly AbstractStructureTaggerProvider _tagProvider;
+        private readonly AbstractStructureTaggerProvider _tagProvider = tagProvider;
 
         /// <summary>
         /// The contents of the buffer to show if we mouse over the collapsed indicator.
         /// </summary>
-        public readonly Span CollapsedHintFormSpan;
+        public readonly Span CollapsedHintFormSpan = blockSpan.HintSpan.ToSpan();
 
-        public readonly string CollapsedText;
+        public readonly string CollapsedText = blockSpan.BannerText;
 
-        public ITextSnapshot Snapshot { get; }
-        public Span? OutliningSpan { get; }
-        public Span? HeaderSpan { get; }
-        public Span? PrimaryHeaderSpan { get; }
-        public Span? GuideLineSpan => null;
-        public int? GuideLineHorizontalAnchorPoint => null;
-        public string Type { get; }
-        public bool IsCollapsible { get; }
-        public bool IsDefaultCollapsed { get; }
-        public bool IsImplementation { get; }
-
-        public StructureTag(AbstractStructureTaggerProvider tagProvider, BlockSpan blockSpan, ITextSnapshot snapshot)
-        {
-            Snapshot = snapshot;
-            OutliningSpan = blockSpan.TextSpan.ToSpan();
-            Type = ConvertType(blockSpan.Type);
-            IsCollapsible = blockSpan.IsCollapsible;
-            IsDefaultCollapsed = blockSpan.IsDefaultCollapsed;
-            IsImplementation = blockSpan.AutoCollapse;
-            HeaderSpan = DetermineHeaderSpan(blockSpan.TextSpan, blockSpan.HintSpan, snapshot);
-            PrimaryHeaderSpan = blockSpan.PrimarySpans is { } primarySpans
+        public ITextSnapshot Snapshot { get; } = snapshot;
+        public Span? OutliningSpan { get; } = blockSpan.TextSpan.ToSpan();
+        public Span? HeaderSpan { get; } = DetermineHeaderSpan(blockSpan.TextSpan, blockSpan.HintSpan, snapshot);
+        public Span? PrimaryHeaderSpan { get; } = blockSpan.PrimarySpans is { } primarySpans
                 ? DetermineHeaderSpan(primarySpans.textSpan, primarySpans.hintSpan, snapshot)
                 : null;
-
-            CollapsedText = blockSpan.BannerText;
-            CollapsedHintFormSpan = blockSpan.HintSpan.ToSpan();
-            _tagProvider = tagProvider;
-        }
+        public Span? GuideLineSpan => null;
+        public int? GuideLineHorizontalAnchorPoint => null;
+        public string Type { get; } = ConvertType(blockSpan.Type);
+        public bool IsCollapsible { get; } = blockSpan.IsCollapsible;
+        public bool IsDefaultCollapsed { get; } = blockSpan.IsDefaultCollapsed;
+        public bool IsImplementation { get; } = blockSpan.AutoCollapse;
 
         private static Span DetermineHeaderSpan(TextSpan textSpan, TextSpan hintSpan, ITextSnapshot snapshot)
         {

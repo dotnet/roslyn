@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
-            CompileTestSource(dllFilePath, new[] { sourceCodePath }, pdbFilePath, assemblyName, new[] { source }, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+            CompileTestSource(dllFilePath, [sourceCodePath], pdbFilePath, assemblyName, [source], project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
         }
 
         protected static void CompileTestSource(string dllFilePath, string[] sourceCodePaths, string? pdbFilePath, string assemblyName, SourceText[] sources, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)

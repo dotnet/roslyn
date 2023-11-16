@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
     {
         /// <summary>
         /// A preferred name used to generated a declaration when the
-        /// inline method's body is not a valid expresion in ExpressionStatement
+        /// inline method's body is not a valid expression in ExpressionStatement
         /// Example:
         /// void Caller()
         /// {

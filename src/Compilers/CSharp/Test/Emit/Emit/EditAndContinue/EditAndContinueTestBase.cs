@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Metadata.Tools;
@@ -24,10 +25,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    using static EditAndContinueTestUtilities;
+
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
-        protected readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
+        internal static readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
 
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
@@ -37,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             new MetadataVisualizer(new[] { baseline.MetadataReader }.Concat(deltas.Select(d => d.Reader)).ToArray(), result).VisualizeAllGenerations();
             return result.ToString();
         }
+
+        public static EmitBaseline CreateInitialBaseline(Compilation compilation, ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+            => EditAndContinueTestUtilities.CreateInitialBaseline(compilation, module, debugInformationProvider);
 
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
             => new SourceWithMarkedNodes(
@@ -146,9 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
-        internal static bool IsDefinition(HandleKind kind)
-            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
-
         /// <summary>
         /// Checks that the EncLog contains specified rows.
         /// Any default values in the expected <paramref name="rows"/> are ignored to facilitate conditional code.
@@ -199,46 +202,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void CheckNames(MetadataReader reader, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            CheckNames(new[] { reader }, handles, expectedNames);
-        }
+            => EditAndContinueTestUtilities.CheckNames(reader, handles, expectedNames);
 
         internal static void CheckNames(IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            var actualNames = readers.GetStrings(handles);
-            AssertEx.Equal(expectedNames, actualNames);
-        }
+            => EditAndContinueTestUtilities.CheckNames(readers, handles, expectedNames);
 
-        internal static void CheckNames(IList<MetadataReader> readers, IEnumerable<(StringHandle Namespace, StringHandle Name)> handles, params string[] expectedNames)
-        {
-            var actualNames = handles.Select(handlePair => string.Join(".", readers.GetString(handlePair.Namespace), readers.GetString(handlePair.Name))).ToArray();
-            AssertEx.Equal(expectedNames, actualNames);
-        }
+        internal static void CheckNames(IReadOnlyList<MetadataReader> readers, IEnumerable<(StringHandle Namespace, StringHandle Name)> handles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, handles, expectedNames);
 
-        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<TypeDefinitionHandle> typeHandles, params string[] expectedNames)
-            => CheckNames(readers, typeHandles, (reader, handle) => reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name, handle => handle, expectedNames);
+        public static void CheckNames(IReadOnlyList<MetadataReader> readers, ImmutableArray<TypeDefinitionHandle> typeHandles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, typeHandles, expectedNames);
 
-        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
-            => CheckNames(readers, methodHandles, (reader, handle) => reader.GetMethodDefinition((MethodDefinitionHandle)handle).Name, handle => handle, expectedNames);
-
-        private static void CheckNames<THandle>(
-            IList<MetadataReader> readers,
-            ImmutableArray<THandle> entityHandles,
-            Func<MetadataReader, Handle, StringHandle> getName,
-            Func<THandle, Handle> toHandle,
-            string[] expectedNames)
-        {
-            var aggregator = GetAggregator(readers);
-
-            AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
-            {
-                var genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), out int typeGeneration);
-                var nameHandle = getName(readers[typeGeneration], genEntityHandle);
-
-                var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
-                return readers[nameGeneration].GetString(genNameHandle);
-            }));
-        }
+        public static void CheckNames(IReadOnlyList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, methodHandles, expectedNames);
 
         public static void CheckBlobValue(IList<MetadataReader> readers, BlobHandle valueHandle, byte[] expectedValue)
         {
@@ -260,43 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public static MetadataAggregator GetAggregator(IList<MetadataReader> readers)
             => new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
-
-        internal static string EncLogRowToString(EditAndContinueLogEntry row)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(row.Handle.Kind, out tableIndex);
-
-            return string.Format(
-                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                MetadataTokens.GetRowNumber(row.Handle),
-                tableIndex,
-                row.Operation);
-        }
-
-        internal static string EncMapRowToString(EntityHandle handle)
-        {
-            TableIndex tableIndex;
-            MetadataTokens.TryGetTableIndex(handle.Kind, out tableIndex);
-
-            return string.Format(
-                "Handle({0}, TableIndex.{1})",
-                MetadataTokens.GetRowNumber(handle),
-                tableIndex);
-        }
-
-        internal static string AttributeRowToString(CustomAttributeRow row)
-        {
-            TableIndex parentTableIndex, constructorTableIndex;
-            MetadataTokens.TryGetTableIndex(row.ParentToken.Kind, out parentTableIndex);
-            MetadataTokens.TryGetTableIndex(row.ConstructorToken.Kind, out constructorTableIndex);
-
-            return string.Format(
-                "new CustomAttributeRow(Handle({0}, TableIndex.{1}), Handle({2}, TableIndex.{3}))",
-                MetadataTokens.GetRowNumber(row.ParentToken),
-                parentTableIndex,
-                MetadataTokens.GetRowNumber(row.ConstructorToken),
-                constructorTableIndex);
-        }
 
         internal static void SaveImages(string outputDirectory, CompilationVerifier baseline, params CompilationDifference[] diffs)
         {

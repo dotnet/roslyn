@@ -139,23 +139,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected static string AddInsideMethod(string text)
         {
             return
-@"class C
-{
-  void F()
-  {
-    " + text +
-@"  }
-}";
+                """
+                class C
+                {
+                  void F()
+                  {
+                """ + text +
+                """
+                  }
+                }
+                """;
         }
 
         protected static string AddUsingDirectives(string usingDirectives, string text)
         {
             return
 usingDirectives +
-@"
+"""
 
-
-" +
+""" +
 text;
         }
 

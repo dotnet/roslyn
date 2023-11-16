@@ -25,18 +25,14 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     [Export(typeof(ICommandHandler))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
-    internal class ToggleBlockCommentCommandHandler : AbstractToggleBlockCommentBase
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class ToggleBlockCommentCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        ITextStructureNavigatorSelectorService navigatorSelectorService,
+        EditorOptionsService editorOptionsService) : AbstractToggleBlockCommentBase(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ToggleBlockCommentCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ITextStructureNavigatorSelectorService navigatorSelectorService,
-            EditorOptionsService editorOptionsService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, navigatorSelectorService, editorOptionsService)
-        {
-        }
 
         /// <summary>
         /// Gets block comments by parsing the text for comment markers.

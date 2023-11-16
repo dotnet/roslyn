@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration);
-        internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract Compilation CommonCompilation { get; }
         internal abstract IModuleSymbolInternal CommonSourceModule { get; }
         internal abstract IAssemblySymbolInternal CommonCorLibrary { get; }
@@ -159,10 +158,16 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
 
+#nullable enable
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitions(EmitContext context);
 
         public IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypeDefinitionsCore(EmitContext context)
         {
+            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
+            {
+                yield return typeDef;
+            }
+
             foreach (var typeDef in GetAdditionalTopLevelTypeDefinitions(context))
             {
                 yield return typeDef;
@@ -177,7 +182,20 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 yield return typeDef;
             }
+
+            var privateImpl = GetFrozenPrivateImplementationDetails();
+            if (privateImpl != null)
+            {
+                yield return privateImpl;
+
+                foreach (var typeDef in privateImpl.GetAdditionalTopLevelTypes())
+                {
+                    yield return typeDef;
+                }
+            }
         }
+
+        public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
 
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
@@ -253,6 +271,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <returns></returns>
         public abstract IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context);
 
+#nullable disable
+
+        bool Cci.IDefinition.IsEncDeleted => false;
+
         /// <summary>
         /// Number of debug documents in the module.
         /// Used to determine capacities of lists and indices when emitting debug info.
@@ -284,13 +306,14 @@ namespace Microsoft.CodeAnalysis.Emit
             // a healthy amount of room based on compiling Roslyn.
             => (int)(_methodBodyMap.Count * 1.5);
 
-        internal Cci.IMethodBody GetMethodBody(IMethodSymbolInternal methodSymbol)
+#nullable enable
+        internal Cci.IMethodBody? GetMethodBody(IMethodSymbolInternal methodSymbol)
         {
             Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
             Debug.Assert(methodSymbol.IsDefinition);
             Debug.Assert(((IMethodSymbol)methodSymbol.GetISymbol()).PartialDefinitionPart == null); // Must be definition.
 
-            Cci.IMethodBody body;
+            Cci.IMethodBody? body;
 
             if (_methodBodyMap.TryGetValue(methodSymbol, out body))
             {
@@ -299,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return null;
         }
+#nullable disable
 
         public void SetMethodBody(IMethodSymbolInternal methodSymbol, Cci.IMethodBody body)
         {
@@ -514,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (PreviousGeneration != null)
             {
                 var symbolChanges = EncSymbolChanges!;
-                if (symbolChanges.IsReplaced(typeDef))
+                if (symbolChanges.IsReplacedDef(typeDef))
                 {
                     // Type emitted with Replace semantics in this delta, it's name should have the current generation ordinal suffix.
                     return CurrentGenerationOrdinal;
@@ -549,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TSourceModuleSymbol SourceModule;
         internal readonly TCompilation Compilation;
 
-        private PrivateImplementationDetails _privateImplementationDetails;
+        private PrivateImplementationDetails _lazyPrivateImplementationDetails;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
@@ -644,26 +668,11 @@ namespace Microsoft.CodeAnalysis.Emit
             VisitTopLevelType(typeReferenceIndexer, RootModuleType);
             yield return RootModuleType;
 
-            foreach (var typeDef in GetAnonymousTypeDefinitions(context))
-            {
-                AddTopLevelType(names, typeDef);
-                VisitTopLevelType(typeReferenceIndexer, typeDef);
-                yield return typeDef;
-            }
-
             foreach (var typeDef in GetTopLevelTypeDefinitionsCore(context))
             {
                 AddTopLevelType(names, typeDef);
                 VisitTopLevelType(typeReferenceIndexer, typeDef);
                 yield return typeDef;
-            }
-
-            var privateImpl = PrivateImplClass;
-            if (privateImpl != null)
-            {
-                AddTopLevelType(names, privateImpl);
-                VisitTopLevelType(typeReferenceIndexer, privateImpl);
-                yield return privateImpl;
             }
 
             if (EmbeddedTypesManagerOpt != null)
@@ -750,11 +759,14 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
             {
-                details.TryAddSynthesizedMethod(CreatePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics));
+                Cci.IMethodDefinition cctor = CreatePrivateImplementationDetailsStaticConstructor(syntaxOpt, diagnostics);
+                Debug.Assert(((ISynthesizedGlobalMethodSymbol)cctor.GetInternalSymbol()).ContainingPrivateImplementationDetailsType == (object)details);
+
+                details.TryAddSynthesizedMethod(cctor);
             }
         }
 
-        protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+        protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
 
         #region Synthesized Members
 
@@ -975,7 +987,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(SupportsPrivateImplClass);
             Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
@@ -986,8 +997,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(SupportsPrivateImplClass);
-
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
@@ -1022,11 +1031,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Private Implementation Details Type
 
+#nullable enable
+
         internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var result = _privateImplementationDetails;
+            var result = _lazyPrivateImplementationDetails;
 
-            if ((result == null) && this.SupportsPrivateImplClass)
+            if (result == null)
             {
                 result = new PrivateImplementationDetails(
                         this,
@@ -1040,24 +1051,28 @@ namespace Microsoft.CodeAnalysis.Emit
                         this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
-                if (Interlocked.CompareExchange(ref _privateImplementationDetails, result, null) != null)
+                if (Interlocked.CompareExchange(ref _lazyPrivateImplementationDetails, result, null) != null)
                 {
-                    result = _privateImplementationDetails;
+                    result = _lazyPrivateImplementationDetails;
                 }
             }
 
             return result;
         }
 
-        internal PrivateImplementationDetails PrivateImplClass
+        public PrivateImplementationDetails? FreezePrivateImplementationDetails()
         {
-            get { return _privateImplementationDetails; }
+            _lazyPrivateImplementationDetails?.Freeze();
+            return _lazyPrivateImplementationDetails;
         }
 
-        internal override bool SupportsPrivateImplClass
+        public override PrivateImplementationDetails? GetFrozenPrivateImplementationDetails()
         {
-            get { return true; }
+            Debug.Assert(_lazyPrivateImplementationDetails?.IsFrozen != false);
+            return _lazyPrivateImplementationDetails;
         }
+
+#nullable disable
 
         #endregion
 

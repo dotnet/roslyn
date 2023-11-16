@@ -21,6 +21,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
@@ -248,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 // Keep track of the exact reference count
                 if (referenceLocationDescriptors.HasValue)
                 {
-                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, isCapped: false, version: referenceLocationDescriptors.Value.projectVersion);
+                    var newCount = new ReferenceCount(referenceLocationDescriptors.Value.references.Length, IsCapped: false, Version: referenceLocationDescriptors.Value.projectVersion);
                     if (newCount != _calculatedReferenceCount)
                     {
                         _calculatedReferenceCount = newCount;

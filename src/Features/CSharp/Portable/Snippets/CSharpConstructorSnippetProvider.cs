@@ -40,24 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     cancellationToken: cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the start of the BlockSyntax of the constructor declaration
-        /// to be able to insert the caret position at that location.
-        /// </summary>
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            var constructorDeclaration = (ConstructorDeclarationSyntax)caretTarget;
-            var blockStatement = constructorDeclaration.Body;
-
-            var triviaSpan = blockStatement!.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ConstructorDeclarationSyntax>(
+                caretTarget,
+                static d => d.Body!,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static d => d.Body!,

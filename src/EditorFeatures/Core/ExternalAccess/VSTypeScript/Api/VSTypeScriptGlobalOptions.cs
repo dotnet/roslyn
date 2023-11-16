@@ -12,16 +12,11 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     [Export(typeof(VSTypeScriptGlobalOptions)), Shared]
-    internal sealed class VSTypeScriptGlobalOptions
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool BlockForCompletionItems
         {

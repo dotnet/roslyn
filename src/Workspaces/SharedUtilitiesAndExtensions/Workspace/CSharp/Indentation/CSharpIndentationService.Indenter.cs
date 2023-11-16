@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // case 3: $@"Comment$$ in-between{0}"
             // case 4: $@"{0}$$"
             if (token.IsVerbatimStringLiteral() ||
-                token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
+                token.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken or SyntaxKind.InterpolatedStringTextToken ||
                 (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation)))
             {
                 return indenter.IndentFromStartOfLine(0);

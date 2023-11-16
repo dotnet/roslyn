@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         /// <see cref="AnalyzeSemanticModel"/>.</returns>
         protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
         protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree);
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
         {
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </description></item>
             /// </list>
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals
                 = new();
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
-                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), new TextSpanIntervalTree()));
                 if (completed.Value)
                     return;
 
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     context.ReportDiagnostic(diagnostic);
                 }
 
-                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> intervalTree)
+                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, TextSpanIntervalTree intervalTree)
                 {
                     lock (completed)
                     {

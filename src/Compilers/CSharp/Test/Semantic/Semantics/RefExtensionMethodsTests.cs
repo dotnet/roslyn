@@ -72,9 +72,9 @@ public static class Program
             CompileAndVerify(code, expectedOutput: "1");
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
-        public void ExtensionMethods_StructCollectionInitializerInParam()
+        public void ExtensionMethods_StructCollectionInitializerInParam([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public struct MyStruct : System.Collections.IEnumerable
@@ -85,7 +85,7 @@ public struct MyStruct : System.Collections.IEnumerable
 
 public static class MyStructExtension
 {
-    public static void Add(ref this MyStruct s, in MyStruct other)
+    public static void Add(ref this MyStruct s, " + modifier + @" MyStruct other)
     {
         s.i += other.i;
     }
@@ -117,7 +117,7 @@ public static class Program
   IL_0014:  initobj    ""MyStruct""
   IL_001a:  ldloca.s   V_1
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_001e:  call       ""void MyStructExtension.Add(ref MyStruct, " + modifier + @" MyStruct)""
   IL_0023:  ldloc.1
   IL_0024:  ldfld      ""int MyStruct.i""
   IL_0029:  call       ""void System.Console.Write(int)""
@@ -125,9 +125,9 @@ public static class Program
 }");
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(25862, "https://github.com/dotnet/roslyn/issues/25862")]
-        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg()
+        public void ExtensionMethods_StructCollectionInitializerInParamImplicitTempArg([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public struct MyStruct : System.Collections.IEnumerable
@@ -138,7 +138,7 @@ public struct MyStruct : System.Collections.IEnumerable
 
 public static class MyStructExtension
 {
-    public static void Add(ref this MyStruct s, in MyStruct other)
+    public static void Add(ref this MyStruct s, " + modifier + @" MyStruct other)
     {
         s.i += other.i;
     }
@@ -167,7 +167,7 @@ public static class Program
   IL_0014:  ldc.i4.2
   IL_0015:  stfld      ""int MyStruct.i""
   IL_001a:  ldloca.s   V_1
-  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, in MyStruct)""
+  IL_001c:  call       ""void MyStructExtension.Add(ref MyStruct, " + modifier + @" MyStruct)""
   IL_0021:  ldloc.0
   IL_0022:  ldfld      ""int MyStruct.i""
   IL_0027:  call       ""void System.Console.Write(int)""
@@ -903,13 +903,13 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Extensions
 {
-    public static void PrintValue(in this int p)
+    public static void PrintValue(" + modifier + @" this int p)
     {
         System.Console.Write(p);
     }
@@ -941,13 +941,13 @@ public static class Program2
             CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(in this string p)
+    public static void PrintValue(" + modifier + @" this string p)
     {
         System.Console.WriteLine(p);
     }
@@ -958,12 +958,12 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this string p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -977,7 +977,7 @@ public static class Program2
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -985,13 +985,13 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(in this System.IComparable p)
+    public static void PrintValue(" + modifier + @" this System.IComparable p)
     {
         System.Console.WriteLine(p);
     }
@@ -1002,12 +1002,12 @@ public static class Program
     {
         System.IComparable x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -1021,7 +1021,7 @@ public static class Program2
     {
         System.IComparable x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -1029,13 +1029,13 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(in this T p)
+    public static void PrintValue<T>(" + modifier + @" this T p)
     {
         System.Console.WriteLine(p);
     }
@@ -1046,12 +1046,12 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1065,7 +1065,7 @@ public static class Program2
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1073,13 +1073,13 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(in this T p) where T : struct
+    public static void PrintValue<T>(" + modifier + @" this T p) where T : struct
     {
         System.Console.WriteLine(p);
     }
@@ -1090,12 +1090,12 @@ public static class Program
     {
         int x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -1109,7 +1109,7 @@ public static class Program2
     {
         int x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -1117,13 +1117,13 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("int", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(in this T p) where T : class
+    public static void PrintValue<T>(" + modifier + @" this T p) where T : class
     {
         System.Console.WriteLine(p);
     }
@@ -1134,12 +1134,12 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : class
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1153,7 +1153,7 @@ public static class Program2
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1161,13 +1161,13 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed([CombinatorialValues("in", "ref readonly")] string modifier)
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(in this T p) where T : System.IComparable
+    public static void PrintValue<T>(" + modifier + @" this T p) where T : System.IComparable
     {
         System.Console.WriteLine(p);
     }
@@ -1178,12 +1178,12 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1197,7 +1197,7 @@ public static class Program2
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (modifier == "ref readonly" ? "in " : "") + @"x);
     }
 }", references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1205,8 +1205,8 @@ public static class Program2
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1216,7 +1216,7 @@ public static class Program2
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1241,8 +1241,8 @@ public static class Program
             CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1252,7 +1252,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1270,7 +1270,7 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -1280,8 +1280,8 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1291,7 +1291,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1309,7 +1309,7 @@ public static class Program
     {
         System.IComparable x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -1319,8 +1319,8 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1330,7 +1330,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1348,7 +1348,7 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -1358,8 +1358,8 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1369,7 +1369,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1387,7 +1387,7 @@ public static class Program
     {
         int x = 5;
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -1397,8 +1397,8 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("int", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1408,7 +1408,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1426,7 +1426,7 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -1436,8 +1436,8 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
-        [Fact]
-        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
+        [Theory, CombinatorialData]
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL([CombinatorialValues("IsReadOnlyAttribute", "RequiresLocationAttribute")] string attributeName)
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1447,7 +1447,7 @@ public static class Program
   {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
     .param [1]
-    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void System.Runtime.CompilerServices." + attributeName + @"::.ctor() = ( 01 00 00 00 )
     .maxstack  8
     IL_0000:  nop
     IL_0001:  ldarg.0
@@ -1465,7 +1465,7 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
-        Extensions.PrintValue(x);
+        Extensions.PrintValue(" + (attributeName == "RequiresLocationAttribute" ? "in " : "") + @"x);
     }
 }";
 
@@ -2473,6 +2473,15 @@ public static class Program
     IL_0006:  nop
     IL_0007:  ret
   }
-}";
+}
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+  {
+    .maxstack 8
+    ret
+  }
+}
+";
     }
 }

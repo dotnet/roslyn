@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object?)target != null && Locations.Length > 0)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
             }
         }

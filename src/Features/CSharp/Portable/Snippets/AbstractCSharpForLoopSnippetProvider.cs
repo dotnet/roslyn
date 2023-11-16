@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSnippetProvider
     {
-        private static readonly string[] s_iteratorBaseNames = new[] { "i", "j", "k" };
+        private static readonly string[] s_iteratorBaseNames = ["i", "j", "k"];
 
         protected abstract SyntaxKind ConditionKind { get; }
 
@@ -107,18 +107,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
         {
-            GetPartsOfForStatement(caretTarget, out _, out _, out _, out var statement);
-            var blockStatement = (BlockSyntax)statement!;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,

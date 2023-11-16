@@ -12033,9 +12033,9 @@ namespace Test
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("?[,,]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -12068,9 +12068,9 @@ namespace Test
 
             Assert.Equal("?[,,]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal("?[,,]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -12104,8 +12104,8 @@ public class C
 
             Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
-            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("?[]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);

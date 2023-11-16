@@ -312,11 +312,6 @@
         <target state="translated">未使用のローカル</target>
         <note />
       </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">VB コーディング規約</target>
-        <note />
-      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' のチェック中:</target>

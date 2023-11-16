@@ -2221,7 +2221,7 @@ outerDefault:
             static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
                 => refKind switch
                 {
-                    RefKind.In => true,
+                    RefKind.In or RefKind.RefReadOnlyParameter => true,
                     RefKind.Ref when isInterpolatedStringHandlerConversion => true,
                     _ => false
                 };
@@ -2535,9 +2535,88 @@ outerDefault:
             if (!conv2.IsConditionalExpression && conv1.IsConditionalExpression)
                 return BetterResult.Right;
 
+            // - E is a collection expression and one of the following holds: ...
+            if (conv1.Kind == ConversionKind.CollectionExpression &&
+                conv2.Kind == ConversionKind.CollectionExpression)
+            {
+                if (IsBetterCollectionExpressionConversion(t1, conv1, t2, conv2, ref useSiteInfo))
+                {
+                    return BetterResult.Left;
+                }
+                if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
+                {
+                    return BetterResult.Right;
+                }
+                return BetterResult.Neither;
+            }
+
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
+        }
+
+        // Implements the rules for
+        // - E is a collection expression and one of the following holds: ...
+        private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            TypeSymbol elementType1;
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1);
+            TypeSymbol elementType2;
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2);
+
+            // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
+            if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
+                kind2 is CollectionExpressionTypeKind.Span &&
+                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            // - T1 is System.ReadOnlySpan<E1> or System.Span<E1>, and T2 is an array_or_array_interface_or_string_type
+            //    with iteration type E2, and an implicit conversion exists from E1 to E2
+            if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span &&
+                IsSZArrayOrArrayInterfaceOrString(t2, out elementType2) &&
+                hasImplicitConversion(elementType1, elementType2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            // - T1 is not a span_type, and T2 is not a span_type, and an implicit conversion exists from T1 to T2
+            if (kind1 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
+                kind2 is not (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) &&
+                hasImplicitConversion(t1, t2, ref useSiteInfo))
+            {
+                return true;
+            }
+
+            return false;
+
+            bool hasImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) =>
+                Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
+        }
+
+        private bool IsSZArrayOrArrayInterfaceOrString(TypeSymbol type, out TypeSymbol elementType)
+        {
+            if (type.SpecialType == SpecialType.System_String)
+            {
+                elementType = Compilation.GetSpecialType(SpecialType.System_Char);
+                return true;
+            }
+
+            if (type is ArrayTypeSymbol { IsSZArray: true } arrayType)
+            {
+                elementType = arrayType.ElementType;
+                return true;
+            }
+
+            if (type.IsArrayInterface(out TypeWithAnnotations typeArg))
+            {
+                elementType = typeArg.Type;
+                return true;
+            }
+
+            elementType = null;
+            return false;
         }
 
         private bool ExpressionMatchExactly(BoundExpression node, TypeSymbol t, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -3219,9 +3298,31 @@ outerDefault:
 
             // 'None' argument is allowed to match 'In' parameter and should behave like 'None' for the purpose of overload resolution
             // unless this is a method group conversion where 'In' must match 'In'
-            if (!isMethodGroupConversion && argRefKind == RefKind.None && paramRefKind == RefKind.In)
+            // There are even more relaxations with 'ref readonly' parameters feature:
+            // - 'ref' argument is allowed to match 'in' parameter,
+            // - 'ref', 'in', none argument is allowed to match 'ref readonly' parameter.
+            if (!isMethodGroupConversion)
             {
-                return RefKind.None;
+                if (paramRefKind == RefKind.In)
+                {
+                    if (argRefKind == RefKind.None)
+                    {
+                        return RefKind.None;
+                    }
+
+                    if (argRefKind == RefKind.Ref && binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+                    {
+                        return RefKind.Ref;
+                    }
+                }
+                else if (paramRefKind == RefKind.RefReadOnlyParameter && argRefKind is RefKind.None or RefKind.Ref or RefKind.In)
+                {
+                    return argRefKind;
+                }
+            }
+            else if (AreRefsCompatibleForMethodConversion(paramRefKind, argRefKind, binder.Compilation))
+            {
+                return argRefKind;
             }
 
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
@@ -3234,6 +3335,30 @@ outerDefault:
             }
 
             return paramRefKind;
+        }
+
+        // In method group conversions, 'in' is allowed to match 'ref' and 'ref readonly' is allowed to match 'ref' or 'in'.
+        internal static bool AreRefsCompatibleForMethodConversion(RefKind x, RefKind y, CSharpCompilation compilation)
+        {
+            Debug.Assert(compilation is not null);
+
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x == RefKind.RefReadOnlyParameter)
+            {
+                return y is RefKind.Ref or RefKind.In;
+            }
+
+            if (y == RefKind.RefReadOnlyParameter)
+            {
+                return x is RefKind.Ref or RefKind.In;
+            }
+
+            return (x, y) is (RefKind.In, RefKind.Ref) or (RefKind.Ref, RefKind.In) &&
+                compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters);
         }
 
         private EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(
@@ -3609,13 +3734,14 @@ outerDefault:
 
             if (arguments.IsExtensionMethodInvocation)
             {
-                var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                var canInfer = MethodTypeInferrer.CanInferTypeArgumentsFromFirstArgument(
                     _binder.Compilation,
                     _binder.Conversions,
                     method,
                     args,
-                    useSiteInfo: ref useSiteInfo);
-                if (inferredFromFirstArgument.IsDefault)
+                    useSiteInfo: ref useSiteInfo,
+                    out _);
+                if (!canInfer)
                 {
                     hasTypeArgumentsInferredFromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
@@ -3665,7 +3791,7 @@ outerDefault:
             // * for a ref or out parameter, the type of the argument is identical to the type of the corresponding 
             //   parameter. After all, a ref or out parameter is an alias for the argument passed.
             ArrayBuilder<Conversion> conversions = null;
-            ArrayBuilder<int> badArguments = null;
+            BitVector badArguments = default;
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
@@ -3680,8 +3806,12 @@ outerDefault:
                     }
                     else
                     {
-                        badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                         conversion = Conversion.NoConversion;
                     }
                 }
@@ -3704,7 +3834,10 @@ outerDefault:
                     }
 
                     bool hasInterpolatedStringRefMismatch = false;
-                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
+                    // We don't consider when we're in default parameter values or attribute arguments to avoid cycles. This is an error scenario,
+                    // so we don't care if we accidentally miss a parameter being applicable.
+                    if (!_binder.InParameterDefaultValue && !_binder.InAttributeArgument
+                        && argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
                         && parameterRefKind == RefKind.Ref
                         && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
                     {
@@ -3734,15 +3867,19 @@ outerDefault:
                         // lambda binding in particular, for instance, with LINQ expressions.
                         // Note that BuildArgumentsForErrorRecovery will still bind some number
                         // of overloads for the semantic model.
-                        Debug.Assert(badArguments == null);
+                        Debug.Assert(badArguments.IsNull);
                         Debug.Assert(conversions == null);
-                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, ImmutableArray.Create(argumentPosition), ImmutableArray.Create(conversion));
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion));
                     }
 
                     if (!conversion.Exists)
                     {
-                        badArguments ??= ArrayBuilder<int>.GetInstance();
-                        badArguments.Add(argumentPosition);
+                        if (badArguments.IsNull)
+                        {
+                            badArguments = BitVector.Create(argumentPosition + 1);
+                        }
+
+                        badArguments[argumentPosition] = true;
                     }
                 }
 
@@ -3757,7 +3894,7 @@ outerDefault:
                     conversions.Add(conversion);
                 }
 
-                if (badArguments != null && !completeResults)
+                if (!badArguments.IsNull && !completeResults)
                 {
                     break;
                 }
@@ -3765,9 +3902,9 @@ outerDefault:
 
             MemberAnalysisResult result;
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
-            if (badArguments != null)
+            if (!badArguments.IsNull)
             {
-                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments.ToImmutableAndFree(), conversionsArray);
+                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray);
             }
             else
             {

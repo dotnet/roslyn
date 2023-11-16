@@ -312,11 +312,6 @@
         <target state="translated">사용하지 않는 로컬</target>
         <note />
       </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">VB 코딩 규칙</target>
-        <note />
-      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' 검사:</target>

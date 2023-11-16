@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedInlineArrayFirstElementRefMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedInlineArrayFirstElementRefMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, string synthesizedMethodName)
-            : base(containingModule, privateImplType, synthesizedMethodName)
+        internal SynthesizedInlineArrayFirstElementRefMethod(SynthesizedPrivateImplementationDetailsType privateImplType, string synthesizedMethodName)
+            : base(privateImplType, synthesizedMethodName)
         {
             this.SetTypeParameters(ImmutableArray.Create<TypeParameterSymbol>(new SynthesizedSimpleMethodTypeParameterSymbol(this, 0, "TBuffer"), new SynthesizedSimpleMethodTypeParameterSymbol(this, 1, "TElement")));
             this.SetReturnType(TypeParameters[1]);

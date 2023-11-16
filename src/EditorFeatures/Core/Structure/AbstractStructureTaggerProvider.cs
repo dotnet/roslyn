@@ -174,7 +174,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
                 TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
+                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(

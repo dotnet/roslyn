@@ -855,7 +855,7 @@ class AnonymousFunctions
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
                 Dim projectDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId:=Nothing,
                                                                                            diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing, includeSuppressedDiagnostics:=False,
-                                                                                           includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
+                                                                                           includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Count())
 
                 Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId Is Nothing)
@@ -2204,6 +2204,7 @@ class MyClass
                 ' Get cached project diagnostics.
                 Dim diagnostics = Await diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id, documentId:=Nothing,
                                                                                     includeSuppressedDiagnostics:=False,
+                                                                                    includeLocalDocumentDiagnostics:=True,
                                                                                     includeNonLocalDocumentDiagnostics:=True,
                                                                                     CancellationToken.None)
 
@@ -2531,11 +2532,7 @@ class MyClass
                 _category = category
             End Sub
 
-            Public ReadOnly Property RequestPriority As CodeActionRequestPriority Implements IBuiltInAnalyzer.RequestPriority
-                Get
-                    Return CodeActionRequestPriority.Normal
-                End Get
-            End Property
+            Public ReadOnly Property IsHighPriority As Boolean Implements IBuiltInAnalyzer.IsHighPriority
 
             Public Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory Implements IBuiltInAnalyzer.GetAnalyzerCategory
                 Return _category

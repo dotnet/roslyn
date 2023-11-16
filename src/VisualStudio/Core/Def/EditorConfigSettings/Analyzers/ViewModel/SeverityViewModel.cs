@@ -10,13 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 {
     internal class SeverityViewModel
     {
-        private static readonly string[] s_severities = new[]
-        {
+        private static readonly string[] s_severities =
+        [
             ServicesVSResources.Disabled,
+            ServicesVSResources.Refactoring_Only,
             ServicesVSResources.Suggestion,
             ServicesVSResources.Warning,
             ServicesVSResources.Error
-        };
+        ];
 
         private readonly int _selectedSeverityIndex;
 
@@ -47,10 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         {
             _selectedSeverityIndex = setting.Severity switch
             {
-                DiagnosticSeverity.Hidden => 0,
-                DiagnosticSeverity.Info => 1,
-                DiagnosticSeverity.Warning => 2,
-                DiagnosticSeverity.Error => 3,
+                ReportDiagnostic.Suppress => 0,
+                ReportDiagnostic.Hidden => 1,
+                ReportDiagnostic.Info => 2,
+                ReportDiagnostic.Warn => 3,
+                ReportDiagnostic.Error => 4,
                 _ => throw new InvalidOperationException(),
             };
 
@@ -67,10 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         {
             var severity = selectedIndex switch
             {
-                0 => DiagnosticSeverity.Hidden,
-                1 => DiagnosticSeverity.Info,
-                2 => DiagnosticSeverity.Warning,
-                3 => DiagnosticSeverity.Error,
+                0 => ReportDiagnostic.Suppress,
+                1 => ReportDiagnostic.Hidden,
+                2 => ReportDiagnostic.Info,
+                3 => ReportDiagnostic.Warn,
+                4 => ReportDiagnostic.Error,
                 _ => throw new InvalidOperationException(),
             };
 

@@ -203,17 +203,19 @@ namespace N6;
         <Document>
 namespace N1
 {
-}</Document>
+}        </Document>
         <Document>
 namespace N2
 {
     class C { }
-}</Document>
+
+}        </Document>
         <Document>
 namespace N3.N4
 {
     class C2 { }
-}</Document>
+
+}        </Document>
         <Document>
 namespace N5
 {
@@ -266,17 +268,19 @@ namespace N6;
         <Document>
 namespace N1
 {
-}</Document>
+}        </Document>
         <Document>
 namespace N2
 {
     class C { }
-}</Document>
+
+}        </Document>
         <Document>
 namespace N3.N4
 {
     class C2 { }
-}</Document>
+
+}        </Document>
         <Document>
 namespace N5
 {
@@ -287,7 +291,7 @@ namespace N5
         <Document>
 namespace N6
 {
-}</Document>
+}        </Document>
     </Project>
 </Workspace>
 ", new TestParameters(options: PreferFileScopedNamespace));

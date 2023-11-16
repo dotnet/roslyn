@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -266,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 foreach (var node in typeChain)
                 {
-                    var symbol = (ITypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    var symbol = (INamedTypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
                     Contract.ThrowIfNull(symbol);
                     if (!semanticFacts.IsPartial(symbol, CancellationToken))
                     {

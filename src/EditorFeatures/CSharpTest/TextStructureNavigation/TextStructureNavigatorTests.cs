@@ -55,9 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         public void NewLine()
         {
             AssertExtent(
-                "class Class1 {$${|Insignificant:\r\n|}\r\n}");
+                """
+                class Class1 {$${|Insignificant:
+                |}
+                }
+                """);
             AssertExtent(
-                "class Class1 {\r\n$${|Insignificant:\r\n|}}");
+                """
+                class Class1 {
+                $${|Insignificant:
+                |}}
+                """);
         }
 
         [WpfFact]
@@ -310,135 +318,169 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         public void TestRawStringContent()
         {
             AssertExtent(
-                @"string s = """"""
-    Hello
-        {|Significant:$$World|}!
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        {|Significant:$$World|}!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        {|Significant:W$$orld|}!
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        {|Significant:W$$orld|}!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        {|Significant:Wo$$rld|}!
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        {|Significant:Wo$$rld|}!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        {|Significant:Wor$$ld|}!
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        {|Significant:Wor$$ld|}!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        {|Significant:Worl$$d|}!
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        {|Significant:Worl$$d|}!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World{|Significant:$$!|}
-    :)
-    """""";");
+                """"
+                string s = """
+                    Hello
+                        World{|Significant:$$!|}
+                    :)
+                    """;
+                """");
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter1()
         {
             AssertExtent(
-                @"string s = {|Significant:$$""""""|}
-    Hello
-        World!
-    :)
-    """""";");
+                """"
+                string s = {|Significant:$$"""|}
+                    Hello
+                        World!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = {|Significant:""$$""""|}
-    Hello
-        World!
-    :)
-    """""";");
+                """"
+                string s = {|Significant:"$$""|}
+                    Hello
+                        World!
+                    :)
+                    """;
+                """");
 
             AssertExtent(
-                @"string s = {|Significant:""""$$""|}
-    Hello
-        World!
-    :)
-    """""";");
+                """"
+                string s = {|Significant:""$$"|}
+                    Hello
+                        World!
+                    :)
+                    """;
+                """");
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59581")]
         public void TestRawStringDelimeter2()
         {
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:$$""""""|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:$$"""|};
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""$$""""|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:"$$""|};
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""""$$""|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:""$$"|};
+                """");
         }
 
         [WpfFact]
         public void TestUtf8RawStringDelimeter()
         {
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:$$""""""u8|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:$$"""u8|};
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""$$""""u8|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:"$$""u8|};
+                """");
 
             AssertExtent(
-                @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""""$$""u8|};");
+                """"
+                string s = """
+                    Hello
+                        World!
+                    :)
+                    {|Significant:""$$"u8|};
+                """");
 
             AssertExtent(
-    @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""""""$$u8|};");
+    """"
+    string s = """
+        Hello
+            World!
+        :)
+        {|Significant:"""$$u8|};
+    """");
 
             AssertExtent(
-    @"string s = """"""
-    Hello
-        World!
-    :)
-    {|Significant:""""""u$$8|};");
+    """"
+    string s = """
+        Hello
+            World!
+        :)
+        {|Significant:"""u$$8|};
+    """");
         }
 
         private static void TestNavigator(
@@ -496,15 +538,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             // Go from 'class Class1 { }' to 'class'
             TestNavigator(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfFirstChild(s), 0, 16, 0, 5);
+                """
+                class Class1
+                {
+                }
+                """, (n, s) => n.GetSpanOfFirstChild(s), 0, 16, 0, 5);
 
             // Next operation should do nothing as we're at the bottom
             TestNavigator(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
+                """
+                class Class1
+                {
+                }
+                """, (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
         }
 
         [WpfFact]
@@ -512,9 +558,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         {
             // Go from 'class' to 'Class1'
             TestNavigator(
-@"class Class1
-{
-}", (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
+                """
+                class Class1
+                {
+                }
+                """, (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
         }
 
         [WpfFact]

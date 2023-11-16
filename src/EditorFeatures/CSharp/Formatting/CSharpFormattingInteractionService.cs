@@ -23,19 +23,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpFormattingInteractionService : IFormattingInteractionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class CSharpFormattingInteractionService(EditorOptionsService editorOptionsService) : IFormattingInteractionService
     {
         // All the characters that might potentially trigger formatting when typed
         private static readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
-        private readonly EditorOptionsService _editorOptionsService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFormattingInteractionService(EditorOptionsService editorOptionsService)
-        {
-            _editorOptionsService = editorOptionsService;
-        }
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public bool SupportsFormatDocument => true;
         public bool SupportsFormatOnPaste => true;

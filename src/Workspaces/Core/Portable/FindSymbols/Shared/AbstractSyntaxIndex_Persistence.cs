@@ -14,10 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
+    internal partial class AbstractSyntaxIndex<TIndex>
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("37");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("38");
 
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
@@ -179,8 +179,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return false;
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public abstract void WriteTo(ObjectWriter writer);
     }

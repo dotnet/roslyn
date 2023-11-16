@@ -16,14 +16,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
+        private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.Regular9, targetFramework: targetFramework ?? TargetFramework.Standard);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions, targetFramework: targetFramework ?? TargetFramework.Standard);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
         {
             return CompileAndVerify(compilation, verify: Verification.Skipped, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void LangVersion()
+        {
+            var src = """
+                #pragma warning disable 169 // Unused field
+                unsafe class C
+                {
+                    delegate*<void> f;
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     delegate*<void> f;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(4, 5)
+            );
+
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -34,9 +56,9 @@ using s = delegate*<void>;";
 
             var comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (2,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,11): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("using type alias").WithLocation(2, 11),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "delegate*<void>").WithArguments("using type alias", "12.0").WithLocation(2, 11),
                 // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "s").WithArguments("s").WithLocation(2, 7),
@@ -44,7 +66,7 @@ using s = delegate*<void>;";
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = delegate*<void>;").WithLocation(2, 1));
 
-            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using s = delegate*<void>;
@@ -66,14 +88,14 @@ using unsafe S = delegate*<void>;";
             var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
 
             comp.VerifyDiagnostics(
-                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // using unsafe S = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe S = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = delegate*<void>;").WithLocation(2, 1));
 
-            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -100,7 +122,7 @@ using S = System.Collections.Generic.List<delegate*<void>[]>;";
                 // using S = System.Collections.Generic.List<delegate*<void>[]>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
 
-            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithFunctionPointers(src, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using S = System.Collections.Generic.List<delegate*<void>[]>;
@@ -116,11 +138,11 @@ using S = System.Collections.Generic.List<delegate*<void>[]>;";
             var src = @"
 using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;";
 
-            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithFunctionPointers(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,7): error CS9058: Feature 'using type alias' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("using type alias").WithLocation(2, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "unsafe").WithArguments("using type alias", "12.0").WithLocation(2, 7),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using unsafe S = System.Collections.Generic.List<delegate*<void>[]>;").WithLocation(2, 1));
@@ -2796,13 +2818,12 @@ unsafe
                 // (5,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test2(0, v => 0);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(5, 5),
-                // (6,38): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                // (6,40): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
                 //     Test1<string, int>(string.Empty, v => 0);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(6, 38),
-                // (7,27): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(6, 40),
+                // (7,29): error CS1660: Cannot convert lambda expression to type 'delegate*<string, int>' because it is not a delegate type
                 //     Test2<string, int>(0, v => 0);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "v => 0").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(7, 27)
-            );
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "delegate*<string, int>").WithLocation(7, 29));
         }
 
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]

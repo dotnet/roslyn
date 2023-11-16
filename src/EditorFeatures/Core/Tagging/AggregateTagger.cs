@@ -5,27 +5,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-/// <summary>
-/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
-/// a single event source and source of tags.
-/// </summary>
-internal sealed class AggregateTagger<TTag> : ITagger<TTag>, IDisposable
+internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
     where TTag : ITag
 {
-    private readonly ImmutableArray<ITagger<TTag>> _taggers;
+    protected readonly ImmutableArray<ITagger<TTag>> Taggers = taggers;
 
-    public AggregateTagger(ImmutableArray<ITagger<TTag>> taggers)
-        => _taggers = taggers;
+    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
+    public abstract SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
 
     public void Dispose()
     {
-        foreach (var tagger in _taggers)
+        foreach (var tagger in this.Taggers)
             (tagger as IDisposable)?.Dispose();
     }
 
@@ -33,24 +31,33 @@ internal sealed class AggregateTagger<TTag> : ITagger<TTag>, IDisposable
     {
         add
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged += value;
         }
 
         remove
         {
-            foreach (var tagger in _taggers)
+            foreach (var tagger in this.Taggers)
                 tagger.TagsChanged -= value;
         }
     }
+}
 
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+/// <summary>
+/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
+/// a single event source and source of tags.
+/// </summary>
+internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers)
+    : AbstractAggregateTagger<TTag>(taggers)
+    where TTag : ITag
+{
+    public override SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
-        using var _ = ArrayBuilder<ITagSpan<TTag>>.GetInstance(out var result);
+        var result = new SegmentedList<ITagSpan<TTag>>();
 
-        foreach (var tagger in _taggers)
+        foreach (var tagger in this.Taggers)
             result.AddRange(tagger.GetTags(spans));
 
-        return result.ToImmutable();
+        return result;
     }
 }

@@ -28,5 +28,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
+<<<<<<< HEAD
+=======
+
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get { return null; }
+        }
+
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        internal override bool IsNullableAnalysisEnabled() => false;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+>>>>>>> dotnet/main
     }
 }

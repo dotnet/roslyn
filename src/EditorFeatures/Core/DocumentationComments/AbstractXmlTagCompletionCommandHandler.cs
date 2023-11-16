@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -33,6 +32,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         where TXmlElementEndTagSyntax : SyntaxNode
         where TDocumentationCommentTriviaSyntax : SyntaxNode
     {
+        private readonly ITextUndoHistoryRegistry _undoHistory = undoHistory;
+
         public string DisplayName => EditorFeaturesResources.XML_End_Tag_Completion;
 
         protected abstract TXmlElementStartTagSyntax GetStartTag(TXmlElementSyntax xmlElement);
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         protected void InsertTextAndMoveCaret(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint position, string insertionText, int? finalCaretPosition)
         {
-            using var transaction = undoHistory.GetHistory(textView.TextBuffer).CreateTransaction("XmlTagCompletion");
+            using var transaction = _undoHistory.GetHistory(textView.TextBuffer).CreateTransaction("XmlTagCompletion");
 
             subjectBuffer.Insert(position, insertionText);
 

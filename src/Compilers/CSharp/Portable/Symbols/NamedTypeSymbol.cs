@@ -162,10 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
 #nullable enable
         /// <summary>
@@ -364,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                            (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
@@ -1161,6 +1158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
         /// </summary>
@@ -1620,6 +1619,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal abstract bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+#nullable disable
+
         /// <summary>
         /// Requires less computation than <see cref="TypeSymbol.TypeKind"/> == <see cref="TypeKind.Interface"/>.
         /// </summary>
@@ -1708,6 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
+<<<<<<< HEAD
         {
             get
             {
@@ -1755,5 +1759,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+=======
+            => EnumUnderlyingType;
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers()
+            => GetMembers().CastArray<ISymbolInternal>();
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers(string name)
+            => GetMembers(name).CastArray<ISymbolInternal>();
+
+>>>>>>> dotnet/main
     }
 }

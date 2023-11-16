@@ -7,32 +7,21 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal class VSTypescriptNavigationBarItem
+    internal class VSTypescriptNavigationBarItem(
+        string text,
+        VSTypeScriptGlyph glyph,
+        ImmutableArray<TextSpan> spans,
+        ImmutableArray<VSTypescriptNavigationBarItem> childItems = default,
+        int indent = 0,
+        bool bolded = false,
+        bool grayed = false)
     {
-        public string Text { get; }
-        public VSTypeScriptGlyph Glyph { get; }
-        public bool Bolded { get; }
-        public bool Grayed { get; }
-        public int Indent { get; }
-        public ImmutableArray<VSTypescriptNavigationBarItem> ChildItems { get; }
-        public ImmutableArray<TextSpan> Spans { get; }
-
-        public VSTypescriptNavigationBarItem(
-            string text,
-            VSTypeScriptGlyph glyph,
-            ImmutableArray<TextSpan> spans,
-            ImmutableArray<VSTypescriptNavigationBarItem> childItems = default,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-        {
-            this.Text = text;
-            this.Glyph = glyph;
-            this.Spans = spans.NullToEmpty();
-            this.ChildItems = childItems.NullToEmpty();
-            this.Indent = indent;
-            this.Bolded = bolded;
-            this.Grayed = grayed;
-        }
+        public string Text { get; } = text;
+        public VSTypeScriptGlyph Glyph { get; } = glyph;
+        public bool Bolded { get; } = bolded;
+        public bool Grayed { get; } = grayed;
+        public int Indent { get; } = indent;
+        public ImmutableArray<VSTypescriptNavigationBarItem> ChildItems { get; } = childItems.NullToEmpty();
+        public ImmutableArray<TextSpan> Spans { get; } = spans.NullToEmpty();
     }
 }
