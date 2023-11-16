@@ -154,14 +154,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return;
         }
 
+        // Called concurrently.  Make sure we write to this dictionary safely.
         lock (methodToDiagnostic)
         {
             methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
-            Descriptor,
-            location,
-            severity,
-            additionalLocations: ImmutableArray.Create(additionalLocation),
-            properties: null);
+                Descriptor,
+                location,
+                severity,
+                additionalLocations: ImmutableArray.Create(additionalLocation),
+                properties: null);
         }
     }
 
