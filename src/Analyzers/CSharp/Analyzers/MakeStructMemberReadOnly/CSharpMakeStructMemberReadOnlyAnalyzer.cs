@@ -108,33 +108,22 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 foreach (var group in methodToDiagnostic.GroupBy(kvp => kvp.Key.AssociatedSymbol as IPropertySymbol))
                 {
                     var owningProperty = group.Key;
-                    if (owningProperty is not null)
+
+                    foreach (var (method, diagnostic) in group)
                     {
-
-
-                        var initMethod = group.FirstOrDefault(kvp => kvp.Key.IsInitOnly).Key;
-                        if (initMethod != null)
+                        if (owningProperty != null && method.IsInitOnly)
                         {
                             var getMethodIsReadOnly =
                                 owningProperty.GetMethod is null ||
                                 owningProperty.GetMethod.IsReadOnly ||
                                 group.Contains(kvp => owningProperty.GetMethod.Equals(kvp.Key));
 
-                            if (getMethodIsReadOnly)
-                            {
-                                context.ReportDiagnostic(DiagnosticHelper.Create(
-                                    Descriptor,
-                                    propertyDeclaration.Identifier.GetLocation(),
-                                    severity,
-                                    additionalLocations: ImmutableArray.Create(propertyDeclaration.GetLocation()),
-                                    properties: null));
+                            // Skip marking this property as readonly for this init method if it would conflict with the get method.
+                            if (!getMethodIsReadOnly)
                                 continue;
-                            }
                         }
-                    }
 
-                    foreach (var (property, diagnostic) in group)
-                    {
+                        // normal case
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
