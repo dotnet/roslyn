@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -445,7 +446,7 @@ internal partial class SyntacticClassificationTaggerProvider
             // threadpool does work.
             var root = lastProcessedDocumentOrRoot.TryGetFirst(out var tempRoot)
                 ? tempRoot
-                : lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
+                : lastProcessedDocumentOrRoot.Second.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
             classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
 
