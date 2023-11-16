@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ISyntaxContextReceiver _syntaxReceiver;
         private readonly ISyntaxHelper _syntaxHelper;
-        private Lazy<SemanticModel>? _semanticModel;
 
         internal GeneratorSyntaxWalker(
             ISyntaxContextReceiver syntaxReceiver,
@@ -23,19 +22,14 @@ namespace Microsoft.CodeAnalysis
 
         public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
         {
-            Debug.Assert(_semanticModel is null
-                         && model is not null
+            Debug.Assert(model is not null
                          && model.Value.SyntaxTree == node.SyntaxTree);
-
-            _semanticModel = model;
 
             foreach (var child in node.DescendantNodesAndSelf())
             {
-                Debug.Assert(_semanticModel.Value.SyntaxTree == child.SyntaxTree);
-                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, _semanticModel, _syntaxHelper));
+                Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
             }
-
-            _semanticModel = null;
         }
     }
 }
