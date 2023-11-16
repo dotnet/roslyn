@@ -13439,7 +13439,7 @@ class C
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
 
-            // Severity of 'CustomConfigurable' diagnostics should not be affected by editorconfig entries.
+            // Severity of 'CustomSeverityConfigurable' diagnostics should not be affected by editorconfig entries.
             if (customConfigurable)
                 analyzerConfigSeverity = DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity);
 
@@ -13536,7 +13536,7 @@ generated_code = auto");
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            // However, an analyzer that reports diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            // However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             var analyzerShouldBeSkipped = (defaultSeverity == DiagnosticSeverity.Hidden ||
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog) && !customConfigurable;
 
@@ -13574,7 +13574,7 @@ generated_code = auto");
             // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            // However, an analyzer reporting diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            // However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             var analyzerShouldBeSkipped = (!isEnabledByDefault ||
                 defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info) && !customConfigurable;
 
@@ -13608,25 +13608,39 @@ generated_code = auto");
         [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
-        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
-        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when custom configured analyzer bumps severity to 'Warning'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file or custom configured setting is specified.
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
-        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
-        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' or 'Warning' and custom configured severity is 'Error'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
             bool useGlobalConfig,

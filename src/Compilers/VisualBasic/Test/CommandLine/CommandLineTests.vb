@@ -10134,7 +10134,7 @@ End Class"
             ' This test verifies that analyzer execution is skipped at build time for the following:
             '   1. Analyzer reporting Hidden diagnostics
             '   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            ' However, an analyzer that reports diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            ' However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             Dim analyzerShouldBeSkipped = (defaultSeverity = DiagnosticSeverity.Hidden OrElse
                 defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog) AndAlso Not customConfigurable
 
@@ -10171,7 +10171,7 @@ End Class")
             ' Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             '   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             '   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            ' However, an analyzer reporting diagnostics with "CustomConfigurable" tag should never be skipped for execution.
+            ' However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
             Dim analyzerShouldBeSkipped = (Not isEnabledByDefault OrElse
                 defaultSeverity = DiagnosticSeverity.Hidden OrElse
                 defaultSeverity = DiagnosticSeverity.Info) AndAlso
@@ -10206,22 +10206,34 @@ End Class")
 
         <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
         <Theory>
-        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
-        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
-        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
-        <InlineData(False, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
-        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
         Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
                                                                   useGlobalConfig As Boolean,
                                                                   defaultSeverity As DiagnosticSeverity,

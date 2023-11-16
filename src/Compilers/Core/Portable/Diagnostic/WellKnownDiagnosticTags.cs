@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// See https://github.com/dotnet/roslyn/issues/52991 for further details.
         /// </remarks>
-        public const string CustomConfigurable = nameof(CustomConfigurable);
+        public const string CustomSeverityConfigurable = nameof(CustomSeverityConfigurable);
 
         /// <summary>
         /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.

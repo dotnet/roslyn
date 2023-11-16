@@ -2512,7 +2512,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var customTags = Array.Empty<string>();
                 if (customConfigurable)
-                    customTags = [WellKnownDiagnosticTags.CustomConfigurable];
+                    customTags = [WellKnownDiagnosticTags.CustomSeverityConfigurable];
 
                 Descriptor = new DiagnosticDescriptor(
                     "ID0001",

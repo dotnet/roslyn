@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor, cancellationToken);
                 foreach (var descriptor in descriptors)
                 {
-                    if (descriptor.IsNotConfigurable() || descriptor.IsCustomConfigurable())
+                    if (descriptor.IsNotConfigurable() || descriptor.IsCustomSeverityConfigurable())
                     {
                         builder.Add(analyzer);
                         break;

@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var isCustomConfigured = false;
-            if (AnalyzerManager.HasCustomConfigurableTag(customTags))
+            if (AnalyzerManager.HasCustomSeverityConfigurableTag(customTags))
             {
                 // 3. Custom severity configuration applied by the analyzer
                 //    See https://github.com/dotnet/roslyn/issues/52991 for details.

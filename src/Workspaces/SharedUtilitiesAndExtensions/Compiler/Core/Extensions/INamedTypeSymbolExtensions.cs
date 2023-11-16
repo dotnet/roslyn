@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
+            return stack.SelectManyAsArray(n => n.TypeParameters);
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
