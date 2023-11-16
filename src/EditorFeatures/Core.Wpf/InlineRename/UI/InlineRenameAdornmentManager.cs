@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,
+                    _editorFormatMapService,
                     _threadingContext,
                     _listenerProvider);
 
