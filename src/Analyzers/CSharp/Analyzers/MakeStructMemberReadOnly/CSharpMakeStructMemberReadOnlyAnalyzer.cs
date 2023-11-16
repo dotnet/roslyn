@@ -103,29 +103,25 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             {
                 var cancellationToken = context.CancellationToken;
 
-                // Group accessors to their corresponding property.  If we have an init method that we want to mark as readonly,
-                // we can only do so if the `get` method is already `readonly` or would be marked `readonly`.
-                foreach (var group in methodToDiagnostic.GroupBy(kvp => kvp.Key.AssociatedSymbol as IPropertySymbol))
+                foreach (var (method, diagnostic) in methodToDiagnostic)
                 {
-                    var owningProperty = group.Key;
-
-                    foreach (var (method, diagnostic) in group)
+                    if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
                     {
-                        if (owningProperty != null && method.IsInitOnly)
-                        {
-                            var getMethodIsReadOnly =
-                                owningProperty.GetMethod is null ||
-                                owningProperty.GetMethod.IsReadOnly ||
-                                group.Contains(kvp => owningProperty.GetMethod.Equals(kvp.Key));
+                        // Iff we have an init method that we want to mark as readonly, we can only do so if there is no
+                        // `get` accessor, or if the `get` method is already `readonly` or would determined we want to
+                        // mark as `readonly`.
+                        var getMethodIsReadOnly =
+                            owningProperty.GetMethod is null ||
+                            owningProperty.GetMethod.IsReadOnly ||
+                            methodToDiagnostic.ContainsKey(owningProperty.GetMethod);
 
-                            // Skip marking this property as readonly for this init method if it would conflict with the get method.
-                            if (!getMethodIsReadOnly)
-                                continue;
-                        }
-
-                        // normal case
-                        context.ReportDiagnostic(diagnostic);
+                        // Skip marking this property as readonly for this init method if it would conflict with the get method.
+                        if (!getMethodIsReadOnly)
+                            continue;
                     }
+
+                    // normal case
+                    context.ReportDiagnostic(diagnostic);
                 }
 
                 methodToDiagnostic.Free();
