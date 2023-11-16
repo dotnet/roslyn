@@ -260,8 +260,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
                 foreach (var encoding2 in encodings)
                 {
-                    var sourceText2 = new StringText(";", encoding2); // normal ascii semicolon
+                    var sourceText2 = new StringText("?", encoding2); // what a non-ascii char will map to.
                     Assert.False(sourceText1.ContentEquals(sourceText2));
+
+                    // Even though the contents are clearly different, they have the same checksum in ascii because of
+                    // the lossy mapping.  This shows how checksums should not be used to validate content equality.
+                    if (encoding1 == Encoding.ASCII && encoding2 == Encoding.ASCII)
+                        Assert.True(sourceText1.GetChecksum().SequenceEqual(sourceText2.GetChecksum()));
                 }
             }
         }
