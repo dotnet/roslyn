@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     s_charArrayPool.Free(charBuffer);
 
-                    // Technically not needed.  But adding this reset out of paranoia.
+                    // Technically not needed.  But adding this reset out of an abundance of paranoia.
                     hash.Reset();
                     s_contentHashPool.Free(hash);
                 }
