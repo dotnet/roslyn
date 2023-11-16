@@ -440,11 +440,16 @@ internal partial class SyntacticClassificationTaggerProvider
 
             using var _ = Classifier.GetPooledList(out var tempList);
 
-            // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
-            if (!lastProcessedDocumentOrRoot.TryGetFirst(out var root))
-                classificationService.AddSyntacticClassificationsAsync(lastProcessedDocumentOrRoot.Second, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
-            else
-                classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+            // If we have a syntax root ready, use it.  Otherwise, get the root synchronously.  We do not want to do
+            // anything async here as we'd have to block on that, potentially starving the UI thread while the
+            // threadpool does work.
+            var root = lastProcessedDocumentOrRoot.TryGetFirst(out var tempRoot)
+                ? tempRoot
+                : lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
+
+            classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+
+            lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken);
 
             _lastLineCache.Update(span, tempList);
             classifiedSpans.AddRange(tempList);
