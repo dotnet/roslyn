@@ -7951,18 +7951,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-<<<<<<< HEAD
-                bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
-
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                binder.OverloadResolution.MethodInvocationOverloadResolution(
-=======
                 // If we're in a parameter default value or attribute argument, this is an error scenario, so avoid checking
                 // for COM imported types to avoid a binding cycle.
-                bool allowRefOmittedArguments = !InParameterDefaultValue && !InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType();
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                OverloadResolution.MethodInvocationOverloadResolution(
->>>>>>> dotnet/main
+                bool allowRefOmittedArguments = !binder.InParameterDefaultValue && !binder.InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
                     receiver: methodGroup.Receiver,
@@ -9969,11 +9962,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node)
         {
-            // PROTOTYPE How should extension types affect the natural type of method groups?
-            //           Spec says "A method group has a natural type if all candidate methods
-            //           in the method group have a common signature.
-            //           (If the method group may include extension methods, the candidates
-            //           include the containing type and all extension method scopes.)
             MethodSymbol? method = null;
             foreach (var m in node.Methods)
             {
@@ -10014,9 +10002,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodGroup.Free();
                 }
             }
-            // PROTOTYPE: We'll likely want to collect all methods from compatible extension types
-            //            (for member access only, not for simple name, like we do for extension methods).
-            //            Need to spec.
             if (method is null)
             {
                 return null;
@@ -10059,6 +10044,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
+
+            // PROTOTYPE How should extension types affect the natural type of method groups?
+            //           Spec says "A method group has a natural type if all candidate methods
+            //           in the method group have a common signature.
+            //           (If the method group may include extension methods, the candidates
+            //           include the containing type and all extension method scopes.)
 
             MethodSymbol? foundMethod = null;
             var typeArguments = node.TypeArgumentsOpt;
@@ -10109,7 +10100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var receiver = node.ReceiverOpt!;
                 var methodGroup = MethodGroup.GetInstance();
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     methodGroup.Clear();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
@@ -10150,7 +10141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 methodGroup.Free();
             }
-
+            // PROTOTYPE: We'll likely want to collect all methods from compatible extension types
+            //            (for member access only, not for simple name, like we do for extension methods).
+            //            Need to spec.
             return null;
 
             static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)

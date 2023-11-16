@@ -748,5 +748,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => _interfaces;
 
         internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls() => SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+
+        internal override bool IsExtension => false;
+
+        internal override bool IsExplicitExtension => false;
+
+        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+
+        internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
     }
 }

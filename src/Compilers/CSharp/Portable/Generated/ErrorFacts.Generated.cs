@@ -320,9 +320,6 @@
                 case ErrorCode.WRN_InterceptorSignatureMismatch:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
-<<<<<<< HEAD
-                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-=======
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                 case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                 case ErrorCode.WRN_InlineArraySliceNotUsed:
@@ -340,7 +337,7 @@
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
->>>>>>> dotnet/main
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                     return true;
                 default:
                     return false;

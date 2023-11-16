@@ -537,9 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
                 case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
-<<<<<<< HEAD
                 case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-=======
                 case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
                 case ErrorCode.WRN_InlineArrayIndexerNotUsed:
                 case ErrorCode.WRN_InlineArraySliceNotUsed:
@@ -557,7 +555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
->>>>>>> dotnet/main
                     return 1;
                 default:
                     return 0;
@@ -2378,30 +2375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes:
                 case ErrorCode.ERR_InlineArrayBadIndex:
                 case ErrorCode.ERR_NamedArgumentForInlineArray:
-<<<<<<< HEAD
-                case ErrorCode.ERR_CollectionLiteralTargetTypeNotConstructible:
-                case ErrorCode.ERR_ExpressionTreeContainsCollectionLiteral:
-                case ErrorCode.ERR_CollectionLiteralNoTargetType:
-                case ErrorCode.ERR_BadExtensionUnderlyingType:
-                case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
-                case ErrorCode.ERR_OnlyBaseExtensionAllowed:
-                case ErrorCode.ERR_PartialMultipleUnderlyingTypes:
-                case ErrorCode.ERR_BadVisUnderlyingType:
-                case ErrorCode.ERR_BadVisBaseExtension:
-                case ErrorCode.ERR_CycleInBaseExtensions:
-                case ErrorCode.ERR_FileTypeUnderlying:
-                case ErrorCode.ERR_StateInExtension:
-                case ErrorCode.ERR_ExtensionMissingUnderlyingType:
-                case ErrorCode.ERR_PartialDifferentExtensionModifiers:
-                case ErrorCode.ERR_UnderlyingTypesMismatch:
-                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-                case ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList:
-                case ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList:
-                case ErrorCode.ERR_DuplicateExtensionInBaseList:
-                case ErrorCode.ERR_ExtensionMethodInExtension:
-                case ErrorCode.ERR_MalformedExtensionInMetadata:
-                case ErrorCode.ERR_UnderspecifiedImplicitExtension:
-=======
                 case ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible:
                 case ErrorCode.ERR_ExpressionTreeContainsCollectionExpression:
                 case ErrorCode.ERR_CollectionExpressionNoTargetType:
@@ -2439,7 +2412,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionImmutableArray:
                 case ErrorCode.ERR_InvalidExperimentalDiagID:
                 case ErrorCode.ERR_SpreadMissingMember:
->>>>>>> dotnet/main
+                case ErrorCode.ERR_BadExtensionUnderlyingType:
+                case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
+                case ErrorCode.ERR_OnlyBaseExtensionAllowed:
+                case ErrorCode.ERR_PartialMultipleUnderlyingTypes:
+                case ErrorCode.ERR_BadVisUnderlyingType:
+                case ErrorCode.ERR_BadVisBaseExtension:
+                case ErrorCode.ERR_CycleInBaseExtensions:
+                case ErrorCode.ERR_FileTypeUnderlying:
+                case ErrorCode.ERR_StateInExtension:
+                case ErrorCode.ERR_ExtensionMissingUnderlyingType:
+                case ErrorCode.ERR_PartialDifferentExtensionModifiers:
+                case ErrorCode.ERR_UnderlyingTypesMismatch:
+                case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionWithTupleNamesInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionWithDifferencesInBaseList:
+                case ErrorCode.ERR_DuplicateExtensionInBaseList:
+                case ErrorCode.ERR_ExtensionMethodInExtension:
+                case ErrorCode.ERR_MalformedExtensionInMetadata:
+                case ErrorCode.ERR_UnderspecifiedImplicitExtension:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

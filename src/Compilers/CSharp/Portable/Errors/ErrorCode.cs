@@ -2241,28 +2241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorArityNotCompatible = 9177,
         ERR_InterceptorCannotBeGeneric = 9178,
 
-<<<<<<< HEAD
-        // PROTOTYPE compact error codes
-        ERR_BadExtensionUnderlyingType = 9205,
-        ERR_StaticBaseTypeOnInstanceExtension = 9206,
-        ERR_OnlyBaseExtensionAllowed = 9207,
-        ERR_PartialMultipleUnderlyingTypes = 9208,
-        ERR_BadVisUnderlyingType = 9209,
-        ERR_BadVisBaseExtension = 9210,
-        ERR_CycleInBaseExtensions = 9211,
-        ERR_FileTypeUnderlying = 9212,
-        ERR_StateInExtension = 9213,
-        ERR_ExtensionMissingUnderlyingType = 9214,
-        ERR_PartialDifferentExtensionModifiers = 9215,
-        ERR_UnderlyingTypesMismatch = 9216,
-        WRN_DuplicateExtensionWithNullabilityMismatchInBaseList = 9217,
-        ERR_DuplicateExtensionWithTupleNamesInBaseList = 9218,
-        ERR_DuplicateExtensionWithDifferencesInBaseList = 9219,
-        ERR_DuplicateExtensionInBaseList = 9220,
-        ERR_ExtensionMethodInExtension = 9221,
-        ERR_MalformedExtensionInMetadata = 9222,
-        ERR_UnderspecifiedImplicitExtension = 9228,
-=======
         WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
 
         ERR_InlineArrayUnsupportedElementFieldModifier = 9180,
@@ -2303,9 +2281,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InvalidExperimentalDiagID = 9211,
         ERR_SpreadMissingMember = 9212,
-
->>>>>>> dotnet/main
         #endregion
+
+        // PROTOTYPE compact error codes
+        ERR_BadExtensionUnderlyingType = 9305,
+        ERR_StaticBaseTypeOnInstanceExtension = 9306,
+        ERR_OnlyBaseExtensionAllowed = 9307,
+        ERR_PartialMultipleUnderlyingTypes = 9308,
+        ERR_BadVisUnderlyingType = 9309,
+        ERR_BadVisBaseExtension = 9310,
+        ERR_CycleInBaseExtensions = 9311,
+        ERR_FileTypeUnderlying = 9312,
+        ERR_StateInExtension = 9313,
+        ERR_ExtensionMissingUnderlyingType = 9314,
+        ERR_PartialDifferentExtensionModifiers = 9315,
+        ERR_UnderlyingTypesMismatch = 9316,
+        WRN_DuplicateExtensionWithNullabilityMismatchInBaseList = 9317,
+        ERR_DuplicateExtensionWithTupleNamesInBaseList = 9318,
+        ERR_DuplicateExtensionWithDifferencesInBaseList = 9319,
+        ERR_DuplicateExtensionInBaseList = 9320,
+        ERR_ExtensionMethodInExtension = 9321,
+        ERR_MalformedExtensionInMetadata = 9322,
+        ERR_UnderspecifiedImplicitExtension = 9328,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

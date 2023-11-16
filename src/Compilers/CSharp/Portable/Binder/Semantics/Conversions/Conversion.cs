@@ -105,13 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableArray<(BoundValuePlaceholder? placeholder, BoundExpression? conversion)> DeconstructConversionInfo;
         }
 
-<<<<<<< HEAD
-        private class ExtensionMemberUncommonData : UncommonData
+        private class ExtensionMemberUncommonData : NestedUncommonData
         {
             internal readonly Symbol ExtensionMember;
 
             internal ExtensionMemberUncommonData(Symbol extensionMember, ImmutableArray<Conversion> nestedConversions)
-                : base(isExtensionMethod: false, isArrayIndex: false, conversionResult: default, conversionMethod: null, nestedConversions)
+                : base(nestedConversions)
             {
                 Debug.Assert(extensionMember is not null);
                 Debug.Assert(nestedConversions.Length == 1);
@@ -119,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ExtensionMember = extensionMember;
             }
-=======
+        }
+
         private sealed class CollectionExpressionUncommonData : NestedUncommonData
         {
             internal CollectionExpressionUncommonData(CollectionExpressionTypeKind collectionExpressionTypeKind, TypeSymbol? elementType, ImmutableArray<Conversion> elementConversions) :
@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(
                 ConversionKind.CollectionExpression,
                 new CollectionExpressionUncommonData(collectionExpressionTypeKind, elementType, elementConversions));
->>>>>>> dotnet/main
         }
 
         private Conversion(
@@ -552,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-<<<<<<< HEAD
         internal bool IsExtensionMemberConversion([NotNullWhen(true)] out Symbol? extensionMember, out Conversion nestedConversion)
         {
             if (Kind != ConversionKind.ExtensionMember)
@@ -571,7 +569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nestedConversion = uncommonData._nestedConversionsOpt[0];
 
             return true;
-=======
+        }
+
         internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType)
         {
             if (_uncommonData is CollectionExpressionUncommonData collectionExpressionData)
@@ -581,7 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             elementType = null;
             return CollectionExpressionTypeKind.None;
->>>>>>> dotnet/main
         }
 
         // CONSIDER: public?

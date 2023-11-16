@@ -2431,7 +2431,6 @@ public static class E
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
         public void MethodGroup_ScopeByScope_TypeReceiver(bool useCSharp13)
         {
-            // Instance method and extension methods are ignored on type receiver
             var source = """
 System.Action x = C.M;
 x();
@@ -2449,34 +2448,135 @@ public static class E
     public static void M(this C c) { }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyDiagnostics(
-                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
-                // System.Action x = C.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
-                // (4,9): error CS8917: The delegate type could not be inferred.
-                // var z = C.M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
-                );
+            {
+                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS8917: The delegate type could not be inferred.
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                    );
 
-            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
-                // System.Action x = C.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
-                // (4,9): error CS8917: The delegate type could not be inferred.
-                // var z = C.M;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
-                );
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
-            var typeInfo = model.GetTypeInfo(memberAccess);
-            Assert.Null(typeInfo.Type);
-            Assert.True(typeInfo.ConvertedType!.IsErrorType());
-            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M(C c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
+                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
+
+            {
+                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(4, 9)
+                    );
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.Equal("System.Action", typeInfo2.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeReceiver_2(bool useCSharp13)
+        {
+            var source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C { }
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+""";
+            {
+                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS8917: The delegate type could not be inferred.
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                    );
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.True(typeInfo2.ConvertedType!.IsErrorType());
+                Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
+
+            {
+                var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+                comp.VerifyDiagnostics(
+                    // (1,19): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // System.Action x = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(1, 19),
+                    // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'E.M(C)'
+                    // var z = C.M;
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.M(C)").WithLocation(4, 9)
+                    );
+
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
+                var typeInfo1 = model.GetTypeInfo(memberAccess1);
+                Assert.Null(typeInfo1.Type);
+                Assert.Equal("System.Action", typeInfo1.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+                var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+                var typeInfo2 = model.GetTypeInfo(memberAccess2);
+                Assert.Null(typeInfo2.Type);
+                Assert.Equal("System.Action", typeInfo2.ConvertedType!.ToTestDisplayString());
+                Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+                Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+            }
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]

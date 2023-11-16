@@ -8,10 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-<<<<<<< HEAD
 using System.Linq;
-=======
->>>>>>> dotnet/main
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;

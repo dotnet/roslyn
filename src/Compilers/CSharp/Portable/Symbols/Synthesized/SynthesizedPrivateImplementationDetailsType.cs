@@ -185,5 +185,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
+
+        internal override bool IsExtension => false;
+
+        internal override bool IsExplicitExtension => false;
+
+        internal override TypeSymbol? ExtendedTypeNoUseSiteDiagnostics => null;
+
+        internal override TypeSymbol? GetDeclaredExtensionUnderlyingType()
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredBaseExtensions(ConsList<TypeSymbol>? basesBeingResolved)
+            => throw ExceptionUtilities.Unreachable();
+
+        internal override ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal override ImmutableArray<NamedTypeSymbol> AllBaseExtensionsNoUseSiteDiagnostics
+            => ImmutableArray<NamedTypeSymbol>.Empty;
     }
 }

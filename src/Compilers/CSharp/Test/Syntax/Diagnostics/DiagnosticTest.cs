@@ -428,13 +428,10 @@ class X
                         case ErrorCode.WRN_RefReturnOnlyParameter:
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
                         case ErrorCode.WRN_RefAssignValEscapeWider:
-<<<<<<< HEAD
-                        case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
-=======
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
->>>>>>> dotnet/main
+                        case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

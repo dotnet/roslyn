@@ -1711,13 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
-<<<<<<< HEAD
-        {
-            get
-            {
-                return this.EnumUnderlyingType;
-            }
-        }
+            => EnumUnderlyingType;
 
         /// <summary>
         /// Produce all inherited base extensions in topologically sorted order. We use
@@ -1759,15 +1753,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-=======
-            => EnumUnderlyingType;
 
         ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers()
             => GetMembers().CastArray<ISymbolInternal>();
 
         ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers(string name)
             => GetMembers(name).CastArray<ISymbolInternal>();
-
->>>>>>> dotnet/main
     }
 }

@@ -1245,17 +1245,13 @@ next:;
             }
         }
 
-<<<<<<< HEAD
-        internal sealed override bool IsExplicitDefinitionOfNoPiaLocalType
-=======
         internal static bool IsValidCollectionBuilderType([NotNullWhen(true)] TypeSymbol? builderType)
         {
             return builderType is NamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsGenericType: false };
         }
 #nullable disable
 
-        internal override bool IsExplicitDefinitionOfNoPiaLocalType
->>>>>>> dotnet/main
+        internal sealed override bool IsExplicitDefinitionOfNoPiaLocalType
         {
             get
             {
@@ -1495,17 +1491,13 @@ next:;
             }
         }
 
-<<<<<<< HEAD
-        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
-=======
         internal override bool GetGuidString(out string guidString)
         {
             guidString = GetDecodedWellKnownAttributeData()?.GuidString;
             return guidString != null;
         }
 
-        internal override bool IsDirectlyExcludedFromCodeCoverage =>
->>>>>>> dotnet/main
+        internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
         private bool HasInstanceFields()

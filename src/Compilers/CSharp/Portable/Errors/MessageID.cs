@@ -274,14 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInstanceMemberInNameof = MessageBase + 12835,
 
         IDS_FeatureInlineArrays = MessageBase + 12836,
-<<<<<<< HEAD
-        IDS_FeatureCollectionLiterals = MessageBase + 12837,
-        IDS_FeatureExtensions = MessageBase + 12838,
-=======
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
         IDS_StringEscapeCharacter = MessageBase + 12839,
->>>>>>> dotnet/main
+
+        IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -463,6 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
+                case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.
@@ -472,15 +470,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUsingTypeAlias: // semantic check
                 case MessageID.IDS_FeatureInstanceMemberInNameof: // semantic check
                 case MessageID.IDS_FeatureInlineArrays: // semantic check
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureCollectionLiterals: // semantic check
-                case MessageID.IDS_FeatureExtensions:
-                    return LanguageVersion.Preview;
-=======
                 case MessageID.IDS_FeatureCollectionExpressions: // semantic check
                 case MessageID.IDS_FeatureRefReadonlyParameters: // semantic check
                     return LanguageVersion.CSharp12;
->>>>>>> dotnet/main
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:

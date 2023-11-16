@@ -404,17 +404,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Emit should use underlying symbol only.
             throw ExceptionUtilities.Unreachable();
         }
-<<<<<<< HEAD
 #endif
-=======
-#endif 
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             builderArgument = null;
             return false;
         }
->>>>>>> dotnet/main
     }
 
     internal sealed class NativeIntegerParameterSymbol : WrappedParameterSymbol
