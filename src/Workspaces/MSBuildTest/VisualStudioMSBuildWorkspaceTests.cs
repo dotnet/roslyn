@@ -3257,7 +3257,7 @@ class C { }";
         }
 
         // On .NET Core this tests fails with "CodePage Not Found"
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly))]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
