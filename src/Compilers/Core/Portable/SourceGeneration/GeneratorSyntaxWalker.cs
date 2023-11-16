@@ -28,18 +28,14 @@ namespace Microsoft.CodeAnalysis
                          && model.Value.SyntaxTree == node.SyntaxTree);
 
             _semanticModel = model;
-            Visit(node);
-            _semanticModel = null;
-        }
 
-        public void Visit(SyntaxNode node)
-        {
-            Debug.Assert(_semanticModel is object);
             foreach (var child in node.DescendantNodesAndSelf())
             {
                 Debug.Assert(_semanticModel.Value.SyntaxTree == child.SyntaxTree);
                 _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, _semanticModel, _syntaxHelper));
             }
+
+            _semanticModel = null;
         }
     }
 }
