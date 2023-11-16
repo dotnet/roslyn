@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsThisConstructorInitializer => _contextInfo.ContainsThisConstructorInitializer;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
+        public bool ContainsDirective => _contextInfo.ContainsDirective;
         public bool ContainsCollectionInitializer => _contextInfo.ContainsCollectionInitializer;
 
         /// <summary>

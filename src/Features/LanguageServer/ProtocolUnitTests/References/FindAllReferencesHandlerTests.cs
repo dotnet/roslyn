@@ -292,6 +292,36 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_PreprocessingSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"#define {|reference:PREPROCESSING_SYMBOL|}
+#define MORE_PREPROCESSING_SYMBOL
+
+#if {|reference:PREPROCESSING_SYMBOL|}
+namespace SimpleNamespace;
+#elif true && (!false || {|caret:|}{|reference:PREPROCESSING_SYMBOL|})
+namespace AnotherNamespace;
+#elif MORE_PREPROCESSING_SYMBOL
+namespace MoreSimpleNamespace;
+#else
+namespace ComplexNamespace;
+#endif
+
+// PREPROCESSING_SYMBOL
+class PREPROCESSING_SYMBOL
+{
+}
+";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+
+            // Do not assert the glyph
+            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
+        }
+
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
             => new LSP.ReferenceParams()
             {

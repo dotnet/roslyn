@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// <summary>
         /// Determines if there is preprocessor trivia *between* any of the <paramref name="tokens"/>
         /// provided.  The <paramref name="tokens"/> will be deduped and then ordered by position.
-        /// Specifically, the first token will not have it's leading trivia checked, and the last
-        /// token will not have it's trailing trivia checked.  All other trivia will be checked to
+        /// Specifically, the first token will not have its leading trivia checked, and the last
+        /// token will not have its trailing trivia checked.  All other trivia will be checked to
         /// see if it contains a preprocessor directive.
         /// </summary>
         public static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, IEnumerable<SyntaxToken> tokens)

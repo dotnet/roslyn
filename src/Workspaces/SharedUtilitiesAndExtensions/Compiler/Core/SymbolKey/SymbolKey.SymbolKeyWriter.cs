@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             Field = 'F',
             FunctionPointer = 'G',
             DynamicType = 'I',
+            Preprocessing = 'J',
             BuiltinOperator = 'L',
             Method = 'M',
             Namespace = 'N',
@@ -157,6 +158,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     WriteType(SymbolKeyType.BodyLevel);
                     BodyLevelSymbolKey.Create(symbol, this);
+                }
+                else if (symbol is IPreprocessingSymbol preprocessingSymbol)
+                {
+                    WriteType(SymbolKeyType.Preprocessing);
+                    PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
                 }
                 else
                 {
@@ -473,7 +479,7 @@ namespace Microsoft.CodeAnalysis
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
             {
                 // If it's a reference to a method type parameter, and we're currently writing
-                // out a signture, then only write out the ordinal of type parameter.  This 
+                // out a signature, then only write out the ordinal of type parameter.  This 
                 // helps prevent recursion problems in cases like "Goo<T>(T t).
                 if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
                 {

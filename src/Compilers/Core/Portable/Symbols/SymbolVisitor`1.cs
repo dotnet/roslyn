@@ -112,5 +112,10 @@ namespace Microsoft.CodeAnalysis
         {
             return DefaultVisit(symbol);
         }
+
+        internal virtual TResult? VisitPreprocessing(IPreprocessingSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
     }
 }

@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ElseDirectiveTrivia { get; }
         int EndIfDirectiveTrivia { get; }
         int EndRegionDirectiveTrivia { get; }
+        int DefineDirectiveTrivia { get; }
+        int? UndefDirectiveTrivia { get; }
         int RegionDirectiveTrivia { get; }
         int? ShebangDirectiveTrivia { get; }
 

@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsConversion = false;
                 var containsGlobalKeyword = false;
                 var containsCollectionInitializer = false;
+                var containsDirective = root.ContainsDirectives;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -189,7 +190,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         containsGlobalSuppressMessageAttribute,
                         containsConversion,
                         containsGlobalKeyword,
-                        containsCollectionInitializer),
+                        containsCollectionInitializer,
+                        containsDirective),
                     globalAliasInfo);
             }
             finally

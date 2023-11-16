@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -206,7 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolInfo result;
 
             XmlNameAttributeSyntax attrSyntax;
-            CrefSyntax crefSyntax;
 
             if (model != null)
             {
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if ((crefSyntax = node as CrefSyntax) != null)
+            else if (node is CrefSyntax crefSyntax)
             {
                 int adjustedPosition = GetAdjustedNodePosition(crefSyntax);
                 result = GetCrefSymbolInfo(adjustedPosition, crefSyntax, options, HasParameterList(crefSyntax));
