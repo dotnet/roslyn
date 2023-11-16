@@ -1092,24 +1092,19 @@ namespace Microsoft.CodeAnalysis.Text
 
             var buffer1 = s_charArrayPool.Allocate();
             var buffer2 = s_charArrayPool.Allocate();
+            Debug.Assert(buffer1.Length == buffer2.Length);
+            Debug.Assert(buffer1.Length == CharBufferSize);
+
             try
             {
-                int position = 0;
-                while (position < this.Length)
+                for (int position = 0, length = this.Length; position < length; position += CharBufferSize)
                 {
-                    int n = Math.Min(this.Length - position, buffer1.Length);
-                    this.CopyTo(position, buffer1, 0, n);
-                    other.CopyTo(position, buffer2, 0, n);
+                    var count = Math.Min(this.Length - position, CharBufferSize);
+                    this.CopyTo(sourceIndex: position, buffer1, destinationIndex: 0, count);
+                    other.CopyTo(sourceIndex: position, buffer2, destinationIndex: 0, count);
 
-                    for (int i = 0; i < n; i++)
-                    {
-                        if (buffer1[i] != buffer2[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    position += n;
+                    if (!buffer1.AsSpan(0, count).SequenceEqual(buffer2.AsSpan(0, count)))
+                        return false;
                 }
 
                 return true;
