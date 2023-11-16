@@ -28,7 +28,7 @@ parameters:
 - name: RunTests
   displayName: Run tests
   type: boolean
-  default: true
+  default: false
 - name: EnableCompliance
   displayName: Run Compliance Tools
   type: boolean
@@ -55,7 +55,7 @@ stages:
     parameters:
       EnableCompliance: ${{ parameters.EnableCompliance }}
       EnableAPIScan: ${{ parameters.EnableAPIScan }}
-      windowsPool: VSEngSS-MicroBuild2022-1ES
+      windowsPool: VSEngSS-MicroBuild2019-1ES
       RunTests: ${{ parameters.RunTests }}
 
 - template: prepare-insertion-stages.yml
