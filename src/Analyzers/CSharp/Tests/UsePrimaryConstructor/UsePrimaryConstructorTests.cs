@@ -3525,4 +3525,62 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = value;
+                    public int B = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int B = value;
+                    public int A = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
