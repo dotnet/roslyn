@@ -30,7 +30,7 @@ internal partial class SyntacticClassificationTaggerProvider
             tagComputer.AddTags(spans, tags);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_tagComputer != null)
             {

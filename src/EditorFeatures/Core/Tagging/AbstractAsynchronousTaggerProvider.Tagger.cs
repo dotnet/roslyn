@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 remove => _tagSource.TagsChanged -= value;
             }
 
-            public void Dispose()
+            public override void Dispose()
                 => _tagSource.OnTaggerDisposed(this);
 
             public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags)

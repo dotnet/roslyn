@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -25,18 +26,7 @@ internal sealed partial class SyntacticClassificationTaggerProvider(
     private readonly ClassificationTypeMap _typeMap = typeMap;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    //ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-    //{
-    //    var tagger = CreateTagger(buffer);
-    //    if (tagger is ITagger<T> typedTagger)
-    //        return typedTagger;
-
-    //    // Oops, we can't actually return this tagger, so just clean up
-    //    tagger?.Dispose();
-    //    return null;
-    //}
-
-    public Tagger? CreateTagger(ITextBuffer buffer)
+    public EfficientTagger<IClassificationTag>? CreateTagger(ITextBuffer buffer)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         if (!_globalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))

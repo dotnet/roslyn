@@ -22,7 +22,7 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<EfficientTa
     /// <summary>
     /// Disposes all the underlying taggers (if they themselves are <see cref="IDisposable"/>.
     /// </summary>
-    public void Dispose()
+    public override void Dispose()
     {
         foreach (var tagger in this.Taggers)
             (tagger as IDisposable)?.Dispose();
