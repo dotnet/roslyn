@@ -585,10 +585,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
                 var tagIntervalTree = this.TryGetTagIntervalTreeForBuffer(buffer);
 
-                if (tagIntervalTree is null)
-                    return;
-
-                tags.AddRange(tagIntervalTree.GetIntersectingTagSpans(requestedSpans));
+                tagIntervalTree?.AddIntersectingTagSpans(requestedSpans, tags);
             }
         }
     }
