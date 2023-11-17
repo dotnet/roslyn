@@ -221,19 +221,19 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(ProjectKey project, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum? checksum, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(DocumentKey document, string name, Checksum? checksum, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, checksum, cancellationToken);
 
             public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
