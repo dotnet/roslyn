@@ -1224,7 +1224,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
