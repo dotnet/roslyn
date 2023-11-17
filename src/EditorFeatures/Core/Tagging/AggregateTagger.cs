@@ -25,7 +25,7 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<EfficientTa
     public override void Dispose()
     {
         foreach (var tagger in this.Taggers)
-            (tagger as IDisposable)?.Dispose();
+            tagger.Dispose();
     }
 
     /// <summary>
