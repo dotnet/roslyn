@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal partial class SyntacticClassificationTaggerProvider
 {
-    internal sealed class Tagger : EfficientTagger<IClassificationTag>, IDisposable
+    private sealed class Tagger : EfficientTagger<IClassificationTag>, IDisposable
     {
         private TagComputer? _tagComputer;
 
