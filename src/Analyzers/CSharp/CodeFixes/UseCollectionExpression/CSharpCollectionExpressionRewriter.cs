@@ -90,7 +90,14 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (makeMultiLineCollectionExpression)
+            if (matches is [{ UseSpread: true, Node: ExpressionSyntax expression }])
+            {
+                // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
+                // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized behavior.
+                return CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
+                    SpreadElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
+            }
+            else if (makeMultiLineCollectionExpression)
             {
                 // Slightly difficult case.  We're replacing `new List<int>();` with a fresh, multi-line collection
                 // expression.  To figure out what to do here, we need to figure out where the braces *and* elements
