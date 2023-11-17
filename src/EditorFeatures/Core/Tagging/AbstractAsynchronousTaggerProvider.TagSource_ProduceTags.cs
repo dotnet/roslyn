@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tags;
             }
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
+            public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -580,14 +580,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ResumeIfVisible();
 
                 if (requestedSpans.Count == 0)
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                    return;
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
+                var tagIntervalTree = this.TryGetTagIntervalTreeForBuffer(buffer);
 
-                return tags == null
-                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
-                    : tags.GetIntersectingTagSpans(requestedSpans);
+                if (tagIntervalTree is null)
+                    return;
+
+                tags.AddRange(tagIntervalTree.GetIntersectingTagSpans(requestedSpans));
             }
         }
     }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
 #pragma warning restore
 
-        public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
+        public RoslynTagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)
                 throw new ArgumentNullException(nameof(subjectBuffer));

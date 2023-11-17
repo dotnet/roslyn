@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Clients can request and dispose these at will.  Once the last wrapper is disposed, the underlying
         /// <see cref="TagSource"/> will finally be disposed as well.
         /// </summary>
-        private sealed partial class Tagger : ITagger<TTag>, IDisposable
+        private sealed partial class Tagger : RoslynTagger<TTag>, IDisposable
         {
             private readonly TagSource _tagSource;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _tagSource.OnTaggerAdded(this);
             }
 
-            public event EventHandler<SnapshotSpanEventArgs> TagsChanged
+            public override event EventHandler<SnapshotSpanEventArgs>? TagsChanged
             {
                 add => _tagSource.TagsChanged += value;
                 remove => _tagSource.TagsChanged -= value;
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public void Dispose()
                 => _tagSource.OnTaggerDisposed(this);
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
-                => _tagSource.GetTags(requestedSpans);
+            public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags)
+                => _tagSource.AddTags(spans, tags);
         }
     }
 }

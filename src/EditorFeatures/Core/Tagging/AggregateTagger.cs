@@ -31,7 +31,7 @@ internal abstract class RoslynTagger<TTag> : ITagger<TTag> where TTag : ITag
         return tags;
     }
 
-    public virtual event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+    public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
     protected void OnTagsChanged(object? sender, SnapshotSpanEventArgs e)
         => TagsChanged?.Invoke(this, e);
