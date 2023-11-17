@@ -93,7 +93,15 @@ internal static class CSharpCollectionExpressionRewriter
             if (matches is [{ UseSpread: true, Node: ExpressionSyntax expression }])
             {
                 // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
-                // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized behavior.
+                // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
+                // behavior.  In particular, we do not want to generate something like:
+                //
+                //  [
+                //      .. x.y,
+                //  ]
+                //
+                // For that sort of case.  Single element collections should stay closely associated with the original
+                // expression.
                 return CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
                     SpreadElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
             }
