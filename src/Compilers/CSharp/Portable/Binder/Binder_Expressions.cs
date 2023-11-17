@@ -4748,26 +4748,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                builder.Add(bindElement(element, diagnostics));
+                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
-            BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
                 return syntax switch
                 {
-                    ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
-                    ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
-                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
+                    ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
+                    ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
+                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
 
-            BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+            static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
             {
-                var expression = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+                var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
                 ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
                     builder.IsIncomplete;
                 if (hasErrors)
                 {
@@ -4788,13 +4788,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
-                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
-                var convertedExpression = ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+                var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
                 BoundExpression? lengthOrCount;
-                if (!TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+                if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
                 {
                     lengthOrCount = null;
                 }
