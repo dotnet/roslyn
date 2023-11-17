@@ -5,21 +5,47 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers) : ITagger<TTag>, IDisposable
+internal abstract class RoslynTagger<TTag> : ITagger<TTag> where TTag : ITag
+{
+    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags);
+
+    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    {
+        var pooledTags = Classifier.GetPooledList<ITagSpan<TTag>>(out var tags);
+        this.AddTags(spans, tags);
+
+        if (tags.Count == 0)
+        {
+            pooledTags.Dispose();
+            return Array.Empty<ITagSpan<TTag>>();
+        }
+
+        // intentionally do not dispose.
+        return tags;
+    }
+
+    public virtual event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+    protected void OnTagsChanged(object? sender, SnapshotSpanEventArgs e)
+        => TagsChanged?.Invoke(this, e);
+}
+
+internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<RoslynTagger<TTag>> taggers) : RoslynTagger<TTag>, IDisposable
     where TTag : ITag
 {
-    protected readonly ImmutableArray<ITagger<TTag>> Taggers = taggers;
+    protected readonly ImmutableArray<RoslynTagger<TTag>> Taggers = taggers;
 
-    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-        => GetTags(spans);
+    //IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+    //    => GetTags(spans);
 
-    public abstract SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
+    // public abstract SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
 
     public void Dispose()
     {
@@ -27,7 +53,7 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTa
             (tagger as IDisposable)?.Dispose();
     }
 
-    public event EventHandler<SnapshotSpanEventArgs> TagsChanged
+    public override event EventHandler<SnapshotSpanEventArgs> TagsChanged
     {
         add
         {
@@ -47,17 +73,13 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<ITagger<TTa
 /// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
 /// a single event source and source of tags.
 /// </summary>
-internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<ITagger<TTag>> taggers)
+internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<RoslynTagger<TTag>> taggers)
     : AbstractAggregateTagger<TTag>(taggers)
     where TTag : ITag
 {
-    public override SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags)
     {
-        var result = new SegmentedList<ITagSpan<TTag>>();
-
         foreach (var tagger in this.Taggers)
-            result.AddRange(tagger.GetTags(spans));
-
-        return result;
+            tagger.AddTags(spans, tags);
     }
 }

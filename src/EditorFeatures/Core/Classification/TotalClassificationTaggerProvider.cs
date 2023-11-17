@@ -72,25 +72,23 @@ internal sealed class TotalClassificationTaggerProvider(
         SyntacticClassificationTaggerProvider.Tagger syntacticTagger,
         SimpleAggregateTagger<IClassificationTag> semanticTagger,
         SimpleAggregateTagger<IClassificationTag> embeddedTagger)
-        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create<ITagger<IClassificationTag>>(syntacticTagger, semanticTagger, embeddedTagger))
+        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create<RoslynTagger<IClassificationTag>>(syntacticTagger, semanticTagger, embeddedTagger))
     {
         private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
 
-        public override SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> totalTags)
         {
             // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
             // allows us to understand better what things like identifiers mean), they do take precedence for certain
             // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
             // the syntactic state, and we do not want things like semantic classifications showing up over that.
 
-            var totalTags = new SegmentedList<ITagSpan<IClassificationTag>>();
-
             using var _1 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
             using var _2 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
-            // using var _3 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
+            using var _3 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
 
             syntacticTagger.AddTags(spans, syntacticSpans);
-            var semanticSpans = semanticTagger.GetTags(spans);// .AddTags(spans, semanticSpans);
+            semanticTagger.AddTags(spans, semanticSpans);// .AddTags(spans, semanticSpans);
 
             syntacticSpans.Sort(s_spanComparison);
             semanticSpans.Sort(s_spanComparison);
@@ -155,7 +153,7 @@ internal sealed class TotalClassificationTaggerProvider(
             // by any embedded classifications.
             AddEmbeddedClassifications();
 
-            return totalTags;
+            return;
 
             bool TryProcessSyntacticStringLiteral()
             {
@@ -190,7 +188,7 @@ internal sealed class TotalClassificationTaggerProvider(
 
                 // Only need to ask for the spans that overlapped the string literals.
                 var stringLiteralSpans = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
-                var embeddedClassifications = embeddedTagger.GetTags(stringLiteralSpans);
+                using var _1 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var embeddedClassifications);
 
                 // Nothing complex to do if we got no embedded classifications back.  Just add in all the string
                 // classifications, untouched.
