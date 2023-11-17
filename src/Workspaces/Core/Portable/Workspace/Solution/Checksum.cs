@@ -31,10 +31,11 @@ namespace Microsoft.CodeAnalysis
         public const int HashSize = 16;
 
         /// <summary>
-        /// Represents a null/invalid Checksum.  This values contains all zeros which is considered infinitesimally unlikely to 
-        /// ever happen from hashing data (including 
+        /// Represents a default/null/invalid Checksum, equivalent to <c>default(Checksum)</c>.  This values contains
+        /// all zeros which is considered infinitesimally unlikely to ever happen from hashing data (including when
+        /// hashing null/empty/zero data inputs).
         /// </summary>
-        public static readonly Checksum Null = default;
+        public static readonly Checksum Default = default;
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
@@ -52,9 +53,6 @@ namespace Microsoft.CodeAnalysis
 
         public static Checksum From(ReadOnlySpan<byte> checksum)
         {
-            if (checksum.Length == 0)
-                return Null;
-
             if (checksum.Length < HashSize)
                 throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
 
@@ -120,9 +118,9 @@ namespace Microsoft.CodeAnalysis
 
     internal static class ChecksumExtensions
     {
-        public static void AddIfNotNullChecksum(this HashSet<Checksum> checksums, Checksum checksum)
+        public static void AddIfNotDefaultChecksum(this HashSet<Checksum> checksums, Checksum checksum)
         {
-            if (checksum != Checksum.Null)
+            if (checksum != Checksum.Default)
                 checksums.Add(checksum);
         }
     }
