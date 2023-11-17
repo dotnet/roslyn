@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -53,17 +57,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(
-                snapshotSpan.Start, snapshotSpan.Length, new IntervalIntrospector(snapshot));
+            var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
+            AddIntersectingSpans(snapshotSpan, result);
 
-            List<ITagSpan<TTag>>? result = null;
-            foreach (var tagNode in intersectingIntervals)
+            if (result.Count == 0)
             {
-                result ??= new List<ITagSpan<TTag>>();
-                result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
+                pooledResult.Dispose();
+                return Array.Empty<ITagSpan<TTag>>();
             }
 
-            return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
+            return result;
+        }
+
+        private void AddIntersectingSpans(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
+        {
+            var snapshot = snapshotSpan.Snapshot;
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
+
+            using var intersectingIntervals = TemporaryArray<TagNode>.Empty;
+            _tree.FillWithIntervalsThatIntersectWith(
+                snapshotSpan.Start, snapshotSpan.Length, ref intersectingIntervals.AsRef(), new IntervalIntrospector(snapshot));
+
+            foreach (var tagNode in intersectingIntervals)
+                result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
         }
 
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
@@ -74,13 +90,25 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public IEnumerable<ITagSpan<TTag>> GetIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans)
         {
-            var result = GetIntersectingTagSpansWorker(requestedSpans);
-            DebugVerifyTags(requestedSpans, result);
+            var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
+            AddIntersectingTagSpans(requestedSpans, result);
+            if (result.Count == 0)
+            {
+                pooledResult.Dispose();
+                return Array.Empty<ITagSpan<TTag>>();
+            }
+
             return result;
         }
 
+        public void AddIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
+        {
+            AddIntersectingTagSpansWorker(requestedSpans, tags);
+            DebugVerifyTags(requestedSpans, tags);
+        }
+
         [Conditional("DEBUG")]
-        private static void DebugVerifyTags(NormalizedSnapshotSpanCollection requestedSpans, IEnumerable<ITagSpan<TTag>> tags)
+        private static void DebugVerifyTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
         {
             if (tags == null)
             {
@@ -98,51 +126,53 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetIntersectingTagSpansWorker(NormalizedSnapshotSpanCollection requestedSpans)
+        private void AddIntersectingTagSpansWorker(
+            NormalizedSnapshotSpanCollection requestedSpans,
+            SegmentedList<ITagSpan<TTag>> tags)
         {
             const int MaxNumberOfRequestedSpans = 100;
 
             // Special case the case where there is only one requested span.  In that case, we don't
             // need to allocate any intermediate collections
-            return requestedSpans.Count == 1
-                ? GetIntersectingSpans(requestedSpans[0])
-                : requestedSpans.Count < MaxNumberOfRequestedSpans
-                    ? GetTagsForSmallNumberOfSpans(requestedSpans)
-                    : GetTagsForLargeNumberOfSpans(requestedSpans);
+            if (requestedSpans.Count == 1)
+                AddIntersectingSpans(requestedSpans[0], tags);
+            else if (requestedSpans.Count < MaxNumberOfRequestedSpans)
+                AddTagsForSmallNumberOfSpans(requestedSpans, tags);
+            else
+                AddTagsForLargeNumberOfSpans(requestedSpans, tags);
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetTagsForSmallNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans)
+        private void AddTagsForSmallNumberOfSpans(
+            NormalizedSnapshotSpanCollection requestedSpans,
+            SegmentedList<ITagSpan<TTag>> tags)
         {
-            var result = new List<ITagSpan<TTag>>();
-
-            foreach (var s in requestedSpans)
-            {
-                result.AddRange(GetIntersectingSpans(s));
-            }
-
-            return result;
+            foreach (var span in requestedSpans)
+                AddIntersectingSpans(span, tags);
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans)
+        private void AddTagsForLargeNumberOfSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
         {
             // we are asked with bunch of spans. rather than asking same question again and again, ask once with big span
             // which will return superset of what we want. and then filter them out in O(m+n) cost. 
             // m == number of requested spans, n = number of returned spans
-            var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[requestedSpans.Count - 1].End);
-            var result = GetIntersectingSpans(mergedSpan);
+            var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[^1].End);
+
+            using var _1 = Classifier.GetPooledList<ITagSpan<TTag>>(out var tempList);
+
+            AddIntersectingSpans(mergedSpan, tempList);
+            if (tempList.Count == 0)
+                return;
 
             var requestIndex = 0;
-
-            var enumerator = result.GetEnumerator();
+            var enumerator = tempList.GetEnumerator();
 
             try
             {
                 if (!enumerator.MoveNext())
-                {
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-                }
+                    return;
 
-                var hashSet = new HashSet<ITagSpan<TTag>>();
+                using var _2 = PooledHashSet<ITagSpan<TTag>>.GetInstance(out var hashSet);
+
                 while (true)
                 {
                     var currentTag = enumerator.Current;
@@ -153,34 +183,28 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     if (currentRequestSpan.Start > currentTagSpan.End)
                     {
                         if (!enumerator.MoveNext())
-                        {
                             break;
-                        }
                     }
                     else if (currentTagSpan.Start > currentRequestSpan.End)
                     {
                         requestIndex++;
 
                         if (requestIndex >= requestedSpans.Count)
-                        {
                             break;
-                        }
                     }
                     else
                     {
-                        if (currentTagSpan.Length > 0)
+                        // Only if this is the first time we are seeing this tag do we add it to the result.
+                        if (currentTagSpan.Length > 0 &&
+                            hashSet.Add(currentTag))
                         {
-                            hashSet.Add(currentTag);
+                            tags.Add(currentTag);
                         }
 
                         if (!enumerator.MoveNext())
-                        {
                             break;
-                        }
                     }
                 }
-
-                return hashSet;
             }
             finally
             {
