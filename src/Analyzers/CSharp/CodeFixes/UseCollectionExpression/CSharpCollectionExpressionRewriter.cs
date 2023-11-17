@@ -90,7 +90,7 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (matches is [{ UseSpread: true, Node: ExpressionSyntax expression }])
+            if (matches is [{ Node: ExpressionSyntax expression } match])
             {
                 // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
                 // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
@@ -103,7 +103,9 @@ internal static class CSharpCollectionExpressionRewriter
                 // For that sort of case.  Single element collections should stay closely associated with the original
                 // expression.
                 return CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
-                    SpreadElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
+                    match.UseSpread
+                        ? SpreadElement(expression.WithoutTrivia())
+                        : ExpressionElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
             }
             else if (makeMultiLineCollectionExpression)
             {

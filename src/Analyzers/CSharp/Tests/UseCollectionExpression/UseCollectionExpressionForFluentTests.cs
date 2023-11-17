@@ -1676,11 +1676,8 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M()
                     {
-                        List<int> list =
-                        [
-                            1 +
-                                2,
-                        ];
+                        List<int> list = [1 +
+                            2];
                     }
                 }
                 """,
