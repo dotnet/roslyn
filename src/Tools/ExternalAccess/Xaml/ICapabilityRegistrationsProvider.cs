@@ -5,10 +5,9 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
+
+internal interface ICapabilityRegistrationsProvider
 {
-    internal interface ICapabilityRegistrationsProvider : ILspService
-    {
-        ImmutableArray<Registration> GetRegistrations();
-    }
+    ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities);
 }

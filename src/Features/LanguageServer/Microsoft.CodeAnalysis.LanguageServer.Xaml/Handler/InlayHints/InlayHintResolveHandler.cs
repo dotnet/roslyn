@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal sealed class InlayHintResolveHandler : XamlRequestHandlerBase<LSP.InlayHint, LSP.InlayHint>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public InlayHintResolveHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.InlayHint, LSP.InlayHint> xamlHandler)
         : base(xamlHandler)
     {

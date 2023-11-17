@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
     internal class RenameHandler : XamlRequestHandlerBase<LSP.RenameParams, LSP.WorkspaceEdit?>
     {
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
         public RenameHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.RenameParams, LSP.WorkspaceEdit?> xamlHandler)
         : base(xamlHandler)
         {

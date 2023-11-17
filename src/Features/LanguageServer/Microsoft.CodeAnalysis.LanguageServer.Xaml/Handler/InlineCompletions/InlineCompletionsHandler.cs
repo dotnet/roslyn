@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal class InlineCompletionsHandler : XamlRequestHandlerBase<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList?>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public InlineCompletionsHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList?> xamlHandler)
         : base(xamlHandler)
     {

@@ -102,35 +102,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             OnInitialized();
-
-            var capabilityRegistrationsProvider = GetLspServices().TryGetService(typeof(ICapabilityRegistrationsProvider)) as ICapabilityRegistrationsProvider;
-            if (capabilityRegistrationsProvider is null)
-            {
-                return;
-            }
-
-            var registrations = capabilityRegistrationsProvider.GetRegistrations();
-            if (registrations.Length == 0)
-            {
-                return;
-            }
-
-            // Call LSP method client/registerCapability
-            var clientLanguageServerManager = GetLspServices().GetRequiredService<IClientLanguageServerManager>();
-            await RoslynLanguageServer.RegisterCapabilityAsync(clientLanguageServerManager, registrations, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static ValueTask RegisterCapabilityAsync(IClientLanguageServerManager clientLanguageServerManager, ImmutableArray<Registration> registrations, CancellationToken cancellationToken)
-        {
-            var registrationParams = new RegistrationParams()
-            {
-                Registrations = registrations.AsArray()
-            };
-
-            return clientLanguageServerManager.SendRequestAsync("client/registerCapability", registrationParams, cancellationToken);
+            return Task.CompletedTask;
         }
     }
 }

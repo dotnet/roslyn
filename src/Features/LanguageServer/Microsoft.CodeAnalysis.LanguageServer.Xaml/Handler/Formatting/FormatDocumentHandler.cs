@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler
     internal class FormatDocumentHandler : XamlRequestHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
         public FormatDocumentHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.DocumentFormattingParams, LSP.TextEdit[]> xamlHandler)
             : base(xamlHandler)
         {

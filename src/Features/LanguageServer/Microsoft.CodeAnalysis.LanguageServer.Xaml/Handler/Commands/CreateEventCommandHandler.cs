@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal class CreateEventCommandHandler : XamlRequestHandlerBase<LSP.ExecuteCommandParams, object>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public CreateEventCommandHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.ExecuteCommandParams, object> xamlHandler)
         : base(xamlHandler)
     {

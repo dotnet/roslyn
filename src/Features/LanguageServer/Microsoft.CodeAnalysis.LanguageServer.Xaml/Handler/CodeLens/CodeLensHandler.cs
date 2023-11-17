@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
@@ -15,12 +14,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal sealed class CodeLensHandler : XamlRequestHandlerBase<LSP.CodeLensParams, LSP.CodeLens[]?>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public CodeLensHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?> xamlHandler)
         : base(xamlHandler)
     {
     }
-
 
     public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
         => request.TextDocument;

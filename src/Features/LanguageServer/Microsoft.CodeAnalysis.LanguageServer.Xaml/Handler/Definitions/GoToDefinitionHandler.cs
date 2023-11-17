@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler.Definitions;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler.Definitions;
 internal class GoToDefinitionHandler : XamlRequestHandlerBase<LSP.TextDocumentPositionParams, LSP.Location[]>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public GoToDefinitionHandler(IXamlRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]> xamlHandler)
         : base(xamlHandler)
     {

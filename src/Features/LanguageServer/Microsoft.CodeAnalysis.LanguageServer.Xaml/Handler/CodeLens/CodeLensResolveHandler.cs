@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal sealed class CodeLensResolveHandler : XamlRequestHandlerBase<LSP.CodeLens, LSP.CodeLens>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public CodeLensResolveHandler([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CodeLens, LSP.CodeLens> xamlHandler)
         : base(xamlHandler)
     {

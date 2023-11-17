@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
 internal class OnTypeRenameHandler : XamlRequestHandlerBase<LinkedEditingRangeParams, LinkedEditingRanges?>
 {
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public OnTypeRenameHandler([Import(AllowDefault = true)] IXamlRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?> xamlHandler)
         : base(xamlHandler)
     {

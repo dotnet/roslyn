@@ -5,10 +5,10 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Xaml.Handler;
+namespace Microsoft.CodeAnalysis.LanguageServer.Xaml;
 
 /// <summary>
-/// Defines an easy to use subclass for <see cref="ExportLspServiceFactoryAttribute"/> with the roslyn languages contract name.
+/// Defines an easy to use subclass for <see cref="ExportLspServiceFactoryAttribute"/> with the Roslyn languages contract name.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
 internal class ExportXamlLspServiceFactoryAttribute : ExportLspServiceFactoryAttribute

@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Xaml;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,7 +17,7 @@ internal sealed class CompletionResolveHandlerFactory : ILspServiceFactory
     private readonly IXamlRequestHandler<CompletionItem, CompletionItem> _xamlHandler;
 
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
     public CompletionResolveHandlerFactory([Import(AllowDefault = true)] IXamlRequestHandler<LSP.CompletionItem, LSP.CompletionItem> xamlHandler)
     {
         _xamlHandler = xamlHandler;
