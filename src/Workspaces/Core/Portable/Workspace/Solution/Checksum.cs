@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// all zeros which is considered infinitesimally unlikely to ever happen from hashing data (including when
         /// hashing null/empty/zero data inputs).
         /// </summary>
-        public static readonly Checksum Default = default;
+        public static readonly Checksum Null = default;
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis
 
     internal static class ChecksumExtensions
     {
-        public static void AddIfNotDefaultChecksum(this HashSet<Checksum> checksums, Checksum checksum)
+        public static void AddIfNotNullChecksum(this HashSet<Checksum> checksums, Checksum checksum)
         {
-            if (checksum != Checksum.Default)
+            if (checksum != Checksum.Null)
                 checksums.Add(checksum);
         }
     }
