@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<XxHash128> s_incrementalHashPool =
             new(() => new(), size: 20);
 
-        public static Checksum Create(IEnumerable<string> values)
+        public static Checksum Create(IEnumerable<string?> values)
         {
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             return From(hash);
         }
 
-        public static Checksum Create(string value)
+        public static Checksum Create(string? value)
         {
             Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
             XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), destination);

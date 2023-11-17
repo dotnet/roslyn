@@ -88,14 +88,16 @@ public class ChecksumTests
         // Ensure empty sources don't create the Null checksum.
         Assert.NotEqual(Checksum.Null, Checksum.Create(Array.Empty<string>()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(""));
-        Assert.NotEqual(Checksum.Null, Checksum.Create((string)null));
+        Assert.NotEqual(Checksum.Null, Checksum.Create("\0"));
+        Assert.NotEqual(Checksum.Null, Checksum.Create((string?)null));
         Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[0]));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<Checksum>.Empty));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<byte>.Empty));
 
-        Assert.NotEqual(Checksum.Null, Checksum.Create(new string[] { "" }));
-        Assert.NotEqual(Checksum.Null, Checksum.Create(new string[] { null }));
+        Assert.NotEqual(Checksum.Null, Checksum.Create([""]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(["\0"]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new string?[] { null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
         Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[] { Checksum.Null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create(Checksum.Null)));
