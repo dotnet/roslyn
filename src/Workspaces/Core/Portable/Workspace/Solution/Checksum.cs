@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis
             if (checksum.Length < HashSize)
                 throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
 
-            Contract.ThrowIfFalse(MemoryMarshal.TryRead(checksum, out Checksum checksum));
-            return checksum;
+            Contract.ThrowIfFalse(MemoryMarshal.TryRead(checksum, out Checksum result));
+            return result;
         }
 
         public string ToBase64String()
