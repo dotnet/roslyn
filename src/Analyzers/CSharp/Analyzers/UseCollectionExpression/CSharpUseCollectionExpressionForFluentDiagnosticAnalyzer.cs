@@ -272,13 +272,14 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // originally was wrapped over multiple lines in a fluent fashion, and we're down to just a single wrapped
             // line, then unwrap.
             if (matchesInReverse.Count == 0 &&
-                text.Lines.GetLineFromPosition(expression.SpanStart).LineNumber + 1 == text.Lines.GetLineFromPosition(expression.Span.End).LineNumber &&
                 expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess } innerInvocation &&
-                !text.AreOnSameLine(memberAccess.Expression.GetLastToken(), memberAccess.Name.GetFirstToken()) &&
-                IsOnlyWhitespaceTrivia(memberAccess.Expression.GetTrailingTrivia()) &&
-                IsOnlyWhitespaceTrivia(memberAccess.OperatorToken.GetAllTrivia()) &&
-                IsOnlyWhitespaceTrivia(memberAccess.Name.GetLeadingTrivia()))
+                text.Lines.GetLineFromPosition(expression.SpanStart).LineNumber + 1 == text.Lines.GetLineFromPosition(expression.Span.End).LineNumber &&
+                memberAccess.Expression.GetTrailingTrivia()
+                    .Concat(memberAccess.OperatorToken.GetAllTrivia())
+                    .Concat(memberAccess.Name.GetLeadingTrivia())
+                    .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
+                // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
                 matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
                     SyntaxFactory.Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
@@ -291,9 +292,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
             matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(expression), UseSpread: true));
         }
-
-        bool IsOnlyWhitespaceTrivia(IEnumerable<SyntaxTrivia> list)
-            => list.All(static t => t.IsWhitespaceOrEndOfLine());
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
         // like a hash-set).  For example: `new List<int> { x, y, z }.ToImmutableArray()` produces different results
