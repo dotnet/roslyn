@@ -33,15 +33,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     {
         var pooledTags = Classifier.GetPooledList<ITagSpan<TTag>>(out var tags);
         this.AddTags(spans, tags);
-
-        if (tags.Count == 0)
-        {
-            pooledTags.Dispose();
-            return Array.Empty<ITagSpan<TTag>>();
-        }
-
-        // intentionally do not dispose.
-        return tags;
+        return Classifier.GetFinalList(pooledTags);
     }
 
     public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;

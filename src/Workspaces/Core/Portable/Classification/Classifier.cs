@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.Classification
             return pooledObject;
         }
 
+        internal static IList<T> GetFinalList<T>(this PooledObject<SegmentedList<T>> pooledObject)
+        {
+            // If the result was empty, retur it to the pool, and just pass back the empty array singleton.
+            if (pooledObject.Object.Count == 0)
+            {
+                pooledObject.Dispose();
+                return Array.Empty<T>();
+            }
+
+            // Otherwise, do not dispose.  Caller needs this value to stay alive.
+            return pooledObject.Object;
+        }
+
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan textSpan,

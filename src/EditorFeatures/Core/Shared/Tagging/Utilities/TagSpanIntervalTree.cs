@@ -56,14 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
             AddIntersectingSpans(snapshotSpan, result);
-
-            if (result.Count == 0)
-            {
-                pooledResult.Dispose();
-                return Array.Empty<ITagSpan<TTag>>();
-            }
-
-            return result;
+            return Classifier.GetFinalList(pooledResult);
         }
 
         private void AddIntersectingSpans(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
@@ -89,13 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
             AddIntersectingTagSpans(requestedSpans, result);
-            if (result.Count == 0)
-            {
-                pooledResult.Dispose();
-                return Array.Empty<ITagSpan<TTag>>();
-            }
-
-            return result;
+            return Classifier.GetFinalList(pooledResult);
         }
 
         public void AddIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
