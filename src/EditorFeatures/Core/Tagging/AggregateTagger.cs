@@ -3,57 +3,35 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
-internal abstract class RoslynTagger<TTag> : ITagger<TTag> where TTag : ITag
-{
-    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags);
-
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-    {
-        var pooledTags = Classifier.GetPooledList<ITagSpan<TTag>>(out var tags);
-        this.AddTags(spans, tags);
-
-        if (tags.Count == 0)
-        {
-            pooledTags.Dispose();
-            return Array.Empty<ITagSpan<TTag>>();
-        }
-
-        // intentionally do not dispose.
-        return tags;
-    }
-
-    public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
-
-    protected void OnTagsChanged(object? sender, SnapshotSpanEventArgs e)
-        => TagsChanged?.Invoke(this, e);
-}
-
-internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<RoslynTagger<TTag>> taggers) : RoslynTagger<TTag>, IDisposable
+/// <summary>
+/// Base type of all taggers that wrap a set of other <paramref name="taggers"/>, presenting them all as if they were a
+/// single <see cref="ITagger{T}"/>.
+/// </summary>
+internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<EfficientTagger<TTag>> taggers) : EfficientTagger<TTag>, IDisposable
     where TTag : ITag
 {
-    protected readonly ImmutableArray<RoslynTagger<TTag>> Taggers = taggers;
+    protected readonly ImmutableArray<EfficientTagger<TTag>> Taggers = taggers;
 
-    //IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-    //    => GetTags(spans);
-
-    // public abstract SegmentedList<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans);
-
+    /// <summary>
+    /// Disposes all the underlying taggers (if they themselves are <see cref="IDisposable"/>.
+    /// </summary>
     public void Dispose()
     {
         foreach (var tagger in this.Taggers)
             (tagger as IDisposable)?.Dispose();
     }
 
-    public override event EventHandler<SnapshotSpanEventArgs> TagsChanged
+    /// <summary>
+    /// This tagger considers itself changed if any underlying taggers signal that they are changed.
+    /// </summary>
+    public override event EventHandler<SnapshotSpanEventArgs>? TagsChanged
     {
         add
         {
@@ -70,10 +48,11 @@ internal abstract class AbstractAggregateTagger<TTag>(ImmutableArray<RoslynTagge
 }
 
 /// <summary>
-/// Simple tagger that aggregates the underlying syntax/semantic compiler/analyzer taggers and presents them as
-/// a single event source and source of tags.
+/// Simple tagger that aggregates the underlying taggers and presents them as a single event source and source of tags.
+/// The final set of tags produced by any <see cref="AddTags"/> request is just the aggregation of all the tags produced
+/// by the individual <paramref name="taggers"/>.
 /// </summary>
-internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<RoslynTagger<TTag>> taggers)
+internal sealed class SimpleAggregateTagger<TTag>(ImmutableArray<EfficientTagger<TTag>> taggers)
     : AbstractAggregateTagger<TTag>(taggers)
     where TTag : ITag
 {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Clients can request and dispose these at will.  Once the last wrapper is disposed, the underlying
         /// <see cref="TagSource"/> will finally be disposed as well.
         /// </summary>
-        private sealed partial class Tagger : RoslynTagger<TTag>, IDisposable
+        private sealed partial class Tagger : EfficientTagger<TTag>, IDisposable
         {
             private readonly TagSource _tagSource;
 

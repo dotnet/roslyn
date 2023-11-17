@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal partial class SyntacticClassificationTaggerProvider
 {
-    internal sealed class Tagger : RoslynTagger<IClassificationTag>, IDisposable
+    internal sealed class Tagger : EfficientTagger<IClassificationTag>, IDisposable
     {
         private TagComputer? _tagComputer;
 

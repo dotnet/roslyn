@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
         }
 
-        protected RoslynTagger<T>? CreateTaggerWorker<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag
+        protected EfficientTagger<T>? CreateEfficientTagger<T>(ITextView? textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
                 return null;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
             // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
             // sure we return that to the property starting value.
-            if (tagger is not RoslynTagger<T> result)
+            if (tagger is not EfficientTagger<T> result)
             {
                 tagger.Dispose();
                 return null;

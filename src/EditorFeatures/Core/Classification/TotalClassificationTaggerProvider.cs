@@ -72,7 +72,7 @@ internal sealed class TotalClassificationTaggerProvider(
         SyntacticClassificationTaggerProvider.Tagger syntacticTagger,
         SimpleAggregateTagger<IClassificationTag> semanticTagger,
         SimpleAggregateTagger<IClassificationTag> embeddedTagger)
-        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create<RoslynTagger<IClassificationTag>>(syntacticTagger, semanticTagger, embeddedTagger))
+        : AbstractAggregateTagger<IClassificationTag>(ImmutableArray.Create<EfficientTagger<IClassificationTag>>(syntacticTagger, semanticTagger, embeddedTagger))
     {
         private static readonly Comparison<ITagSpan<IClassificationTag>> s_spanComparison = static (s1, s2) => s1.Span.Start - s2.Span.Start;
 

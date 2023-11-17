@@ -117,7 +117,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
 
     public SimpleAggregateTagger<TTag> CreateTagger(ITextView textView, ITextBuffer buffer)
     {
-        using var taggers = TemporaryArray<RoslynTagger<TTag>>.Empty;
+        using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _viewportTaggerProviders)
         {
             var innerTagger = taggerProvider.CreateTagger<TTag>(textView, buffer);

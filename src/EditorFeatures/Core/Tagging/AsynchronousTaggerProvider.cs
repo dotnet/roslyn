@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
-        public RoslynTagger<T>? CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        public EfficientTagger<T>? CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
         {
             if (subjectBuffer == null)
                 throw new ArgumentNullException(nameof(subjectBuffer));
 
-            return this.CreateTaggerWorker<T>(null, subjectBuffer);
+            return this.CreateEfficientTagger<T>(null, subjectBuffer);
         }
 
         ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
