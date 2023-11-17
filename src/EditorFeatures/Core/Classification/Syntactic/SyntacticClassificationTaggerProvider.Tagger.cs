@@ -24,15 +24,29 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-            IEnumerable<ITagSpan<IClassificationTag>> ITagger<IClassificationTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-                => GetTags(spans);
-
-            public SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
-                if (_tagComputer == null)
-                    throw new ObjectDisposedException(GetType().FullName);
+                var tagComputer = _tagComputer ?? throw new ObjectDisposedException(GetType().FullName);
 
-                return _tagComputer.GetTags(spans);
+                var pooledTags = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var tags);
+                tagComputer.AddTags(spans, tags);
+
+                if (tags.Count == 0)
+                {
+                    pooledTags.Dispose();
+                    return Array.Empty<ITagSpan<IClassificationTag>>();
+                }
+
+                // intentionally do not dispose.
+                return tags;
+            }
+
+            public void AddTags(
+                NormalizedSnapshotSpanCollection spans,
+                SegmentedList<ITagSpan<IClassificationTag>> tags)
+            {
+                var tagComputer = _tagComputer ?? throw new ObjectDisposedException(GetType().FullName);
+                tagComputer.AddTags(spans, tags);
             }
 
             private void OnTagsChanged(object? sender, SnapshotSpanEventArgs e)

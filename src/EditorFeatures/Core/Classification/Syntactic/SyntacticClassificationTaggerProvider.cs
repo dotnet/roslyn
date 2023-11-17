@@ -18,23 +18,23 @@ internal sealed partial class SyntacticClassificationTaggerProvider(
     IThreadingContext threadingContext,
     ClassificationTypeMap typeMap,
     IGlobalOptionService globalOptions,
-    IAsynchronousOperationListenerProvider listenerProvider) : ITaggerProvider
+    IAsynchronousOperationListenerProvider listenerProvider)
 {
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ClassificationTypeMap _typeMap = typeMap;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-    {
-        var tagger = CreateTagger(buffer);
-        if (tagger is ITagger<T> typedTagger)
-            return typedTagger;
+    //ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+    //{
+    //    var tagger = CreateTagger(buffer);
+    //    if (tagger is ITagger<T> typedTagger)
+    //        return typedTagger;
 
-        // Oops, we can't actually return this tagger, so just clean up
-        tagger?.Dispose();
-        return null;
-    }
+    //    // Oops, we can't actually return this tagger, so just clean up
+    //    tagger?.Dispose();
+    //    return null;
+    //}
 
     public Tagger? CreateTagger(ITextBuffer buffer)
     {

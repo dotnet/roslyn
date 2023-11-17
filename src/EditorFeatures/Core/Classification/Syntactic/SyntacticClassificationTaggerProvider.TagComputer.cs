@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -365,33 +363,35 @@ internal partial class SyntacticClassificationTaggerProvider
                 return _lastProcessedData;
         }
 
-        public SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        public void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
             using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
-            {
-                return GetTagsWorker(spans) ?? new();
-            }
+                AddTagsWorker(spans, tags);
         }
 
-        private SegmentedList<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)
+        private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
             if (spans.Count == 0 || _workspace == null)
-                return null;
+                return;
 
             var snapshot = spans[0].Snapshot;
 
             if (TryGetClassificationService(snapshot) is not (var solutionServices, var classificationService))
-                return null;
+                return;
 
             using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
             foreach (var span in spans)
                 AddClassifications(span);
 
-            return ClassificationUtilities.Convert(_taggerProvider._typeMap, snapshot, classifiedSpans);
+            var typeMap = _taggerProvider._typeMap;
+            foreach (var classifiedSpan in classifiedSpans)
+                tags.Add(ClassificationUtilities.Convert(typeMap, snapshot, classifiedSpan));
+
+            return;
 
             void AddClassifications(SnapshotSpan span)
             {

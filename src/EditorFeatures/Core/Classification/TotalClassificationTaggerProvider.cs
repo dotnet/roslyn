@@ -85,10 +85,12 @@ internal sealed class TotalClassificationTaggerProvider(
 
             var totalTags = new SegmentedList<ITagSpan<IClassificationTag>>();
 
-            using var _ = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
+            using var _1 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
+            using var _2 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
+            // using var _3 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
 
-            var syntacticSpans = syntacticTagger.GetTags(spans);
-            var semanticSpans = semanticTagger.GetTags(spans);
+            syntacticTagger.AddTags(spans, syntacticSpans);
+            var semanticSpans = semanticTagger.GetTags(spans);// .AddTags(spans, semanticSpans);
 
             syntacticSpans.Sort(s_spanComparison);
             semanticSpans.Sort(s_spanComparison);
