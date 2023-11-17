@@ -276,18 +276,15 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess } innerInvocation &&
                 !text.AreOnSameLine(memberAccess.Expression.GetLastToken(), memberAccess.Name.GetFirstToken()) &&
                 IsOnlyWhitespaceTrivia(memberAccess.Expression.GetTrailingTrivia()) &&
-                IsOnlyWhitespaceTrivia(memberAccess.OperatorToken.LeadingTrivia) &&
-                IsOnlyWhitespaceTrivia(memberAccess.OperatorToken.TrailingTrivia) &&
+                IsOnlyWhitespaceTrivia(memberAccess.OperatorToken.GetAllTrivia()) &&
                 IsOnlyWhitespaceTrivia(memberAccess.Name.GetLeadingTrivia()))
             {
                 matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
-                    SyntaxFactory.Argument(innerInvocation.ReplaceSyntax(
-                        [memberAccess.Expression, memberAccess.Name],
-                        (n, _) => n == memberAccess.Expression ? n.WithoutTrailingTrivia() : n.WithoutLeadingTrivia(),
-                        [memberAccess.OperatorToken],
-                        (t, _) => t.WithoutTrivia(),
-                        trivia: null,
-                        computeReplacementTrivia: null)),
+                    SyntaxFactory.Argument(innerInvocation.WithExpression(
+                        memberAccess.Update(
+                            memberAccess.Expression.WithoutTrailingTrivia(),
+                            memberAccess.OperatorToken.WithoutTrivia(),
+                            memberAccess.Name.WithoutLeadingTrivia()))),
                     UseSpread: true));
                 return;
             }
@@ -295,7 +292,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(expression), UseSpread: true));
         }
 
-        bool IsOnlyWhitespaceTrivia(SyntaxTriviaList list)
+        bool IsOnlyWhitespaceTrivia(IEnumerable<SyntaxTrivia> list)
             => list.All(static t => t.IsWhitespaceOrEndOfLine());
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
