@@ -102,6 +102,8 @@ public class ChecksumTests
         Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[] { Checksum.Null }));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create(Checksum.Null)));
         Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create((byte)0)));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(Checksum.Null, Checksum.Null));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(Checksum.Null, Checksum.Null, Checksum.Null));
 
         var stream = new MemoryStream();
         stream.WriteByte(0);
