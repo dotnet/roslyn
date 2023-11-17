@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public const int HashSize = 16;
 
+        /// <summary>
+        /// Represents a null/invalid Checksum.  This values contains all zeros which is considered infinitesimally unlikely to 
+        /// ever happen from hashing data (including 
+        /// </summary>
         public static readonly Checksum Null = default;
 
         /// <summary>
@@ -65,16 +69,9 @@ namespace Microsoft.CodeAnalysis
             this.WriteTo(bytes);
             return Convert.ToBase64String(bytes);
 #else
-            unsafe
-            {
-                var data = new byte[HashSize];
-                fixed (byte* dataPtr = data)
-                {
-                    *(Checksum*)dataPtr = this;
-                }
-
-                return Convert.ToBase64String(data, 0, HashSize);
-            }
+            var bytes = new byte[HashSize];
+            this.WriteTo(bytes.AsSpan());
+            return Convert.ToBase64String(bytes);
 #endif
         }
 
