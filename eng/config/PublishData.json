@@ -188,10 +188,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.9",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.9P1]"
+      "insertionTitlePrefix": "[d17.9]"
     },
     "main": {
       "nugetKind": [

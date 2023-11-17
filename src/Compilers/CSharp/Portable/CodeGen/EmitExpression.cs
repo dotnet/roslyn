@@ -1870,7 +1870,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // receiver is generic and method must come from the base or an interface or a generic constraint
                     // if the receiver is actually a value type it would need to be boxed.
                     // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                    callKind = receiverType.IsReferenceType &&
+                               (!IsRef(receiver) ||
+                                (!ReceiverIsKnownToReferToTempIfReferenceType(receiver) && !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))) ?
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 

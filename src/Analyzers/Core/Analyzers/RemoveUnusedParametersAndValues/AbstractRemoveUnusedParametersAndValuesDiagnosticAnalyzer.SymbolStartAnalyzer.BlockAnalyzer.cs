@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// Method invoked in <see cref="AnalyzeOperationBlockEnd(OperationBlockAnalysisContext)"/>
                 /// for each operation block to determine if we should analyze the operation block or bail out.
                 /// </summary>
-                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol, ref bool hasOperationNoneDescendant)
+                private bool ShouldAnalyze(IOperation operationBlock, ISymbol owningSymbol, ref bool hasUnknownOperationNoneDescendant)
                 {
                     switch (operationBlock.Kind)
                     {
@@ -386,7 +386,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                         // Bail out in presence of OperationKind.None - not implemented IOperation.
                                         if (operation.Kind == OperationKind.None)
                                         {
-                                            hasOperationNoneDescendant = true;
+                                            // `nameof(SomeTypeName)` is a well-known case where operation related to `SomeTypeName` syntax is of kind `None`
+                                            hasUnknownOperationNoneDescendant = operation.Parent is not INameOfOperation;
                                             return false;
                                         }
 
@@ -466,9 +467,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     using var _ = PooledHashSet<SymbolUsageResult>.GetInstance(out var symbolUsageResultsBuilder);
 
                     // Flag indicating if we found an operation block where all symbol writes were used. 
-                    AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasOperationNoneDescendant);
+                    AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites, out var hasUnknownOperationNoneDescendant);
 
-                    AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasOperationNoneDescendant);
+                    AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites, hasUnknownOperationNoneDescendant);
                 }
 
                 private void AnalyzeUnusedValueAssignments(
@@ -476,14 +477,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
                     out bool hasBlockWithAllUsedSymbolWrites,
-                    out bool hasOperationNoneDescendant)
+                    out bool hasUnknownOperationNoneDescendant)
                 {
                     hasBlockWithAllUsedSymbolWrites = false;
-                    hasOperationNoneDescendant = false;
+                    hasUnknownOperationNoneDescendant = false;
 
                     foreach (var operationBlock in context.OperationBlocks)
                     {
-                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasOperationNoneDescendant))
+                        if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasUnknownOperationNoneDescendant))
                         {
                             continue;
                         }
@@ -691,14 +692,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     bool isComputingUnusedParams,
                     PooledHashSet<SymbolUsageResult> symbolUsageResultsBuilder,
                     bool hasBlockWithAllUsedSymbolWrites,
-                    bool hasOperationNoneDescendant)
+                    bool hasUnknownOperationNoneDescendant)
                 {
                     // Process parameters for the context's OwningSymbol that are unused across all operation blocks.
 
                     // Bail out cases:
                     //  1. Skip analysis if we are not computing unused parameters based on user's option preference or have
-                    //     a descendant operation with OperationKind.None (not yet implemented operation).
-                    if (!isComputingUnusedParams || hasOperationNoneDescendant)
+                    //     a descendant operation with OperationKind.None (not yet implemented operation) in not a well-known location.
+                    if (!isComputingUnusedParams || hasUnknownOperationNoneDescendant)
                     {
                         return;
                     }

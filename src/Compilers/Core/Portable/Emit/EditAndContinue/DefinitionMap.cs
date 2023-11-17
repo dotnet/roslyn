@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -33,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
         protected readonly IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> mappedMethods;
         public readonly EmitBaseline Baseline;
-
-        protected abstract SymbolMatcher MapToMetadataSymbolMatcher { get; }
-        protected abstract SymbolMatcher MapToPreviousSymbolMatcher { get; }
 
         protected DefinitionMap(IEnumerable<SemanticEdit> edits, EmitBaseline baseline)
         {
@@ -72,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // to a class that has field/property initializers with lambdas. These lambdas get "copied" into the constructor
                 // (assuming it doesn't have "this" constructor initializer) and thus their generated names need to be preserved. 
 
-                if (edit.Kind == SemanticEditKind.Update && edit.PreserveLocalVariables)
+                if (edit.Kind == SemanticEditKind.Update && edit.SyntaxMap != null)
                 {
                     RoslynDebug.AssertNotNull(edit.NewSymbol);
                     RoslynDebug.AssertNotNull(edit.OldSymbol);
@@ -92,14 +91,14 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal Cci.IDefinition? MapDefinition(Cci.IDefinition definition)
         {
-            return MapToPreviousSymbolMatcher.MapDefinition(definition) ??
-                   (MapToMetadataSymbolMatcher != MapToPreviousSymbolMatcher ? MapToMetadataSymbolMatcher.MapDefinition(definition) : null);
+            return SourceToPreviousSymbolMatcher.MapDefinition(definition) ??
+                   (SourceToMetadataSymbolMatcher != SourceToPreviousSymbolMatcher ? SourceToMetadataSymbolMatcher.MapDefinition(definition) : null);
         }
 
         internal Cci.INamespace? MapNamespace(Cci.INamespace @namespace)
         {
-            return MapToPreviousSymbolMatcher.MapNamespace(@namespace) ??
-                   (MapToMetadataSymbolMatcher != MapToPreviousSymbolMatcher ? MapToMetadataSymbolMatcher.MapNamespace(@namespace) : null);
+            return SourceToPreviousSymbolMatcher.MapNamespace(@namespace) ??
+                   (SourceToMetadataSymbolMatcher != SourceToPreviousSymbolMatcher ? SourceToMetadataSymbolMatcher.MapNamespace(@namespace) : null);
         }
 
         internal bool DefinitionExists(Cci.IDefinition definition)
@@ -109,7 +108,11 @@ namespace Microsoft.CodeAnalysis.Emit
             => MapNamespace(@namespace) is object;
 
         internal EntityHandle GetInitialMetadataHandle(Cci.IDefinition def)
-            => MetadataTokens.EntityHandle(MapToMetadataSymbolMatcher.MapDefinition(def)?.GetInternalSymbol()?.MetadataToken ?? 0);
+            => MetadataTokens.EntityHandle(SourceToMetadataSymbolMatcher.MapDefinition(def)?.GetInternalSymbol()?.MetadataToken ?? 0);
+
+        public abstract SymbolMatcher SourceToMetadataSymbolMatcher { get; }
+        public abstract SymbolMatcher SourceToPreviousSymbolMatcher { get; }
+        public abstract SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; }
 
         internal abstract CommonMessageProvider MessageProvider { get; }
 
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Gets a <see cref="MethodDefinitionHandle"/> for a given <paramref name="method"/>,
         /// if it is defined in the initial metadata or has been added since.
         /// </summary>
-        private bool TryGetMethodHandle(IMethodSymbolInternal method, out MethodDefinitionHandle handle)
+        public bool TryGetMethodHandle(IMethodSymbolInternal method, out MethodDefinitionHandle handle)
         {
             var methodDef = (Cci.IMethodDefinition)method.GetCciAdapter();
 
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            var mappedDef = (Cci.IMethodDefinition?)MapToPreviousSymbolMatcher.MapDefinition(methodDef);
+            var mappedDef = (Cci.IMethodDefinition?)SourceToPreviousSymbolMatcher.MapDefinition(methodDef);
             if (mappedDef != null && Baseline.MethodsAdded.TryGetValue(mappedDef, out int methodIndex))
             {
                 handle = MetadataTokens.MethodDefinitionHandle(methodIndex);
@@ -136,6 +139,35 @@ namespace Microsoft.CodeAnalysis.Emit
 
             handle = default;
             return false;
+        }
+
+        public MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldMethod)
+            => GetPreviousMethodHandle(oldMethod, out _);
+
+        /// <summary>
+        /// Returns method handle of a method symbol from the immediately preceding generation.
+        /// </summary>
+        /// <remarks>
+        /// The method may have been defined in any preceding generation but <paramref name="oldMethod"/> symbol must be mapped to
+        /// the immediately preceding one.
+        /// </remarks>
+        public MethodDefinitionHandle GetPreviousMethodHandle(IMethodSymbolInternal oldMethod, out IMethodSymbolInternal? peMethod)
+        {
+            var oldMethodDef = (Cci.IMethodDefinition)oldMethod.GetCciAdapter();
+
+            if (Baseline.MethodsAdded.TryGetValue(oldMethodDef, out var methodRowId))
+            {
+                peMethod = null;
+                return MetadataTokens.MethodDefinitionHandle(methodRowId);
+            }
+            else
+            {
+                peMethod = (IMethodSymbolInternal?)PreviousSourceToMetadataSymbolMatcher.MapDefinition(oldMethodDef)?.GetInternalSymbol();
+                Debug.Assert(peMethod != null);
+                Debug.Assert(peMethod.MetadataName == oldMethod.MetadataName);
+
+                return (MethodDefinitionHandle)MetadataTokens.EntityHandle(peMethod.MetadataToken);
+            }
         }
 
         protected static IReadOnlyDictionary<SyntaxNode, int> CreateDeclaratorToSyntaxOrdinalMap(ImmutableArray<SyntaxNode> declarators)
@@ -158,6 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
         protected abstract ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle);
+        protected abstract IMethodSymbolInternal GetMethodSymbol(MethodDefinitionHandle methodHandle);
 
         internal VariableSlotAllocator? TryCreateVariableSlotAllocator(Compilation compilation, IMethodSymbolInternal method, IMethodSymbolInternal topLevelMethod, DiagnosticBag diagnostics)
         {
@@ -170,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // TODO (bug https://github.com/dotnet/roslyn/issues/2504):
             // Handle cases when the previous method doesn't exist.
 
-            if (!TryGetMethodHandle(method, out var previousHandle))
+            if (!TryGetMethodHandle(method, out var methodHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
@@ -190,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string? stateMachineTypeName = null;
             SymbolMatcher symbolMap;
 
-            int methodIndex = MetadataTokens.GetRowNumber(previousHandle);
+            int methodIndex = MetadataTokens.GetRowNumber(methodHandle);
             DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
@@ -229,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // All types that AddedOrChangedMethodInfo refers to have been mapped to the previous generation.
                 // Therefore we don't need to fall back to metadata if we don't find the type reference, like we do in DefinitionMap.MapReference.
-                symbolMap = MapToPreviousSymbolMatcher;
+                symbolMap = SourceToPreviousSymbolMatcher;
             }
             else
             {
@@ -239,16 +272,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 StandaloneSignatureHandle localSignature;
                 try
                 {
-                    debugInfo = Baseline.DebugInformationProvider(previousHandle);
-                    localSignature = Baseline.LocalSignatureProvider(previousHandle);
+                    debugInfo = Baseline.DebugInformationProvider(methodHandle);
+                    localSignature = Baseline.LocalSignatureProvider(methodHandle);
                 }
-                catch (Exception e) when (e is InvalidDataException || e is IOException)
+                catch (Exception e) when (e is InvalidDataException or IOException)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
                         method.Locations.First(),
                         method,
-                        MetadataTokens.GetToken(previousHandle),
+                        MetadataTokens.GetToken(methodHandle),
                         method.ContainingAssembly
                     ));
 
@@ -270,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     firstUnusedDecreasingStateMachineState = debugInfo.StateMachineStates.Min(s => s.StateNumber) - 1;
                 }
 
-                ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(previousHandle);
+                ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(methodHandle);
                 if (stateMachineType != null)
                 {
                     // Method is async/iterator kickoff method.
@@ -334,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                symbolMap = MapToMetadataSymbolMatcher;
+                symbolMap = SourceToMetadataSymbolMatcher;
             }
 
             return new EncVariableSlotAllocator(
@@ -439,6 +472,148 @@ namespace Microsoft.CodeAnalysis.Emit
 
             hoistedLocalMap = hoistedLocals;
             awaiterMap = awaiters;
+        }
+
+        protected abstract bool TryParseDisplayClassOrLambdaName(
+            string name,
+            out int suffixIndex,
+            out char idSeparator,
+            out bool isDisplayClass,
+            out bool hasDebugIds);
+
+        private IEnumerable<IMethodSymbolInternal> GetSynthesizedClosureMethods(
+            ImmutableArray<ISymbolInternal> synthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? synthesizedMemberMap,
+            DebugId methodId,
+            HashSet<DebugId> lambdaIds)
+        {
+            return recurse(synthesizedMembers, inSpecificDisplayClass: false);
+
+            IEnumerable<IMethodSymbolInternal> recurse(ImmutableArray<ISymbolInternal> synthesizedMembers, bool inSpecificDisplayClass)
+            {
+                foreach (var synthesizedMember in synthesizedMembers)
+                {
+                    var memberName = synthesizedMember.Name;
+
+                    if (TryParseDisplayClassOrLambdaName(memberName, out int suffixIndex, out char idSeparator, out bool isDisplayClass, out bool hasDebugIds))
+                    {
+                        // If we are in a display class that is specific to a method the original method id is already incorporated to the name of the display class,
+                        // so members do not have it in their name and only have the entity id.
+
+                        var suffixSpan = memberName.AsSpan(suffixIndex);
+
+                        DebugId parsedMethodId = default;
+                        DebugId parsedEntityId = default;
+                        if (hasDebugIds)
+                        {
+                            if (!CommonGeneratedNames.TryParseDebugIds(suffixSpan, idSeparator, isMethodIdOptional: inSpecificDisplayClass, out parsedMethodId, out parsedEntityId))
+                            {
+                                // name is not well-formed
+                                continue;
+                            }
+
+                            if (!inSpecificDisplayClass && parsedMethodId != methodId)
+                            {
+                                // synthesized member belongs to a different method
+                                continue;
+                            }
+                        }
+
+                        if (isDisplayClass)
+                        {
+                            // display classes are not nested:
+                            Debug.Assert(!inSpecificDisplayClass);
+
+                            var displayClass = (INamedTypeSymbolInternal)synthesizedMember;
+                            var displayClassMembers = (synthesizedMemberMap != null) ? synthesizedMemberMap[displayClass] : displayClass.GetMembers();
+
+                            foreach (var displayClassMember in recurse(displayClassMembers, inSpecificDisplayClass: hasDebugIds))
+                            {
+                                yield return displayClassMember;
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(hasDebugIds);
+
+                            if (lambdaIds.Contains(parsedEntityId))
+                            {
+                                yield return (IMethodSymbolInternal)synthesizedMember;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Enumerates method symbols synthesized for the body of a given <paramref name="oldMethod"/> in the previous generation that are not synthesized for the current method body (if any).
+        /// </summary>
+        /// <param name="oldMethod">Method from the previous generation.</param>
+        /// <param name="currentLambdas">Lambdas generated to the current version of the method. This includes both lambdas mapped to previous ones and newly introduced lambdas.</param>
+        public IEnumerable<IMethodSymbolInternal> GetDeletedSynthesizedMethods(IMethodSymbolInternal oldMethod, ImmutableArray<LambdaDebugInfo> currentLambdas)
+        {
+            var methodHandle = GetPreviousMethodHandle(oldMethod, out var peMethod);
+            var methodRowId = MetadataTokens.GetRowNumber(methodHandle);
+
+            if (Baseline.AddedOrChangedMethods.TryGetValue(methodRowId, out var addedOrChangedMethod))
+            {
+                // If a method has been added or updated then all synthesized members it produced are stored on the baseline.
+                // This includes all lambdas regardless of whether they were mapped to previous generation or not.
+                if (!addedOrChangedMethod.LambdaDebugInfo.IsDefaultOrEmpty &&
+                    Baseline.SynthesizedMembers.TryGetValue(oldMethod.ContainingType, out var synthesizedSiblingSymbols))
+                {
+                    return getDeletedSynthesizedClosureMethods(synthesizedSiblingSymbols, Baseline.SynthesizedMembers, addedOrChangedMethod.MethodId, addedOrChangedMethod.LambdaDebugInfo);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+            }
+
+            Debug.Assert(peMethod != null);
+
+            EditAndContinueMethodDebugInformation provider;
+            try
+            {
+                provider = Baseline.DebugInformationProvider(MetadataTokens.MethodDefinitionHandle(methodRowId));
+            }
+            catch (Exception e) when (e is InvalidDataException or IOException)
+            {
+                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+            }
+
+            if (provider.Lambdas.IsDefaultOrEmpty)
+            {
+                return SpecializedCollections.EmptyEnumerable<IMethodSymbolInternal>();
+            }
+
+            var debugId = new DebugId(provider.MethodOrdinal, generation: 0);
+            return getDeletedSynthesizedClosureMethods(peMethod.ContainingType.GetMembers(), synthesizedMemberMap: null, debugId, provider.Lambdas);
+
+            IEnumerable<IMethodSymbolInternal> getDeletedSynthesizedClosureMethods(
+                ImmutableArray<ISymbolInternal> synthesizedSiblings,
+                IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>? synthesizedMemberMap,
+                DebugId methodId,
+                ImmutableArray<LambdaDebugInfo> previousLambdas)
+            {
+                var lambdaIdSet = PooledHashSet<DebugId>.GetInstance();
+
+                foreach (var info in previousLambdas)
+                {
+                    lambdaIdSet.Add(info.LambdaId);
+                }
+
+                foreach (var info in currentLambdas)
+                {
+                    lambdaIdSet.Remove(info.LambdaId);
+                }
+
+                foreach (var method in GetSynthesizedClosureMethods(synthesizedSiblings, synthesizedMemberMap, methodId, lambdaIdSet))
+                {
+                    yield return method;
+                }
+
+                lambdaIdSet.Free();
+            }
         }
     }
 }

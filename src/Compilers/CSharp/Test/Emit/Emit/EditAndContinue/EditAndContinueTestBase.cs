@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return result.ToString();
         }
 
+        public static EmitBaseline CreateInitialBaseline(Compilation compilation, ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
+            => EditAndContinueTestUtilities.CreateInitialBaseline(compilation, module, debugInformationProvider);
+
         internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
             => new SourceWithMarkedNodes(
                 WithWindowsLineBreaks(markedSource),
@@ -199,46 +202,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         internal static void CheckNames(MetadataReader reader, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            CheckNames(new[] { reader }, handles, expectedNames);
-        }
+            => EditAndContinueTestUtilities.CheckNames(reader, handles, expectedNames);
 
         internal static void CheckNames(IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles, params string[] expectedNames)
-        {
-            var actualNames = readers.GetStrings(handles);
-            AssertEx.Equal(expectedNames, actualNames);
-        }
+            => EditAndContinueTestUtilities.CheckNames(readers, handles, expectedNames);
 
-        internal static void CheckNames(IList<MetadataReader> readers, IEnumerable<(StringHandle Namespace, StringHandle Name)> handles, params string[] expectedNames)
-        {
-            var actualNames = handles.Select(handlePair => string.Join(".", readers.GetString(handlePair.Namespace), readers.GetString(handlePair.Name))).ToArray();
-            AssertEx.Equal(expectedNames, actualNames);
-        }
+        internal static void CheckNames(IReadOnlyList<MetadataReader> readers, IEnumerable<(StringHandle Namespace, StringHandle Name)> handles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, handles, expectedNames);
 
-        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<TypeDefinitionHandle> typeHandles, params string[] expectedNames)
-            => CheckNames(readers, typeHandles, (reader, handle) => reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name, handle => handle, expectedNames);
+        public static void CheckNames(IReadOnlyList<MetadataReader> readers, ImmutableArray<TypeDefinitionHandle> typeHandles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, typeHandles, expectedNames);
 
-        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
-            => CheckNames(readers, methodHandles, (reader, handle) => reader.GetMethodDefinition((MethodDefinitionHandle)handle).Name, handle => handle, expectedNames);
-
-        private static void CheckNames<THandle>(
-            IList<MetadataReader> readers,
-            ImmutableArray<THandle> entityHandles,
-            Func<MetadataReader, Handle, StringHandle> getName,
-            Func<THandle, Handle> toHandle,
-            string[] expectedNames)
-        {
-            var aggregator = GetAggregator(readers);
-
-            AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
-            {
-                var genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), out int typeGeneration);
-                var nameHandle = getName(readers[typeGeneration], genEntityHandle);
-
-                var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
-                return readers[nameGeneration].GetString(genNameHandle);
-            }));
-        }
+        public static void CheckNames(IReadOnlyList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
+            => EditAndContinueTestUtilities.CheckNames(readers, methodHandles, expectedNames);
 
         public static void CheckBlobValue(IList<MetadataReader> readers, BlobHandle valueHandle, byte[] expectedValue)
         {

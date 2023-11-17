@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             }
 
             FatalError.ReportAndPropagate(exception);
+            TestTraceListener.Instance.AddException(exception);
         }
     }
 }

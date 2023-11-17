@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver,
                 ImmutableArray<TypeWithAnnotations>.Empty,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                default(ImmutableArray<string?>),
                 default(ImmutableArray<RefKind>),
                 hasImplicitReceiver: false,
                 resultDiscarded: true).ToExpression();
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 storesOpt: null,
                 ref temps);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
+            rewrittenArguments = MakeArguments(rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps);
 
             var rewrittenType = VisitType(initializer.Type);
 
@@ -295,6 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
+                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArray) == (memberInit.Expanded ? 1 : 0));
+
                             var args = EvaluateSideEffectingArgumentsToTemps(
                                 memberInit.Arguments,
                                 memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
@@ -316,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
                         {
+                            Debug.Assert(!memberInit.Expanded);
+
                             if (dynamicSiteInitializers == null)
                             {
                                 dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
@@ -392,6 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(rewrittenLeft is { });
                         var arrayAccess = (BoundArrayAccess)rewrittenLeft;
+
+                        Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+
                         var indices = EvaluateSideEffectingArgumentsToTemps(
                             arrayAccess.Indices,
                             paramRefKindsOpt: default,
@@ -462,7 +469,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = args[i];
 
-                if (CanChangeValueBetweenReads(arg))
+                BoundExpression replacement;
+
+                if (arg.IsParamsArray)
+                {
+                    // Capturing the array instead is going to lead to an observable behavior difference. Not just an IL difference,
+                    // see Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.ObjectAndCollectionInitializerTests.DictionaryInitializerTestSideeffects001param for example.
+                    (LocalRewriter rewriter, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol>? temps) elementArg = (rewriter: this, sideeffects, temps);
+                    replacement = RewriteParamsArray(
+                                      arg,
+                                      static (BoundExpression element, ref (LocalRewriter rewriter, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol>? temps) elementArg) =>
+                                          elementArg.rewriter.EvaluateSideEffects(element, RefKind.None, elementArg.sideeffects, ref elementArg.temps),
+                                      ref elementArg);
+                    temps = elementArg.temps;
+                }
+                else
+                {
+                    replacement = EvaluateSideEffects(arg, paramRefKindsOpt.RefKinds(i), sideeffects, ref temps);
+                }
+
+                if (replacement != arg)
                 {
                     if (newArgs == null)
                     {
@@ -470,18 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         newArgs.AddRange(args, i);
                     }
 
-                    RefKind refKind = paramRefKindsOpt.RefKinds(i);
-
-                    BoundAssignmentOperator store;
-                    var temp = _factory.StoreToTemp(arg, out store, refKind);
-                    newArgs.Add(temp);
-
-                    if (temps == null)
-                    {
-                        temps = ArrayBuilder<LocalSymbol>.GetInstance();
-                    }
-                    temps.Add(temp.LocalSymbol);
-                    sideeffects.Add(store);
+                    newArgs.Add(replacement);
                 }
                 else if (newArgs != null)
                 {
@@ -490,6 +505,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return newArgs?.ToImmutableAndFree() ?? args;
+        }
+
+        private BoundExpression EvaluateSideEffects(BoundExpression arg, RefKind refKind, ArrayBuilder<BoundExpression> sideeffects, ref ArrayBuilder<LocalSymbol>? temps)
+        {
+            if (CanChangeValueBetweenReads(arg))
+            {
+                BoundAssignmentOperator store;
+                var temp = _factory.StoreToTemp(arg, out store, refKind);
+
+                if (temps == null)
+                {
+                    temps = ArrayBuilder<LocalSymbol>.GetInstance();
+                }
+                temps.Add(temp.LocalSymbol);
+                sideeffects.Add(store);
+
+                return temp;
+            }
+
+            return arg;
         }
 
         private BoundExpression MakeObjectInitializerMemberAccess(

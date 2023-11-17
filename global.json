@@ -2,7 +2,7 @@
   "sdk": {
     "version": "8.0.100-rc.2.23502.2",
     "allowPrerelease": false,
-    "rollForward": "latestPatch"
+    "rollForward": "disable"
   },
   "tools": {
     "dotnet": "8.0.100-rc.2.23502.2",

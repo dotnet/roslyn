@@ -13,11 +13,13 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -73,6 +75,13 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
             return codeAction;
         }
 
+        // We don't need to resolve a top level code action that has nested actions - it requires further action
+        // on the client to pick which of the nested actions to actually apply.
+        if (data.NestedCodeActions.HasValue && data.NestedCodeActions.Value.Length > 0)
+        {
+            return codeAction;
+        }
+
         var document = context.TextDocument;
         Contract.ThrowIfNull(document);
         var solution = document.Project.Solution;
@@ -88,8 +97,8 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
             fixAllScope: null,
             cancellationToken).ConfigureAwait(false);
 
-        var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.UniqueIdentifier, codeActions);
-        Contract.ThrowIfNull(codeActionToResolve);
+        Contract.ThrowIfNull(data.CodeActionPath);
+        var codeActionToResolve = CodeActionHelpers.GetCodeActionToResolve(data.CodeActionPath, codeActions, isFixAllAction: false);
 
         // LSP currently has no way to report progress for code action computation.
         var operations = await codeActionToResolve.GetOperationsAsync(

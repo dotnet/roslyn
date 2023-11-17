@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
                     return SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
 
-                return _projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
+                return _projectToOpenDocumentsMap.SelectManyAsArray(kvp => kvp.Value);
             }
         }
 

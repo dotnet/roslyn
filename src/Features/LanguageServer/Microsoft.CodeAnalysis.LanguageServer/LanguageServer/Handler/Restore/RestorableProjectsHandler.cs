@@ -31,23 +31,20 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
     {
         Contract.ThrowIfNull(context.Solution);
 
-        using var _ = ArrayBuilder<string>.GetInstance(out var projectsBuilder);
+        // We use a sorted set here for the following reasons
+        //   1.  Ensures the client gets a consistent ordering in the picker (especially useful for integration tests).
+        //   2.  Removes projects with duplicate file paths (for example multi-targeted projects).  They all get restored
+        //       together by file path.
+        var projects = new SortedSet<string>();
         foreach (var project in context.Solution.Projects)
         {
             // To restore via the dotnet CLI, we must have a file path and it must be a .NET core project.
             if (project.FilePath != null && projectTargetFrameworkManager.IsDotnetCoreProject(project.Id))
             {
-                projectsBuilder.Add(project.FilePath);
+                projects.Add(project.FilePath);
             }
         }
 
-        // We may have multiple projects with the same file path in multi-targeting scenarios.
-        // They'll all get restored together so we only want one result per project file.
-        projectsBuilder.RemoveDuplicates();
-
-        // Ensure the client gets a consistent ordering.
-        projectsBuilder.Sort(StringComparer.OrdinalIgnoreCase);
-
-        return Task.FromResult(projectsBuilder.ToArray());
+        return Task.FromResult(projects.ToArray());
     }
 }
