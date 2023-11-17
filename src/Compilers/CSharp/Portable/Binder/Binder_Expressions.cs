@@ -4733,8 +4733,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindCollectionExpression(CollectionExpressionSyntax syntax, BindingDiagnosticBag diagnostics, int nestingLevel = 0)
         {
+            const int MaxNestingLevel = 64;
+            if (nestingLevel >= MaxNestingLevel)
+            {
+                // An expression is too long or complex to compile
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, syntax.Location);
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType());
+            }
+
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
@@ -4748,6 +4756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return syntax switch
                 {
+                    ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
