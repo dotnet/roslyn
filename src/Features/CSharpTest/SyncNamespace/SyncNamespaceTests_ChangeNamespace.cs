@@ -2343,7 +2343,7 @@ End Class";
 
             // No change namespace action because the folder name is not valid identifier
             var (topLevelProgramFolder, topLevelProgramFilePath) = CreateDocumentFilePath(["3B", "C"], "Program.cs");
-            var (duplicateProgramFolder, duplicateProgramFilePath) = CreateDocumentFilePath([], "Program.cs");
+            var (duplicateProgramFolder, _) = CreateDocumentFilePath([], "Program.cs");
 
             var code =
 $$"""

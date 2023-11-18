@@ -853,12 +853,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the underlying item <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
         /// </summary>
         /// <remarks>
         /// This spread operation must have been created from C# code.
         /// </remarks>
-        public static Conversion GetSpreadItemConversion(this ISpreadOperation spread)
+        public static Conversion GetElementConversion(this ISpreadOperation spread)
         {
             if (spread == null)
             {
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (spread.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((SpreadOperation)spread).ItemConversionConvertible;
+                return (Conversion)((SpreadOperation)spread).ElementConversionConvertible;
             }
             else
             {

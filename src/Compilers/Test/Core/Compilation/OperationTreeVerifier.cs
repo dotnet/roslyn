@@ -1639,16 +1639,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSpread(ISpreadOperation operation)
         {
             LogString(nameof(ISpreadOperation));
-            LogSymbol(operation.ItemType, $" ({nameof(operation.ItemType)}");
+            LogSymbol(operation.ElementType, $" ({nameof(operation.ElementType)}");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Operand, nameof(operation.Operand));
             Indent();
-            LogConversion(operation.ItemConversion, nameof(operation.ItemConversion));
+            LogConversion(operation.ElementConversion, nameof(operation.ElementConversion));
             LogNewLine();
             Indent();
-            LogString($"({((SpreadOperation)operation).ItemConversionConvertible})");
+            LogString($"({((SpreadOperation)operation).ElementConversionConvertible})");
             Unindent();
             LogNewLine();
             Unindent();

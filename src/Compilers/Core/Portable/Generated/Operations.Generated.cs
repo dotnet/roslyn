@@ -3675,7 +3675,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Collection expression elements.
         /// <para>
-        ///   If the element is an expression, the entry is converted to the target element type;
+        ///   If the element is an expression, the entry is the expression, with a conversion to
+        ///   the target element type if necessary;
         ///   otherwise, the entry is an ISpreadOperation.
         /// </para>
         /// </summary>
@@ -3703,14 +3704,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation Operand { get; }
         /// <summary>
-        /// Type of the collection iterator item.
+        /// Type of the elements in the collection.
         /// </summary>
-        ITypeSymbol? ItemType { get; }
+        ITypeSymbol? ElementType { get; }
         /// <summary>
-        /// Conversion from the type of the iterator item to the target element type
+        /// Conversion from the type of the collection element to the target element type
         /// of the containing collection expression.
         /// </summary>
-        CommonConversion ItemConversion { get; }
+        CommonConversion ElementConversion { get; }
     }
     #endregion
 
@@ -10445,18 +10446,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SpreadOperation : Operation, ISpreadOperation
     {
-        internal SpreadOperation(IOperation operand, ITypeSymbol? itemType, IConvertibleConversion itemConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal SpreadOperation(IOperation operand, ITypeSymbol? elementType, IConvertibleConversion elementConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Operand = SetParentOperation(operand, this);
-            ItemType = itemType;
-            ItemConversionConvertible = itemConversion;
+            ElementType = elementType;
+            ElementConversionConvertible = elementConversion;
             Type = type;
         }
         public IOperation Operand { get; }
-        public ITypeSymbol? ItemType { get; }
-        internal IConvertibleConversion ItemConversionConvertible { get; }
-        public CommonConversion ItemConversion => ItemConversionConvertible.ToCommonConversion();
+        public ITypeSymbol? ElementType { get; }
+        internal IConvertibleConversion ElementConversionConvertible { get; }
+        public CommonConversion ElementConversion => ElementConversionConvertible.ToCommonConversion();
         internal override int ChildOperationsCount =>
             (Operand is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -11121,7 +11122,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {
             var internalOperation = (SpreadOperation)operation;
-            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ItemType, internalOperation.ItemConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
     }
     #endregion

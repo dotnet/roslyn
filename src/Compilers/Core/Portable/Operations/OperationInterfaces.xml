@@ -3414,7 +3414,8 @@
         <summary>
           Collection expression elements.
           <para>
-            If the element is an expression, the entry is converted to the target element type;
+            If the element is an expression, the entry is the expression, with a conversion to
+            the target element type if necessary;
             otherwise, the entry is an ISpreadOperation.
           </para>
         </summary>
@@ -3436,17 +3437,17 @@
         <summary>Collection being spread.</summary>
       </Comments>
     </Property>
-    <Property Name="ItemType" Type="ITypeSymbol?">
+    <Property Name="ElementType" Type="ITypeSymbol?">
       <Comments>
         <summary>
-          Type of the collection iterator item.
+          Type of the elements in the collection.
         </summary>
       </Comments>
     </Property>
-    <Property Name="ItemConversion" Type="CommonConversion">
+    <Property Name="ElementConversion" Type="CommonConversion">
       <Comments>
         <summary>
-          Conversion from the type of the iterator item to the target element type
+          Conversion from the type of the collection element to the target element type
           of the containing collection expression.
         </summary>
       </Comments>

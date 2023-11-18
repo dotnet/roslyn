@@ -6371,7 +6371,7 @@ oneMoreTime:
         public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
         {
             EvalStackFrame frame = PushStackFrame();
-            var elements = VisitArray(operation.Elements);
+            var elements = VisitArray(operation.Elements, unwrapElement, wrapElement);
             PopStackFrame(frame);
             return new CollectionExpressionOperation(
                 operation.ConstructMethod,
@@ -6380,22 +6380,32 @@ oneMoreTime:
                 operation.Syntax,
                 operation.Type,
                 IsImplicit(operation));
+
+            static IOperation unwrapElement(IOperation element)
+            {
+                return element is ISpreadOperation spread ?
+                    spread.Operand :
+                    element;
+            }
+
+            IOperation wrapElement(IOperation operation, int index, ImmutableArray<IOperation> elements)
+            {
+                return elements[index] is ISpreadOperation spread ?
+                    new SpreadOperation(
+                        operation,
+                        elementType: spread.ElementType,
+                        elementConversion: ((SpreadOperation)spread).ElementConversionConvertible,
+                        semanticModel: null,
+                        spread.Syntax,
+                        spread.Type,
+                        IsImplicit(spread)) :
+                    operation;
+            }
         }
 
         public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
         {
-            EvalStackFrame frame = PushStackFrame();
-            var operand = Visit(operation.Operand);
-            Debug.Assert(operand is { });
-            PopStackFrame(frame);
-            return new SpreadOperation(
-                operand,
-                itemType: operation.ItemType,
-                itemConversion: ((SpreadOperation)operation).ItemConversionConvertible,
-                semanticModel: null,
-                operation.Syntax,
-                operation.Type,
-                IsImplicit(operation));
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)

@@ -1286,12 +1286,12 @@ namespace Microsoft.CodeAnalysis.Operations
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
-            var itemType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            var itemConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
+            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
                 collection,
-                itemType: itemType,
-                itemConversion,
+                elementType: elementType,
+                elementConversion,
                 _semanticModel,
                 syntax,
                 type: null,
