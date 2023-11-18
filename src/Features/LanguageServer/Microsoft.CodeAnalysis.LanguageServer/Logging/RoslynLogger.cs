@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
         private static ITelemetryReporter? _telemetryReporter;
-        private static readonly ObjectPool<List<Property>> s_propertyPool = new(() => new());
+        private static readonly ObjectPool<List<KeyValuePair<string, object?>>> s_propertyPool = new(() => new());
 
         private RoslynLogger()
         {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                                         _ => LogType.Trace
                                     };
 
-        private static void AddProperties(List<Property> properties, FunctionId id, LogMessage logMessage, int? delta)
+        private static void AddProperties(List<KeyValuePair<string, object?>> properties, FunctionId id, LogMessage logMessage, int? delta)
         {
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
