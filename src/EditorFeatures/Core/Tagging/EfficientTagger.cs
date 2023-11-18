@@ -31,7 +31,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// </summary>
     public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         => Classifier.ComputeList(
-            static (tags, args) => args.@this.AddTags(args.spans, tags),
+            static (args, tags) => args.@this.AddTags(args.spans, tags),
             (@this: this, spans),
             _: (ITagSpan<TTag>?)null);
 

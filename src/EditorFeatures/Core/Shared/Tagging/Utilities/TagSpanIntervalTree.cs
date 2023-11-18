@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
             => Classifier.ComputeList(
-                static (result, args) => args.@this.AddIntersectingSpans(args.snapshotSpan, result),
+                static (args, tags) => args.@this.AddIntersectingSpans(args.snapshotSpan, tags),
                 (@this: this, snapshotSpan),
                 _: (ITagSpan<TTag>?)null);
 

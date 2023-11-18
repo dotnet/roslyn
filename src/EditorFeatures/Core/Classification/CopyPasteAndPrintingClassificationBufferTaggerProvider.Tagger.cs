@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
 
                 return Classifier.ComputeList(
-                    static (tags, args) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
+                    static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
                     (cachedTags, spans),
                     _: (ITagSpan<IClassificationTag>?)null);
             }

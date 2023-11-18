@@ -46,15 +46,20 @@ namespace Microsoft.CodeAnalysis.Classification
             return pooledObject;
         }
 
+        /// <summary>
+        /// Computes a list of results based on a provided <paramref name="addItems"/> callback.  The callback is passed
+        /// the list to add results to, and additional args to assist the process.  If no items are added to the list,
+        /// then the <see cref="Array.Empty{T}"/> singleton will be returned.
+        /// </summary>
         internal static IList<T> ComputeList<T, TArgs>(
-            Action<SegmentedList<T>, TArgs> compute,
+            Action<TArgs, SegmentedList<T>> addItems,
             TArgs args,
             // Only used to allow type inference to work at callsite
             T? _)
         {
             var pooledObject = GetPooledList<T>(out var list);
 
-            compute(list, args);
+            addItems(args, list);
 
             // If the result was empty, return it to the pool, and just pass back the empty array singleton.
             if (pooledObject.Object.Count == 0)
