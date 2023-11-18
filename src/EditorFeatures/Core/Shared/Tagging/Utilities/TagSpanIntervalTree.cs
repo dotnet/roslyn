@@ -78,13 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public bool IsEmpty()
             => _tree.IsEmpty();
 
-        public IEnumerable<ITagSpan<TTag>> GetIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans)
-        {
-            var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
-            AddIntersectingTagSpans(requestedSpans, result);
-            return Classifier.GetFinalList(pooledResult);
-        }
-
         public void AddIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
         {
             AddIntersectingTagSpansWorker(requestedSpans, tags);
