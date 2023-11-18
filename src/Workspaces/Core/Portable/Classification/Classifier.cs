@@ -48,8 +48,9 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <summary>
         /// Computes a list of results based on a provided <paramref name="addItems"/> callback.  The callback is passed
-        /// the list to add results to, and additional args to assist the process.  If no items are added to the list,
-        /// then the <see cref="Array.Empty{T}"/> singleton will be returned.
+        /// a <see cref="SegmentedList{T}"/> to add results to, and additional args to assist the process.  If no items
+        /// are added to the list, then the <see cref="Array.Empty{T}"/> singleton will be returned.  Otherwise the 
+        /// <see cref="SegmentedList{T}"/> instance will be returned.
         /// </summary>
         internal static IList<T> ComputeList<T, TArgs>(
             Action<TArgs, SegmentedList<T>> addItems,
