@@ -46,8 +46,16 @@ namespace Microsoft.CodeAnalysis.Classification
             return pooledObject;
         }
 
-        internal static IList<T> GetFinalList<T>(PooledObject<SegmentedList<T>> pooledObject)
+        internal static IList<T> ComputeList<T, TArgs>(
+            Action<SegmentedList<T>, TArgs> compute,
+            TArgs args,
+            // Only used to allow type inference to work at callsite
+            T? _)
         {
+            var pooledObject = GetPooledList<T>(out var list);
+
+            compute(list, args);
+
             // If the result was empty, return it to the pool, and just pass back the empty array singleton.
             if (pooledObject.Object.Count == 0)
             {
@@ -56,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             // Otherwise, do not dispose.  Caller needs this value to stay alive.
-            return pooledObject.Object;
+            return list;
         }
 
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(

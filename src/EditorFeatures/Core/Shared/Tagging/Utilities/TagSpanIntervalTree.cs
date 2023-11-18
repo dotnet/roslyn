@@ -53,11 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
-        {
-            var pooledResult = Classifier.GetPooledList<ITagSpan<TTag>>(out var result);
-            AddIntersectingSpans(snapshotSpan, result);
-            return Classifier.GetFinalList(pooledResult);
-        }
+            => Classifier.ComputeList(
+                static (result, args) => args.@this.AddIntersectingSpans(args.snapshotSpan, result),
+                (@this: this, snapshotSpan),
+                _: (ITagSpan<TTag>?)null);
 
         private void AddIntersectingSpans(SnapshotSpan snapshotSpan, SegmentedList<ITagSpan<TTag>> result)
         {

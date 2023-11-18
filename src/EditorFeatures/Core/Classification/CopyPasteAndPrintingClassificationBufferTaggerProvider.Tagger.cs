@@ -154,9 +154,10 @@ namespace Microsoft.CodeAnalysis.Classification
                     }
                 }
 
-                var pooledTags = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var tags);
-                cachedTags?.AddIntersectingTagSpans(spans, tags);
-                return Classifier.GetFinalList(pooledTags);
+                return Classifier.ComputeList(
+                    static (tags, args) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
+                    (cachedTags, spans),
+                    _: (ITagSpan<IClassificationTag>?)null);
             }
 
             private Task ProduceTagsAsync(

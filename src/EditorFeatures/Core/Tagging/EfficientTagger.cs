@@ -30,11 +30,10 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
     /// </summary>
     public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-    {
-        var pooledTags = Classifier.GetPooledList<ITagSpan<TTag>>(out var tags);
-        this.AddTags(spans, tags);
-        return Classifier.GetFinalList(pooledTags);
-    }
+        => Classifier.ComputeList(
+            static (tags, args) => args.@this.AddTags(args.spans, tags),
+            (@this: this, spans),
+            _: (ITagSpan<TTag>?)null);
 
     public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
