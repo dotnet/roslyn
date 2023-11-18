@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         internal static IList<T> GetFinalList<T>(PooledObject<SegmentedList<T>> pooledObject)
         {
-            // If the result was empty, retur it to the pool, and just pass back the empty array singleton.
+            // If the result was empty, return it to the pool, and just pass back the empty array singleton.
             if (pooledObject.Object.Count == 0)
             {
                 pooledObject.Dispose();
