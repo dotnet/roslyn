@@ -140,52 +140,45 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             if (tempList.Count == 0)
                 return;
 
-            var requestIndex = 0;
-            var enumerator = tempList.GetEnumerator();
+            using var enumerator = tempList.GetEnumerator();
 
-            try
+            if (!enumerator.MoveNext())
+                return;
+
+            using var _2 = PooledHashSet<ITagSpan<TTag>>.GetInstance(out var hashSet);
+
+            while (true)
             {
-                if (!enumerator.MoveNext())
-                    return;
+                var requestIndex = 0;
+                var currentTag = enumerator.Current;
 
-                using var _2 = PooledHashSet<ITagSpan<TTag>>.GetInstance(out var hashSet);
+                var currentRequestSpan = requestedSpans[requestIndex];
+                var currentTagSpan = currentTag.Span;
 
-                while (true)
+                if (currentRequestSpan.Start > currentTagSpan.End)
                 {
-                    var currentTag = enumerator.Current;
-
-                    var currentRequestSpan = requestedSpans[requestIndex];
-                    var currentTagSpan = currentTag.Span;
-
-                    if (currentRequestSpan.Start > currentTagSpan.End)
-                    {
-                        if (!enumerator.MoveNext())
-                            break;
-                    }
-                    else if (currentTagSpan.Start > currentRequestSpan.End)
-                    {
-                        requestIndex++;
-
-                        if (requestIndex >= requestedSpans.Count)
-                            break;
-                    }
-                    else
-                    {
-                        // Only if this is the first time we are seeing this tag do we add it to the result.
-                        if (currentTagSpan.Length > 0 &&
-                            hashSet.Add(currentTag))
-                        {
-                            tags.Add(currentTag);
-                        }
-
-                        if (!enumerator.MoveNext())
-                            break;
-                    }
+                    if (!enumerator.MoveNext())
+                        break;
                 }
-            }
-            finally
-            {
-                enumerator.Dispose();
+                else if (currentTagSpan.Start > currentRequestSpan.End)
+                {
+                    requestIndex++;
+
+                    if (requestIndex >= requestedSpans.Count)
+                        break;
+                }
+                else
+                {
+                    // Only if this is the first time we are seeing this tag do we add it to the result.
+                    if (currentTagSpan.Length > 0 &&
+                        hashSet.Add(currentTag))
+                    {
+                        tags.Add(currentTag);
+                    }
+
+                    if (!enumerator.MoveNext())
+                        break;
+                }
             }
         }
     }
