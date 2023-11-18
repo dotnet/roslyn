@@ -120,7 +120,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _viewportTaggerProviders)
         {
-            var innerTagger = taggerProvider.CreateTagger<TTag>(textView, buffer);
+            var innerTagger = taggerProvider.CreateTagger(textView, buffer);
             if (innerTagger != null)
                 taggers.Add(innerTagger);
         }

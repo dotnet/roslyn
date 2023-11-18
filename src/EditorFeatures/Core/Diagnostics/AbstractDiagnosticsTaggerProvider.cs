@@ -83,7 +83,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)
         {
-            var innerTagger = taggerProvider.CreateTagger<TTag>(buffer);
+            var innerTagger = taggerProvider.CreateTagger(buffer);
             if (innerTagger != null)
                 taggers.Add(innerTagger);
         }
