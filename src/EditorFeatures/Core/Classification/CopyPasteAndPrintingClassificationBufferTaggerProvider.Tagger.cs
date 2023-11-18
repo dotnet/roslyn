@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 }
 
                 using var pooledTags = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var tags);
-                cachedTags.AddIntersectingTagSpans(spans, tags);
+                cachedTags?.AddIntersectingTagSpans(spans, tags);
                 return Classifier.GetFinalList(pooledTags);
             }
 
