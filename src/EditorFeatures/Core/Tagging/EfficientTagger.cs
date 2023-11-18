@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -30,7 +30,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
     /// </summary>
     public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        => Classifier.ComputeList(
+        => SegmentedListPool.ComputeList(
             static (args, tags) => args.@this.AddTags(args.spans, tags),
             (@this: this, spans),
             _: (ITagSpan<TTag>?)null);

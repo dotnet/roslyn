@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     }
                 }
 
-                return Classifier.ComputeList(
+                return SegmentedListPool.ComputeList(
                     static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
                     (cachedTags, spans),
                     _: (ITagSpan<IClassificationTag>?)null);

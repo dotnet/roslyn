@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
-            => Classifier.ComputeList(
+            => SegmentedListPool.ComputeList(
                 static (args, tags) => args.@this.AddIntersectingSpans(args.snapshotSpan, tags),
                 (@this: this, snapshotSpan),
                 _: (ITagSpan<TTag>?)null);
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // m == number of requested spans, n = number of returned spans
             var mergedSpan = new SnapshotSpan(requestedSpans[0].Start, requestedSpans[^1].End);
 
-            using var _1 = Classifier.GetPooledList<ITagSpan<TTag>>(out var tempList);
+            using var _1 = SegmentedListPool.GetPooledList<ITagSpan<TTag>>(out var tempList);
 
             AddIntersectingSpans(mergedSpan, tempList);
             if (tempList.Count == 0)

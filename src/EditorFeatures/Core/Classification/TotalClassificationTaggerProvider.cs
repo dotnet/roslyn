@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -83,9 +84,9 @@ internal sealed class TotalClassificationTaggerProvider(
             // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
             // the syntactic state, and we do not want things like semantic classifications showing up over that.
 
-            using var _1 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
-            using var _2 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
-            using var _3 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
+            using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var stringLiterals);
+            using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
+            using var _3 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
 
             syntacticTagger.AddTags(spans, syntacticSpans);
             semanticTagger.AddTags(spans, semanticSpans);
@@ -93,8 +94,8 @@ internal sealed class TotalClassificationTaggerProvider(
             syntacticSpans.Sort(s_spanComparison);
             semanticSpans.Sort(s_spanComparison);
 
-            var syntacticEnumerator = syntacticSpans.GetEnumerator();
-            var semanticEnumerator = semanticSpans.GetEnumerator();
+            using var syntacticEnumerator = syntacticSpans.GetEnumerator();
+            using var semanticEnumerator = semanticSpans.GetEnumerator();
 
             var currentSyntactic = GetNextSyntacticSpan();
             var currentSemantic = GetNextSemanticSpan();
@@ -187,7 +188,7 @@ internal sealed class TotalClassificationTaggerProvider(
                     return;
 
                 // Only need to ask for the spans that overlapped the string literals.
-                using var _1 = Classifier.GetPooledList<ITagSpan<IClassificationTag>>(out var embeddedClassifications);
+                using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var embeddedClassifications);
 
                 var stringLiteralSpans = new NormalizedSnapshotSpanCollection(stringLiterals.Select(s => s.Span));
                 embeddedTagger.AddTags(stringLiteralSpans, embeddedClassifications);
