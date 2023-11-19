@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -1678,11 +1676,8 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M()
                     {
-                        List<int> list =
-                        [
-                            1 +
-                                2,
-                        ];
+                        List<int> list = [1 +
+                            2];
                     }
                 }
                 """,
@@ -2400,6 +2395,218 @@ public class UseCollectionExpressionForFluentTests
                     }
                 }
                 """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>()
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>().
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>() // comment
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>() // comment
+                        .Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>(). // comment
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>(). // comment
+                        Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>()
+                        .Order()
+                        .Order()
+                        .[|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>()
+                        .Order()
+                        .Order()];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70833")]
+    public async Task SpreadFormatting6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = Enum.GetValues<T>().
+                        Order().
+                        Order().
+                        [|ToImmutableArray|]();
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+                using System.Linq;
+                
+                static class EnumValueCache<T>
+                    where T : struct, Enum
+                {
+                    public static readonly ImmutableArray<T> SortedValues = [.. Enum.GetValues<T>().
+                        Order().
+                        Order()];
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
