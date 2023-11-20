@@ -612,11 +612,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// guarantees.
         /// </summary>
         /// <remarks>
-        /// The implementation of this function uses the XxHash128 <see
-        /// href="https://learn.microsoft.com/en-us/dotnet/api/system.io.hashing.xxhash128"/>.  However, this is not
-        /// guaranteed, and future versions of Roslyn may change this.
-        /// <para/>
-        ///
         /// This hash is safe to use across platforms and across processes, as long as the same version of Roslyn is
         /// used in all those locations.  As such, it is safe to use as a fast proxy for comparing text instances in
         /// different memory spaces.  Different versions of Roslyn may produce different content hashes.
