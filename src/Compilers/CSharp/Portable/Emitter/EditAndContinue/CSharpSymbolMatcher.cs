@@ -530,16 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private Symbol? VisitNamedTypeMember<T>(T member, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                if (member.ContainingType is null)
-                {
-                    // ContainingType is null for synthesized PrivateImplementationDetails helpers.
-                    // For simplicity, these helpers are not reused across generations.
-                    // Instead new ones are regenerated as needed.
-                    Debug.Assert(member is ISynthesizedGlobalMethodSymbol);
-
-                    return null;
-                }
-
                 var otherType = (NamedTypeSymbol?)Visit(member.ContainingType);
 
                 // Containing type may be null for synthesized
