@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// SHA1 or SHA256 checksum (determined by <see cref="ChecksumAlgorithm"/>.  Computed using the original bytes
+        /// Cryptographic checksum determined by <see cref="ChecksumAlgorithm"/>.  Computed using the original bytes
         /// that were used to produce this <see cref="SourceText"/> (if any of the <c>From</c> methods were used that
         /// take a <c>byte[]</c> or <see cref="Stream"/>).  Otherwise, computed by writing this <see cref="SourceText"/>
         /// back to a <see cref="Stream"/> (using the provided <see cref="Encoding"/>), and computing the hash off of
