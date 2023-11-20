@@ -36,20 +36,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionTypeKind = conversion.GetCollectionExpressionTypeKind(out var elementType);
                 switch (collectionTypeKind)
                 {
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                        return VisitCollectionInitializerCollectionExpression(node, node.Type);
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                        // PROTOTYPE: Merge in IOperation change (which uses collection initializers for spreads) and remove this check.
+                        Debug.Assert(!node.Elements.Any(e => e is BoundCollectionExpressionSpreadElement));
+                        if (IsOptimizableList(_compilation, node.Type, out var listElementType))
+                        {
+                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(unwrapListElement));
+                        }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
-                    case CollectionExpressionTypeKind.ImmutableArray:
-                        Debug.Assert(elementType is { });
-                        return VisitImmutableArrayCollectionExpression(node, elementType);
-                    case CollectionExpressionTypeKind.List:
-                        return CreateAndPopulateList(node, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
+                        // PROTOTYPE: What if List<T> has a [CollectionBuilder] attribute?
+                        if (IsOptimizableImmutableArray(_compilation, node.Type, out var arrayElementType))
+                        {
+                            return VisitImmutableArrayCollectionExpression(node, arrayElementType.Type);
+                        }
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
@@ -61,6 +68,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.Syntax = previousSyntax;
             }
+
+            // PROTOTYPE: Share with CSharpOperationFactory.getUnderlyingExpression().
+            static BoundNode unwrapListElement(BoundNode element)
+            {
+                return element switch
+                {
+                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                    _ => throw ExceptionUtilities.UnexpectedValue(element),
+                };
+            }
+        }
+
+        internal static bool IsOptimizableList(CSharpCompilation compilation, TypeSymbol type, out TypeWithAnnotations elementType)
+        {
+            if (ConversionsBase.IsSpanOrListType(compilation, type, WellKnownType.System_Collections_Generic_List_T, out elementType))
+            {
+                // PROTOTYPE: Check each element is added with expected List.Add(T t).
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool IsOptimizableImmutableArray(CSharpCompilation compilation, TypeSymbol type, out TypeWithAnnotations elementType)
+        {
+            return ConversionsBase.IsSpanOrListType(compilation, type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out elementType) &&
+                compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is not null;
         }
 
         private BoundExpression VisitImmutableArrayCollectionExpression(BoundCollectionExpression node, TypeSymbol elementType)
@@ -84,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Placeholder is null);
 
             var syntax = node.Syntax;
+            var elements = node.Elements;
             MethodSymbol? spanConstructor = null;
 
             var arrayType = collectionType as ArrayTypeSymbol;
@@ -91,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We're constructing a Span<T> or ReadOnlySpan<T> rather than T[].
                 var spanType = (NamedTypeSymbol)collectionType;
-                var elements = node.Elements;
 
                 Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.Span or CollectionExpressionTypeKind.ReadOnlySpan);
                 Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(
@@ -141,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The array initializer has an unknown length, so we'll create an intermediate List<T> instance.
                 // https://github.com/dotnet/roslyn/issues/68785: Emit Enumerable.TryGetNonEnumeratedCount() and avoid intermediate List<T> at runtime.
-                var list = CreateAndPopulateList(node, elementType);
+                var list = CreateAndPopulateList(node, elementType, elements);
 
                 Debug.Assert(list.Type is { });
                 Debug.Assert(list.Type.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T), TypeCompareKind.AllIgnoreOptions));
@@ -220,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
             var elementType = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
+            var elements = node.Elements;
             BoundExpression arrayOrList;
 
             if (collectionType.OriginalDefinition.SpecialType is
@@ -230,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
-                if (numberIncludingLastSpread == 0 && node.Elements.Length == 0)
+                if (numberIncludingLastSpread == 0 && elements.Length == 0)
                 {
                     // arrayOrList = Array.Empty<ElementType>();
                     arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
@@ -254,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // fieldValue = new List<ElementType> { e1, ..., eN };
-                        fieldValue = CreateAndPopulateList(node, elementType);
+                        fieldValue = CreateAndPopulateList(node, elementType, elements);
                     }
 
                     // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);
@@ -263,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                arrayOrList = CreateAndPopulateList(node, elementType);
+                arrayOrList = CreateAndPopulateList(node, elementType, elements);
             }
 
             return _factory.Convert(collectionType, arrayOrList);
@@ -539,13 +574,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create and populate an list from a collection expression.
         /// The collection may or may not have a known length.
         /// </summary>
-        private BoundExpression CreateAndPopulateList(BoundCollectionExpression node, TypeWithAnnotations elementType)
+        private BoundExpression CreateAndPopulateList(BoundCollectionExpression node, TypeWithAnnotations elementType, ImmutableArray<BoundNode> elements)
         {
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(node.CollectionCreation is null);
-            Debug.Assert(node.Placeholder is null);
 
-            var elements = node.Elements;
             var typeArguments = ImmutableArray.Create(elementType);
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArguments);
 

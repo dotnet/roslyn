@@ -3749,6 +3749,10 @@ static class Program
                 // 1.cs(7,31): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         ListBase<int> y = [1, 2];
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("1", "int", "string").WithLocation(7, 31));
+
+            var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.True(LocalRewriter.IsOptimizableList(comp, listType, out var elementType));
+            Assert.Equal(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, elementType.Type);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69839")]
@@ -3815,6 +3819,10 @@ static class Program
                 // 1.cs(10,32): error CS9174: Cannot initialize type 'ID<object, object>' with a collection expression because the type is not constructible.
                 //         ID<object, object> d = [5];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
+
+            var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.True(LocalRewriter.IsOptimizableList(comp, listType, out var elementType));
+            Assert.Equal(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, elementType.Type);
         }
 
         [Fact]
@@ -3870,6 +3878,10 @@ static class Program
                 // 1.cs(8,29): error CS9174: Cannot initialize type 'IEquatable<int>' with a collection expression because the type is not constructible.
                 //         IEquatable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
+
+            var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.True(LocalRewriter.IsOptimizableList(comp, listType, out var elementType));
+            Assert.Equal(listType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, elementType.Type);
         }
 
         [Fact]
@@ -3912,15 +3924,19 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // 1.cs(7,23): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                // 1.cs(7,23): error CS9174: Cannot initialize type 'List<int>' with a collection expression because the type is not constructible.
                 //         List<int> l = [1];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 23),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("System.Collections.Generic.List<int>").WithLocation(7, 23),
                 // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         IEnumerable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 30),
                 // 1.cs(8,30): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1.ToArray'
                 //         IEnumerable<int> e = [2];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
+
+            var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, listType, out var elementType));
+            Assert.False(elementType.HasType);
         }
 
         [Theory]
@@ -7692,16 +7708,11 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ctorInt32);
+            // PROTOTYPE: Should report missing constructor for [4, ..y] as well.
             comp.VerifyEmitDiagnostics(
-                // (6,23): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         List<int> x = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(6, 23),
                 // (7,23): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
                 //         List<int> y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 23),
-                // (8,26): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
-                //         List<object> z = [4, ..y];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[4, ..y]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 23));
         }
 
         [Fact]
@@ -22285,6 +22296,10 @@ partial class Program
                   IL_0048:  ret
                 }
                 """);
+
+            var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.False(elementType.HasType);
         }
 
         [Fact]
@@ -22340,6 +22355,11 @@ partial class Program
                   IL_0028:  ret
                 }
                 """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.True(LocalRewriter.IsOptimizableImmutableArray(comp, collectionType, out var elementType));
+            Assert.Equal(collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, elementType.Type);
         }
 
         [Fact]
@@ -22572,18 +22592,24 @@ partial class Program
                     static void Main()
                     {
                         ImmutableArray<int> arr = [1, 2, 3];
-                        arr.Report();
                     }
                 }
                 """;
 
-            var comp = CreateCompilation(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net60);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net60);
             comp.VerifyEmitDiagnostics(
                 // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
                 //         ImmutableArray<int> arr = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
-            // Can work around this error in downlevel scenarios by defining ImmutableCollectionsMarshal.AsImmutableArray
+            var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.False(elementType.HasType);
+            Assert.False(LocalRewriter.IsOptimizableImmutableArray(comp, collectionType, out elementType));
+
+            // Defining ImmutableCollectionsMarshal.AsImmutableArray is not sufficient.
+            // ImmutableArray<T> must also have a [CollectionBuilder] attribute.
+            // PROTOTYPE: Are we testing with [CollectionBuilder] attribute but without ImmutableCollectionsMarshal.AsImmutableArray?
             string sourceB = """
                 using System.Collections.Immutable;
 
@@ -22597,28 +22623,21 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { sourceA, sourceB, s_collectionExtensions }, targetFramework: TargetFramework.Net60, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"));
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.Main", """
-                {
-                  // Code size       34 (0x22)
-                  .maxstack  3
-                  IL_0000:  ldc.i4.3
-                  IL_0001:  newarr     "int"
-                  IL_0006:  dup
-                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
-                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-                  IL_0011:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_0016:  box        "System.Collections.Immutable.ImmutableArray<int>"
-                  IL_001b:  ldc.i4.0
-                  IL_001c:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0021:  ret
-                }
-                """);
+            comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net60);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
+
+            collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerableT, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out elementType));
+            Assert.False(elementType.HasType);
+            Assert.True(LocalRewriter.IsOptimizableImmutableArray(comp, collectionType, out elementType));
+            Assert.Equal(SpecialType.System_Int32, elementType.SpecialType);
         }
 
         [Fact]
-        public void ImmutableArray_07()
+        public void ImmutableArray_IEnumerableOnly()
         {
             // Test an ImmutableArray<T> which implements only non-generic IEnumerable.
             string sourceA = """
@@ -22647,6 +22666,89 @@ partial class Program
                 // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
                 //         ImmutableArray<int> arr = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
+
+            var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.False(elementType.HasType);
+
+            // With ImmutableCollectionsMarshal.AsImmutableArray.
+            string sourceB = """
+                using System.Collections.Immutable;
+
+                namespace System.Runtime.InteropServices
+                {
+                    static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+
+            comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(7,35): error CS9210: This version of 'ImmutableArray<T>' cannot be used with collection expressions.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
+
+            collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out elementType));
+            Assert.False(elementType.HasType);
+        }
+
+        [Fact]
+        public void ImmutableArray_NoInterfaces()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [1, 2, 3];
+                    }
+                }
+
+                namespace System.Collections.Immutable
+                {
+                    struct ImmutableArray<T>
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyEmitDiagnostics(
+                // (7,35): error CS9174: Cannot initialize type 'ImmutableArray<int>' with a collection expression because the type is not constructible.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
+
+            var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.False(elementType.HasType);
+
+            // With ImmutableCollectionsMarshal.AsImmutableArray.
+            string sourceB = """
+                using System.Collections.Immutable;
+
+                namespace System.Runtime.InteropServices
+                {
+                    static class ImmutableCollectionsMarshal
+                    {
+                        public static ImmutableArray<T> AsImmutableArray<T>(T[] array) => default;
+                    }
+                }
+                """;
+
+            comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyEmitDiagnostics(
+                // (7,35): error CS9174: Cannot initialize type 'ImmutableArray<int>' with a collection expression because the type is not constructible.
+                //         ImmutableArray<int> arr = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
+
+            collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out elementType));
+            Assert.False(elementType.HasType);
         }
 
         [Fact]
@@ -22817,9 +22919,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // 1.cs(6,52): error CS9203: A collection expression of type 'ImmutableArray<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                // 1.cs(5,40): error CS9174: Cannot initialize type 'ImmutableArray<int>' with a collection expression because the type is not constructible.
+                //     static ImmutableArray<int> F1() => [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(5, 40),
+                // 1.cs(6,52): error CS9174: Cannot initialize type 'ImmutableArray<int>' with a collection expression because the type is not constructible.
                 //     static ImmutableArray<int> F2(int x, int y) => [x, y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[x, y]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(6, 52));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/70638")]

@@ -673,7 +673,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.List) ||
+                // PROTOTYPE: Move these checks to lowering?
+                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface/* or CollectionExpressionTypeKind.List*/) ||
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
@@ -683,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
 
-                    if (collectionTypeKind != CollectionExpressionTypeKind.List)
+                    //if (collectionTypeKind != CollectionExpressionTypeKind.List)
                     {
                         _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                     }

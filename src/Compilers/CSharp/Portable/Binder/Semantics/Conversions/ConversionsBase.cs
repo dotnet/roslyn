@@ -1630,70 +1630,99 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(compilation is { });
 
-            if (destination is ArrayTypeSymbol arrayType)
+            var kind = getCoreTypeKind(compilation, destination, out elementType);
+#if false
+            switch (kind)
             {
-                if (arrayType.IsSZArray)
+                // PROTOTYPE: We cannot use the extended type kind if the core type kind is ImplementsIEnumerable
+                // because the element types between the two interpretations will not match.
+                // PROTOTYPE: Also need to check there is exactly one IEnumerable<T> and T is the collection type parameter.
+                // PROTOTYPE: Need to check [CollectionBuilder] attribute is implemented correctly at each call site.
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableT:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        var extendedKind = getExtendedTypeKind(compilation, destination, out var extendedElementType);
+                        switch (extendedKind)
+                        {
+                            case CollectionExpressionTypeKind.None:
+                                return kind;
+                            case CollectionExpressionTypeKind.List:
+                            case CollectionExpressionTypeKind.ImmutableArray:
+                                elementType = extendedElementType;
+                                return extendedKind;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(extendedKind);
+                        }
+                    }
+            }
+#endif
+            return kind;
+
+            static CollectionExpressionTypeKind getCoreTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
+            {
+                if (destination is ArrayTypeSymbol arrayType)
                 {
-                    elementType = arrayType.ElementTypeWithAnnotations;
-                    return CollectionExpressionTypeKind.Array;
+                    if (arrayType.IsSZArray)
+                    {
+                        elementType = arrayType.ElementTypeWithAnnotations;
+                        return CollectionExpressionTypeKind.Array;
+                    }
                 }
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out elementType)
-                && compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is not null)
-            {
-                return CollectionExpressionTypeKind.ImmutableArray;
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
-            {
-                return CollectionExpressionTypeKind.Span;
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
-            {
-                return CollectionExpressionTypeKind.ReadOnlySpan;
-            }
-            else if (isSpanOrListType(compilation, destination, WellKnownType.System_Collections_Generic_List_T, out elementType))
-            {
-                return CollectionExpressionTypeKind.List;
-            }
-            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
-            {
-                return CollectionExpressionTypeKind.CollectionBuilder;
-            }
-            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
-            {
+                else if (IsSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+                {
+                    return CollectionExpressionTypeKind.Span;
+                }
+                else if (IsSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+                {
+                    return CollectionExpressionTypeKind.ReadOnlySpan;
+                }
+                else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+                {
+                    return CollectionExpressionTypeKind.CollectionBuilder;
+                }
+                else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))
+                {
+                    elementType = default;
+                    return CollectionExpressionTypeKind.ImplementsIEnumerableT;
+                }
+                else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
+                {
+                    // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                    // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                    // match earlier implementation, even though it states that walking the implemented interfaces
+                    // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                    // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                    // Instead, we just walk the implemented interfaces.
+                    elementType = default;
+                    return CollectionExpressionTypeKind.ImplementsIEnumerable;
+                }
+                else if (destination.IsArrayInterface(out elementType))
+                {
+                    return CollectionExpressionTypeKind.ArrayInterface;
+                }
+
                 elementType = default;
-                return CollectionExpressionTypeKind.ImplementsIEnumerableT;
-            }
-            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
-            {
-                // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
-                // That method checks for an implicit conversion from IEnumerable to the collection type, to
-                // match earlier implementation, even though it states that walking the implemented interfaces
-                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
-                // to check for nullable to disallow: Nullable<StructCollection> s = [];
-                // Instead, we just walk the implemented interfaces.
-                elementType = default;
-                return CollectionExpressionTypeKind.ImplementsIEnumerable;
-            }
-            else if (destination.IsArrayInterface(out elementType))
-            {
-                return CollectionExpressionTypeKind.ArrayInterface;
+                return CollectionExpressionTypeKind.None;
             }
 
-            elementType = default;
-            return CollectionExpressionTypeKind.None;
-
-            static bool isSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+#if false
+            static CollectionExpressionTypeKind getExtendedTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
             {
-                if (targetType is NamedTypeSymbol { Arity: 1 } namedType
-                    && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+                if (IsSpanOrListType(compilation, destination, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out elementType)
+                    && compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is not null)
                 {
-                    elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                    return true;
+                    return CollectionExpressionTypeKind.ImmutableArray;
                 }
+                else if (IsSpanOrListType(compilation, destination, WellKnownType.System_Collections_Generic_List_T, out elementType))
+                {
+                    return CollectionExpressionTypeKind.List;
+                }
+
                 elementType = default;
-                return false;
+                return CollectionExpressionTypeKind.None;
             }
+#endif
 
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
@@ -1701,6 +1730,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
+        }
+
+        // PROTOTYPE: Move to TypeSymbolExtensions.
+        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+        {
+            if (targetType is NamedTypeSymbol { Arity: 1 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+            {
+                elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return true;
+            }
+            elementType = default;
+            return false;
         }
 #nullable disable
 
