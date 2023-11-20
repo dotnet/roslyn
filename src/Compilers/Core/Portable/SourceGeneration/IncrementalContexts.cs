@@ -26,25 +26,25 @@ namespace Microsoft.CodeAnalysis
         private readonly string _sourceExtension;
 
         internal readonly ISyntaxHelper SyntaxHelper;
-        internal readonly bool DebugAnalyzers;
+        internal readonly bool CatchAnalyzerExceptions;
 
         internal IncrementalGeneratorInitializationContext(
             ArrayBuilder<SyntaxInputNode> syntaxInputBuilder,
             ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
             ISyntaxHelper syntaxHelper,
             string sourceExtension,
-            bool debugAnalyzers)
+            bool catchAnalyzerExceptions)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
             SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
-            DebugAnalyzers = debugAnalyzers;
+            CatchAnalyzerExceptions = catchAnalyzerExceptions;
         }
 
         public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
-        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation), DebugAnalyzers);
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation), CatchAnalyzerExceptions);
 
         // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
         // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
@@ -52,15 +52,15 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
             => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
                 .WithComparer(ReferenceEqualityComparer.Instance)
-                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions), DebugAnalyzers);
+                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions), DebugAnalyzers);
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts), DebugAnalyzers);
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts), CatchAnalyzerExceptions);
 
-        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions), DebugAnalyzers);
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences), DebugAnalyzers);
+        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences), CatchAnalyzerExceptions);
 
         public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
-        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(DebugAnalyzers)));
+        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions)));
 
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
 
         private void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
         {
-            node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(DebugAnalyzers), kind, sourceExt));
+            node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(CatchAnalyzerExceptions), kind, sourceExt));
         }
     }
 

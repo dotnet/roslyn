@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.FeatureDebugAnalyzers);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
 
                     Exception? ex = null;
                     try
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)
             {
-                if (compilation.FeatureDebugAnalyzers)
+                if (!compilation.CatchAnalyzerExceptions)
                 {
                     Debug.Assert(false);
                     Environment.FailFast(CreateGeneratorExceptionDiagnostic(messageProvider, sourceGenerator, e, isInit).ToString());

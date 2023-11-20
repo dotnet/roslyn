@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool HandleAnalyzerException(DiagnosticAnalyzer analyzer, Exception ex, in AnalysisContextInfo? info)
         {
-            if (this.Compilation.FeatureDebugAnalyzers)
+            if (!this.Compilation.CatchAnalyzerExceptions)
             {
                 Debug.Assert(false);
                 Environment.FailFast(CreateAnalyzerExceptionDiagnostic(analyzer, ex, info).ToString());

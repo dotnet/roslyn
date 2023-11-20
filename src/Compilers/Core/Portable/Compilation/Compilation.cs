@@ -3471,10 +3471,10 @@ namespace Microsoft.CodeAnalysis
         #region Features
 
         /// <summary>
-        /// True when the "debug-analyzers" feature flag is set.
-        /// When this flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// False when the "debug-analyzers" feature flag is set.
+        /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
-        internal bool FeatureDebugAnalyzers => Feature("debug-analyzers") != null;
+        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
         #endregion
 
