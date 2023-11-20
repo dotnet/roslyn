@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             // Make a single definition item that knows about all the locations of all the symbols in the group.
             var definition = group.Symbols.First();
 
-            var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
+            var allLocations = group.Symbols.SelectManyAsArray(s => s.Locations);
             var unclassifiedSpans = TryGetSourceLocations(definition, solution, allLocations, includeHiddenLocations);
             var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 

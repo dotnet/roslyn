@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private partial class CSharpCodeGenerator
         {
             public sealed class SingleStatementCodeGenerator(
-                SelectionResult selectionResult,
+                CSharpSelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
                 CSharpCodeGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
@@ -28,19 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(this.CSharpSelectionResult.IsExtractMethodOnSingleStatement());
+                    Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement());
 
-                    return ImmutableArray.Create(CSharpSelectionResult.GetFirstStatement());
+                    return ImmutableArray.Create(this.SelectionResult.GetFirstStatement());
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                    => CSharpSelectionResult.GetFirstStatement();
+                    => this.SelectionResult.GetFirstStatement();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 {
                     // it is a single statement case. either first statement is same as last statement or
                     // last statement belongs (embedded statement) to the first statement.
-                    return CSharpSelectionResult.GetFirstStatement();
+                    return this.SelectionResult.GetFirstStatement();
                 }
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)

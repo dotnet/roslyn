@@ -718,6 +718,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation() => SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
         {
             builderType = null;
@@ -728,6 +734,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasInlineArrayAttribute(out int length)
         {
             length = 0;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
             return false;
         }
 

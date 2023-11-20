@@ -15,11 +15,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend MustInherit Class StructuredTriviaSyntax
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Initialize()
-        End Sub
-
         Friend Sub New(ByVal kind As SyntaxKind)
             MyBase.New(kind)
             Initialize()

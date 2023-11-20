@@ -1250,6 +1250,9 @@ tryAgain:
             return paramInfo;
         }
 
+        internal void DecodeMethodSignatureParameterCountsOrThrow(MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
+            => GetSignatureCountsOrThrow(Module, methodDef, out parameterCount, out typeParameterCount);
+
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal static void GetSignatureCountsOrThrow(PEModule module, MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
         {
@@ -1306,88 +1309,6 @@ tryAgain:
         }
 
         #region Custom Attributes
-
-        /// <summary>
-        /// Decodes attribute parameter type from method signature.
-        /// </summary>
-        /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void DecodeCustomAttributeParameterTypeOrThrow(ref BlobReader sigReader, out SerializationTypeCode typeCode, out TypeSymbol type, out SerializationTypeCode elementTypeCode, out TypeSymbol elementType, bool isElementType)
-        {
-            SignatureTypeCode paramTypeCode = sigReader.ReadSignatureTypeCode();
-
-            if (paramTypeCode == SignatureTypeCode.SZArray)
-            {
-                if (isElementType)
-                {
-                    // nested arrays not allowed
-                    throw new UnsupportedSignatureContent();
-                }
-
-                SerializationTypeCode unusedElementTypeCode;
-                TypeSymbol unusedElementType;
-                DecodeCustomAttributeParameterTypeOrThrow(ref sigReader, out elementTypeCode, out elementType, out unusedElementTypeCode, out unusedElementType, isElementType: true);
-                type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo<TypeSymbol>>));
-                typeCode = SerializationTypeCode.SZArray;
-                return;
-            }
-
-            elementTypeCode = SerializationTypeCode.Invalid;
-            elementType = null;
-
-            switch (paramTypeCode)
-            {
-                case SignatureTypeCode.Object:
-                    type = GetSpecialType(SpecialType.System_Object);
-                    typeCode = SerializationTypeCode.TaggedObject;
-                    return;
-
-                case SignatureTypeCode.String:
-                case SignatureTypeCode.Boolean:
-                case SignatureTypeCode.Char:
-                case SignatureTypeCode.SByte:
-                case SignatureTypeCode.Byte:
-                case SignatureTypeCode.Int16:
-                case SignatureTypeCode.UInt16:
-                case SignatureTypeCode.Int32:
-                case SignatureTypeCode.UInt32:
-                case SignatureTypeCode.Int64:
-                case SignatureTypeCode.UInt64:
-                case SignatureTypeCode.Single:
-                case SignatureTypeCode.Double:
-                    type = GetSpecialType(paramTypeCode.ToSpecialType());
-                    typeCode = (SerializationTypeCode)paramTypeCode;
-                    return;
-
-                case SignatureTypeCode.TypeHandle:
-                    // The type of the parameter can either be an enum type or System.Type.
-                    bool isNoPiaLocalType;
-                    type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
-
-                    var underlyingEnumType = GetEnumUnderlyingType(type);
-
-                    // Spec: If the parameter kind is an enum -- simply store the value of the enum's underlying integer type.
-                    if ((object)underlyingEnumType != null)
-                    {
-                        Debug.Assert(!isNoPiaLocalType);
-
-                        // GetEnumUnderlyingType always returns a valid enum underlying type
-                        typeCode = underlyingEnumType.SpecialType.ToSerializationType();
-                        return;
-                    }
-
-                    if ((object)type == SystemTypeSymbol)
-                    {
-                        Debug.Assert(!isNoPiaLocalType);
-                        typeCode = SerializationTypeCode.Type;
-                        return;
-                    }
-
-                    break;
-            }
-
-            throw new UnsupportedSignatureContent();
-        }
 
         /// <summary>
         /// Decodes attribute argument type from attribute blob (called FieldOrPropType in the spec).
@@ -1509,23 +1430,6 @@ tryAgain:
 
                 return result;
             }
-        }
-
-        /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private TypedConstant DecodeCustomAttributeFixedArgumentOrThrow(ref BlobReader sigReader, ref BlobReader argReader)
-        {
-            SerializationTypeCode typeCode, elementTypeCode;
-            TypeSymbol type, elementType;
-            DecodeCustomAttributeParameterTypeOrThrow(ref sigReader, out typeCode, out type, out elementTypeCode, out elementType, isElementType: false);
-
-            // arrays are allowed only on top-level:
-            if (typeCode == SerializationTypeCode.SZArray)
-            {
-                return DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type);
-            }
-
-            return DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded attribute argument is invalid.</exception>
@@ -1764,85 +1668,6 @@ tryAgain:
                 }
 
                 return true;
-            }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
-            {
-                positionalArgs = Array.Empty<TypedConstant>();
-                namedArgs = Array.Empty<KeyValuePair<String, TypedConstant>>();
-            }
-
-            return false;
-        }
-
-        internal bool GetCustomAttribute(
-            CustomAttributeHandle handle,
-            out TypedConstant[] positionalArgs,
-            out KeyValuePair<string, TypedConstant>[] namedArgs)
-        {
-            try
-            {
-                positionalArgs = Array.Empty<TypedConstant>();
-                namedArgs = Array.Empty<KeyValuePair<string, TypedConstant>>();
-
-                // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
-                // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
-                EntityHandle attributeType;
-                EntityHandle ctor;
-
-                if (Module.GetTypeAndConstructor(handle, out attributeType, out ctor))
-                {
-                    BlobReader argsReader = Module.GetMemoryReaderOrThrow(Module.GetCustomAttributeValueOrThrow(handle));
-                    BlobReader sigReader = Module.GetMemoryReaderOrThrow(Module.GetMethodSignatureOrThrow(ctor));
-
-                    uint prolog = argsReader.ReadUInt16();
-                    if (prolog != 1)
-                    {
-                        return false;
-                    }
-
-                    // Read the signature header.
-                    SignatureHeader signatureHeader = sigReader.ReadSignatureHeader();
-
-                    // Get the type parameter count.
-                    if (signatureHeader.IsGeneric && sigReader.ReadCompressedInteger() != 0)
-                    {
-                        return false;
-                    }
-
-                    // Get the parameter count
-                    int paramCount = sigReader.ReadCompressedInteger();
-
-                    // Get the type return type.
-                    var returnTypeCode = sigReader.ReadSignatureTypeCode();
-                    if (returnTypeCode != SignatureTypeCode.Void)
-                    {
-                        return false;
-                    }
-
-                    if (paramCount > 0)
-                    {
-                        positionalArgs = new TypedConstant[paramCount];
-
-                        for (int i = 0; i < positionalArgs.Length; i++)
-                        {
-                            positionalArgs[i] = DecodeCustomAttributeFixedArgumentOrThrow(ref sigReader, ref argsReader);
-                        }
-                    }
-
-                    short namedParamCount = argsReader.ReadInt16();
-
-                    if (namedParamCount > 0)
-                    {
-                        namedArgs = new KeyValuePair<string, TypedConstant>[namedParamCount];
-
-                        for (int i = 0; i < namedArgs.Length; i++)
-                        {
-                            (namedArgs[i], _, _, _) = DecodeCustomAttributeNamedArgumentOrThrow(ref argsReader);
-                        }
-                    }
-
-                    return true;
-                }
             }
             catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
             {

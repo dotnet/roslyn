@@ -2135,7 +2135,7 @@ public class C
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowInvalidOperationException()""
+    IL_002f:  call       ""void <PrivateImplementationDetails>.ThrowInvalidOperationException()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2165,7 +2165,7 @@ public class C
   // sequence point: }
   IL_0052:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("ThrowInvalidOperationException", @"
+", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowInvalidOperationException", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -2277,7 +2277,7 @@ namespace System.Runtime.CompilerServices
     // sequence point: switch { (3, 4) => 1 }
     IL_002e:  nop
     // sequence point: <hidden>
-    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless()""
+    IL_002f:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless()""
     IL_0034:  nop
     // sequence point: <hidden>
     IL_0035:  ldc.i4.1
@@ -2327,7 +2327,7 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_007a:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("ThrowSwitchExpressionExceptionParameterless", @"
+", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionExceptionParameterless", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -2471,7 +2471,7 @@ namespace System.Runtime.CompilerServices
     IL_001d:  ldloc.1
     IL_001e:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
     IL_0023:  box        ""System.ValueTuple<int, int>""
-    IL_0028:  call       ""ThrowSwitchExpressionException(object)""
+    IL_0028:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_002d:  nop
     // sequence point: <hidden>
     IL_002e:  ldc.i4.1
@@ -2521,7 +2521,7 @@ namespace System.Runtime.CompilerServices
   // sequence point: }
   IL_0071:  ret
 }
-", sequencePoints: "C.Main", source: source).VerifyIL("ThrowSwitchExpressionException", @"
+", sequencePoints: "C.Main", source: source).VerifyIL("<PrivateImplementationDetails>.ThrowSwitchExpressionException", @"
 {
   // Code size        7 (0x7)
   .maxstack  1

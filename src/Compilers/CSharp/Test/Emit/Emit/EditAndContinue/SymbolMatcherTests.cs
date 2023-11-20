@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -44,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 SynthesizedTypeMaps.Empty,
                 fromCompilation.SourceAssembly,
                 peAssemblySymbol);
+
+        private static IEnumerable<string> Inspect(ImmutableSegmentedDictionary<AnonymousDelegateWithIndexedNamePartialKey, ImmutableArray<AnonymousTypeValue>> anonymousDelegatesWithIndexedNames)
+            => from entry in anonymousDelegatesWithIndexedNames
+               from value in entry.Value
+               select $"({entry.Key.GenericArity},{entry.Key.ParameterCount}): {value.Type}";
 
         [Fact]
         public void ConcurrentAccess()
@@ -1523,7 +1529,7 @@ class C
 
             var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
             var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
-            Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0["<>f__AnonymousDelegate0"].Name);
+            Assert.Equal("<>f__AnonymousDelegate0", anonymousDelegates0.Single().Value.Single().Name);
             Assert.Equal(1, anonymousDelegates0.Count);
 
             var testData = new CompilationTestData();
@@ -1582,11 +1588,13 @@ class C
             var decoder0 = new MetadataDecoder(peModule0);
 
             var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
-            var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
-            Assert.Equal(3, anonymousDelegates0.Count);
-            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
-            Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
-            Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
+
+            AssertEx.SetEqual(new[]
+            {
+                "(3,2): <>f__AnonymousDelegate0<T1, T2, TResult>",
+                "(0,2): <>f__AnonymousDelegate1",
+                "(0,2): <>f__AnonymousDelegate2"
+            }, Inspect(synthesizedTypes0.AnonymousDelegatesWithIndexedNames));
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -1650,11 +1658,13 @@ class C
             var decoder0 = new MetadataDecoder(peModule0);
 
             var synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0);
-            var anonymousDelegates0 = synthesizedTypes0.AnonymousDelegatesWithIndexedNames;
-            Assert.Equal(3, anonymousDelegates0.Count);
-            Assert.Equal("<>f__AnonymousDelegate0<T1, T2, TResult>", anonymousDelegates0["<>f__AnonymousDelegate0"].Type.ToString());
-            Assert.Equal("<>f__AnonymousDelegate1", anonymousDelegates0["<>f__AnonymousDelegate1"].Type.ToString());
-            Assert.Equal("<>f__AnonymousDelegate2", anonymousDelegates0["<>f__AnonymousDelegate2"].Type.ToString());
+
+            AssertEx.SetEqual(new[]
+            {
+                "(3,2): <>f__AnonymousDelegate0<T1, T2, TResult>",
+                "(0,2): <>f__AnonymousDelegate1",
+                "(0,2): <>f__AnonymousDelegate2"
+            }, Inspect(synthesizedTypes0.AnonymousDelegatesWithIndexedNames));
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);

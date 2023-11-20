@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((TypePatternSyntax)node).Type;
 
         public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) };
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {

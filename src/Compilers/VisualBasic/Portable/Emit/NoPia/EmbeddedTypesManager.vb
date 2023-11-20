@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Return attrData.GetTargetAttributeSignatureIndex(description)
         End Function
 
-        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, attrData As VisualBasicAttributeData, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
+        Friend Overrides Function CreateSynthesizedAttribute(constructor As WellKnownMember, constructorArguments As ImmutableArray(Of TypedConstant), namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData
             Dim ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics)
             If ctor Is Nothing Then
                 Return Nothing
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     ' the original source interface as both source interface and event provider. Otherwise, we'd have to embed
                     ' the event provider class too.
                     Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor,
-                        ImmutableArray.Create(attrData.CommonConstructorArguments(0), attrData.CommonConstructorArguments(0)),
+                        ImmutableArray.Create(constructorArguments(0), constructorArguments(0)),
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
                 Case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor
@@ -110,9 +110,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                         ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty)
 
                 Case Else
-                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments)
+                    Return New SynthesizedAttributeData(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments)
 
             End Select
+        End Function
+
+        Friend Overrides Function TryGetAttributeArguments(attrData As VisualBasicAttributeData, ByRef constructorArguments As ImmutableArray(Of TypedConstant), ByRef namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)), syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
+            Dim result As Boolean = Not attrData.HasErrors
+
+            constructorArguments = attrData.CommonConstructorArguments
+            namedArguments = attrData.CommonNamedArguments
+
+            Dim errorInfo As DiagnosticInfo = attrData.ErrorInfo
+            If errorInfo IsNot Nothing Then
+                diagnostics.Add(errorInfo, If(syntaxNodeOpt?.Location, NoLocation.Singleton))
+            End If
+
+            Return result
         End Function
 
         Friend Function GetAssemblyGuidString(assembly As AssemblySymbol) As String
@@ -404,7 +418,7 @@ checksForAllEmbedabbleTypes:
                     ' ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
                     ReportNotEmbeddableSymbol(ERRID.ERR_InvalidStructMemberNoPIA1, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, Me)
                 Case Else
-                    If Cci.Extensions.HasBody(embedded) Then
+                    If embedded.HasBody Then
                         ' ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
                         ReportDiagnostic(diagnostics, ERRID.ERR_InteropMethodWithBody1, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat))
                     End If

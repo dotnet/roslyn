@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 EditorAdaptersFactoryService.GetViewAdapter(textView),
                 GetSnippetExpansionClient(textView, subjectBuffer),
                 Guids.CSharpLanguageServiceId,
-                bstrTypes: surroundWith ? new[] { "SurroundsWith" } : new[] { "Expansion", "SurroundsWith" },
+                bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
                 iCountTypes: surroundWith ? 1 : 2,
                 fIncludeNULLType: 1,
                 bstrKinds: null,

@@ -127,6 +127,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         [DataMember(Order = 16)]
         public bool IsSdkStyle { get; }
 
+        /// <summary>
+        /// The path to the project.assets.json path in obj/.
+        /// </summary>
+        [DataMember(Order = 17)]
+        public string? ProjectAssetsFilePath { get; }
+
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
@@ -142,6 +148,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -162,6 +169,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
+            this.ProjectAssetsFilePath = projectAssetsFilePath;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
@@ -181,6 +189,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -199,6 +208,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                projectAssetsFilePath,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
@@ -219,6 +229,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace: null,
                 targetFramework: null,
                 targetFrameworkIdentifier: null,
+                projectAssetsFilePath: null,
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,

@@ -37,14 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     /// be implementing the <see cref="ICodeCleanUpFixer"/> interface, this abstract base class allows Roslyn to operate
     /// on MEF instances of fixers known to be relevant in the context of Roslyn languages.
     /// </summary>
-    internal abstract class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
+    internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     {
-        protected internal const string FormatDocumentFixId = nameof(FormatDocumentFixId);
-        protected internal const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
-        protected internal const string SortImportsFixId = nameof(SortImportsFixId);
-        protected internal const string ApplyThirdPartyFixersId = nameof(ApplyThirdPartyFixersId);
-        protected internal const string ApplyAllAnalyzerFixersId = nameof(ApplyAllAnalyzerFixersId);
-
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
@@ -324,32 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
-            if (!enabledFixIds.IsFixIdEnabled(ApplyAllAnalyzerFixersId))
-            {
-                var enabledDiagnosticSets = ArrayBuilder<DiagnosticSet>.GetInstance();
-
-                foreach (var diagnostic in enabledDiagnostics.Diagnostics)
-                {
-                    foreach (var diagnosticId in diagnostic.DiagnosticIds)
-                    {
-                        if (enabledFixIds.IsFixIdEnabled(diagnosticId))
-                        {
-                            enabledDiagnosticSets.Add(diagnostic);
-                            break;
-                        }
-                    }
-                }
-
-                var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
-                var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
-                var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
-                var isApplyThirdPartyFixersEnabled = enabledFixIds.IsFixIdEnabled(ApplyThirdPartyFixersId);
-                enabledDiagnostics = new EnabledDiagnosticOptions(
-                    isFormatDocumentEnabled,
-                    isApplyThirdPartyFixersEnabled,
-                    enabledDiagnosticSets.ToImmutableArray(),
-                    new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
-            }
+            enabledDiagnostics = AdjustDiagnosticOptions(enabledDiagnostics, enabledFixIds.IsFixIdEnabled);
 
             return await codeCleanupService.CleanupAsync(
                 document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);

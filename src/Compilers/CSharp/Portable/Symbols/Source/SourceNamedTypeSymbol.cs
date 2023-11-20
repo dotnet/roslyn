@@ -1451,6 +1451,12 @@ next:;
             }
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = GetDecodedWellKnownAttributeData()?.GuidString;
+            return guidString != null;
+        }
+
         internal override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
 
@@ -1720,7 +1726,7 @@ next:;
             }
 
             // Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
-            if (moduleBuilder.EncSymbolChanges?.IsReplaced(((ISymbolInternal)this).GetISymbol()) == true)
+            if (moduleBuilder.EncSymbolChanges?.IsReplaced(this) == true)
             {
                 // Note that we use this source named type symbol in the attribute argument (of System.Type).
                 // We do not have access to the original symbol from this compilation. However, System.Type
