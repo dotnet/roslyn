@@ -309,8 +309,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.True(checksum1.SequenceEqual(checksum2));
 
-            // This should return false, but is thrown off by the calls to GetChecksum above.  This is a bad bug that
-            // will be fixed once we resolve https://github.com/dotnet/roslyn/issues/70752
             Assert.False(sourceText1.ContentEquals(sourceText2));
 
             Assert.False(sourceText1.GetContentHash().SequenceEqual(sourceText2.GetContentHash()));
