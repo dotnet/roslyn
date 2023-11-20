@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class AnalyzerManager
     {
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
-        private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
+        // Not created as ImmutableDictionary for perf considerations, but should be treated as immutable
+        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
         public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
@@ -38,15 +39,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(SpecializedCollections.SingletonEnumerable(analyzer));
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+        private Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            var analyzerExecutionContextMap = new Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext>();
             foreach (var analyzer in analyzers)
             {
-                builder.Add(analyzer, new AnalyzerExecutionContext(analyzer));
+                analyzerExecutionContextMap.Add(analyzer, new AnalyzerExecutionContext(analyzer));
             }
 
-            return builder.ToImmutable();
+            return analyzerExecutionContextMap;
         }
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
@@ -371,6 +372,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
                 }
+                else if (diag.IsCustomSeverityConfigurable())
+                {
+                    // Analyzer supports custom ways for configuring diagnostic severity that may not be understood by the compiler.
+                    // We always consider such analyzers to be non-suppressed. Analyzer is responsible for bailing out early if
+                    // it has been suppressed by some custom configuration.
+                    return false;
+                }
 
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
@@ -422,11 +430,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)
+        internal static bool HasCompilerOrNotConfigurableTagOrCustomConfigurableTag(ImmutableArray<string> customTags)
         {
             foreach (var customTag in customTags)
             {
-                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable)
+                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable or WellKnownDiagnosticTags.CustomSeverityConfigurable)
                 {
                     return true;
                 }
@@ -436,10 +444,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal static bool HasNotConfigurableTag(ImmutableArray<string> customTags)
+            => HasCustomTag(customTags, WellKnownDiagnosticTags.NotConfigurable);
+
+        internal static bool HasCustomSeverityConfigurableTag(ImmutableArray<string> customTags)
+            => HasCustomTag(customTags, WellKnownDiagnosticTags.CustomSeverityConfigurable);
+
+        private static bool HasCustomTag(ImmutableArray<string> customTags, string tagToFind)
         {
             foreach (var customTag in customTags)
             {
-                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
+                if (customTag == tagToFind)
                 {
                     return true;
                 }

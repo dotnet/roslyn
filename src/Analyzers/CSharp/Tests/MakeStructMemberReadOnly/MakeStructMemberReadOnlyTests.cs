@@ -2106,4 +2106,143 @@ public sealed class MakeStructMemberReadOnlyTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        get => _MaxSize;
+
+                        // missing, since the property is already readonly
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        readonly get => _MaxSize;
+
+                        [|init|]
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        get => _MaxSize;
+
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        get => _MaxSize++;
+
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70864")]
+    public async Task TestInitAccessor4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public int? MaxSize
+                    {
+                        [|init|]
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public record struct TypeMapCapacity
+                {
+                    private readonly int _MaxSize;
+
+                    public readonly int? MaxSize
+                    {
+                        init
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
 }

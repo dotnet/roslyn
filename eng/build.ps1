@@ -428,6 +428,7 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
+    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"

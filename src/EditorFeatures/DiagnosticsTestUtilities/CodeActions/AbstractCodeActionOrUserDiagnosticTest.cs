@@ -892,7 +892,7 @@ Consider using the title as the equivalence key instead of 'null'";
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
-            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
+            => codeActions.SelectManyAsArray(a => a.NestedCodeActions);
 
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code

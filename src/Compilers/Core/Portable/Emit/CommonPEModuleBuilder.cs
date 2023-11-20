@@ -759,11 +759,14 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             if (details.GetMethod(WellKnownMemberNames.StaticConstructorName) == null)
             {
-                details.TryAddSynthesizedMethod(CreatePrivateImplementationDetailsStaticConstructor(details, syntaxOpt, diagnostics));
+                Cci.IMethodDefinition cctor = CreatePrivateImplementationDetailsStaticConstructor(syntaxOpt, diagnostics);
+                Debug.Assert(((ISynthesizedGlobalMethodSymbol)cctor.GetInternalSymbol()).ContainingPrivateImplementationDetailsType == (object)details);
+
+                details.TryAddSynthesizedMethod(cctor);
             }
         }
 
-        protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(PrivateImplementationDetails details, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+        protected abstract Cci.IMethodDefinition CreatePrivateImplementationDetailsStaticConstructor(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
 
         #region Synthesized Members
 

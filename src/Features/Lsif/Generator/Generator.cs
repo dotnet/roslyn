@@ -413,6 +413,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         private static (DefinitionRangeTag tag, TextSpan fullRange)? CreateRangeTagAndContainingSpanForDeclaredSymbol(ISymbol declaredSymbol, SyntaxToken syntaxToken, SyntaxTree syntaxTree, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
+            // Tuples fields and anonymous type are considered as declaring something, but we don't want to create document symbols for them
+            if (declaredSymbol.IsTupleField() || declaredSymbol.IsAnonymousTypeProperty())
+                return null;
+
             // Find the syntax node that declared the symbol in the tree we're processing
             var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, syntaxTree) => r.SyntaxTree == syntaxTree, arg: syntaxTree);
             var syntaxNode = syntaxReference?.GetSyntax(cancellationToken);

@@ -213,6 +213,81 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
+        public void ContentEqualsLarge()
+        {
+            var random = new Random();
+            var builder = new StringBuilder();
+
+            // 100k characters will both ensure that a chunked LargeText is used *and* that we have to break the text up
+            // into chunks when testing equality.
+            for (int i = 0; i < 100_000; i++)
+                builder.Append((char)('a' + random.Next(26)));
+
+            // Try all permutations of encodings and algorithms.  None of them should affect the final result.
+            var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
+            var hashAlgorithms = new[] { SourceHashAlgorithm.Sha1, SourceHashAlgorithm.Sha256 };
+
+            var randomText = builder.ToString();
+
+            var allSourceTexts = new List<SourceText>();
+
+            foreach (var encoding in encodings)
+            {
+                // Make normal StringText objects that just wrap the string.
+                allSourceTexts.Add(new StringText(randomText, encodingOpt: encoding));
+
+                // Make LargeText versions that break the strings up into chunks.  This will help ensure that regardless
+                // of which SourceText we have that equality works properly.
+                foreach (var algorithm in hashAlgorithms)
+                    allSourceTexts.Add(LargeText.Decode(new StringReader(randomText), randomText.Length, encoding, algorithm));
+            }
+
+            foreach (var sourceText1 in allSourceTexts)
+            {
+                foreach (var sourceText2 in allSourceTexts)
+                    Assert.True(sourceText1.ContentEquals(sourceText2));
+            }
+        }
+
+        [Fact]
+        public void ContentEqualUnaffectedByEncoding1()
+        {
+            var encodings = new[] { null, Encoding.ASCII, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false) };
+
+            foreach (var encoding1 in encodings)
+            {
+                var sourceText1 = new StringText("；", encoding1); // chinese semicolon
+
+                foreach (var encoding2 in encodings)
+                {
+                    var sourceText2 = new StringText("?", encoding2); // what a non-ascii char will map to.
+                    Assert.False(sourceText1.ContentEquals(sourceText2));
+
+                    // Even though the contents are clearly different, they have the same checksum in ascii because of
+                    // the lossy mapping.  This shows how checksums should not be used to validate content equality.
+                    if (encoding1 == Encoding.ASCII && encoding2 == Encoding.ASCII)
+                        Assert.True(sourceText1.GetChecksum().SequenceEqual(sourceText2.GetChecksum()));
+                }
+            }
+        }
+
+        [Fact]
+        public void ContentEqualUnaffectedByEncoding2()
+        {
+            var sourceText1 = new StringText("；", Encoding.ASCII); // chinese semicolon
+            var sourceText2 = new StringText("?", Encoding.ASCII); // what a non-ascii char will map to.
+
+            var checksum1 = sourceText1.GetChecksum();
+            var checksum2 = sourceText2.GetChecksum();
+
+            Assert.True(checksum1.SequenceEqual(checksum2));
+
+            // This should return false, but is thrown off by the calls to GetChecksum above.  This is a bad bug that
+            // will be fixed once we resolve https://github.com/dotnet/roslyn/issues/70752
+            Assert.False(sourceText1.ContentEquals(sourceText2));
+        }
+
+        [Fact]
         public void IsBinary()
         {
             Assert.False(SourceText.IsBinary(""));
