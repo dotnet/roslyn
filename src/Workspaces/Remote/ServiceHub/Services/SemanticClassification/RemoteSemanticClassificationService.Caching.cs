@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
@@ -80,13 +81,14 @@ namespace Microsoft.CodeAnalysis.Remote
             };
 
         public async ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
-            DocumentKey documentKey, TextSpan textSpan, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
+            DocumentKey documentKey, ImmutableArray<TextSpan> textSpans, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
                 documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
+            var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
             return classifiedSpans.IsDefault
                 ? null
-                : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => c.TextSpan.IntersectsWith(textSpan)));
+                : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));
         }
 
         private static async ValueTask CacheClassificationsAsync(
@@ -138,7 +140,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Compute classifications for the full span.
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+
+            var fullSpan = new TextSpan(0, text.Length);
+            if (type == ClassificationType.Semantic)
+            {
+                await classificationService.AddSemanticClassificationsAsync(document, fullSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else if (type == ClassificationType.EmbeddedLanguage)
+            {
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(document, fullSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
 
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))

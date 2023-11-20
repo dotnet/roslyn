@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private readonly AsyncLazy<(Document document, SyntaxToken? invocationNameToken)>? _lazyData;
 
         internal ExtractMethodResult(
-            OperationStatusFlag status,
+            bool succeeded,
             ImmutableArray<string> reasons,
             Func<CancellationToken, Task<(Document document, SyntaxToken? invocationNameToken)>>? getDocumentAsync)
         {
-            Succeeded = status.Succeeded();
+            Succeeded = succeeded;
 
             Reasons = reasons.NullToEmpty();
 
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         public static ExtractMethodResult Fail(OperationStatus status)
-            => new(status.Flag, status.Reasons, getDocumentAsync: null);
+            => new(status.Succeeded, status.Reasons, getDocumentAsync: null);
 
         public static ExtractMethodResult Success(
             OperationStatus status,
             Func<CancellationToken, Task<(Document document, SyntaxToken? invocationNameToken)>> getDocumentAsync)
         {
-            return new(status.Flag, status.Reasons, getDocumentAsync);
+            return new(status.Succeeded, status.Reasons, getDocumentAsync);
         }
 
         public Task<(Document document, SyntaxToken? invocationNameToken)> GetDocumentAsync(CancellationToken cancellationToken)

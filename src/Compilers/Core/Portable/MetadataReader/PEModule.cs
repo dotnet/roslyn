@@ -1469,11 +1469,52 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
+        internal bool HasAttributeUsageAttribute(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, out AttributeUsageInfo usageInfo)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.AttributeUsageAttribute);
-            Debug.Assert(info.SignatureIndex == 0);
-            return info.Handle;
+
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryGetAttributeReader(info.Handle, out BlobReader sigReader) && CrackIntInAttributeValue(out int validOn, ref sigReader))
+                {
+                    bool allowMultiple = false;
+                    bool inherited = true;
+
+                    if (sigReader.RemainingBytes >= 2)
+                    {
+                        try
+                        {
+                            var numNamedArgs = sigReader.ReadUInt16();
+                            for (uint i = 0; i < numNamedArgs; i++)
+                            {
+                                (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                    attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                                if (namedArgValues is (_, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                                {
+                                    switch (namedArgValues.nameValuePair.Key)
+                                    {
+                                        case "AllowMultiple":
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                        case "Inherited":
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
+                    }
+
+                    usageInfo = new AttributeUsageInfo((AttributeTargets)validOn, allowMultiple, inherited);
+                    return true;
+                }
+            }
+
+            usageInfo = default;
+            return false;
         }
 
         internal bool HasInterfaceTypeAttribute(EntityHandle token, out ComInterfaceType interfaceType)

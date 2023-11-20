@@ -2266,13 +2266,11 @@ End Class
 
         Dim comp2 = CreateCompilation("", references:={moduleWithAttribute}, options:=TestOptions.ReleaseDll)
 
-        CompileAndVerify(comp2, symbolValidator:=Sub(m)
-                                                     Dim attrs = m.ContainingAssembly.GetAttributes()
-                                                     Assert.Equal(3, attrs.Length)
-                                                     AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs(0).ToString())
-                                                     AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=True)", attrs(1).ToString())
-                                                     AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs(2).ToString())
-                                                 End Sub).VerifyDiagnostics()
+        comp2.AssertTheseEmitDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A1'. Add one to your project.
+</expected>
+        )
 
         Dim attribute2 =
 <compilation name="A1">
@@ -2290,13 +2288,11 @@ End Class
 
         Dim comp3 = CreateCompilation("", references:={moduleWithAttribute, attributeDefinition2}, options:=TestOptions.ReleaseDll)
 
-        CompileAndVerify(comp3, symbolValidator:=Sub(m)
-                                                     Dim attrs = m.ContainingAssembly.GetAttributes()
-                                                     Assert.Equal(3, attrs.Length)
-                                                     AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs(0).ToString())
-                                                     AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=True)", attrs(1).ToString())
-                                                     AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs(2).ToString())
-                                                 End Sub).VerifyDiagnostics()
+        comp3.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'A1..ctor' is not defined.
+</expected>
+        )
     End Sub
 
     <Fact>

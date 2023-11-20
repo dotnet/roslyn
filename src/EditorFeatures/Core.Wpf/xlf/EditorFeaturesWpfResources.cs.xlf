@@ -27,6 +27,11 @@
         <target state="translated">Výběr se spouští v okně Interactive.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="translated">Interaktivní platforma procesů hostitelů</target>

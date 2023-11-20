@@ -78,10 +78,10 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
+                    return CreateChecksum((MetadataReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
+                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     return Checksum.Create(((SerializableSourceText)value).GetChecksum());
@@ -108,10 +108,19 @@ internal partial class SerializerService : ISerializerService
             switch (kind)
             {
                 case WellKnownSynchronizationKind.SolutionAttributes:
+                    ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.ProjectAttributes:
+                    ((ProjectInfo.ProjectAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.DocumentAttributes:
+                    ((DocumentInfo.DocumentAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    ((IObjectWritable)value).WriteTo(writer);
+                    ((SourceGeneratedDocumentIdentity)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:

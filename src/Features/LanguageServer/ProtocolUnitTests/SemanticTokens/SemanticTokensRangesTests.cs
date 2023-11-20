@@ -39,8 +39,9 @@ static class C { }
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
             if (isVS)
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+#pragma warning disable format // Force explicit column spacing.
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
@@ -48,12 +49,12 @@ static class C { }
                        0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
             else
             {
-                expectedResults.Data = new int[]
-                {
+                expectedResults.Data =
+                [
                     // Line | Char | Len | Token type                                                               | Modifier
                        0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
                        1,     0,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],      0, // 'static'
@@ -61,8 +62,9 @@ static class C { }
                        0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],   (int)TokenModifiers.Static, // 'C'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
-                };
+                ];
             }
+#pragma warning restore format
 
             await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
             AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));

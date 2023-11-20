@@ -362,6 +362,36 @@ class C
         }
 
         [Fact]
+        public void EmptyParamsArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        M(y: 2, x: 1);
+    }
+    public static void M(int x, int y, params int[] p)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(p.Length);
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""int[] System.Array.Empty<int>()""
+  IL_0007:  call       ""void C.M(int, int, params int[])""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
         public void InParamReorder()
         {
             var comp = CompileAndVerify(@"

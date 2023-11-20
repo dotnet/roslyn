@@ -156,4 +156,7 @@
   <data name="Enter_to_rename_shift_enter_to_preview" xml:space="preserve">
     <value>Enter to rename, Shift+Enter to preview</value>
   </data>
+  <data name="Generating_suggestions" xml:space="preserve">
+    <value>Generating suggestions...</value>
+  </data>
 </root>

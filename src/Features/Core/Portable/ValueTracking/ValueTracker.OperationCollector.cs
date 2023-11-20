@@ -125,19 +125,19 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     // If the parameter is not a ref or out param, track the reference assignments that count
                     // as input to the argument being passed to the method.
-                    return AddReference(operation, cancellationToken);
+                    return AddReferenceAsync(operation, cancellationToken);
                 }
 
                 if (IsContainedIn<IReturnOperation>(operation) || IsContainedIn<IAssignmentOperation>(operation))
                 {
                     // If the reference is part of a return operation or assignment operation we want to track where the values come from
                     // since they contribute to the "output" of the method/assignment and are relavent for value tracking.
-                    return AddReference(operation, cancellationToken);
+                    return AddReferenceAsync(operation, cancellationToken);
                 }
 
                 return Task.CompletedTask;
 
-                Task AddReference(IOperation operation, CancellationToken cancellationToken)
+                Task AddReferenceAsync(IOperation operation, CancellationToken cancellationToken)
                     => operation switch
                     {
                         IParameterReferenceOperation parameterReference => AddOperationAsync(operation, parameterReference.Parameter, cancellationToken),

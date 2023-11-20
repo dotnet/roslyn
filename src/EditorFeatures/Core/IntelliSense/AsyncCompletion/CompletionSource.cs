@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         // Don't change this property! Editor code currently has a dependency on it.
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
+        internal const string ExcludedCommitCharactersMap = nameof(ExcludedCommitCharactersMap);
 
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
@@ -425,16 +426,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             sessionData.HasSuggestionItemOptions |= completionList.SuggestionModeItem != null;
 
-            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.ItemsList);
-            if (excludedCommitCharacters.Length > 0)
+            var excludedCommitCharactersFromList = GetExcludedCommitCharacters(completionList.ItemsList);
+            if (session.Properties.TryGetProperty(ExcludedCommitCharactersMap, out MultiDictionary<char, RoslynCompletionItem> excludedCommitCharactersMap))
             {
-                if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
+                foreach (var kvp in excludedCommitCharactersFromList)
                 {
-                    excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
+                    foreach (var item in kvp.Value)
+                    {
+                        excludedCommitCharactersMap.Add(kvp.Key, item);
+                    }
                 }
-
-                session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
             }
+            else
+            {
+                excludedCommitCharactersMap = excludedCommitCharactersFromList;
+            }
+
+            session.Properties[ExcludedCommitCharactersMap] = excludedCommitCharactersMap;
+            session.Properties[ExcludedCommitCharacters] = excludedCommitCharactersMap.Keys.ToImmutableArray();
 
             // We need to remember the trigger location for when a completion service claims expanded items are available
             // since the initial trigger we are able to get from IAsyncCompletionSession might not be the same (e.g. in projection scenarios)
@@ -564,9 +573,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return item;
         }
 
-        private static ImmutableArray<char> GetExcludedCommitCharacters(IReadOnlyList<RoslynCompletionItem> roslynItems)
+        /// <summary>
+        /// Build a map from added filter characters to corresponding items.
+        /// CommitManager needs this information to decide whether it should commit selected item.
+        /// </summary>
+        private static MultiDictionary<char, RoslynCompletionItem> GetExcludedCommitCharacters(IReadOnlyList<RoslynCompletionItem> roslynItems)
         {
-            var hashSet = new HashSet<char>();
+            var map = new MultiDictionary<char, RoslynCompletionItem>();
             foreach (var roslynItem in roslynItems)
             {
                 foreach (var rule in roslynItem.Rules.FilterCharacterRules)
@@ -575,13 +588,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         foreach (var c in rule.Characters)
                         {
-                            hashSet.Add(c);
+                            map.Add(c, roslynItem);
                         }
                     }
                 }
             }
 
-            return hashSet.ToImmutableArray();
+            return map;
         }
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(

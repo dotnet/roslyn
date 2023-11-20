@@ -67,6 +67,11 @@
         <target state="translated">{0}:{1}에서 .runsettings 파일을 읽지 못했습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_run_restore_on_0">
+        <source>Failed to run restore on {0}</source>
+        <target state="new">Failed to run restore on {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Found_0_tests_in_1">
         <source>Found {0} tests in {1}</source>
         <target state="translated">{1} {0} 테스트를 찾았습니다.</target>
@@ -87,6 +92,11 @@
         <target state="translated">요청된 범위에서 테스트 메서드를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nothing_found_to_restore">
+        <source>Nothing found to restore</source>
+        <target state="new">Nothing found to restore</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Passed">
         <source>Passed!</source>
         <target state="new">Passed!</target>
@@ -105,6 +115,31 @@
       <trans-unit id="Projects_failed_to_load_because_Mono_could_not_be_found">
         <source>Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</source>
         <target state="new">Projects failed to load because the Mono could not be found. Ensure that Mono and MSBuild are installed, and check the logs for details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore">
+        <source>Restore</source>
+        <target state="new">Restore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_complete">
+        <source>Restore complete</source>
+        <target state="new">Restore complete</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore_started">
+        <source>Restore started</source>
+        <target state="new">Restore started</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restoring_0">
+        <source>Restoring {0}</source>
+        <target state="new">Restoring {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_dotnet_restore_on_0">
+        <source>Running dotnet restore on {0}</source>
+        <target state="new">Running dotnet restore on {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_tests">

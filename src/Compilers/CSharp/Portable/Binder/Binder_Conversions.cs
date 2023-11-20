@@ -764,6 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
+                isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
                 builder: out _);

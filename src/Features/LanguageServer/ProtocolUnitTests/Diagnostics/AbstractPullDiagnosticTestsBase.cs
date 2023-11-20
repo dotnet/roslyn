@@ -64,34 +64,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
             bool useProgress = false,
             bool includeTaskListItems = false,
-            string? category = null)
+            string? category = null,
+            bool triggerConnectionClose = true)
         {
             var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles, includeTaskListItems);
 
             if (useVSDiagnostics)
             {
-                return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category);
+                return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category, triggerConnectionClose);
             }
             else
             {
-                return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, triggerConnectionClose: true);
+                return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, triggerConnectionClose);
             }
         }
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunVSGetWorkspacePullDiagnosticsAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-            bool useProgress = false,
-            string? category = null)
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
+            bool useProgress,
+            string? category,
+            bool triggerConnectionClose)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
             BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
+            var diagnosticsTask = testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
                 VSInternalMethods.WorkspacePullDiagnosticName,
                 CreateWorkspaceDiagnosticParams(previousResults, progress, category),
                 CancellationToken.None).ConfigureAwait(false);
+
+            if (triggerConnectionClose)
+            {
+                // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
+                var service = testLspServer.GetRequiredLspService<WorkspacePullDiagnosticHandler>();
+                service.GetTestAccessor().TriggerConnectionClose();
+            }
+
+            var diagnostics = await diagnosticsTask;
 
             if (useProgress)
             {
@@ -105,9 +116,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunPublicGetWorkspacePullDiagnosticsAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-            bool useProgress = false,
-            bool triggerConnectionClose = true)
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
+            bool useProgress,
+            bool triggerConnectionClose)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
@@ -119,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             if (triggerConnectionClose)
             {
-                // Public spec diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
+                // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
                 var service = testLspServer.GetRequiredLspService<PublicWorkspacePullDiagnosticsHandler>();
                 service.GetTestAccessor().TriggerConnectionClose();
             }

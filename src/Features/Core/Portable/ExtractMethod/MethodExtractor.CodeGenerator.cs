@@ -19,18 +19,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected abstract class CodeGenerator
         {
+            /// <summary>
+            /// Used to produced the set of statements that will go into the generated method.
+            /// </summary>
             public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(
                 SyntaxNode insertionPointNode, CancellationToken cancellationToken);
         }
 
-        protected abstract partial class CodeGenerator<TStatement, TExpression, TNodeUnderContainer, TCodeGenerationOptions>
-            : CodeGenerator
-            where TStatement : SyntaxNode
-            where TExpression : SyntaxNode
+#pragma warning disable CS0693 // Intentionally hiding the outer TStatementSyntax
+        protected abstract partial class CodeGenerator<TStatementSyntax, TNodeUnderContainer, TCodeGenerationOptions> : CodeGenerator
+#pragma warning restore CS0693
+            where TStatementSyntax : SyntaxNode
             where TNodeUnderContainer : SyntaxNode
             where TCodeGenerationOptions : CodeGenerationOptions
         {
@@ -38,17 +41,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SyntaxAnnotation MethodDefinitionAnnotation;
             protected readonly SyntaxAnnotation CallSiteAnnotation;
 
-            // protected readonly SyntaxNode InsertionPointNode;
-            protected readonly SelectionResult SelectionResult;
+            protected readonly TSelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(/*SyntaxNode insertionPointNode, */SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
+            protected CodeGenerator(TSelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
-                // InsertionPointNode = insertionPointNode;
-
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
 
@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             #region method to be implemented in sub classes
 
-            protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
+            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken);
+
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
@@ -77,12 +78,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract TNodeUnderContainer GetLastStatementOrInitializerSelectedAtCallSite();
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
-            protected abstract TExpression CreateCallSignature();
-            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
-            protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
-            protected abstract TStatement CreateReturnStatement(string identifierName = null);
+            protected abstract TExpressionSyntax CreateCallSignature();
+            protected abstract TStatementSyntax CreateDeclarationStatement(VariableInfo variable, TExpressionSyntax initialValue, CancellationToken cancellationToken);
+            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpressionSyntax rvalue);
+            protected abstract TStatementSyntax CreateReturnStatement(string identifierName = null);
 
-            protected abstract ImmutableArray<TStatement> GetInitialStatementsForMethodDefinitions();
+            protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
             protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
                 SemanticDocument originalDocument, IMethodSymbol methodSymbolResult, CancellationToken cancellationToken);
@@ -175,6 +176,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
+            private SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
+                if (callSiteContainer != null)
+                {
+                    return callSiteContainer;
+                }
+                else
+                {
+                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
+                }
+            }
+
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(SemanticDocument newDocument, CancellationToken cancellationToken)
             {
                 return Task.FromResult(new GeneratedCode(
@@ -189,7 +203,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
             }
 
-            protected ImmutableArray<TStatement> AddReturnIfUnreachable(ImmutableArray<TStatement> statements)
+            protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(ImmutableArray<TStatementSyntax> statements)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
                 {
@@ -211,8 +225,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement());
             }
 
-            protected async Task<ImmutableArray<TStatement>> AddInvocationAtCallSiteAsync(
-                ImmutableArray<TStatement> statements, CancellationToken cancellationToken)
+            protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
+                ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
@@ -223,11 +237,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 // add invocation expression
                 return statements.Concat(
-                    (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                    (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            protected ImmutableArray<TStatement> AddAssignmentStatementToCallSite(
-                ImmutableArray<TStatement> statements,
+            protected ImmutableArray<TStatementSyntax> AddAssignmentStatementToCallSite(
+                ImmutableArray<TStatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
@@ -253,16 +267,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
-            protected ImmutableArray<TStatement> CreateDeclarationStatements(
+            protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
                 ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 return variables.SelectAsArray(v => CreateDeclarationStatement(v, initialValue: null, cancellationToken));
             }
 
-            protected ImmutableArray<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
+            protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
                 CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<TStatement>.GetInstance(out var list);
+                using var _ = ArrayBuilder<TStatementSyntax>.GetInstance(out var list);
 
                 foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
                 {
@@ -277,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return list.ToImmutable();
             }
 
-            protected ImmutableArray<TStatement> AppendReturnStatementIfNeeded(ImmutableArray<TStatement> statements)
+            protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
             {
                 if (!AnalyzerResult.HasVariableToUseAsReturnValue)
                 {
@@ -295,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();
+                var annotations = new List<(SyntaxToken, SyntaxAnnotation)>();
 
                 foreach (var variable in variables)
                 {
