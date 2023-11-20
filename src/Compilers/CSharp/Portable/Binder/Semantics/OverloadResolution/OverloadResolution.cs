@@ -3545,7 +3545,7 @@ outerDefault:
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
-            Debug.Assert(leastOverriddenMember.ConstructedFrom() == (object)leastOverriddenMember);
+            Debug.Assert(GetConstructedFrom(leastOverriddenMember) == (object)leastOverriddenMember);
 
             bool ignoreOpenTypes;
             MethodSymbol method;
