@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_analysis.CatchContainsAwait(node))
             {
                 var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
-                _currentAwaitCatchFrame = null;
+                _currentAwaitCatchFrame = parentAwaitCatchFrame;
 
                 var result = base.VisitCatchBlock(node);
                 _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;

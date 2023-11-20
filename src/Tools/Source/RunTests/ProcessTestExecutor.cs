@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,8 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace RunTests
 {
@@ -112,25 +108,6 @@ namespace RunTests
 
         public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
         {
-            var result = await RunTestAsyncInternal(workItemInfo, options, isRetry: false, cancellationToken);
-
-            // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (options.Retry && !HasBuiltInRetry(workItemInfo) && !options.IncludeHtml && !result.Succeeded)
-            {
-                return await RunTestAsyncInternal(workItemInfo, options, isRetry: true, cancellationToken);
-            }
-
-            return result;
-
-            static bool HasBuiltInRetry(WorkItemInfo workItemInfo)
-            {
-                // vs-extension-testing handles test retry internally.
-                return workItemInfo.Filters.Keys.Any(key => key.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll");
-            }
-        }
-
-        private async Task<TestResult> RunTestAsyncInternal(WorkItemInfo workItemInfo, Options options, bool isRetry, CancellationToken cancellationToken)
-        {
             try
             {
                 var resultsFilePath = GetResultsFilePath(workItemInfo, options);
@@ -151,31 +128,6 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
-
-                if (isRetry && File.Exists(resultsFilePath))
-                {
-                    ConsoleUtil.WriteLine("Starting a retry. Tests which failed will run a second time to reduce flakiness.");
-                    try
-                    {
-                        var doc = XDocument.Load(resultsFilePath);
-                        foreach (var test in doc.XPathSelectElements("/assemblies/assembly/collection/test[@result='Fail']"))
-                        {
-                            ConsoleUtil.WriteLine($"  {test.Attribute("name")!.Value}: {test.Attribute("result")!.Value}");
-                        }
-                    }
-                    catch
-                    {
-                        ConsoleUtil.WriteLine("  ...Failed to identify the list of specific failures.");
-                    }
-
-                    // Copy the results file path, since the new xunit run will overwrite it
-                    var backupResultsFilePath = Path.ChangeExtension(resultsFilePath, ".old");
-                    File.Copy(resultsFilePath, backupResultsFilePath, overwrite: true);
-
-                    // If running the process with this varialbe added, we assume that this file contains 
-                    // xml logs from the first attempt.
-                    environmentVariables.Add("OutputXmlFilePath", backupResultsFilePath);
-                }
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.

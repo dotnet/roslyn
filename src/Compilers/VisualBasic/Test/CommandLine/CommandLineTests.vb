@@ -10130,16 +10130,17 @@ End Class"
 
         <WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")>
         <CombinatorialData, Theory>
-        Public Sub TestAnalyzerFilteringBasedOnSeverity(ByVal defaultSeverity As DiagnosticSeverity, ByVal errorlog As Boolean)
+        Public Sub TestAnalyzerFilteringBasedOnSeverity(defaultSeverity As DiagnosticSeverity, errorlog As Boolean, customConfigurable As Boolean)
             ' This test verifies that analyzer execution is skipped at build time for the following:
             '   1. Analyzer reporting Hidden diagnostics
             '   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            Dim analyzerShouldBeSkipped = defaultSeverity = DiagnosticSeverity.Hidden OrElse
-                defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
+            ' However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            Dim analyzerShouldBeSkipped = (defaultSeverity = DiagnosticSeverity.Hidden OrElse
+                defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog) AndAlso Not customConfigurable
 
             ' We use an analyzer that throws an exception on every analyzer callback.
             ' So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
-            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=True)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, customConfigurable, throwOnAllNamedTypes:=True)
 
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("test.vb").WriteAllText("
@@ -10165,16 +10166,18 @@ End Class")
 
         <WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")>
         <CombinatorialData, Theory>
-        Public Sub TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(defaultSeverity As DiagnosticSeverity, isEnabledByDefault As Boolean)
+        Public Sub TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(defaultSeverity As DiagnosticSeverity, isEnabledByDefault As Boolean, customConfigurable As Boolean)
             ' This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped.
             ' Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             '   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             '   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            Dim analyzerShouldBeSkipped = Not isEnabledByDefault OrElse
+            ' However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            Dim analyzerShouldBeSkipped = (Not isEnabledByDefault OrElse
                 defaultSeverity = DiagnosticSeverity.Hidden OrElse
-                defaultSeverity = DiagnosticSeverity.Info
+                defaultSeverity = DiagnosticSeverity.Info) AndAlso
+                Not customConfigurable
 
-            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes:=analyzerShouldBeSkipped)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, customConfigurable, throwOnAllNamedTypes:=analyzerShouldBeSkipped)
             Dim diagnosticId = analyzer.Descriptor.Id
 
             Dim dir = Temp.CreateDirectory()
@@ -10192,7 +10195,8 @@ End Class")
             Assert.Equal(expectedExitCode, exitCode)
 
             Dim output = outWriter.ToString()
-            If analyzerShouldBeSkipped Then
+            If analyzerShouldBeSkipped OrElse
+               (customConfigurable AndAlso (defaultSeverity = DiagnosticSeverity.Hidden OrElse defaultSeverity = DiagnosticSeverity.Info)) Then
                 Assert.Empty(output)
             Else
                 Dim prefix = If(defaultSeverity = DiagnosticSeverity.Warning, "warning", "error")
@@ -10202,19 +10206,43 @@ End Class")
 
         <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
         <Theory>
-        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
-        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
         Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  useGlobalConfig As Boolean,
                                                                   defaultSeverity As DiagnosticSeverity,
                                                                   severityInConfigFile As DiagnosticSeverity?,
+                                                                  customConfiguredSeverityByAnalyzer As DiagnosticSeverity?,
                                                                   expectedEffectiveSeverity As DiagnosticSeverity)
-            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=False)
+            Dim customConfigurable = customConfiguredSeverityByAnalyzer.HasValue
+            Dim reportedSeverity = If(customConfiguredSeverityByAnalyzer, defaultSeverity)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, reportedSeverity, customConfigurable, throwOnAllNamedTypes:=False)
             Dim diagnosticId = analyzer.Descriptor.Id
 
             Dim dir = Temp.CreateDirectory()
@@ -10225,9 +10253,17 @@ End Class")
 
             If severityInConfigFile.HasValue Then
                 Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
-                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+
+                Dim analyzerConfig As TempFile
+                If useGlobalConfig Then
+                    analyzerConfig = dir.CreateFile(".globalconfig").WriteAllText($"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+                Else
+                    analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
 [*.vb]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+                End If
 
                 additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
             End If

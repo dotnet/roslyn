@@ -60,6 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Overrides ReadOnly Property HasErrors As Boolean
 
+        Friend MustOverride ReadOnly Property ErrorInfo As DiagnosticInfo
+
         Friend MustOverride Overrides ReadOnly Property IsConditionallyOmitted As Boolean
 
         ''' <summary>
@@ -527,10 +529,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''  </summary>
         Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean) As Boolean
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse TypeOf target.ContainingAssembly Is SourceAssemblySymbol)
-
-            If HasErrors Then
-                Throw ExceptionUtilities.Unreachable
-            End If
 
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND

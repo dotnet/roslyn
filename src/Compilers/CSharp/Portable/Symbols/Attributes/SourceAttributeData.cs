@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors,
             bool isConditionallyOmitted)
         {
+            Debug.Assert(compilation is object);
+            Debug.Assert(applicationNode is object);
             Debug.Assert(!isConditionallyOmitted || attributeClass is object && attributeClass.IsConditional);
             Debug.Assert(!constructorArguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault);
@@ -145,8 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (sourceArgIndex == -1)
                 {
-                    // -1 signifies optional parameter whose default argument is used.
-                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional);
+                    // -1 signifies optional parameter whose default argument is used, or
+                    // an empty params array.
+                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional ||
+                                 this.AttributeConstructor.Parameters[parameterIndex].IsParams);
                     return attributeSyntax.Name;
                 }
                 else
@@ -184,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        [MemberNotNullWhen(false, nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
@@ -192,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _hasErrors;
             }
         }
+
+        internal override DiagnosticInfo? ErrorInfo => null; // Binder reported errors
 
         protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {

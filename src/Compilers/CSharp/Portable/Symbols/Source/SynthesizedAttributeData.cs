@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _arguments;
             protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _namedArguments;
             internal override bool HasErrors => false;
+            internal override DiagnosticInfo? ErrorInfo => null;
             internal override bool IsConditionallyOmitted => false;
             internal override Location GetAttributeArgumentLocation(int parameterIndex) => NoLocation.Singleton;
 
@@ -76,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override MethodSymbol? AttributeConstructor => _original.AttributeConstructor;
             protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments => _original.CommonConstructorArguments;
             protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments => _original.CommonNamedArguments;
+
+            [MemberNotNullWhen(false, nameof(AttributeConstructor))]
             internal override bool HasErrors => _original.HasErrors;
+            internal override DiagnosticInfo? ErrorInfo => _original.ErrorInfo;
             internal override bool IsConditionallyOmitted => _original.IsConditionallyOmitted;
 
             internal override Location GetAttributeArgumentLocation(int parameterIndex) => _original.GetAttributeArgumentLocation(parameterIndex);

@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private static readonly char[] s_dotSeparator = new[] { '.' };
+        private static readonly char[] s_dotSeparator = ['.'];
 
         /// <summary>
         /// The annotation used to track applicable container in each document to be fixed.
@@ -470,7 +472,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .ConfigureAwait(false);
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
-            var refLocationGroups = refLocationsInOtherDocuments.GroupBy(loc => loc.Document.Id);
+            var refLocationsInSolution = refLocationsInOtherDocuments
+                .Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id))
+                .ToImmutableArray();
+
+            if (refLocationsInSolution.Length != refLocationsInOtherDocuments.Count)
+            {
+                // We have received feedback indicate some documents are not in the solution.
+                // Report this as non-fatal error if this happens.
+                FatalError.ReportNonFatalError(
+                    new SyncNamespaceDocumentsNotInSolutionException(refLocationsInOtherDocuments
+                    .Where(loc => !solutionWithChangedNamespace.ContainsDocument(loc.Document.Id)).Distinct().SelectAsArray(loc => loc.Document.Id)));
+            }
+
+            var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
             var fixedDocuments = await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
@@ -772,7 +787,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
-                document = await RemoveUnnecessaryImportsWorker(
+                document = await RemoveUnnecessaryImportsWorkerAsync(
                     document,
                     CreateImports(document, names, withFormatterAnnotation: false),
                     cancellationToken).ConfigureAwait(false);
@@ -782,14 +797,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
-                    doc => RemoveUnnecessaryImportsWorker(
+                    doc => RemoveUnnecessaryImportsWorkerAsync(
                         doc,
                         CreateImports(doc, names, withFormatterAnnotation: false),
                         cancellationToken))).ConfigureAwait(false);
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            async Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorkerAsync(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             {
                 ActiveParameter = 0,
                 ActiveSignature = 0,
-                Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
+                Signatures = [CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "")]
             };
 
             var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             {
                 Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, methodDocumentation),
                 Label = methodLabal,
-                Parameters = new LSP.ParameterInformation[]
-                {
+                Parameters =
+                [
                     CreateParameterInformation(parameterLabel, parameterDocumentation)
-                }
+                ]
             };
 
         private static LSP.ParameterInformation CreateParameterInformation(string parameter, string documentation)

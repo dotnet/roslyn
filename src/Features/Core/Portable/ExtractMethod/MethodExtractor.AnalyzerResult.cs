@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         protected sealed class AnalyzerResult(
             IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (variables.Count <= 0)
                     return null;
 
-                VariableInfo.SortVariables(variables);
-                return variables[0];
+                return variables.Min();
             }
         }
     }

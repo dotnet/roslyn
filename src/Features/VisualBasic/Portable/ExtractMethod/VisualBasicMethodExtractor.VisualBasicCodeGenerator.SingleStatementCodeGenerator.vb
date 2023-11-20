@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class SingleStatementCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
                     MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
 
@@ -23,25 +23,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' change this to more smarter one.
                     Dim semanticModel = CType(SemanticDocument.SemanticModel, SemanticModel)
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
-                    Dim containingScope = VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(
                         nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
                 Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Contract.ThrowIfFalse(VBSelectionResult.IsExtractMethodOnSingleStatement())
+                    Contract.ThrowIfFalse(Me.SelectionResult.IsExtractMethodOnSingleStatement())
 
-                    Return ImmutableArray.Create(Of StatementSyntax)(VBSelectionResult.GetFirstStatement())
+                    Return ImmutableArray.Create(Of StatementSyntax)(Me.SelectionResult.GetFirstStatement())
                 End Function
 
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                     ' it is a single statement case. either first statement is same as last statement or
                     ' last statement belongs (embedded statement) to the first statement.
-                    Return VBSelectionResult.GetFirstStatement()
+                    Return Me.SelectionResult.GetFirstStatement()
                 End Function
 
                 Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)

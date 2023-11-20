@@ -14,23 +14,27 @@ using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
+using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 
-internal sealed class BuildHost : IBuildHost
+internal sealed class BuildHost
 {
     private readonly ILogger _logger;
+    private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly string? _binaryLogPath;
-
+    private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, string? binaryLogPath)
+    public BuildHost(ILoggerFactory loggerFactory, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
         _logger = loggerFactory.CreateLogger<BuildHost>();
+        _globalMSBuildProperties = globalMSBuildProperties;
         _binaryLogPath = binaryLogPath;
+        _server = server;
     }
 
     private bool TryEnsureMSBuildLoaded(string projectOrSolutionFilePath)
@@ -118,29 +122,29 @@ internal sealed class BuildHost : IBuildHost
                 _logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
-            _buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty, logger);
-            _buildManager.StartBatchBuild();
+            _buildManager = new ProjectBuildManager(_globalMSBuildProperties, logger);
+            _buildManager.StartBatchBuild(_globalMSBuildProperties);
         }
     }
 
-    public Task<bool> HasUsableMSBuildAsync(string projectOrSolutionFilePath, CancellationToken cancellationToken)
+    public bool HasUsableMSBuild(string projectOrSolutionFilePath)
     {
-        return Task.FromResult(TryEnsureMSBuildLoaded(projectOrSolutionFilePath));
+        return TryEnsureMSBuildLoaded(projectOrSolutionFilePath);
     }
 
     private void EnsureMSBuildLoaded(string projectFilePath)
     {
-        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuildAsync)} should have been called first to check.");
+        Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>> GetProjectsInSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+    public ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
     {
         EnsureMSBuildLoaded(solutionFilePath);
-        return Task.FromResult(GetProjectsInSolution(solutionFilePath));
+        return GetProjectsInSolutionCore(solutionFilePath);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)] // Do not inline this, since this uses MSBuild types which are being loaded by the caller
-    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolution(string solutionFilePath)
+    private static ImmutableArray<(string ProjectPath, string ProjectGuid)> GetProjectsInSolutionCore(string solutionFilePath)
     {
         // WARNING: do not use a lambda in this function, as it internally will be put in a class that contains other lambdas used in
         // TryEnsureMSBuildLoaded; on Mono this causes type load errors.
@@ -158,40 +162,39 @@ internal sealed class BuildHost : IBuildHost
         return builder.ToImmutable();
     }
 
-    public Task<bool> IsProjectFileSupportedAsync(string projectFilePath, CancellationToken cancellationToken)
+    /// <summary>
+    /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
+    /// </summary>
+    public async Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
         CreateBuildManager();
 
-        return Task.FromResult(TryGetLoaderForPath(projectFilePath) is not null);
-    }
-
-    public async Task<IRemoteProjectFile> LoadProjectFileAsync(string projectFilePath, CancellationToken cancellationToken)
-    {
-        EnsureMSBuildLoaded(projectFilePath);
-        CreateBuildManager();
-
-        var projectLoader = TryGetLoaderForPath(projectFilePath);
-        Contract.ThrowIfNull(projectLoader, $"We don't support this project path; we should have called {nameof(IsProjectFileSupportedAsync)} first.");
-        _logger.LogInformation($"Loading {projectFilePath}");
-        return new RemoteProjectFile(await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false));
-    }
-
-    private static IProjectFileLoader? TryGetLoaderForPath(string projectFilePath)
-    {
-        var extension = Path.GetExtension(projectFilePath);
-
-        return extension switch
+        ProjectFileLoader projectLoader = languageName switch
         {
-            ".csproj" => new CSharp.CSharpProjectFileLoader(),
-            ".vbproj" => new VisualBasic.VisualBasicProjectFileLoader(),
-            _ => null
+            LanguageNames.CSharp => new CSharp.CSharpProjectFileLoader(),
+            LanguageNames.VisualBasic => new VisualBasic.VisualBasicProjectFileLoader(),
+            _ => throw ExceptionUtilities.UnexpectedValue(languageName)
         };
+
+        _logger.LogInformation($"Loading {projectFilePath}");
+        var projectFile = await projectLoader.LoadProjectFileAsync(projectFilePath, _buildManager, cancellationToken).ConfigureAwait(false);
+        return _server.AddTarget(projectFile);
+    }
+
+    public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)
+    {
+        EnsureMSBuildLoaded(projectFilePath);
+        CreateBuildManager();
+
+        return _buildManager.TryGetOutputFilePathAsync(projectFilePath, cancellationToken);
     }
 
     public Task ShutdownAsync()
     {
         _buildManager?.EndBatchBuild();
+
+        _server.Shutdown();
 
         return Task.CompletedTask;
     }

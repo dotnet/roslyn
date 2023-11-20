@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -58,12 +59,40 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         ArrayCreationExpressionSyntax expression,
         CancellationToken cancellationToken)
     {
-        return UseCollectionExpressionHelpers.TryGetMatches(
+        // we have `new T[...] ...;` defer to analyzer to find the items that follow that may need to
+        // be added to the collection expression.
+        var matches = UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
             static e => e.Type,
             static e => e.Initializer,
             cancellationToken);
+        if (matches.IsDefault)
+            return default;
+
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+        {
+            return default;
+        }
+
+        return matches;
+    }
+
+    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
+        SemanticModel semanticModel,
+        ImplicitArrayCreationExpressionSyntax expression,
+        CancellationToken cancellationToken)
+    {
+        // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
+        // from within the initializer.
+        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+        {
+            return default;
+        }
+
+        return ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty;
     }
 
     private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context)
@@ -96,6 +125,16 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         if (isConcreteOrImplicitArrayCreation)
         {
+            var matches = initializer.Parent switch
+            {
+                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+
+            if (matches.IsDefault)
+                return;
+
             ReportArrayCreationDiagnostics(context, syntaxTree, option, arrayCreationExpression);
         }
         else

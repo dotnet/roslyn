@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public UseExpressionBodyDiagnosticAnalyzer()
             : base(GetSupportedDescriptorsWithOptions())
         {
-            _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
+            _syntaxKinds = _helpers.SelectManyAsArray(h => h.SyntaxKinds);
         }
 
         private static ImmutableDictionary<DiagnosticDescriptor, IOption2> GetSupportedDescriptorsWithOptions()

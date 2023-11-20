@@ -1972,11 +1972,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Is System.Runtime.InteropServices.GuidAttribute applied to this type in code.
         ''' </summary>
         Friend Function HasGuidAttribute() As Boolean
-            ' So far this information is used only by ComClass feature, therefore, I do not believe
-            ' it is worth to intercept this attribute in DecodeWellKnownAttribute and cache the fact of attribute's
-            ' presence and the guid value. If we start caching that information, implementation of this function 
-            ' should change to take advantage of the cache.
-            Return GetAttributes().IndexOfAttribute(AttributeDescription.GuidAttribute) > -1
+            Return Me.GetDecodedWellKnownAttributeData()?.GuidString IsNot Nothing
+        End Function
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Me.GetDecodedWellKnownAttributeData()?.GuidString
+            Return guidString IsNot Nothing
         End Function
 
         ''' <summary>
@@ -2283,7 +2284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     attrData.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.GuidAttribute) Then
-                    attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().GuidString = attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.WindowsRuntimeImportAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasWindowsRuntimeImportAttribute = True
@@ -2537,7 +2538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
-            If moduleBuilder.EncSymbolChanges?.IsReplaced(CType(Me, ISymbolInternal).GetISymbol()) = True Then
+            If moduleBuilder.EncSymbolChanges?.IsReplaced(Me) = True Then
                 ' Note that we use this source named type symbol in the attribute argument (of System.Type).
                 ' We do not have access to the original symbol from this compilation. However, System.Type
                 ' is encoded in the attribute as a string containing a fully qualified type name.

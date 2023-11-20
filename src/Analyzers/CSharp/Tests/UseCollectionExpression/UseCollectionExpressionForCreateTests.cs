@@ -821,11 +821,8 @@ public class UseCollectionExpressionForCreateTests
             FixedCode = """
                 class C
                 {
-                    MyCollection<int> i =
-                    [
-                        1 +
-                            2,
-                    ];
+                    MyCollection<int> i = [1 +
+                        2];
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,

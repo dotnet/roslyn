@@ -332,7 +332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
-            // Do not yet attempt to deal with params arrays or optional arguments.
             BuildStoresToTemps(
                 expanded,
                 argsToParamsOpt,
@@ -344,10 +343,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                BoundExpression array = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                BoundExpression array = actualArguments[actualArguments.Length - 1];
+                Debug.Assert(array.IsParamsArray);
+
+                if (TryOptimizeParamsArray(array, out BoundExpression? optimized))
+                {
+                    array = optimized;
+                }
+
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                 stores.Add(storeToTemp);
@@ -388,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),

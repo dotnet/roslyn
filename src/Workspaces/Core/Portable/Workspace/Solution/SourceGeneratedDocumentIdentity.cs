@@ -17,15 +17,12 @@ namespace Microsoft.CodeAnalysis;
 /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
 /// </summary>
 [DataContract]
-internal readonly record struct SourceGeneratedDocumentIdentity
-    : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>
 {
     [DataMember(Order = 0)] public DocumentId DocumentId { get; }
     [DataMember(Order = 1)] public string HintName { get; }
     [DataMember(Order = 2)] public SourceGeneratorIdentity Generator { get; }
     [DataMember(Order = 3)] public string FilePath { get; }
-
-    bool IObjectWritable.ShouldReuseInSerialization => true;
 
     public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, SourceGeneratorIdentity generator, string filePath)
     {
