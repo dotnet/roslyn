@@ -17,15 +17,34 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class WorkaroundsInProcess
     {
+        public async Task RemoveConflictingKeyBindingsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE80.DTE2>(cancellationToken);
+            EnvDTE.Command command;
+            try
+            {
+                command = dte.Commands.Item("Edit.IntelliCode.APIUsageExamples");
+            }
+            catch
+            {
+                // Ignore if the command doesn't exist
+                return;
+            }
+
+            command.Bindings = Array.Empty<object>();
+        }
+
         public async Task WaitForNavigationAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.NavigateTo], cancellationToken);
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
 
             // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
             // of one of the above waiters, but GetActiveWindowCaptionAsync appears to return the previous window
             // caption for a short delay after the above complete.
-            await Task.Delay(2000);
+            await Task.Delay(2000, cancellationToken);
         }
 
         /// <summary>
@@ -37,7 +56,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             // Wait for workspace (including project system, file change notifications, and EditorPackage operations),
             // as well as Roslyn's solution crawler and diagnostic service that report light bulb session changes.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService },
+                [FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService],
                 cancellationToken);
 
             // Wait for operations dispatched to the main thread without other tracking

@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override bool HasSpecialName => false;
@@ -165,6 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             length = _arrayLength;
             return true;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
 
         internal override bool HasPossibleWellKnownCloneMethod() => false;

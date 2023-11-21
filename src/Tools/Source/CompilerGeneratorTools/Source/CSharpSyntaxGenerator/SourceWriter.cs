@@ -118,17 +118,6 @@ namespace CSharpSyntaxGenerator
                 }
                 CloseBlock();
 
-                // object reader constructor
-                WriteLine();
-                WriteLine($"protected {node.Name}(ObjectReader reader)");
-                WriteLine("  : base(reader)");
-                OpenBlock();
-                if (node.Name == "DirectiveTriviaSyntax")
-                {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                }
-                CloseBlock();
-
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
 
@@ -287,7 +276,6 @@ namespace CSharpSyntaxGenerator
                 this.WriteSetDiagnostics(nd);
                 this.WriteSetAnnotations(nd);
 
-                this.WriteGreenSerialization(nd);
                 CloseBlock();
             }
         }
@@ -304,86 +292,6 @@ namespace CSharpSyntaxGenerator
                 Write($", {field.Type} {CamelCase(field.Name)}");
             }
         }
-
-        private void WriteGreenSerialization(Node node)
-        {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
-
-            // object reader constructor
-            WriteLine();
-            WriteLine($"internal {node.Name}(ObjectReader reader)");
-            WriteLine("  : base(reader)");
-            OpenBlock();
-            WriteLine($"this.SlotCount = {nodeFields.Count};");
-
-            foreach (var field in nodeFields)
-            {
-                string type = GetFieldType(field, green: true);
-                WriteLine($"var {CamelCase(field.Name)} = ({type})reader.ReadValue();");
-
-                if (IsAnyList(field.Type) || IsOptional(field))
-                {
-                    WriteLine($"if ({CamelCase(field.Name)} != null)");
-                    OpenBlock();
-                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-                    CloseBlock();
-                }
-                else
-                {
-                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-                }
-            }
-
-            foreach (var field in valueFields)
-            {
-                WriteLine($"this.{CamelCase(field.Name)} = ({(GetFieldType(field, green: true))})reader.{(GetReaderMethod(GetFieldType(field, green: true)))}();");
-            }
-
-            CloseBlock();
-
-            // IWritable
-            WriteLine();
-            WriteLine("internal override void WriteTo(ObjectWriter writer)");
-            OpenBlock();
-            WriteLine("base.WriteTo(writer);");
-
-            foreach (var field in nodeFields)
-            {
-                WriteLine($"writer.WriteValue(this.{CamelCase(field.Name)});");
-            }
-
-            foreach (var field in valueFields)
-            {
-                var type = GetFieldType(field, green: true);
-                WriteLine($"writer.{GetWriterMethod(type)}(this.{CamelCase(field.Name)});");
-            }
-
-            CloseBlock();
-
-            // IReadable
-            WriteLine();
-            WriteLine($"static {node.Name}()");
-            OpenBlock();
-            WriteLine($"ObjectBinder.RegisterTypeReader(typeof({node.Name}), r => new {node.Name}(r));");
-            CloseBlock();
-        }
-
-        private string GetWriterMethod(string type)
-            => type switch
-            {
-                "bool" => "WriteBoolean",
-                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
-            };
-
-        private string GetReaderMethod(string type)
-            => type switch
-            {
-                "bool" => "ReadBoolean",
-                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
-            };
 
         private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
         {

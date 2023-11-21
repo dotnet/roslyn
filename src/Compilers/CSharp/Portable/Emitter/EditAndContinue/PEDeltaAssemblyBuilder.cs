@@ -39,34 +39,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             var initialBaseline = previousGeneration.InitialBaseline;
 
+            var previousSourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
             var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
-            var matchToMetadata = new CSharpSymbolMatcher(
+            var sourceToMetadata = new CSharpSymbolMatcher(
                 metadataSymbols.SynthesizedTypes,
                 sourceAssembly,
                 metadataAssembly);
 
-            CSharpSymbolMatcher? matchToPrevious = null;
+            var previousSourceToMetadata = new CSharpSymbolMatcher(
+                metadataSymbols.SynthesizedTypes,
+                previousSourceAssembly,
+                metadataAssembly);
+
+            CSharpSymbolMatcher? previousSourceToCurrentSource = null;
             if (previousGeneration.Ordinal > 0)
             {
-                RoslynDebug.AssertNotNull(previousGeneration.Compilation);
-                RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
+                Debug.Assert(previousGeneration.PEModuleBuilder != null);
 
-                var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-
-                matchToPrevious = new CSharpSymbolMatcher(
+                previousSourceToCurrentSource = new CSharpSymbolMatcher(
                     sourceAssembly: sourceAssembly,
-                    otherAssembly: previousAssembly,
+                    otherAssembly: previousSourceAssembly,
                     previousGeneration.SynthesizedTypes,
                     otherSynthesizedMembers: previousGeneration.SynthesizedMembers,
                     otherDeletedMembers: previousGeneration.DeletedMembers);
             }
 
-            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious, previousGeneration);
+            _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, sourceToMetadata, previousSourceToCurrentSource, previousGeneration);
             _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal static SynthesizedTypeMaps GetSynthesizedTypesFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
             var anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder<AnonymousTypeKey, AnonymousTypeValue>();
-            var anonymousDelegatesWithIndexedNames = ImmutableSegmentedDictionary.CreateBuilder<string, AnonymousTypeValue>();
+            var anonymousDelegatesWithIndexedNames = new Dictionary<AnonymousDelegateWithIndexedNamePartialKey, ArrayBuilder<AnonymousTypeValue>>();
             var anonymousDelegates = ImmutableSegmentedDictionary.CreateBuilder<SynthesizedDelegateKey, SynthesizedDelegateValue>();
 
             foreach (var handle in reader.TypeDefinitions)
@@ -178,14 +182,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                         var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
-                        anonymousDelegatesWithIndexedNames.Add(name, value);
+                        int parameterCount = -1;
+
+                        foreach (var methodHandle in def.GetMethods())
+                        {
+                            var methodDef = reader.GetMethodDefinition(methodHandle);
+                            if (reader.StringComparer.Equals(methodDef.Name, "Invoke"))
+                            {
+                                try
+                                {
+                                    metadataDecoder.DecodeMethodSignatureParameterCountsOrThrow(methodHandle, out int invokeMethodParameterCount, out _);
+                                    parameterCount = invokeMethodParameterCount;
+                                    break;
+                                }
+                                catch (BadImageFormatException)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
+                        if (parameterCount >= 0)
+                        {
+                            anonymousDelegatesWithIndexedNames.AddPooled(new AnonymousDelegateWithIndexedNamePartialKey(type.Arity, parameterCount), value);
+                        }
                     }
 
                     continue;
                 }
             }
 
-            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutable());
+            return new SynthesizedTypeMaps(anonymousTypes.ToImmutable(), anonymousDelegates.ToImmutable(), anonymousDelegatesWithIndexedNames.ToImmutableSegmentedDictionaryAndFree());
         }
 
         private static bool TryGetAnonymousTypeKey(
@@ -256,14 +283,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal override int GetNextAnonymousTypeIndex()
-        {
-            return PreviousGeneration.GetNextAnonymousTypeIndex();
-        }
+            => PreviousGeneration.GetNextAnonymousTypeIndex();
 
-        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
+        internal override int GetNextAnonymousDelegateIndex()
+            => PreviousGeneration.GetNextAnonymousDelegateIndex();
+
+        internal override bool TryGetPreviousAnonymousTypeValue(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, out AnonymousTypeValue typeValue)
         {
-            Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+            Debug.Assert(Compilation == template.DeclaringCompilation);
+            return _previousDefinitions.TryGetAnonymousTypeValue(template, out typeValue);
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)

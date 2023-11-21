@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.BuildHostProcessManager;
+using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -51,6 +51,7 @@ internal sealed class LanguageServerProjectSystem
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
+    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
 
     /// <summary>
     /// The list of loaded projects in the workspace, keyed by project file path. The outer dictionary is a concurrent dictionary since we may be loading
@@ -76,6 +77,7 @@ internal sealed class LanguageServerProjectSystem
         _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspaceFactory.Workspace.CurrentSolution.Services, new DiagnosticReporter(workspaceFactory.Workspace));
 
         _projectsToLoadAndReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
             TimeSpan.FromMilliseconds(100),
@@ -94,8 +96,8 @@ internal sealed class LanguageServerProjectSystem
 
             // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
             // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
-            await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory);
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetCore, CancellationToken.None);
+            await using var buildHostProcessManager = new BuildHostProcessManager(loggerFactory: _loggerFactory);
+            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
 
             // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
             if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
@@ -138,7 +140,7 @@ internal sealed class LanguageServerProjectSystem
 
         var binaryLogPath = GetMSBuildBinaryLogPath();
 
-        await using var buildHostProcessManager = new BuildHostProcessManager(_loggerFactory, binaryLogPath);
+        await using var buildHostProcessManager = new BuildHostProcessManager(binaryLogPath: binaryLogPath, loggerFactory: _loggerFactory);
 
         var displayedToast = 0;
 
@@ -203,9 +205,9 @@ internal sealed class LanguageServerProjectSystem
 
             (var buildHost, preferredBuildHostKind) = await buildHostProcessManager!.GetBuildHostAsync(projectPath, cancellationToken);
 
-            if (await buildHost.IsProjectFileSupportedAsync(projectPath, cancellationToken))
+            if (_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             {
-                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, cancellationToken);
+                var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
                 var diagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken);
                 if (diagnosticLogItems.Any(item => item.Kind is WorkspaceDiagnosticKind.Failure))
                 {

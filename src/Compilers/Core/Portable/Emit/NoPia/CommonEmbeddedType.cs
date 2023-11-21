@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingNamedType = underlyingNamedType;
             }
 
+            public bool IsEncDeleted
+                => false;
+
             protected abstract int GetAssemblyRefIndex();
 
             protected abstract IEnumerable<TFieldSymbol> GetFieldsToEmit();
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                     if (IsTargetAttribute(attrData, AttributeDescription.GuidAttribute, out signatureIndex))
                     {
-                        if (TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics) && constructorArguments[0].TryGetGuidAttributeValue(out _))
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
                             // If this type has a GuidAttribute, we should emit it.
                             hasGuid = true;

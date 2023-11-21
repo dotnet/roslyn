@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class DeclarationParsingTests : ParsingTests
+    public partial class DeclarationParsingTests : ParsingTests
     {
         public DeclarationParsingTests(ITestOutputHelper output) : base(output) { }
 

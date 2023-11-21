@@ -255,7 +255,7 @@ class C
 
             Assert.Equal(
                 "C.M(1, 2)",
-                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: new[] { "1", "2" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.None, argumentValues: ["1", "2"]));
 
             Assert.Equal(
                 "C.M(ref int, out int)",
@@ -299,13 +299,13 @@ class C
             var expected = "C.M(int x, int y)";
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: []));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1"]));
 
             Assert.Equal(expected,
-                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: new string[] { "1", "2", "3" }));
+                GetName(source, "C.M", DkmVariableInfoFlags.Types | DkmVariableInfoFlags.Names, argumentValues: ["1", "2", "3"]));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1134081")]
@@ -399,7 +399,7 @@ class C
     Action<Func<T>> M1<T>() { return null; }
 }";
 
-            Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", new[] { typeof(object) }));
+            Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", [typeof(object)]));
         }
 
         private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, Type[] typeArguments = null, string[] argumentValues = null)

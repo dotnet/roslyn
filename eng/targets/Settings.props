@@ -51,11 +51,6 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
-
-    <!-- NPM packaging settings -->
-    <NpmPackageOutputPath>$(ArtifactsDir)\packages\$(Configuration)\NPM\</NpmPackageOutputPath>
-    <!-- By default don't attempt to do npm packaging during pack since it requires NPM to be installed -->
-    <IsNpmPackable Condition="'$(IsNpmPackable)'==''">false</IsNpmPackable>
   </PropertyGroup>
 
   <!-- 

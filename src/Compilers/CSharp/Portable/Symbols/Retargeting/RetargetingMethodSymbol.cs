@@ -376,5 +376,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            if (_underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument))
+            {
+                builderArgument = this.RetargetingTranslator.Retarget(builderArgument, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
+        }
     }
 }

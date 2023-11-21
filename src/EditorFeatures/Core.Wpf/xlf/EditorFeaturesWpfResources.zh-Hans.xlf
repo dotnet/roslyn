@@ -27,6 +27,11 @@
         <target state="translated">在交互窗口中执行所选内容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="translated">交互式主机进程平台</target>

@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         internal abstract class CommonEmbeddedMember : Cci.IEmbeddedDefinition
         {
             internal abstract TEmbeddedTypesManager TypeManager { get; }
+
+            public bool IsEncDeleted
+                => false;
         }
 
         internal abstract class CommonEmbeddedMember<TMember> : CommonEmbeddedMember, Cci.IReference
