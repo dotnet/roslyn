@@ -36,16 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
         private readonly bool _ignoresAccessibility;
+        private readonly bool _disableNullableAnalysis;
         private ScriptLocalScopeBinder.Labels _globalStatementLabels;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-#nullable enable
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false, bool disableNullableAnalysis = false)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
             _ignoresAccessibility = ignoreAccessibility;
+            _disableNullableAnalysis = disableNullableAnalysis;
 
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
         }
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxTree = speculatedSyntaxTree;
             _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
             _ignoresAccessibility = ignoreAccessibility;
+            _disableNullableAnalysis = false; // PROTOTYPE(ndsm): allow speculation to disable nullable analysis?
         }
 
         /// <summary>
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return _ignoresAccessibility; }
         }
+
+        public override bool DisableNullableAnalysis => _disableNullableAnalysis;
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
         {

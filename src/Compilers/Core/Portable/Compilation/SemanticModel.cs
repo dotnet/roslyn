@@ -88,6 +88,12 @@ namespace Microsoft.CodeAnalysis
             get { return false; }
         }
 
+        // PROTOTYPE(ndsm): abstract?
+        public virtual bool DisableNullableAnalysis
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// Gets symbol information about a syntax node.
         /// </summary>

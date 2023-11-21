@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots);
             }
 
-            protected override bool IsNullableAnalysisEnabled()
+            protected override bool IsNullableAnalysisEnabledCore()
             {
                 return ((SyntaxTreeSemanticModel)_containingPublicSemanticModel.ParentModel).IsNullableAnalysisEnabledAtSpeculativePosition(_containingPublicSemanticModel.OriginalPositionForSpeculation, Root);
             }

@@ -5160,5 +5160,44 @@ class C
             var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
             Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
         }
+
+        [Fact]
+        public void NullableDisableSemanticModel_01()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
+
+            test(disableNullableAnalysis: false, expectedAnnotation: PublicNullableAnnotation.Annotated);
+            test(disableNullableAnalysis: true, expectedAnnotation: PublicNullableAnnotation.None);
+
+            void test(bool disableNullableAnalysis, PublicNullableAnnotation expectedAnnotation)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, disableNullableAnalysis);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
+            }
+
+        }
     }
 }
