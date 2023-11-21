@@ -101,6 +101,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.DisplayName = projectDisplayName;
         _projectSystemProject.OutputFilePath = newProjectInfo.OutputFilePath;
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
+        _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {
