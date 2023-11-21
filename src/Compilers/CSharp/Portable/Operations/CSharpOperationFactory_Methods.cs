@@ -276,13 +276,112 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            return LocalRewriter.MakeArgumentsInEvaluationOrder(
+            return MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,
                  argsToParamsOpt: argumentsToParametersOpt,
                  defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
+        }
+
+        private static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(
+            CSharpOperationFactory operationFactory,
+            ImmutableArray<BoundExpression> arguments,
+            Symbol methodOrIndexer,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            bool invokedAsExtensionMethod)
+        {
+            // We need to do a fancy rewrite under the following circumstances:
+            // (1) a params array is being used; we need to generate the array. 
+            // (2) named arguments were provided out-of-order of the parameters.
+            //
+            // If neither of those are the case then we can just take an early out.
+
+            if (LocalRewriter.CanSkipRewriting(arguments, methodOrIndexer, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
+            {
+                // In this case, there's no named argument provided.
+                // So we just return list of arguments as is.
+
+                ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+                ArrayBuilder<IArgumentOperation> argumentsBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length);
+
+                int i = 0;
+                for (; i < parameters.Length; ++i)
+                {
+                    var argumentKind = GetArgumentKind(arguments[i], ref defaultArguments, i);
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, parameters[i].GetPublicSymbol(), arguments[i]));
+                }
+
+                // TODO: In case of __arglist, we will have more arguments than parameters, 
+                //       set the parameter to null for __arglist argument for now.
+                //       https://github.com/dotnet/roslyn/issues/19673
+                for (; i < arguments.Length; ++i)
+                {
+                    var argumentKind = defaultArguments[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, null, arguments[i]));
+                }
+
+                Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
+
+                return argumentsBuilder.ToImmutableAndFree();
+            }
+
+            return BuildArgumentsInEvaluationOrder(
+                operationFactory,
+                methodOrIndexer,
+                argsToParamsOpt,
+                defaultArguments,
+                arguments);
+        }
+
+        private static ArgumentKind GetArgumentKind(BoundExpression argument, ref BitVector defaultArguments, int i)
+        {
+            ArgumentKind argumentKind;
+            if (defaultArguments[i])
+            {
+                argumentKind = ArgumentKind.DefaultValue;
+            }
+            else if (argument.IsParamsArray)
+            {
+                argumentKind = ArgumentKind.ParamArray;
+            }
+            else
+            {
+                argumentKind = ArgumentKind.Explicit;
+            }
+
+            return argumentKind;
+        }
+
+        // This fills in the arguments in evaluation order.
+        private static ImmutableArray<IArgumentOperation> BuildArgumentsInEvaluationOrder(
+            CSharpOperationFactory operationFactory,
+            Symbol methodOrIndexer,
+            ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
+            ImmutableArray<BoundExpression> arguments)
+        {
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+
+            ArrayBuilder<IArgumentOperation> argumentsInEvaluationBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(parameters.Length);
+
+            // First, fill in all the explicitly provided arguments.
+            for (int a = 0; a < arguments.Length; ++a)
+            {
+                BoundExpression argument = arguments[a];
+
+                int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
+                var parameter = parameters[p];
+
+                ArgumentKind kind = GetArgumentKind(argument, ref defaultArguments, a);
+
+                argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
+            }
+
+            Debug.Assert(argumentsInEvaluationBuilder.All(static arg => arg is not null));
+            return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
 
         internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode? receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression? additionalNodeOpt = null)

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             return _service.AdjustStaleClassification(text, classifiedSpan);
         }
 
-        public void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSyntacticClassifications(SolutionServices services, SyntaxNode? root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             // F# does not support syntax.
         }

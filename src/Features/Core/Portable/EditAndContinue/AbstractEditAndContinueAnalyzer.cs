@@ -6257,6 +6257,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ISymbol? oldCapturedThisParameter = null;
             ISymbol? newCapturedThisParameter = null;
+            var oldThisCaptureIndex = -1;
 
             for (var oldCaptureIndex = 0; oldCaptureIndex < oldCaptures.Length; oldCaptureIndex++)
             {
@@ -6264,7 +6265,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (oldCapture.IsThis)
                 {
-                    oldCapturedThisParameter ??= oldCapture.Symbol;
+                    // captures are unique, so we can only have one that represents this pointer:
+                    Debug.Assert(oldCapturedThisParameter == null);
+                    Debug.Assert(oldThisCaptureIndex == -1);
+
+                    oldCapturedThisParameter = oldCapture.Symbol;
+                    oldThisCaptureIndex = oldCaptureIndex;
                 }
                 else if (oldCapture.Symbol is IParameterSymbol oldParameterCapture)
                 {
@@ -6283,7 +6289,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (newCapture.IsThis)
                 {
-                    newCapturedThisParameter ??= newCapture.Symbol;
+                    // captures are unique, so we can only have one that represents this pointer:
+                    Debug.Assert(newCapturedThisParameter == null);
+
+                    newCapturedThisParameter = newCapture.Symbol;
+                    reverseCapturesMap[newCaptureIndex] = oldThisCaptureIndex;
                     continue;
                 }
 

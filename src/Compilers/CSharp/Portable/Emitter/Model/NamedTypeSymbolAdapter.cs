@@ -908,6 +908,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal new NamedTypeSymbolAdapter GetCciAdapter()
         {
+            Debug.Assert(this is not SynthesizedPrivateImplementationDetailsType);
+
             if (_lazyAdapter is null)
             {
                 return InterlockedOperations.Initialize(ref _lazyAdapter, new NamedTypeSymbolAdapter(this));
