@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                 assemblyName,
                 creationInfo.CompilationOptions,
                 creationInfo.FilePath,
-                creationInfo.ParseOptions);
+                creationInfo.ParseOptions,
+                creationInfo.IntermediateOutputPath);
 
             var versionStamp = creationInfo.FilePath != null
                 ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                     name: projectSystemName,
                     assemblyName,
                     language,
-                    compilationOutputFilePaths: default, // will be updated when command line is set
+                    compilationOutputFilePaths: new(creationInfo.IntermediateOutputPath),
                     SourceHashAlgorithms.Default, // will be updated when command line is set
                     filePath: creationInfo.FilePath,
                     telemetryId: creationInfo.TelemetryId),

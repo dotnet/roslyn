@@ -148,7 +148,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             string assemblyName,
             CompilationOptions? compilationOptions,
             string? filePath,
-            ParseOptions? parseOptions)
+            ParseOptions? parseOptions,
+            string? intermediateOutputPath)
         {
             _projectSystemProjectFactory = projectSystemProjectFactory;
             _hostInfo = hostInfo;
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
             _compilationOptions = compilationOptions;
             _filePath = filePath;
             _parseOptions = parseOptions;
+            _compilationOutputAssemblyFilePath = intermediateOutputPath;
 
             var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
 
