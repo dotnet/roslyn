@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             CancellationToken cancellationToken)
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static async Task<LSP.Location?> TextSpanToLocationAsync(
-            Document document,
+            TextDocument document,
             TextSpan textSpan,
             bool isStale,
             RequestContext? context,
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
-                Document document,
+                TextDocument document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)

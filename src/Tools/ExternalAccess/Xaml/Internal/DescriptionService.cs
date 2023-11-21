@@ -4,23 +4,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.QuickInfo;
-using System.Collections.Immutable;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QuickInfo;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 [Export(typeof(IDescriptionService))]
-internal class DescriptionService : IDescriptionService
+internal sealed class DescriptionService : IDescriptionService
 {
     private readonly IGlobalOptionService _globalOptions;
 
@@ -80,6 +80,6 @@ internal class DescriptionService : IDescriptionService
         return builder.ToImmutableArray();
     }
 
-    public MarkupContent GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
+    public LSP.MarkupContent GetMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
         => ProtocolConversions.GetDocumentationMarkupContent(tags, language, featureSupportsMarkdown);
 }

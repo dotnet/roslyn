@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -19,7 +22,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 [Export(typeof(ILocationService))]
-internal class LocationService : ILocationService
+internal sealed class LocationService : ILocationService
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IGlobalOptionService _globalOptions;
@@ -32,10 +35,10 @@ internal class LocationService : ILocationService
         _globalOptions = globalOptions;
     }
 
-    public Task<LSP.Location?> GetLocationAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    public Task<LSP.Location?> GetLocationAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken)
         => ProtocolConversions.TextSpanToLocationAsync(document, textSpan, isStale: false, cancellationToken);
 
-    public async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    public async Task<LSP.Location[]> GetSymbolLocationsAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<LSP.Location>.GetInstance(out var locations);
 
