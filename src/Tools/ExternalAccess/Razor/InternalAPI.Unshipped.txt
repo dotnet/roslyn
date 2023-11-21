@@ -110,7 +110,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.RazorMappedSpa
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.RazorMappedSpanResult(string! filePath, Microsoft.CodeAnalysis.Text.LinePositionSpan linePositionSpan, Microsoft.CodeAnalysis.Text.TextSpan span) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper() -> void
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum! underlyingObject) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum underlyingObject) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>
@@ -188,7 +188,7 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptResult.Span -> 
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.FilePath -> string!
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.LinePositionSpan -> Microsoft.CodeAnalysis.Text.LinePositionSpan
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorMappedSpanResult.Span -> Microsoft.CodeAnalysis.Text.TextSpan
-readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Checksum!
+readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Checksum
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.UnderlyingObject -> Microsoft.CodeAnalysis.Remote.RemoteCallback<T!>
 readonly Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorServiceDescriptorsWrapper.UnderlyingObject -> Microsoft.CodeAnalysis.Remote.ServiceDescriptors!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorBreakpointSpans.TryGetBreakpointSpan(Microsoft.CodeAnalysis.SyntaxTree! tree, int position, System.Threading.CancellationToken cancellationToken, out Microsoft.CodeAnalysis.Text.TextSpan breakpointSpan) -> bool
@@ -201,7 +201,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressio
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions.GetGlobalOptions(Microsoft.CodeAnalysis.Workspace! workspace) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorGlobalOptions!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum! info) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
+static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.implicit operator Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum info) -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAccessibilityModifiers.get -> string!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAnonymousTypeMemberName.get -> string!
 static Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames.AddAsync.get -> string!
