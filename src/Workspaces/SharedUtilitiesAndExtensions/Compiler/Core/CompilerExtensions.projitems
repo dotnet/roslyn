@@ -9,11 +9,17 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\BitOperations.cs" Link="Hashing\BitOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\NonCryptographicHashAlgorithm.cs" Link="Hashing\NonCryptographicHashAlgorithm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash128.cs" Link="Hashing\XxHash128.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash64.State.cs" Link="Hashing\XxHash64.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHashShared.cs" Link="Hashing\XxHashShared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentDictionaryExtensions.cs" Link="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConfiguredYieldAwaitable.cs" Link="InternalUtilities\ConfiguredYieldAwaitable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" Link="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
@@ -53,15 +59,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArrayExtensions.cs" Link="Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\GeneratedCodeUtilities.cs" Link="InternalUtilities\GeneratedCodeUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\IObjectWritable.cs" Link="Serialization\IObjectWritable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectBinder.cs" Link="Serialization\ObjectBinder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectBinderSnapshot.cs" Link="Serialization\ObjectBinderSnapshot.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\TextEncodingKind.cs" Link="Serialization\TextEncodingKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\SerializationThreadPool.cs" Link="Serialization\SerializationThreadPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SpecialTypeExtensions.cs" Link="Extensions\Compiler\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
@@ -263,6 +263,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PublicOptionFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Progress\NullProgress.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectWriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\TextEncodingKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\AbstractBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BlockFacts\IBlockFactsExtensions.cs" />
@@ -467,6 +471,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\TaskExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\ValueTaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
@@ -499,7 +504,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IReferenceCountedDisposable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\LazyInitialization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.ChoiceMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.RepeatMatcher.cs" />
@@ -512,7 +516,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PredefinedType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PredefinedTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.cs" />
@@ -534,6 +537,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposableCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RestrictedInternalsVisibleToAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticEquivalence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
@@ -609,6 +613,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Hashing\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
   </ItemGroup>
 </Project>

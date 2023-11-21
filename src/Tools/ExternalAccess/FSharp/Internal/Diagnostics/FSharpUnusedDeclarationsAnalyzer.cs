@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
     [DiagnosticAnalyzer(LanguageNames.FSharp)]
     internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        private const string DescriptorId = "FS1182";
+        private const string DescriptorId = IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 
         private readonly DiagnosticDescriptor _descriptor =
             new DiagnosticDescriptor(

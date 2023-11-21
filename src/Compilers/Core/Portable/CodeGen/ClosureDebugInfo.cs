@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal string GetDebuggerDisplay()
         {
-            return $"({ClosureId.GetDebuggerDisplay()} @{SyntaxOffset})";
+            return $"({ClosureId} @{SyntaxOffset})";
         }
     }
 }

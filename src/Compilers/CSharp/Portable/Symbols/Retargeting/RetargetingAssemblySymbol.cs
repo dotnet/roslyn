@@ -188,6 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => _underlyingAssembly.HasImportedFromTypeLibAttribute;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => _underlyingAssembly.HasPrimaryInteropAssemblyAttribute;
+
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName);
@@ -278,12 +282,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { return null; }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         internal override bool GetGuidString(out string guidString)
         {
             return _underlyingAssembly.GetGuidString(out guidString);
         }
 
 #nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingAssembly.ObsoleteAttributeData;
 
         internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {

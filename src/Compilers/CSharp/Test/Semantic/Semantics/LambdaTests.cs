@@ -155,27 +155,27 @@ class C
 }");
 
             comp.VerifyDiagnostics(
-                // (16,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                // (16,20): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
                 //         int q1 = ()=>1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>1").WithArguments("lambda expression", "int").WithLocation(16, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(16, 20),
                 // (17,18): error CS1660: Cannot convert anonymous method to type 'int' because it is not a delegate type
                 //         int q2 = delegate { return 1; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate { return 1; }").WithArguments("anonymous method", "int").WithLocation(17, 18),
-                // (18,24): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "int").WithLocation(17, 18),
+                // (18,26): error CS1593: Delegate 'Func<int>' does not take 1 arguments
                 //         Func<int> q3 = x3=>1;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x3=>1").WithArguments("System.Func<int>", "1").WithLocation(18, 24),
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(18, 26),
                 // (19,37): error CS0234: The type or namespace name 'Itn23' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 //         Func<int, int> q4 = (System.Itn23 x4)=>1; // type mismatch error should be suppressed on error type
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Itn23").WithArguments("Itn23", "System").WithLocation(19, 37),
                 // (20,35): error CS0234: The type or namespace name 'Duobel' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Duobel").WithArguments("Duobel", "System").WithLocation(20, 35),
-                // (20,27): error CS1593: Delegate 'Func<double>' does not take 1 arguments
+                // (20,45): error CS1593: Delegate 'Func<double>' does not take 1 arguments
                 //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(System.Duobel x5)=>1").WithArguments("System.Func<double>", "1").WithLocation(20, 27),
-                // (21,17): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<double>", "1").WithLocation(20, 45),
+                // (21,52): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double x6, ref int y6, ref int z6)=>1").WithArguments("lambda expression", "C.D1").WithLocation(21, 17),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D1").WithLocation(21, 52),
                 // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
@@ -187,7 +187,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadParamExtraRef, "z6").WithArguments("3", "ref").WithLocation(21, 49),
                 // (32,17): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'C.D1' because it has one or more out parameters
                 //         D1 q7 = delegate {};
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate {}").WithArguments("C.D1").WithLocation(32, 17),
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("C.D1").WithLocation(32, 17),
                 // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
                 //         Frob q8 = ()=>{};
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
@@ -236,15 +236,15 @@ class C
                 // (68,61): warning CS9100: Parameter 2 has params modifier in lambda but not in target delegate type.
                 //         Action<int, double[]> q18 = (int x, params double[] s)=>{};
                 Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "s").WithArguments("2").WithLocation(68, 61),
-                // (70,34): error CS1593: Delegate 'Action' does not take 1 arguments
+                // (70,41): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         object q19 = new Action( (int x)=>{} );
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int x)=>{}").WithArguments("System.Action", "1").WithLocation(70, 34),
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(70, 41),
                 // (72,9): warning CS0436: The type 'Expression<T>' in '' conflicts with the imported type 'Expression<TDelegate>' in 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //         Expression<int> ex1 = ()=>1;
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
-                // (72,31): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
+                // (72,33): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
                 //         Expression<int> ex1 = ()=>1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "()=>1").WithArguments("int").WithLocation(72, 31));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "=>").WithArguments("int").WithLocation(72, 33));
         }
 
         [Fact] // 5368
@@ -306,15 +306,15 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,41): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
+                // (9,44): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
                 //         Expression<Func<int,int>> ex1 = () => 1;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => 1").WithArguments("System.Func<int, int>", "0").WithLocation(9, 41),
-                // (10,41): error CS1661: Cannot convert lambda expression to type 'Expression<Func<int, int>>' because the parameter types do not match the delegate parameter types
-                //         Expression<Func<int,int>> ex2 = (double d) => 1;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double d) => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int, int>>").WithLocation(10, 41),
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int, int>", "0").WithLocation(9, 44),
                 // (10,49): error CS1678: Parameter 1 is declared as type 'double' but should be 'int'
                 //         Expression<Func<int,int>> ex2 = (double d) => 1;
-                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49));
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49),
+                // (10,52): error CS1661: Cannot convert lambda expression to type 'Expression<Func<int, int>>' because the parameter types do not match the delegate parameter types
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int, int>>").WithLocation(10, 52));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
@@ -719,9 +719,9 @@ class Program
 }";
 
             CreateCompilation(csSource).VerifyDiagnostics(
-                // (5,37): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (5,40): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
                 //     public Program(string x) : this(() => x) { }
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => x").WithArguments("lambda expression", "string").WithLocation(5, 37),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(5, 40),
                 // (8,55): error CS0103: The name 'nulF' does not exist in the current context
                 //         ((Action<string>)(f => Console.WriteLine(f)))(nulF);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nulF").WithArguments("nulF").WithLocation(8, 55));
@@ -790,8 +790,9 @@ class C
     }
 }";
             CreateCompilation(csSource).VerifyDiagnostics(
-                // (6,51): error CS1593: Delegate 'System.Func<int>' does not take 1 arguments
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => 0").WithArguments("System.Func<int>", "1"));
+                // (6,53): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //         System.Func<int> f = new System.Func<int>(r => 0);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(6, 53));
         }
 
         [Fact, WorkItem(529054, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529054")]
@@ -1165,9 +1166,9 @@ class C
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
-                // (9,15): error CS1660: Cannot convert lambda expression to type 'IList<C>' because it is not a delegate type
+                // (9,22): error CS1660: Cannot convert lambda expression to type 'IList<C>' because it is not a delegate type
                 //         tmp.M((a, b) => c.Add);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(a, b) => c.Add").WithArguments("lambda expression", "System.Collections.Generic.IList<C>").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Collections.Generic.IList<C>").WithLocation(9, 22));
 
             var model = comp.GetSemanticModel(tree);
 
@@ -5037,12 +5038,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                // (9,19): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
                 //         f2 = T () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
-                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 19),
+                // (10,19): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
                 //         f1 = U () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 19));
         }
 
         [Fact]
@@ -5064,12 +5065,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                // (9,19): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
                 //         f2 = T () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
-                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 19),
+                // (10,19): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
                 //         f1 = U () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 19));
         }
 
         [Fact]
@@ -5092,12 +5093,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
+                // (10,19): error CS8934: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
                 //         e2 = T () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<U>>").WithLocation(10, 14),
-                // (11,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<U>>").WithLocation(10, 19),
+                // (11,19): error CS8934: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
                 //         e1 = U () => default;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<T>>").WithLocation(11, 14));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<T>>").WithLocation(11, 19));
         }
 
         [Fact]
@@ -5281,24 +5282,24 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,14): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                // (12,26): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
                 //         d2 = T (ref T t) => t;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(12, 14),
-                // (13,14): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D2<T>").WithLocation(12, 26),
+                // (13,26): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
                 //         d3 = T (ref T t) => t;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D3<T>").WithLocation(13, 14),
-                // (14,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D3<T>").WithLocation(13, 26),
+                // (14,31): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
                 //         d1 = (ref T (ref T t) => ref t);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(14, 15),
-                // (16,15): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D1<T>").WithLocation(14, 31),
+                // (16,31): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
                 //         d3 = (ref T (ref T t) => ref t);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D3<T>").WithLocation(16, 15),
-                // (17,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D3<T>").WithLocation(16, 31),
+                // (17,40): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
                 //         d1 = (ref readonly T (ref T t) => ref t);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(17, 15),
-                // (18,15): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D1<T>").WithLocation(17, 40),
+                // (18,40): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
                 //         d2 = (ref readonly T (ref T t) => ref t);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D2<T>").WithLocation(18, 15));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "D2<T>").WithLocation(18, 40));
         }
 
         [Fact]
@@ -5317,18 +5318,18 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8917: The delegate type could not be inferred.
-                //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
-                // (8,14): error CS8917: The delegate type could not be inferred.
-                //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref readonly void () => { }").WithLocation(8, 14),
+                // (7,26): error CS8917: The delegate type could not be inferred.
+                //         d = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 26),
                 // (8,27): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27),
+                // (8,35): error CS8917: The delegate type could not be inferred.
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(8, 35));
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -5419,12 +5420,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,29): error CS1073: Unexpected token 'ref'
                 //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
+                // (8,42): error CS8917: The delegate type could not be inferred.
+                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(8, 42),
                 // (9,22): error CS1073: Unexpected token 'ref'
                 //         D d2 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
@@ -5676,12 +5677,12 @@ class Program
                 // (5,34): error CS0570: 'D.Invoke()' is not supported by the language
                 //         System.Console.WriteLine(d());
                 Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(5, 34),
-                // (9,11): error CS0570: 'D.Invoke()' is not supported by the language
+                // (9,14): error CS0570: 'D.Invoke()' is not supported by the language
                 //         F(() => 1);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "() => 1").WithArguments("D.Invoke()").WithLocation(9, 11),
-                // (10,11): error CS0570: 'D.Invoke()' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(9, 14),
+                // (10,18): error CS0570: 'D.Invoke()' is not supported by the language
                 //         F(int () => 2);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "int () => 2").WithArguments("D.Invoke()").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "=>").WithArguments("D.Invoke()").WithLocation(10, 18));
         }
 
         [Fact]
@@ -6836,18 +6837,12 @@ class Program
                 // (6,21): error CS1107: A parameter can only have one 'ref' modifier
                 //         D d1 = (ref ref int i) => { };
                 Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 21),
-                // (7,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                // (7,16): warning CS9198: Reference kind modifier of parameter 'in int i' doesn't match the corresponding parameter 'ref int i' in target.
                 //         D d2 = (in ref int i) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(in ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(7, 16),
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in ref int i) => { }").WithArguments("in int i", "ref int i").WithLocation(7, 16),
                 // (7,20): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 //         D d2 = (in ref int i) => { };
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(7, 20),
-                // (7,28): error CS1676: Parameter 1 must be declared with the 'ref' keyword
-                //         D d2 = (in ref int i) => { };
-                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 28),
-                // (8,16): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d3 = (out ref int i) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(out ref int i) => { }").WithArguments("lambda expression", "D").WithLocation(8, 16),
                 // (8,16): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
                 //         D d3 = (out ref int i) => { };
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "(out ref int i) => { }").WithArguments("i").WithLocation(8, 16),
@@ -6856,7 +6851,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(8, 21),
                 // (8,29): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D d3 = (out ref int i) => { };
-                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(8, 29));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(8, 29),
+                // (8,32): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d3 = (out ref int i) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(8, 32));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -6879,12 +6877,12 @@ class Program
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
-                //         System.Action x = static partial () => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "static partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27),
                 // (5,34): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Action x = static partial () => { };
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34),
+                // (5,45): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                //         System.Action x = static partial () => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Action").WithLocation(5, 45));
         }
 
         [Fact]
@@ -6937,9 +6935,9 @@ class Program
                 // (5,27): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Action x = partial () => { };
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 27),
-                // (5,27): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
+                // (5,38): error CS8934: Cannot convert lambda expression to type 'Action' because the return type does not match the delegate return type
                 //         System.Action x = partial () => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "partial () => { }").WithArguments("lambda expression", "System.Action").WithLocation(5, 27));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Action").WithLocation(5, 38));
         }
 
         [WorkItem(61013, "https://github.com/dotnet/roslyn/issues/61013")]
@@ -7098,16 +7096,16 @@ public class DisplayAttribute : System.Attribute
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (5,27): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,27): error CS9058: Feature 'lambda optional parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //         var lam1 = (int x = 7) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(5, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "=").WithArguments("lambda optional parameters", "12.0").WithLocation(5, 27));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp12)]
         public void AnonymousMethodWithExplicitDefaultParam(LanguageVersion languageVersion)
         {
             var source = """
@@ -8217,16 +8215,16 @@ class Program
                 """;
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'lambda params array' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS9058: Feature 'lambda params array' is not available in C# 11.0. Please use language version 12.0 or greater.
                 // var lam = (params int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params").WithArguments("lambda params array").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "params").WithArguments("lambda params array", "12.0").WithLocation(1, 12));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp11)]
-        [InlineData(LanguageVersionFacts.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp12)]
         public void ParamsArray_Langversion_DelegateSyntax(LanguageVersion languageVersion)
         {
             var source = """

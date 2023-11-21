@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                     UseHierarchicalSymbols = true,
                     TextDocument = new TextDocumentIdentifier()
                     {
-                        Uri = new Uri(textViewFilePath)
+                        Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath)
                     }
                 });
             }

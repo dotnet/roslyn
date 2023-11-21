@@ -1228,9 +1228,9 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                     SyntaxFactory.Token(SyntaxKind.PlusToken))
                 .WithModifiers(
                     SyntaxFactory.TokenList(
-                        new[]{
+                        [
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)}))
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)]))
                 .WithExplicitInterfaceSpecifier(
                     SyntaxFactory.ExplicitInterfaceSpecifier(
                         SyntaxFactory.GenericName(
@@ -2542,6 +2542,39 @@ public class C { } // end").Members[0];
                 "public const global::System.Int32 F;");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69376")]
+        public void TestConstantDecimalFieldDeclarationFromMetadata()
+        {
+            var compilation = _emptyCompilation.
+                WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).
+                AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    public const decimal F = 8675309000000M;
+                }
+                """));
+            var reference = compilation.EmitToPortableExecutableReference();
+
+            compilation = _emptyCompilation.AddReferences(reference);
+
+            var type = compilation.GetTypeByMetadataName("C");
+            var field = type.GetMembers("F").Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.Decimal F = 8675309000000M;");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69380")]
+        public void TestConstantFieldDeclarationSpecialTypes()
+        {
+            var field = _emptyCompilation.GetSpecialType(SpecialType.System_UInt32).GetMembers(nameof(UInt32.MaxValue)).Single();
+
+            VerifySyntax<FieldDeclarationSyntax>(
+                Generator.Declaration(field),
+                "public const global::System.UInt32 MaxValue = 4294967295U;");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66374")]
         public void TestDestructor1()
         {
@@ -2601,9 +2634,9 @@ public class C { } // end").Members[0];
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")));
             TestRemoveAllNamespaceImports(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")));
 
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", new string[] { });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", new[] { "y" });
-            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", new[] { "x" });
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x")), "x", []);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "x", ["y"]);
+            TestRemoveNamespaceImport(Generator.CompilationUnit(Generator.NamespaceImportDeclaration("x"), Generator.IdentifierName("y")), "y", ["x"]);
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
@@ -2739,8 +2772,8 @@ public class C
             TestRemoveAllMembers(Generator.NamespaceDeclaration("n", new[] { Generator.NamespaceDeclaration("n") }));
             TestRemoveAllMembers(Generator.CompilationUnit(declarations: new[] { Generator.NamespaceDeclaration("n") }));
 
-            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
-            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", new[] { "m2" });
+            TestRemoveMember(Generator.ClassDeclaration("c", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
+            TestRemoveMember(Generator.StructDeclaration("s", members: new[] { Generator.MethodDeclaration("m1"), Generator.MethodDeclaration("m2") }), "m1", ["m2"]);
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
@@ -4741,6 +4774,60 @@ class C
 public readonly struct [|S|]
 {
 }");
+        }
+
+        [Fact]
+        public void TestStructModifiers2()
+        {
+            var compilation = Compile("""
+                public ref struct S
+                {
+                    public int Value;
+                    public ref int RefValue;
+                    public readonly ref int RORefValue;
+
+                    public void M(scoped ref int value) { }
+                    public void M(scoped ref readonly double value) { } 
+                    public void M(in int x, scoped in int y) { }
+                    public void M(S x, scoped S y) { }
+                    public void M(out int value) { }
+                }
+                """);
+
+            var symbol = compilation.GlobalNamespace.GetMembers("S").Single();
+            VerifySyntax<StructDeclarationSyntax>(
+                Generator.Declaration(symbol),
+                """
+                public struct S
+                {
+                    public global::System.Int32 Value;
+                    public ref global::System.Int32 RefValue;
+                    public readonly ref global::System.Int32 RORefValue;
+                    public void M(scoped ref global::System.Int32 value)
+                    {
+                    }
+
+                    public void M(scoped ref readonly global::System.Double value)
+                    {
+                    }
+
+                    public void M(in global::System.Int32 x, scoped in global::System.Int32 y)
+                    {
+                    }
+
+                    public void M(global::S x, scoped global::S y)
+                    {
+                    }
+
+                    public void M(out global::System.Int32 value)
+                    {
+                    }
+
+                    public S()
+                    {
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67341")]

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             string? filePath,
             bool isGenerated,
-            bool designTimeOnly) : IChecksummedObject, IObjectWritable
+            bool designTimeOnly)
         {
             private Checksum? _lazyChecksum;
 
@@ -231,8 +231,6 @@ namespace Microsoft.CodeAnalysis
             public string SyntaxTreeFilePath
                 => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -259,8 +257,8 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+            public Checksum Checksum
+                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
         }
     }
 }

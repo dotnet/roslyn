@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         void ReplaceGetMethodWithProperty(
             CodeGenerationOptions options, ParseOptions parseOptions,
             SyntaxEditor editor, SemanticModel semanticModel,
-            GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged);
+            GetAndSetMethods getAndSetMethods, string propertyName, bool nameChanged, CancellationToken cancellationToken);
 
         void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }

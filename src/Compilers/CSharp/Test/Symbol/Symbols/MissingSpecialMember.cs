@@ -604,9 +604,11 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_Collections_Immutable_ImmutableArray_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
                     case WellKnownType.System_Range:
@@ -644,6 +646,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ITuple:
                     case WellKnownType.System_Runtime_CompilerServices_NonNullTypesAttribute:
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
+                    case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -685,6 +689,7 @@ namespace System
                             WellKnownType.System_Attribute,
                             WellKnownType.System_CLSCompliantAttribute,
                             WellKnownType.System_Convert,
+                            WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                             WellKnownType.System_Exception,
                             WellKnownType.System_FlagsAttribute,
                             WellKnownType.System_FormattableString,
@@ -907,8 +912,8 @@ namespace System
                 Assert.True(type <= WellKnownType.CSharp7Sentinel);
             }
 
-            // There were 204 well-known types prior to CSharp7
-            Assert.Equal(204, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
+            // There were 205 well-known types prior to CSharp7
+            Assert.Equal(205, (int)(WellKnownType.CSharp7Sentinel - WellKnownType.First));
         }
 
         [Fact]
@@ -1013,6 +1018,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1055,6 +1061,9 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:
+                    case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T:
+                    case WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T:
                         // Not always available.
                         continue;
                 }
@@ -1579,11 +1588,9 @@ namespace Test
 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
-            compilation.VerifyEmitDiagnostics(
-                // (23,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //             S.v = s ?? -1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(23, 19)
-                );
+
+            // We use more optimal `GetValueOrDefault(defaultValue)` member for this case, so no error about missing `GetValueOrDefault()` is reported
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

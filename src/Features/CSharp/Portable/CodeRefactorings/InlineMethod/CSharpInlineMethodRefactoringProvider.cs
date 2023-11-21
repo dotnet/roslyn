@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineMethod), Shared]
     [Export(typeof(CSharpInlineMethodRefactoringProvider))]
-    internal sealed class CSharpInlineMethodRefactoringProvider :
-        AbstractInlineMethodRefactoringProvider<BaseMethodDeclarationSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax>
+    internal sealed class CSharpInlineMethodRefactoringProvider
+        : AbstractInlineMethodRefactoringProvider<BaseMethodDeclarationSyntax, StatementSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,10 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             if (blockSyntaxNode != null)
             {
                 // 1. If it is an ordinary method with block
-                var blockStatements = blockSyntaxNode.Statements;
-                if (blockStatements.Count == 1)
+                if (blockSyntaxNode.Statements is [var statementSyntax])
                 {
-                    var statementSyntax = blockStatements[0];
                     return statementSyntax switch
                     {
                         // Note: For this case this will return null in Callee()
@@ -52,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             else
             {
                 // 2. If it is an Arrow Expression
-                var arrowExpressionNode = methodDeclarationSyntax.ExpressionBody;
-                return arrowExpressionNode?.Expression;
+                return methodDeclarationSyntax.ExpressionBody?.Expression;
             }
 
             return null;
@@ -90,13 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
 
             return expressionNode.IsKind(SyntaxKind.InvocationExpression)
                    || isNullConditionalInvocationExpression
-                   || expressionNode.IsKind(SyntaxKind.ObjectCreationExpression)
                    || expressionNode is AssignmentExpressionSyntax
-                   || expressionNode.IsKind(SyntaxKind.PreIncrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PreDecrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PostIncrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.PostDecrementExpression)
-                   || expressionNode.IsKind(SyntaxKind.AwaitExpression);
+                   || expressionNode.Kind()
+                        is SyntaxKind.InvocationExpression
+                        or SyntaxKind.ObjectCreationExpression
+                        or SyntaxKind.PreIncrementExpression
+                        or SyntaxKind.PreDecrementExpression
+                        or SyntaxKind.PostIncrementExpression
+                        or SyntaxKind.PostDecrementExpression
+                        or SyntaxKind.AwaitExpression;
         }
 
         protected override bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode)
@@ -106,44 +105,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod
             // As the second or third operand of a ternary conditional operator ?:
             // As the second operand of a null coalescing operator ??
             // As the body of an expression-bodied lambda or method.'
-            var parent = syntaxNode.Parent;
-            if (parent is ConditionalExpressionSyntax conditionalExpressionSyntax)
+            return syntaxNode.Parent switch
             {
-                return syntaxNode.Equals(conditionalExpressionSyntax.WhenTrue)
-                    || syntaxNode.Equals(conditionalExpressionSyntax.WhenFalse);
-            }
-
-            if (parent is BinaryExpressionSyntax binaryExpressionSyntax && binaryExpressionSyntax.IsKind(SyntaxKind.CoalesceExpression))
-            {
-                return syntaxNode.Equals(binaryExpressionSyntax.Right);
-            }
-
-            if (parent is LambdaExpressionSyntax lambdaExpressionSyntax)
-            {
-                return lambdaExpressionSyntax.ExpressionBody != null;
-            }
-
-            return parent.IsKind(SyntaxKind.ArrowExpressionClause);
+                ConditionalExpressionSyntax conditionalExpressionSyntax
+                    => syntaxNode.Equals(conditionalExpressionSyntax.WhenTrue) ||
+                       syntaxNode.Equals(conditionalExpressionSyntax.WhenFalse),
+                BinaryExpressionSyntax(kind: SyntaxKind.CoalesceExpression) binaryExpressionSyntax
+                    => syntaxNode.Equals(binaryExpressionSyntax.Right),
+                LambdaExpressionSyntax lambdaExpressionSyntax
+                    => lambdaExpressionSyntax.ExpressionBody != null,
+                var parent => parent.IsKind(SyntaxKind.ArrowExpressionClause),
+            };
         }
 
         private static bool IsNullConditionalInvocationExpression(ExpressionSyntax expressionSyntax)
         {
             // Check if the expression syntax is like an invocation expression nested inside ConditionalAccessExpressionSyntax.
             // For example: a?.b.c()
-            if (expressionSyntax is ConditionalAccessExpressionSyntax conditionalAccessExpressionSyntax)
-            {
-                var whenNotNull = conditionalAccessExpressionSyntax.WhenNotNull;
-                // If the expression is ended with an invocation
-                // (if the expressions in the middle are not ConditionalAccessExpressionSyntax),
-                // like a?.b.e.c(), the syntax tree would be
-                // ConditionalAccessExpressionSyntax -> InvocationExpression.
-                // And in case of example like a?.b?.d?.c();
-                // This is case it would be
-                // ConditionalAccessExpressionSyntax -> ConditionalAccessExpressionSyntax -> ... -> InvocationExpression.
-                return whenNotNull.IsKind(SyntaxKind.InvocationExpression) || IsNullConditionalInvocationExpression(whenNotNull);
-            }
-
-            return false;
+            //
+            // If the expression is ended with an invocation
+            // (if the expressions in the middle are not ConditionalAccessExpressionSyntax),
+            // like a?.b.e.c(), the syntax tree would be
+            // ConditionalAccessExpressionSyntax -> InvocationExpression.
+            // And in case of example like a?.b?.d?.c();
+            // This is case it would be
+            // ConditionalAccessExpressionSyntax -> ConditionalAccessExpressionSyntax -> ... -> InvocationExpression.
+            return expressionSyntax is ConditionalAccessExpressionSyntax { WhenNotNull: var whenNotNull } &&
+                (whenNotNull.IsKind(SyntaxKind.InvocationExpression) || IsNullConditionalInvocationExpression(whenNotNull));
         }
     }
 }

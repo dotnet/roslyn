@@ -1234,17 +1234,17 @@ End Class"
 
             Dim insert = GetTopEdits(src1, src2)
             insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", VBFeaturesResources.Lambda, "y0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.Lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", VBFeaturesResources.Lambda, "Me", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.Lambda, "Me", "x3"))
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", GetResource("Lambda"), "x1", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", GetResource("Lambda"), "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "Function(a)", GetResource("Lambda"), "y0", "Me"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "Function(a)", GetResource("Lambda"), "x3", "Me"))
 
             Dim delete = GetTopEdits(src2, src1)
             delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", VBFeaturesResources.Lambda, "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.Lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", VBFeaturesResources.Lambda, "Me", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", VBFeaturesResources.Lambda, "Me", "x3"))
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", GetResource("Lambda"), "x1", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", GetResource("Lambda"), "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("Lambda"), "y0", "Me"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("Lambda"), "x3", "Me"))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -2557,6 +2557,54 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.DeletingCapturedVariable, "Sub F()", "y"))
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Update_Capturing_For_EachFor_Using()
+            Dim src1 = "
+Imports System
+Imports System.IO
+
+Class C
+    Public Sub F()
+        For Each a As Integer In {1}
+        Next
+
+        Using b As New MemoryStream()
+        End Using
+
+        For c As Integer = 0 To 1
+        Next
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.IO
+
+Class C
+    Public Sub F()
+        For Each a As Integer In {1}
+            Dim x = New Action(Sub() Console.WriteLine(a))
+        Next
+
+        Using b As New MemoryStream()
+            Dim x = New Action(Sub() Console.WriteLine(b))
+        End Using
+
+        For c As Integer = 0 To 1
+            Dim x = New Action(Sub() Console.WriteLine(c))
+        Next
+    End Sub
+End Class
+
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "a", "a"),
+                Diagnostic(RudeEditKind.CapturingVariable, "b", "b"),
+                Diagnostic(RudeEditKind.CapturingVariable, "c", "c"))
         End Sub
 
         <Fact>

@@ -377,6 +377,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // An inline array passed as a Span<T> can be written into by the callee, despite no ref at the callsite.  e.g.:
+            //
+            // void Mutate(Span<byte> bytes);
+            // Mutate(this.inlineArray)
+            if (expression.Parent is ArgumentSyntax)
+            {
+                var expressionTypes = semanticModel.GetTypeInfo(expression, cancellationToken);
+                if (expressionTypes.ConvertedType.IsSpan() &&
+                    expressionTypes.Type.IsInlineArray())
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -458,10 +472,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (expression.IsKind(SyntaxKind.BaseExpression) ||
-                expression.IsKind(SyntaxKind.CollectionInitializerExpression) ||
-                expression.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                expression.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+            if (expression.Kind()
+                    is SyntaxKind.BaseExpression
+                    or SyntaxKind.CollectionInitializerExpression
+                    or SyntaxKind.ObjectInitializerExpression
+                    or SyntaxKind.ComplexElementInitializerExpression)
             {
                 return false;
             }
@@ -625,39 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsLeftSideOfAnyAssignExpression())
             {
                 return true;
-            }
-
-            return false;
-        }
-
-        public static bool CanAccessInstanceAndStaticMembersOffOf(
-            this ExpressionSyntax expression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // Check for the Color Color case.
-            //
-            // color color: if you bind "A" and you get a symbol and the type of that symbol is
-            // Q; and if you bind "A" *again* as a type and you get type Q, then both A.static
-            // and A.instance are permitted
-            if (expression is IdentifierNameSyntax)
-            {
-                var instanceSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-
-                if (instanceSymbol is not INamespaceOrTypeSymbol)
-                {
-                    var instanceType = instanceSymbol.GetSymbolType();
-                    if (instanceType != null)
-                    {
-                        var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
-                        if (speculativeSymbolInfo.CandidateReason != CandidateReason.NotATypeOrNamespace)
-                        {
-                            var staticType = speculativeSymbolInfo.GetAnySymbol().GetSymbolType();
-
-                            return SymbolEquivalenceComparer.Instance.Equals(instanceType, staticType);
-                        }
-                    }
-                }
             }
 
             return false;

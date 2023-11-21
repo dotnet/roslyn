@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 
         private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
+
         [Fact]
         public async Task TestInitializeFieldWithSameName()
         {
@@ -1034,10 +1038,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                 """, parameters: new TestParameters(options: _options.MergeStyles(_options.PropertyNamesArePascalCase, _options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
-        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
-        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
-
         [Fact]
         public async Task TestCreateFieldWithTopLevelNullability()
         {
@@ -1969,6 +1969,58 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
                     private readonly string name = name;
                 }
                         </Document>
+                    </Project>
+                </Workspace>
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69459")]
+        public async Task TestInLinkedFile()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                <Workspace>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+                        <Document FilePath='C.cs'>
+                using System;
+                
+                class C([||]string s)
+                {
+                    private string _s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(s);
+                        var v = new C(s: "");
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+                        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+                    </Project>
+                </Workspace>
+                """,
+                """
+                <Workspace>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+                        <Document FilePath='C.cs'>
+                using System;
+                
+                class C(string s)
+                {
+                    private string _s = s;
+                
+                    private void M()
+                    {
+                        Console.WriteLine(_s);
+                        var v = new C(s: "");
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+                        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
                     </Project>
                 </Workspace>
                 """);

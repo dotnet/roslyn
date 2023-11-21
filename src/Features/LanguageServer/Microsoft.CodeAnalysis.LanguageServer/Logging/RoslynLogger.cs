@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
         private static ITelemetryReporter? _telemetryReporter;
+        private static readonly ObjectPool<List<KeyValuePair<string, object?>>> s_propertyPool = new(() => new());
 
         private RoslynLogger()
         {
@@ -30,8 +32,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
         {
             Contract.ThrowIfTrue(_instance is not null);
 
-            FatalError.Handler = ReportFault;
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = ReportFault;
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
 
             if (reporter is not null && telemetryLevel is not null)
             {
@@ -94,12 +97,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
+            using var pooledObject = s_propertyPool.GetPooledObject();
+            var properties = pooledObject.Object;
+
             var name = GetEventName(functionId);
-            var properties = GetProperties(functionId, logMessage, delta: null);
+            AddProperties(properties, functionId, logMessage, delta: null);
 
             try
             {
-                _telemetryReporter?.Log(name, properties);
+                _telemetryReporter.Log(name, properties);
             }
             catch
             {
@@ -108,12 +119,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
             var eventName = GetEventName(functionId);
             var kind = GetKind(logMessage);
 
             try
             {
-                _telemetryReporter?.LogBlockStart(eventName, (int)kind, blockId);
+                _telemetryReporter.LogBlockStart(eventName, (int)kind, blockId);
             }
             catch
             {
@@ -122,10 +138,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
-            var properties = GetProperties(functionId, logMessage, delta);
+            if (IgnoreReporting(logMessage))
+            {
+                return;
+            }
+
+            using var pooledObject = s_propertyPool.GetPooledObject();
+            var properties = pooledObject.Object;
+
+            AddProperties(properties, functionId, logMessage, delta);
             try
             {
-                _telemetryReporter?.LogBlockEnd(blockId, properties, cancellationToken);
+                _telemetryReporter.LogBlockEnd(blockId, properties, cancellationToken);
             }
             catch
             {
@@ -145,6 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
             currentReporter?.Dispose();
             _instance = null;
         }
+
+        [MemberNotNullWhen(false, nameof(_telemetryReporter))]
+        private static bool IgnoreReporting(LogMessage logMessage)
+            => _telemetryReporter is null ||
+               logMessage.LogLevel < LogLevel.Information;
 
         private static string GetDescription(Exception exception)
         {
@@ -208,28 +237,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Logging
                                         _ => LogType.Trace
                                     };
 
-        private static ImmutableDictionary<string, object?> GetProperties(FunctionId id, LogMessage logMessage, int? delta)
+        private static void AddProperties(List<KeyValuePair<string, object?>> properties, FunctionId id, LogMessage logMessage, int? delta)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, object?>();
-
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
                 foreach (var (name, val) in kvLogMessage.Properties)
                 {
-                    builder.Add(GetPropertyName(id, name), val);
+                    properties.Add(new(GetPropertyName(id, name), val));
                 }
             }
             else
             {
-                builder.Add(GetPropertyName(id, "Message"), logMessage.GetMessage());
+                properties.Add(new(GetPropertyName(id, "Message"), logMessage.GetMessage()));
             }
 
             if (delta.HasValue)
             {
-                builder.Add(GetPropertyName(id, "Delta"), delta.Value);
+                properties.Add(new(GetPropertyName(id, "Delta"), delta.Value));
             }
-
-            return builder.ToImmutableDictionary();
         }
     }
 }

@@ -45,16 +45,28 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
-      "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.VisualStudio.LanguageServices.DevKit": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-arm64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.win-x86": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.CSharp.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Copilot": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
@@ -160,7 +172,26 @@
       ],
       "vsBranch": "rel/d17.7",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7P3]"
+      "insertionTitlePrefix": "[d17.7]"
+    },
+    "release/dev17.8": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.8",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.8]"
+    },
+    "release/dev17.9": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.9",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.9]"
     },
     "main": {
       "nugetKind": [
@@ -169,8 +200,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.8P1]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[main]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

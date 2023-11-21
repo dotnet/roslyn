@@ -1577,6 +1577,40 @@ class D
 
 #End Region
 
+        <WpfFact>
+        Public Async Function TestCallingConv() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+unsafe
+{
+    delegate* unmanaged[$$Cdecl]&lt;void&gt; f1;
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCallingConvWithAtSign() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+unsafe
+{
+    delegate* unmanaged[$$@Cdecl]&lt;void&gt; f1;
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>
         Public Async Function TestCSharpTestAliasAndTarget1() As Task
@@ -3522,6 +3556,147 @@ namespace System
     public interface IAsyncDisposable
     {
         ValueTask DisposeAsync();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_GotoLabel01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class Program
+{
+    public void Compare(string[] a, string[] b)
+    {
+        foreach (var x in a)
+        {
+            foreach (var y in b)
+            {
+                if (x.Length > y.Length)
+                    $$goto end;
+            }
+        }
+    [||]end:
+        ;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_GotoSwitchDefaultLabel01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class Program
+{
+    public void Method(int argument)
+    {
+        switch (argument)
+        {
+            case 1:
+                $$goto default;
+            case 2:
+                goto case 1;
+            [||]default:
+                break;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_GotoSwitchDefaultLabel02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class Program
+{
+    public void Method(int argument)
+    {
+        switch (argument)
+        {
+            case 1:
+                goto $$default;
+            case 2:
+                goto case 1;
+            [||]default:
+                break;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_GotoSwitchCaseLabel01() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class Program
+{
+    public void Method(int argument)
+    {
+        switch (argument)
+        {
+            [||]case 1:
+                goto default;
+            case 2:
+                $$goto case 1;
+            default:
+                break;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_GotoSwitchCaseLabel02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class Program
+{
+    public void Method(int argument)
+    {
+        switch (argument)
+        {
+            [||]case 1:
+                goto default;
+            case 2:
+                goto $$case 1;
+            default:
+                break;
+        }
     }
 }
         </Document>

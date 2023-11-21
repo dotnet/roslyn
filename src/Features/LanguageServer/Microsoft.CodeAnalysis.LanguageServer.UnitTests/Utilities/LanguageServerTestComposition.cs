@@ -20,5 +20,5 @@ internal sealed class LanguageServerTestComposition
         => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
     public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
-        => ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths: includeDevKitComponents ? new[] { GetDevKitExtensionPath() } : Array.Empty<string>(), sharedDependenciesPath: null, loggerFactory);
+        => ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths: includeDevKitComponents ? [GetDevKitExtensionPath()] : Array.Empty<string>(), loggerFactory: loggerFactory);
 }

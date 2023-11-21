@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -60,6 +61,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             => keyword switch
             {
                 "enum" => FeaturesResources.enum_,
+                "enum value" => FeaturesResources.enum_value,
                 "class" => FeaturesResources.class_,
                 "interface" => FeaturesResources.interface_,
                 "delegate" => FeaturesResources.delegate_,
@@ -69,11 +71,15 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "static constructor" => FeaturesResources.static_constructor,
                 "constructor" => FeaturesResources.constructor,
                 "field" => FeaturesResources.field,
+                "const field" => FeaturesResources.const_field,
                 "method" => FeaturesResources.method,
                 "property" => FeaturesResources.property_,
                 "property getter" => CSharpFeaturesResources.property_getter,
                 "property setter" => CSharpFeaturesResources.property_setter,
                 "auto-property" => FeaturesResources.auto_property,
+                "event" => FeaturesResources.event_,
+                "event field" => CSharpFeaturesResources.event_field,
+                "event accessor" => FeaturesResources.event_accessor,
                 "indexer" => CSharpFeaturesResources.indexer,
                 "indexer getter" => CSharpFeaturesResources.indexer_getter,
                 "indexer setter" => CSharpFeaturesResources.indexer_setter,
@@ -86,6 +92,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
                 "groupby clause" => CSharpFeaturesResources.groupby_clause,
                 "top-level statement" => CSharpFeaturesResources.top_level_statement,
                 "top-level code" => CSharpFeaturesResources.top_level_code,
+                "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
                 _ => null
             };
 
@@ -115,7 +122,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
             => SyntaxFactory.ParseSyntaxTree(
                 SourceMarkers.Clear(markedSource),
-                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                 path: GetDocumentFilePath(documentIndex));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
@@ -152,7 +159,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             var m1 = MakeMethodBody(src1, kind);
             var m2 = MakeMethodBody(src2, kind);
 
-            var match = m1.ComputeMatch(m2, knownMatches: null);
+            var match = m1.ComputeSingleRootMatch(m2, knownMatches: null);
+            Contract.ThrowIfNull(match);
 
             var stateMachineInfo1 = m1.GetStateMachineInfo();
             var stateMachineInfo2 = m2.GetStateMachineInfo();
@@ -190,7 +198,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
 
             if (kind == MethodKind.ConstructorWithParameters)
             {
-                var body = SyntaxUtilities.TryGetDeclarationBody(declaration);
+                var body = SyntaxUtilities.TryGetDeclarationBody(declaration, symbol: null);
                 Contract.ThrowIfNull(body);
                 return body;
             }
@@ -222,11 +230,11 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
         {
             var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
-            var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration);
+            var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration, symbol: null);
             Contract.ThrowIfNull(oldBody);
 
             var newDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.NewRoot).Members[0]).Members[0];
-            var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration);
+            var newBody = SyntaxUtilities.TryGetDeclarationBody(newDeclaration, symbol: null);
             Contract.ThrowIfNull(newBody);
 
             _ = oldBody.ComputeMatch(newBody, knownMatches: null);

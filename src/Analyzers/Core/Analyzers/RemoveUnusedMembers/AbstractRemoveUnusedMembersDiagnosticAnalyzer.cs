@@ -342,8 +342,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that the increment operation '_f1++' is child of an expression statement, which drops the result of the increment.
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
+                        // Additionally, we special case ICoalesceAssignmentOperation (??=) and treat it as a read-write,
+                        // see https://github.com/dotnet/roslyn/issues/66975 for more details
 
-                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation)
+                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation &&
+                            memberReference.Parent is not ICoalesceAssignmentOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
 

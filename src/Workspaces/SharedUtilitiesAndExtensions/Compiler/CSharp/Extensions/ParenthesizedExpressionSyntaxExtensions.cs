@@ -73,14 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
-                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
-                        {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
-                        })
-                    {
+                    if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type.IsSpanOrReadOnlySpan())
                         return !varDecl.Type.IsVar;
-                    }
                 }
 
                 return false;
@@ -268,13 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
             // make the ++/-- now associate with the previous part of the cast expression.
-            if (parentExpression.IsKind(SyntaxKind.CastExpression))
+            if (parentExpression.IsKind(SyntaxKind.CastExpression) &&
+                expression.Kind() is SyntaxKind.PreIncrementExpression or SyntaxKind.PreDecrementExpression)
             {
-                if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
-                    expression.IsKind(SyntaxKind.PreDecrementExpression))
-                {
-                    return false;
-                }
+                return false;
             }
 
             // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
@@ -309,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
 
             var exprSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-            if (exprSymbol is not IFieldSymbol { IsConst: true } field)
+            if (exprSymbol is not IFieldSymbol { IsConst: true })
                 return false;
 
             // See if interpreting the same expression as a type in this location binds.
@@ -359,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                         else if (nodeOrToken.IsToken)
                         {
-                            if (nodeOrToken.IsKind(SyntaxKind.ColonToken) || nodeOrToken.IsKind(SyntaxKind.ColonColonToken))
+                            if (nodeOrToken.Kind() is SyntaxKind.ColonToken or SyntaxKind.ColonColonToken)
                             {
                                 return true;
                             }

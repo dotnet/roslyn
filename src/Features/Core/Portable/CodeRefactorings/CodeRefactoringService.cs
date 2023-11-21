@@ -138,9 +138,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         var providerName = provider.GetType().Name;
                         RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
+                        var logMessage = KeyValueLogMessage.Create(m =>
+                        {
+                            m[TelemetryLogging.KeyName] = providerName;
+                            m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
+                        });
+
                         using (addOperationScope(providerName))
                         using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                        using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, $"{providerName}", CodeRefactoringTelemetryDelay))
+                        using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                         {
                             return await GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
                                 extensionManager, options, cancellationToken).ConfigureAwait(false);
@@ -154,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             TextDocument textDocument,
             TextSpan state,
             CodeRefactoringProvider provider,
@@ -163,58 +169,43 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (extensionManager.IsDisabled(provider))
-            {
-                return null;
-            }
-
-            try
-            {
-                using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
-                var context = new CodeRefactoringContext(textDocument, state,
-
-                    // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
-                    (action, applicableToSpan) =>
-                    {
-                        // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
-                        lock (actions)
-                        {
-                            // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
-                            // Always add a name even in cases of 3rd party refactorings that do not export
-                            // name metadata.
-                            action.AddCustomTagAndTelemetryInfo(providerMetadata, provider);
-
-                            actions.Add((action, applicableToSpan));
-                        }
-                    },
-                    options,
-                    cancellationToken);
-
-                var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
-                await task.ConfigureAwait(false);
-
-                if (actions.Count == 0)
+            return extensionManager.PerformFunctionAsync(
+                provider,
+                async () =>
                 {
-                    return null;
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
+                    var context = new CodeRefactoringContext(textDocument, state,
 
-                var fixAllProviderInfo = extensionManager.PerformFunction(
-                    provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
-                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
-            }
-            catch (OperationCanceledException)
-            {
-                // We don't want to catch operation canceled exceptions in the catch block 
-                // below. So catch is here and rethrow it.
-                throw;
-            }
-            catch (Exception e)
-            {
-                extensionManager.HandleException(provider, e);
-            }
+                        // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
+                        (action, applicableToSpan) =>
+                        {
+                            // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
+                            lock (actions)
+                            {
+                                // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                                // Always add a name even in cases of 3rd party refactorings that do not export
+                                // name metadata.
+                                action.AddCustomTagAndTelemetryInfo(providerMetadata, provider);
 
-            return null;
+                                actions.Add((action, applicableToSpan));
+                            }
+                        },
+                        options,
+                        cancellationToken);
+
+                    var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
+                    await task.ConfigureAwait(false);
+
+                    if (actions.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    var fixAllProviderInfo = extensionManager.PerformFunction(
+                        provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                    return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
+                }, defaultValue: null);
         }
 
         private class ProjectCodeRefactoringProvider

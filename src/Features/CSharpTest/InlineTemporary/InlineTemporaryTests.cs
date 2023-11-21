@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4289,7 +4290,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Theory]
         [InlineData(LanguageVersion.CSharp6)]
-        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersion.CSharp12)]
         public async Task Tuples(LanguageVersion version)
         {
             var code = """

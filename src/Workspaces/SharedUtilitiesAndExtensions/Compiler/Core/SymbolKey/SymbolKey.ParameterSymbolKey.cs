@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis
             public sealed override void Create(IParameterSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
+                visitor.WriteInteger(symbol.Ordinal);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolKeyReader reader, IParameterSymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadRequiredString();
+                var ordinal = reader.ReadInteger();
 
                 // Parameters are owned by members, and members are never resolved in a way where we have contextual
                 // types to guide how the outer parts of the member may resolve.  We can use contextual typing for the
@@ -41,10 +44,10 @@ namespace Microsoft.CodeAnalysis
                     switch (container)
                     {
                         case IMethodSymbol method:
-                            Resolve(result, reader, metadataName, method.Parameters);
+                            Resolve(result, reader, metadataName, ordinal, method.Parameters);
                             break;
                         case IPropertySymbol property:
-                            Resolve(result, reader, metadataName, property.Parameters);
+                            Resolve(result, reader, metadataName, ordinal, property.Parameters);
                             break;
                         case IEventSymbol eventSymbol:
                             // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (delegateInvoke != null)
                             {
-                                Resolve(result, reader, metadataName, delegateInvoke.Parameters);
+                                Resolve(result, reader, metadataName, ordinal, delegateInvoke.Parameters);
                             }
 
                             break;
@@ -75,14 +78,24 @@ namespace Microsoft.CodeAnalysis
 
             private static void Resolve(
                 PooledArrayBuilder<IParameterSymbol> result, SymbolKeyReader reader,
-                string metadataName, ImmutableArray<IParameterSymbol> parameters)
+                string metadataName, int ordinal, ImmutableArray<IParameterSymbol> parameters)
             {
+                // Try to resolve to a parameter with matching name first:
+                var hasMatchingName = false;
                 foreach (var parameter in parameters)
                 {
                     if (SymbolKey.Equals(reader.Compilation, parameter.MetadataName, metadataName))
                     {
                         result.AddIfNotNull(parameter);
+                        hasMatchingName = true;
                     }
+                }
+
+                // The signatures of the containing member matches, so we can fall back to using parameter ordinal.
+                // The fallback handles the case when the parameter has been renamed.
+                if (!hasMatchingName)
+                {
+                    result.AddIfNotNull(parameters[ordinal]);
                 }
             }
         }

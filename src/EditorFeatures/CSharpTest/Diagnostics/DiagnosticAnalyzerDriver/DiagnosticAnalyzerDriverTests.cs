@@ -75,15 +75,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
         public async Task DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
-            var source = @"
-[System.Obsolete]
-class C
-{
-    int P { get; set; }
-    delegate void A();
-    delegate string F();
-}
-";
+            var source = """
+                [System.Obsolete]
+                class C
+                {
+                    int P { get; set; }
+                    delegate void A();
+                    delegate string F();
+                }
+                """;
 
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
@@ -244,16 +244,16 @@ class C
         [Fact]
         public async Task CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
-            var source = @"
-using System;
-class C
-{
-    void F(int x = 0)
-    {
-        Console.WriteLine(0);
-    }
-}
-";
+            var source = """
+                using System;
+                class C
+                {
+                    void F(int x = 0)
+                    {
+                        Console.WriteLine(0);
+                    }
+                }
+                """;
 
             var analyzer = new CodeBlockAnalyzerFactory();
             using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
@@ -267,16 +267,16 @@ class C
                 Assert.Equal(2, diagnosticsFromAnalyzer.Count());
             }
 
-            source = @"
-using System;
-class C
-{
-    void F(int x = 0, int y = 1, int z = 2)
-    {
-        Console.WriteLine(0);
-    }
-}
-";
+            source = """
+                using System;
+                class C
+                {
+                    void F(int x = 0, int y = 1, int z = 2)
+                    {
+                        Console.WriteLine(0);
+                    }
+                }
+                """;
 
             using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService))
             {
@@ -606,7 +606,7 @@ class C
             var vsixAnalyzer = new VsixAnalyzer(vsixAnalyzerDiagnosticIds);
             var vsixSuppressor = new VsixSuppressor(vsixAnalyzerDiagnosticIds);
             var nugetSuppressor = new NuGetSuppressor(vsixAnalyzerDiagnosticIds);
-            var partialNugetSuppressor = new NuGetSuppressor(new[] { "Y", "Z" });
+            var partialNugetSuppressor = new NuGetSuppressor(["Y", "Z"]);
 
             Assert.Equal(firstNugetAnalyzerDiagnosticIds, firstNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());
             Assert.Equal(secondNugetAnalyzerDiagnosticIds, secondNugetAnalyzer.SupportedDiagnostics.Select(d => d.Id).Order());

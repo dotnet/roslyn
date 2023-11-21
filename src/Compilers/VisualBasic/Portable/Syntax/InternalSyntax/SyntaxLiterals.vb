@@ -59,20 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._value = value
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Me._value = CType(reader.ReadValue(), T)
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(IntegerLiteralTokenSyntax(Of T)), Function(r) New IntegerLiteralTokenSyntax(Of T)(r))
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteValue(Me._value)
-        End Sub
-
         ''' <summary>
         ''' The value of the token.
         ''' </summary>
@@ -132,18 +118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Me._typeSuffix = typeSuffix
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Me._base = CType(reader.ReadByte(), LiteralBase)
-            Me._typeSuffix = CType(reader.ReadByte(), TypeCharacter)
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteByte(CType(Me._base, Byte))
-            writer.WriteByte(CType(Me._typeSuffix, Byte))
-        End Sub
-
         ''' <summary>
         ''' Whether the token was specified in base 10, 16, 8, or 2.
         ''' </summary>
@@ -181,20 +155,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter, value As T)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia, typeSuffix)
             Me._value = value
-        End Sub
-
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Me._value = CType(reader.ReadValue(), T)
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(FloatingLiteralTokenSyntax(Of T)), Function(r) New FloatingLiteralTokenSyntax(Of T)(r))
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteValue(Me._value)
         End Sub
 
         ''' <summary>
@@ -251,16 +211,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(kind As SyntaxKind, errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), text As String, leadingTrivia As GreenNode, trailingTrivia As GreenNode, typeSuffix As TypeCharacter)
             MyBase.New(kind, errors, annotations, text, leadingTrivia, trailingTrivia)
             Me._typeSuffix = typeSuffix
-        End Sub
-
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Me._typeSuffix = CType(reader.ReadByte(), TypeCharacter)
-        End Sub
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteByte(CType(Me._typeSuffix, Byte))
         End Sub
 
         ''' <summary>

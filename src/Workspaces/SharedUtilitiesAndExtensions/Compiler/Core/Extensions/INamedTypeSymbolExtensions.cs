@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
+            return stack.SelectManyAsArray(n => n.TypeParameters);
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
@@ -178,21 +178,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool includeMembersRequiringExplicitImplementation,
             CancellationToken cancellationToken)
         {
-            Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> GetMembers;
-            if (includeMembersRequiringExplicitImplementation)
-            {
-                GetMembers = GetExplicitlyImplementableMembers;
-            }
-            else
-            {
-                GetMembers = GetImplicitlyImplementableMembers;
-            }
-
             return classOrStructType.GetAllUnimplementedMembers(
                 interfaces,
                 IsImplemented,
                 ImplementationExists,
-                GetMembers,
+                includeMembersRequiringExplicitImplementation
+                    ? GetExplicitlyImplementableMembers
+                    : GetImplicitlyImplementableMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
 
@@ -411,15 +403,42 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> interfaceMemberGetter,
             CancellationToken cancellationToken)
         {
-            var q = from m in interfaceMemberGetter(interfaceType, classOrStructType)
-                    where m.Kind != SymbolKind.NamedType
-                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator or MethodKind.Conversion
-                    where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
-                    where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
-                    where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
-                    select m;
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
-            return q.ToImmutableArray();
+            foreach (var member in interfaceMemberGetter(interfaceType, classOrStructType))
+            {
+                switch (member)
+                {
+                    case IPropertySymbol property:
+                        if (property.IsIndexer || property.CanBeReferencedByName)
+                            AddIfNotImplemented(property);
+
+                        break;
+
+                    case IEventSymbol ev:
+                        if (ev.CanBeReferencedByName)
+                            AddIfNotImplemented(ev);
+
+                        break;
+
+                    case IMethodSymbol method:
+                        if (method is { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } ||
+                            method is { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true })
+                        {
+                            AddIfNotImplemented(method);
+                        }
+
+                        break;
+                }
+            }
+
+            return results.ToImmutableAndClear();
+
+            void AddIfNotImplemented(ISymbol member)
+            {
+                if (!isImplemented(classOrStructType, member, isValidImplementation, cancellationToken))
+                    results.Add(member);
+            }
         }
 
         public static IEnumerable<ISymbol> GetAttributeNamedParameters(
@@ -619,5 +638,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
             => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+
+        public static bool IsCollectionBuilderAttribute([NotNullWhen(true)] this INamedTypeSymbol? type)
+            => type is
+            {
+                Name: "CollectionBuilderAttribute",
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Runtime.CompilerServices),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        }
+                    }
+                }
+            };
     }
 }

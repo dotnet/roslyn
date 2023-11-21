@@ -3883,7 +3883,6 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module Program
     Async Sub Main(args As String())
         Dim x As Boolean = Await Goo().ConfigureAwait(False)
@@ -3911,7 +3910,6 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module Program
     Async Sub Main(args As String())
         Dim x As Boolean = Await Goo().ConfigureAwait(False)
@@ -3940,7 +3938,6 @@ End Module",
 "Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module M 
     Async Sub T() 
         Dim x As Boolean = Await F().ConfigureAwait(False)

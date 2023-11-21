@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return GenerateExpression(generator, typedConstant.Type, typedConstant.Value, canUseFieldReference: true);
 
                 case TypedConstantKind.Type:
-                    return typedConstant.Value is ITypeSymbol
-                        ? SyntaxFactory.TypeOfExpression(((ITypeSymbol)typedConstant.Value).GenerateTypeSyntax())
+                    return typedConstant.Value is ITypeSymbol typeSymbol
+                        ? SyntaxFactory.TypeOfExpression(typeSymbol.GenerateTypeSyntax())
                         : GenerateNullLiteral();
 
                 case TypedConstantKind.Array:

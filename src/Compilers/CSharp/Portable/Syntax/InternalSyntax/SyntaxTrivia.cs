@@ -21,28 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal SyntaxTrivia(ObjectReader reader)
-            : base(reader)
-        {
-            this.Text = reader.ReadString();
-            this.FullWidth = this.Text.Length;
-        }
-
-        static SyntaxTrivia()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(SyntaxTrivia), r => new SyntaxTrivia(r));
-        }
-
         public override bool IsTrivia => true;
-
-        internal override bool ShouldReuseInSerialization => this.Kind == SyntaxKind.WhitespaceTrivia &&
-                                                             FullWidth < Lexer.MaxCachedTokenSize;
-
-        internal override void WriteTo(ObjectWriter writer)
-        {
-            base.WriteTo(writer);
-            writer.WriteString(this.Text);
-        }
 
         internal static SyntaxTrivia Create(SyntaxKind kind, string text)
         {

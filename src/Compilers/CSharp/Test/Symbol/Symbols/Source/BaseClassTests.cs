@@ -2315,7 +2315,7 @@ unsafe class Derived : Base
     class E : A<C*>.B { }
     class F : A<D*>.B { }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class Derived : Base
@@ -2336,7 +2336,7 @@ unsafe class Derived : Base
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
 
-            comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }

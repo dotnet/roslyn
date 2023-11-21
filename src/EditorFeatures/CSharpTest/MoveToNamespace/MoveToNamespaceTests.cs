@@ -52,57 +52,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace()
             => TestMoveToNamespaceAsync(
-@"using System;
-[||]
-namespace A
-{
-    class MyClass
-    {
-    }
-}",
+                """
+                using System;
+                [||]
+                namespace A
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
 expectedSuccess: false);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace_FileScopedNamespace()
             => TestMoveToNamespaceAsync(
-@"using System;
-[||]
-namespace A;
+                """
+                using System;
+                [||]
+                namespace A;
 
-class MyClass
-{
-}
-",
+                class MyClass
+                {
+                }
+                """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretAboveNamespace2()
             => TestMoveToNamespaceAsync(
-@"using System;[||]
+                """
+                using System;[||]
 
-namespace A
-{
-    class MyClass
-    {
-    }
-}",
+                namespace A
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_WeirdNamespace()
             => TestMoveToNamespaceAsync(
-@"namespace A  [||].    B   .   C
-{
-    class MyClass
-    {
-    }
-}",
-expectedMarkup: @"namespace {|Warning:A|}
-{
-    class MyClass
-    {
-    }
-}",
+                """
+                namespace A  [||].    B   .   C
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace {|Warning:A|}
+                {
+                    class MyClass
+                    {
+                    }
+                }
+                """,
 targetNamespace: "A",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -112,20 +121,24 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
             => TestMoveToNamespaceAsync(
-@"namespace A[||] 
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+                """
+                namespace A[||] 
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace {|Warning:B|}
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -135,20 +148,24 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName2()
             => TestMoveToNamespaceAsync(
-@"namespace A[||].B.C
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+                """
+                namespace A[||].B.C
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace {|Warning:B|}
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -158,20 +175,24 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
         => TestMoveToNamespaceAsync(
-@"namespace[||] A
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+            """
+            namespace[||] A
+            {
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
+expectedMarkup: """
+            namespace {|Warning:B|}
+            {
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
     {
@@ -182,20 +203,24 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword2()
         => TestMoveToNamespaceAsync(
-@"[||]namespace A
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+            """
+            [||]namespace A
+            {
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
+expectedMarkup: """
+            namespace {|Warning:B|}
+            {
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
     {
@@ -205,66 +230,75 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace()
         => TestMoveToNamespaceAsync(
-@"namespace A
-[||]{
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+            """
+            namespace A
+            [||]{
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
 expectedSuccess: false);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59716")]
         public Task MoveToNamespace_MoveItems_CaretAfterFileScopedNamespaceSemicolon()
         => TestMoveToNamespaceAsync(
-@"namespace A;  [||]
+            """
+            namespace A;  [||]
 
-class MyClass
-{
-    void Method() { }
-}
-",
+            class MyClass
+            {
+                void Method() { }
+            }
+            """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace2()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{[||]
-    class MyClass
-    {
-        void Method() { }
-    }
-}",
+            """
+            namespace A
+            {[||]
+                class MyClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
             => TestMoveToNamespaceAsync(
-@"namespace A[||] 
-{
-    class MyClass
-    {
-        void Method() { }
-    }
+                """
+                namespace A[||] 
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
 
-    class MyOtherClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    class MyClass
-    {
-        void Method() { }
-    }
+                    class MyOtherClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace {|Warning:B|}
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
 
-    class MyOtherClass
-    {
-        void Method() { }
-    }
-}",
+                    class MyOtherClass
+                    {
+                        void Method() { }
+                    }
+                }
+                """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -275,60 +309,64 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
         => TestMoveToNamespaceAsync(
-@"namespace A[||] 
-{
-    public delegate void MyDelegate();
+            """
+            namespace A[||] 
+            {
+                public delegate void MyDelegate();
 
-    public enum MyEnum
-    {
-        One,
-        Two,
-        Three
-    }
+                public enum MyEnum
+                {
+                    One,
+                    Two,
+                    Three
+                }
 
-    public struct MyStruct
-    { }
+                public struct MyStruct
+                { }
 
-    public interface MyInterface
-    { }
+                public interface MyInterface
+                { }
 
-    class MyClass
-    {
-        void Method() { }
-    }
+                class MyClass
+                {
+                    void Method() { }
+                }
 
-    class MyOtherClass
-    {
-        void Method() { }
-    }
-}",
-expectedMarkup: @"namespace {|Warning:B|}
-{
-    public delegate void MyDelegate();
+                class MyOtherClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
+expectedMarkup: """
+            namespace {|Warning:B|}
+            {
+                public delegate void MyDelegate();
 
-    public enum MyEnum
-    {
-        One,
-        Two,
-        Three
-    }
+                public enum MyEnum
+                {
+                    One,
+                    Two,
+                    Three
+                }
 
-    public struct MyStruct
-    { }
+                public struct MyStruct
+                { }
 
-    public interface MyInterface
-    { }
+                public interface MyInterface
+                { }
 
-    class MyClass
-    {
-        void Method() { }
-    }
+                class MyClass
+                {
+                    void Method() { }
+                }
 
-    class MyOtherClass
-    {
-        void Method() { }
-    }
-}",
+                class MyOtherClass
+                {
+                    void Method() { }
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -343,31 +381,35 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
         => TestMoveToNamespaceAsync(
-@"namespace A[||]
-{
-    namespace C 
-    {
-        class MyClass
-        {
-            void Method() { }
-        }
-    }
-}",
+            """
+            namespace A[||]
+            {
+                namespace C 
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+            }
+            """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_NestedNamespace2()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    namespace C[||]
-    {
-        class MyClass
-        {
-            void Method() { }
-        }
-    }
-}",
+            """
+            namespace A
+            {
+                namespace C[||]
+                {
+                    class MyClass
+                    {
+                        void Method() { }
+                    }
+                }
+            }
+            """,
 expectedSuccess: false);
 
         [Theory]
@@ -465,31 +507,35 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_TopWithReference()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass[||] : IMyClass
-    {
-    }
+            """
+            namespace A
+            {
+                class MyClass[||] : IMyClass
+                {
+                }
 
-    interface IMyClass
-    {
-    }
-}",
-expectedMarkup: @"using A;
+                interface IMyClass
+                {
+                }
+            }
+            """,
+expectedMarkup: """
+            using A;
 
-namespace {|Warning:B|}
-{
-    class MyClass : IMyClass
-    {
-    }
-}
+            namespace {|Warning:B|}
+            {
+                class MyClass : IMyClass
+                {
+                }
+            }
 
-namespace A
-{
-    interface IMyClass
-    {
-    }
-}",
+            namespace A
+            {
+                interface IMyClass
+                {
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -532,31 +578,35 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_BottomReference()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+            """
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass[||]
-    {
-    }
-}",
-expectedMarkup: @"using B;
+                interface IMyClass[||]
+                {
+                }
+            }
+            """,
+expectedMarkup: """
+            using B;
 
-namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
-}
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
+            }
 
-namespace {|Warning:B|}
-{
-    interface IMyClass
-    {
-    }
-}",
+            namespace {|Warning:B|}
+            {
+                interface IMyClass
+                {
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -742,58 +792,64 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_CaretInMethod()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-        public string [||]MyMethod
-        {
-            return "";
-        }
-    }
+            """
+            namespace A
+            {
+                class MyClass
+                {
+                    public string [||]MyMethod
+                    {
+                        return ";
+                    }
+                }
 
-}",
+            }
+            """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveType_MiddleReference()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+            """
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass[||]
-    {
-    }
+                interface IMyClass[||]
+                {
+                }
 
-    class MyClass3 : IMyClass
-    {
-    }
-}",
-expectedMarkup: @"using B;
+                class MyClass3 : IMyClass
+                {
+                }
+            }
+            """,
+expectedMarkup: """
+            using B;
 
-namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
-}
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
+            }
 
-namespace {|Warning:B|}
-{
-    interface IMyClass
-    {
-    }
-}
+            namespace {|Warning:B|}
+            {
+                interface IMyClass
+                {
+                }
+            }
 
-namespace A
-{
-    class MyClass3 : IMyClass
-    {
-    }
-}",
+            namespace A
+            {
+                class MyClass3 : IMyClass
+                {
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -803,50 +859,54 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_MiddleReference2()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+            """
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass
-    {
-    }
+                interface IMyClass
+                {
+                }
 
-    class [||]MyClass3 : IMyClass
-    {
-    }
+                class [||]MyClass3 : IMyClass
+                {
+                }
 
-    class MyClass4
-    {
-    }
-}",
-expectedMarkup: @"using A;
+                class MyClass4
+                {
+                }
+            }
+            """,
+expectedMarkup: """
+            using A;
 
-namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+            namespace A
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass
-    {
-    }
-}
+                interface IMyClass
+                {
+                }
+            }
 
-namespace {|Warning:B|}
-{
-    class MyClass3 : IMyClass
-    {
-    }
-}
+            namespace {|Warning:B|}
+            {
+                class MyClass3 : IMyClass
+                {
+                }
+            }
 
-namespace A
-{
-    class MyClass4
-    {
-    }
-}",
+            namespace A
+            {
+                class MyClass4
+                {
+                }
+            }
+            """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -856,108 +916,118 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
         => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+            """
+            namespace A
+            {
+                class MyClass
+                {
+                }
 
-    namespace B
-    {
-        interface [||]IMyClass
-        {
-        }
-    }
+                namespace B
+                {
+                    interface [||]IMyClass
+                    {
+                    }
+                }
 
-    class MyClass2 : B.IMyClass
-    {
-    }
-}",
+                class MyClass2 : B.IMyClass
+                {
+                }
+            }
+            """,
 expectedSuccess: false);
 
         [Fact]
         public Task MoveToNamespace_MoveType_Cancelled()
             => TestCancelledOption(
-@"namespace A
-{
-    class MyClass
-    {
-    }
+                """
+                namespace A
+                {
+                    class MyClass
+                    {
+                    }
 
-    interface [||]IMyClass
-    {
-    }
+                    interface [||]IMyClass
+                    {
+                    }
 
-    class MyClass2 : B.IMyClass
-    {
-    }
-}");
+                    class MyClass2 : B.IMyClass
+                    {
+                    }
+                }
+                """);
 
         [Fact]
         public Task MoveToNamespace_MoveItems_Cancelled()
             => TestCancelledOption(
-@"namespace A[||]
-{
-    class MyClass
-    {
-    }
+                """
+                namespace A[||]
+                {
+                    class MyClass
+                    {
+                    }
 
-    interface IMyClass
-    {
-    }
+                    interface IMyClass
+                    {
+                    }
 
-    class MyClass2 : B.IMyClass
-    {
-    }
-}");
+                    class MyClass2 : B.IMyClass
+                    {
+                    }
+                }
+                """);
 
         [Fact]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName()
         => TestMoveToNamespaceAsync(
-@"namespace A.B.C
-{
-    class MyClass : IMyClass
-    {
-    }
+            """
+            namespace A.B.C
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass
-    {
-    }
+                interface IMyClass
+                {
+                }
 
-    class [||]MyClass3 : IMyClass
-    {
-    }
+                class [||]MyClass3 : IMyClass
+                {
+                }
 
-    class MyClass4
-    {
-    }
-}",
-expectedMarkup: @"using A.B.C;
+                class MyClass4
+                {
+                }
+            }
+            """,
+expectedMarkup: """
+            using A.B.C;
 
-namespace A.B.C
-{
-    class MyClass : IMyClass
-    {
-    }
+            namespace A.B.C
+            {
+                class MyClass : IMyClass
+                {
+                }
 
-    interface IMyClass
-    {
-    }
-}
+                interface IMyClass
+                {
+                }
+            }
 
-namespace {|Warning:My.New.Namespace|}
-{
-    class MyClass3 : IMyClass
-    {
-    }
-}
+            namespace {|Warning:My.New.Namespace|}
+            {
+                class MyClass3 : IMyClass
+                {
+                }
+            }
 
-namespace A.B.C
-{
-    class MyClass4
-    {
-    }
-}",
+            namespace A.B.C
+            {
+                class MyClass4
+                {
+                }
+            }
+            """,
 targetNamespace: "My.New.Namespace",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -967,50 +1037,54 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName2()
        => TestMoveToNamespaceAsync(
-@"namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+           """
+           namespace A
+           {
+               class MyClass : IMyClass
+               {
+               }
 
-    interface IMyClass
-    {
-    }
+               interface IMyClass
+               {
+               }
 
-    class [||]MyClass3 : IMyClass
-    {
-    }
+               class [||]MyClass3 : IMyClass
+               {
+               }
 
-    class MyClass4
-    {
-    }
-}",
-expectedMarkup: @"using A;
+               class MyClass4
+               {
+               }
+           }
+           """,
+expectedMarkup: """
+           using A;
 
-namespace A
-{
-    class MyClass : IMyClass
-    {
-    }
+           namespace A
+           {
+               class MyClass : IMyClass
+               {
+               }
 
-    interface IMyClass
-    {
-    }
-}
+               interface IMyClass
+               {
+               }
+           }
 
-namespace {|Warning:My.New.Namespace|}
-{
-    class MyClass3 : IMyClass
-    {
-    }
-}
+           namespace {|Warning:My.New.Namespace|}
+           {
+               class MyClass3 : IMyClass
+               {
+               }
+           }
 
-namespace A
-{
-    class MyClass4
-    {
-    }
-}",
+           namespace A
+           {
+               class MyClass4
+               {
+               }
+           }
+           """,
 targetNamespace: "My.New.Namespace",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -1020,50 +1094,54 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName3()
        => TestMoveToNamespaceAsync(
-@"namespace A.B.C
-{
-    class MyClass : IMyClass
-    {
-    }
+           """
+           namespace A.B.C
+           {
+               class MyClass : IMyClass
+               {
+               }
 
-    interface IMyClass
-    {
-    }
+               interface IMyClass
+               {
+               }
 
-    class [||]MyClass3 : IMyClass
-    {
-    }
+               class [||]MyClass3 : IMyClass
+               {
+               }
 
-    class MyClass4
-    {
-    }
-}",
-expectedMarkup: @"using A.B.C;
+               class MyClass4
+               {
+               }
+           }
+           """,
+expectedMarkup: """
+           using A.B.C;
 
-namespace A.B.C
-{
-    class MyClass : IMyClass
-    {
-    }
+           namespace A.B.C
+           {
+               class MyClass : IMyClass
+               {
+               }
 
-    interface IMyClass
-    {
-    }
-}
+               interface IMyClass
+               {
+               }
+           }
 
-namespace {|Warning:B|}
-{
-    class MyClass3 : IMyClass
-    {
-    }
-}
+           namespace {|Warning:B|}
+           {
+               class MyClass3 : IMyClass
+               {
+               }
+           }
 
-namespace A.B.C
-{
-    class MyClass4
-    {
-    }
-}",
+           namespace A.B.C
+           {
+               class MyClass4
+               {
+               }
+           }
+           """,
 targetNamespace: "B",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -1073,82 +1151,94 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact]
         public Task MoveToNamespace_Analysis_MoveItems_ComplexNamespace()
            => TestMoveToNamespaceAnalysisAsync(
-@"namespace [||]A.Complex.Namespace
-{
-    class MyClass
-    {
-    }
-}",
+               """
+               namespace [||]A.Complex.Namespace
+               {
+                   class MyClass
+                   {
+                   }
+               }
+               """,
 expectedNamespaceName: "A.Complex.Namespace");
 
         [Fact]
         public Task MoveToNamespace_Analysis_MoveType_ComplexNamespace()
            => TestMoveToNamespaceAnalysisAsync(
-@"namespace A.Complex.Namespace
-{
-    class [||]MyClass
-    {
-    }
-}",
+               """
+               namespace A.Complex.Namespace
+               {
+                   class [||]MyClass
+                   {
+                   }
+               }
+               """,
 expectedNamespaceName: "A.Complex.Namespace");
 
         [Fact]
         public Task MoveToNamespace_Analysis_MoveItems_WeirdNamespace()
            => TestMoveToNamespaceAnalysisAsync(
-@"namespace A  [||].    B   .   C
-{
-    class MyClass
-    {
-    }
-}",
+               """
+               namespace A  [||].    B   .   C
+               {
+                   class MyClass
+                   {
+                   }
+               }
+               """,
 expectedNamespaceName: "A  .    B   .   C");
 
         [Fact]
         public Task MoveToNamespace_Analysis_MoveType_WeirdNamespace()
            => TestMoveToNamespaceAnalysisAsync(
-@"namespace A  .    B   .   C
-{
-    class MyClass[||]
-    {
-    }
-}",
+               """
+               namespace A  .    B   .   C
+               {
+                   class MyClass[||]
+                   {
+                   }
+               }
+               """,
 expectedNamespaceName: "A  .    B   .   C");
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34736")]
         public Task MoveToNamespace_MoveType_Usings()
             => TestMoveToNamespaceAsync(
-@"namespace One
-{
-    using Two;
-    class C1
-    {
-        private C2 c2;
-    }
-}
+                """
+                namespace One
+                {
+                    using Two;
+                    class C1
+                    {
+                        private C2 c2;
+                    }
+                }
 
-namespace [||]Two
-{
-    class C2
-    {
+                namespace [||]Two
+                {
+                    class C2
+                    {
 
-    }
-}",
-expectedMarkup: @"namespace One
-{
-    using Three;
-    class C1
-    {
-        private C2 c2;
-    }
-}
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace One
+                {
+                    using Three;
+                    class C1
+                    {
+                        private C2 c2;
+                    }
+                }
 
-namespace {|Warning:Three|}
-{
-    class C2
-    {
+                namespace {|Warning:Three|}
+                {
+                    class C2
+                    {
 
-    }
-}",
+                    }
+                }
+                """,
 targetNamespace: "Three",
 expectedSymbolChanges: new Dictionary<string, string>()
 {
@@ -1158,13 +1248,15 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35577")]
         public async Task MoveToNamespace_WithoutOptionsService()
         {
-            var code = @"namespace A[||]
-{
-class MyClass
-{
-    void Method() { }
-}
-}";
+            var code = """
+                namespace A[||]
+                {
+                class MyClass
+                {
+                    void Method() { }
+                }
+                }
+                """;
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithoutOptions);
             using var testState = new TestState(workspace);
@@ -1236,82 +1328,92 @@ expectedSymbolChanges: new Dictionary<string, string>()
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectType()
             => TestMoveToNamespaceAsync(
-@"namespace NS
-{
-    partial class MyClass[||]
-    {
-    }
+                """
+                namespace NS
+                {
+                    partial class MyClass[||]
+                    {
+                    }
 
-    partial class MyClass
-    {
-    }
-}",
+                    partial class MyClass
+                    {
+                    }
+                }
+                """,
     expectedSuccess: false);
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInNamesapce_SelectNamespace()
             => TestMoveToNamespaceAsync(
-@"namespace NS[||]
-{
-    partial class MyClass
-    {
-    }
+                """
+                namespace NS[||]
+                {
+                    partial class MyClass
+                    {
+                    }
 
-    partial class MyClass
-    {
-    }
-}",
+                    partial class MyClass
+                    {
+                    }
+                }
+                """,
     expectedSuccess: false);
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
         public Task MoveToNamespace_PartialTypesInGlobalNamesapce()
             => TestMoveToNamespaceAsync(
-@"partial class MyClass[||]
-{
-}
-partial class MyClass
-{
-}",
+                """
+                partial class MyClass[||]
+                {
+                }
+                partial class MyClass
+                {
+                }
+                """,
     expectedSuccess: false);
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39234")]
         public async Task TestMultiTargetingProject()
         {
             // Create two projects with same project file path and single linked document to simulate a multi-targeting project.
-            var input = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" FilePath=""SharedProj.csproj"">
-        <Document FilePath=""CurrentDocument.cs"">
-namespace A
-{
-    public class Class1
-    {
-    }
+            var input = """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" FilePath="SharedProj.csproj">
+                        <Document FilePath="CurrentDocument.cs">
+                namespace A
+                {
+                    public class Class1
+                    {
+                    }
 
-    public class Class2[||]
-    {
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" FilePath=""SharedProj.csproj"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
-    </Project>
-</Workspace>";
+                    public class Class2[||]
+                    {
+                    }
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="Proj2" FilePath="SharedProj.csproj">
+                        <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
+                    </Project>
+                </Workspace>
+                """;
 
             var expected =
-@"namespace A
-{
-    public class Class1
-    {
-    }
-}
+                """
+                namespace A
+                {
+                    public class Class1
+                    {
+                    }
+                }
 
-namespace B
-{
-    public class Class2
-    {
-    }
-}";
+                namespace B
+                {
+                    public class Class2
+                    {
+                    }
+                }
+                """;
             using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
             // Set the target namespace to "B"
@@ -1338,20 +1440,24 @@ namespace B
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35507")]
         public Task MoveToNamespace_MoveTypeFromSystemNamespace()
             => TestMoveToNamespaceAsync(
-@"namespace System
-{
-    [||]class A
-    {
+                """
+                namespace System
+                {
+                    [||]class A
+                    {
 
-    }
-}",
-expectedMarkup: @"namespace {|Warning:Test|}
-{
-    [||]class A
-    {
+                    }
+                }
+                """,
+expectedMarkup: """
+                namespace {|Warning:Test|}
+                {
+                    [||]class A
+                    {
 
-    }
-}",
+                    }
+                }
+                """,
 targetNamespace: "Test",
 expectedSymbolChanges: new Dictionary<string, string>()
 {

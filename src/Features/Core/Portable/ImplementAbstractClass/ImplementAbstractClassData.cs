@@ -13,8 +13,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -257,39 +259,36 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         private bool ShouldGenerateAccessor([NotNullWhen(true)] IMethodSymbol? method)
             => method != null && ClassType.FindImplementationForAbstractMember(method) == null;
 
-        public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()
+        public ImmutableArray<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers(CancellationToken cancellationToken)
         {
-            var fields = ClassType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .Where(f => !f.IsImplicitlyDeclared)
-                .Where(f => InheritsFromOrEquals(f.Type, AbstractClassType))
-                .OfType<ISymbol>();
+            var members = ImplementHelpers.GetDelegatableMembers(
+                _document,
+                ClassType,
+                t => InheritsFromOrEquals(t, AbstractClassType),
+                cancellationToken);
 
-            var properties = ClassType.GetMembers()
-                .OfType<IPropertySymbol>()
-                .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
-                .Where(p => InheritsFromOrEquals(p.Type, AbstractClassType))
-                .OfType<ISymbol>();
+            using var _ = ArrayBuilder<(ISymbol symbol, bool canDelegateAllMembers)>.GetInstance(out var result);
 
-            // Have to make sure the field or prop has at least one unimplemented member exposed
-            // that we could actually call from our type.  For example, if we're calling through a
-            // type that isn't derived from us, then we can't access protected members.
-            foreach (var fieldOrProp in fields.Concat(properties))
+            var allUnimplementedMembers = _unimplementedMembers.SelectManyAsArray(t => t.members);
+
+            // Have to make sure the field or prop has at least one unimplemented member exposed that we could actually
+            // call from our type.  For example, if we're calling through a type that isn't derived from us, then we
+            // can't access protected members.
+            foreach (var member in members)
             {
-                var fieldOrPropType = fieldOrProp.GetMemberType();
-                var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
-
-                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: fieldOrPropType));
+                var memberType = member.GetMemberType();
+                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: memberType));
                 if (accessibleCount > 0)
                 {
-                    // there was at least one unimplemented member that we could implement here
-                    // through one of our members.  Return this as a a delegatable member.  Also
-                    // indicate if we will be able to delegate all unimplemented members through
-                    // this.  If not, we'll let the user know that they can delegate through this
-                    // but that it will not fully fix the error.
-                    yield return (fieldOrProp, canDelegateAllMembers: accessibleCount == allUnimplementedMembers.Length);
+                    // there was at least one unimplemented member that we could implement here through one of our
+                    // members.  Return this as a a delegatable member.  Also indicate if we will be able to delegate
+                    // all unimplemented members through this.  If not, we'll let the user know that they can delegate
+                    // through this but that it will not fully fix the error.
+                    result.Add((member, canDelegateAllMembers: accessibleCount == allUnimplementedMembers.Length));
                 }
             }
+
+            return result.ToImmutable();
         }
 
         private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)

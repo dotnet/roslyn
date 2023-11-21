@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isSealed: symbol.IsSealed,
                     isConst: isConst,
                     isUnsafe: symbol.RequiresUnsafeModifier(),
+                    isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly,
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,

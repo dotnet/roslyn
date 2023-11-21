@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.CrefBracketedParameterList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CrefParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.CrefParameterSyntax GenerateCrefParameter()
-            => InternalSyntaxFactory.CrefParameter(null, GenerateIdentifierName());
+            => InternalSyntaxFactory.CrefParameter(null, null, GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.XmlElementSyntax GenerateXmlElement()
             => InternalSyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -3379,6 +3379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Null(node.RefKindKeyword);
+            Assert.Null(node.ReadOnlyKeyword);
             Assert.NotNull(node.Type);
 
             AttachAndCheckDiagnostics(node);
@@ -10728,7 +10729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.CrefBracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CrefParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static CrefParameterSyntax GenerateCrefParameter()
-            => SyntaxFactory.CrefParameter(default(SyntaxToken), GenerateIdentifierName());
+            => SyntaxFactory.CrefParameter(default(SyntaxToken), default(SyntaxToken), GenerateIdentifierName());
 
         private static XmlElementSyntax GenerateXmlElement()
             => SyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new SyntaxList<XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -13475,8 +13476,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Equal(SyntaxKind.None, node.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.ReadOnlyKeyword.Kind());
             Assert.NotNull(node.Type);
-            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithType(node.Type);
+            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
         }
 

@@ -3112,6 +3112,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
         }
 
+        [Fact]
+        public void RefReadonlyParameters()
+        {
+            TestNormalizeDeclaration("""
+                class   C  {  int  this  [  ref  readonly   int  x ,  ref  readonly  int  y ]  {  get  ;  } 
+                void  M ( ref  readonly  int  x ,  ref  readonly  int  y ) ; }
+                """, """
+                class C
+                {
+                  int this[ref readonly int x, ref readonly int y] { get; }
+
+                  void M(ref readonly int x, ref readonly int y);
+                }
+                """);
+        }
+
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
@@ -5941,6 +5957,29 @@ $"  ///  </summary>{Environment.NewLine}" +
                   }
                 }
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("if (\"\" is var I)")]
+        [InlineData("if ('' is var I)")]
+        [InlineData("if ('x' is var I)")]
+        public void TestNormalizeParseStatementLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseStatement(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("1 is var i")]
+        [InlineData("@\"\" is var s")]
+        [InlineData("\"\"\"a\"\"\" is var s")]
+        [InlineData("$@\"\" is var s")]
+        [InlineData("$\"\"\"a\"\"\" is var s")]
+        [InlineData("\"\"u8 is var s")]
+        public void TestNormalizeParseExpressionLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
         }
     }
 }
