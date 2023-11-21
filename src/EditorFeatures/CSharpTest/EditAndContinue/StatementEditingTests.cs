@@ -2686,8 +2686,8 @@ class C
                 { int x3 = 0, y3 = 0;      // Group #2 
                                            
                     G(a => x3 + x1);       
-                    G(a => x0 + y0 + x2);
-                    G(a => x);
+                    G(b => x0 + y0 + x2);
+                    G(c => x);
                 }
             }
         }
@@ -2714,15 +2714,15 @@ class C
                 { int x3 = 0, y3 = 0;       // Group #2 
                                             
                     G(a => x3 + x1);        
-                    G(a => x0 + y0 + x2);
-                    G(a => x);
+                    G(b => x0 + y0 + x2);
+                    G(c => x);
 
-                    G(a => x);              // OK
-                    G(a => x0 + y0);        // OK
-                    G(a => x1 + y0);        // error - connecting Group #1 and Group #2
-                    G(a => x3 + x1);        // error - multi-scope (conservative)
-                    G(a => x + y0);         // error - connecting Group #0 and Group #1
-                    G(a => x + x3);         // error - connecting Group #0 and Group #2
+                    G(d => x);              // OK
+                    G(e => x0 + y0);        // OK
+                    G(f => x1 + y0);        // error - connecting Group #1 and Group #2
+                    G(g => x3 + x1);        // error - multi-scope (conservative)
+                    G(h => x + y0);         // error - connecting Group #0 and Group #1
+                    G(i => x + x3);         // error - connecting Group #0 and Group #2
                 }
             }
         }
@@ -2732,18 +2732,18 @@ class C
             var insert = GetTopEdits(src1, src2);
 
             insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "y0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.lambda, "x1", "y0"),
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.lambda, "this", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "this", "x3"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "h", CSharpFeaturesResources.lambda, "y0", "this"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "i", CSharpFeaturesResources.lambda, "x3", "this"));
 
             var delete = GetTopEdits(src2, src1);
 
             delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.lambda, "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.lambda, "this", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.lambda, "this", "x3"));
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", GetResource("lambda"), "x1", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", GetResource("lambda"), "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("lambda"), "y0", "this"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("lambda"), "x3", "this"));
         }
 
         [Fact]
@@ -5302,7 +5302,7 @@ class C
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_PrimaryParameterOutsideOfLambda()
         {
@@ -5411,7 +5411,7 @@ partial class C
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this").WithFirstLine("partial void F()  // impl"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_StaticToPrimaryParameterOnly_Partial()
         {
@@ -5490,7 +5490,7 @@ class C
                 Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "this", CSharpFeaturesResources.lambda));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/69152")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69152")]
         public void Lambdas_Update_StaticToPrimaryParameterOnly3()
         {
@@ -5521,7 +5521,7 @@ class C(int x)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "x", "x", CSharpFeaturesResources.lambda));
+                Diagnostic(RudeEditKind.AccessingCapturedVariableInLambda, "a1", "x", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -7004,18 +7004,18 @@ class C
             var insert = GetTopEdits(src1, src2);
 
             insert.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "y0", "x1"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "x1", "x3"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.local_function, "this", "y0"),
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "this", "x3"));
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "y0", GetResource("local function"), "x1", "y0"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x3", GetResource("local function"), "x1", "x3"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "f8", GetResource("local function"), "y0", "this"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "f9", GetResource("local function"), "x3", "this"));
 
             var delete = GetTopEdits(src2, src1);
 
             delete.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "y0", "x1"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "x1", "x3"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", CSharpFeaturesResources.local_function, "this", "y0"),
-                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", CSharpFeaturesResources.local_function, "this", "x3"));
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "y0", GetResource("local function"), "x1", "y0"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "x3", GetResource("local function"), "x1", "x3"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("local function"), "y0", "this"),
+                Diagnostic(RudeEditKind.DeleteLambdaWithMultiScopeCapture, "F", GetResource("local function"), "x3", "this"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
