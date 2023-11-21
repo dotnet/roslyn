@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,6 +24,12 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         [DataMember(Name = "razorFiles")]
         public required Uri[] RazorFiles { get; set; }
+
+        [DataMember(Name = "projectId")]
+        public required string ProjectId { get; set; }
+
+        [DataMember(Name = "projectIntermediateOutputPath")]
+        public required string? ProjectIntermediateOutputPath { get; set; }
     }
 
     [DataContract]
@@ -46,19 +53,41 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 #pragma warning restore CS0067
 
     private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
+    private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer)
+    public RazorDynamicFileInfoProvider(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer, Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
     {
         _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
+        _workspaceFactory = workspaceFactory;
     }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
+        var project = _workspaceFactory.Value.Workspace.CurrentSolution.GetRequiredProject(projectId);
+
+        // Razor only cares about C# projects
+        if (project.Language != LanguageNames.CSharp)
+        {
+            return null;
+        }
+
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
-        var requestParams = new ProvideDynamicFileParams { RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)] };
+        // Ensure that we send the path with a trailing slash, but not DLL or project name. If we can't get the obj path
+        // then we just send the project path, otherwise Razor won't work at all.
+        var intermediateOutputPath = project.CompilationOutputInfo.AssemblyPath is { } path
+            ? PathUtilities.GetDirectoryName(path)
+            : PathUtilities.GetDirectoryName(project.FilePath);
+        Contract.ThrowIfNull(intermediateOutputPath, "We don't have a project path at this point.");
+
+        var requestParams = new ProvideDynamicFileParams
+        {
+            RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)],
+            ProjectId = projectId.Id.ToString(),
+            ProjectIntermediateOutputPath = PathUtilities.EnsureTrailingSeparator(intermediateOutputPath)
+        };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
