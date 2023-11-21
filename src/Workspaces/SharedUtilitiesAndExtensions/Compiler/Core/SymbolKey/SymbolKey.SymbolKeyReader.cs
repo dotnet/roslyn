@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<IParameterSymbol> parameters)
                 where TOwningSymbol : ISymbol
             {
-               using var originalParameterTypes = this.ReadSymbolKeyArray<TOwningSymbol, ITypeSymbol>(owningSymbol, getContextualType, out _);
+                using var originalParameterTypes = this.ReadSymbolKeyArray<TOwningSymbol, ITypeSymbol>(owningSymbol, getContextualType, out _);
 
                 if (originalParameterTypes.IsDefault || parameters.Length != originalParameterTypes.Count)
                 {
