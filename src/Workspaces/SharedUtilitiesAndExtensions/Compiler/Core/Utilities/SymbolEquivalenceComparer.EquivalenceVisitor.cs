@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.IsTupleType != y.IsTupleType)
                     return false;
 
-                // If one is nint/nuint, the other must bas as well.
+                // If one is nint/nuint, the other must be as well.
                 if (x.IsNativeIntegerType != y.IsNativeIntegerType)
                     return false;
 
