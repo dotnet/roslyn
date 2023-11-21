@@ -144,18 +144,17 @@ internal class WorkspaceProject : IWorkspaceProject
                 case "TargetPath": _project.OutputFilePath = GetFullyQualifiedPath(valueOrNull); break;
                 case "TargetRefPath": _project.OutputRefFilePath = GetFullyQualifiedPath(valueOrNull); break;
                 case "TargetFrameworkIdentifier": _targetFrameworkManager.UpdateIdentifierForProject(_project.Id, valueOrNull); break;
+                case "IntermediateAssembly": _project.CompilationOutputAssemblyFilePath = GetFullyQualifiedPath(valueOrNull); break;
             }
         }
 
-        // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830960
-        _project.CompilationOutputAssemblyFilePath = _project.OutputFilePath;
-
         string? GetFullyQualifiedPath(string? propertyValue)
         {
-            Contract.ThrowIfNull(_project.FilePath, "We don't have a project path at this point.");
+            var projectPath = Path.GetDirectoryName(_project.FilePath);
+            Contract.ThrowIfNull(projectPath, "We don't have a project path at this point.");
 
             if (propertyValue is not null)
-                return Path.Combine(_project.FilePath, propertyValue);
+                return Path.Combine(projectPath, propertyValue);
             else
                 return null;
         }
