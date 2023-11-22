@@ -784,7 +784,7 @@ class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", """
                 {
-                  // Code size       51 (0x33)
+                  // Code size       39 (0x27)
                   .maxstack  2
                   .locals init (System.DateTime? V_0,
                                 System.DateTime V_1)
@@ -796,18 +796,13 @@ class Program
                   IL_000a:  call       "bool System.DateTime?.HasValue.get"
                   IL_000f:  brtrue.s   IL_0014
                   IL_0011:  ldc.i4.0
-                  IL_0012:  br.s       IL_002d
+                  IL_0012:  br.s       IL_0021
                   IL_0014:  ldloca.s   V_0
-                  IL_0016:  call       "bool System.DateTime?.HasValue.get"
-                  IL_001b:  brtrue.s   IL_0020
-                  IL_001d:  ldc.i4.1
-                  IL_001e:  br.s       IL_002d
-                  IL_0020:  ldloca.s   V_0
-                  IL_0022:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_0027:  ldloc.1
-                  IL_0028:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_002d:  call       "void C.Write(bool)"
-                  IL_0032:  ret
+                  IL_0016:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001b:  ldloc.1
+                  IL_001c:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0021:  call       "void C.Write(bool)"
+                  IL_0026:  ret
                 }
                 """);
             verifier.VerifyIL("C.M3", """
@@ -837,7 +832,7 @@ class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M1", """
                 {
-                  // Code size       53 (0x35)
+                  // Code size       41 (0x29)
                   .maxstack  2
                   .locals init (System.DateTime? V_0,
                                 System.DateTime V_1)
@@ -850,19 +845,14 @@ class Program
                   IL_000b:  call       "bool System.DateTime?.HasValue.get"
                   IL_0010:  brtrue.s   IL_0015
                   IL_0012:  ldc.i4.0
-                  IL_0013:  br.s       IL_002e
+                  IL_0013:  br.s       IL_0022
                   IL_0015:  ldloca.s   V_0
-                  IL_0017:  call       "bool System.DateTime?.HasValue.get"
-                  IL_001c:  brtrue.s   IL_0021
-                  IL_001e:  ldc.i4.1
-                  IL_001f:  br.s       IL_002e
-                  IL_0021:  ldloca.s   V_0
-                  IL_0023:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_0028:  ldloc.1
-                  IL_0029:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_002e:  call       "void C.Write(bool)"
-                  IL_0033:  nop
-                  IL_0034:  ret
+                  IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+                  IL_001c:  ldloc.1
+                  IL_001d:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+                  IL_0022:  call       "void C.Write(bool)"
+                  IL_0027:  nop
+                  IL_0028:  ret
                 }
                 """);
             verifier.VerifyIL("C.M3", """
