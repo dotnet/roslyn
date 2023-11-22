@@ -1000,6 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (xNonNull?.ConstantValueOpt is { IsDefaultValue: false })
                 {
+                    Debug.Assert(yNonNull is null, "Handled by trivial optimization above; otherwise we should use yNonNull here.");
                     return MakeBinaryOperator(
                         syntax: syntax,
                         operatorKind: kind.Unlifted(),
@@ -1012,6 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (yNonNull?.ConstantValueOpt is { IsDefaultValue: false })
                 {
+                    Debug.Assert(xNonNull is null, "Handled by trivial optimization above; otherwise we should use xNonNull here.");
                     return MakeBinaryOperator(
                         syntax: syntax,
                         operatorKind: kind.Unlifted(),

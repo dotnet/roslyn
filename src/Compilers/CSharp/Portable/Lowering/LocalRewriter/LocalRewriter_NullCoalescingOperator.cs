@@ -150,18 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Optimize `left ?? true` to `left.GetValueOrDefault() | !left.HasValue`.
-            if (rewrittenRight.ConstantValueOpt == ConstantValue.True
-                && rewrittenLeft.Type.IsNullableType()
-                && rewrittenRight.Type.Equals(rewrittenLeft.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions)
-                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault2)
-                && TryGetNullableMethod(rewrittenLeft.Syntax, rewrittenLeft.Type, SpecialMember.System_Nullable_T_get_HasValue, out MethodSymbol hasValue))
-            {
-                return _factory.Binary(BinaryOperatorKind.Or, rewrittenRight.Type,
-                    BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, getValueOrDefault2),
-                    _factory.Not(BoundCall.Synthesized(rewrittenLeft.Syntax, rewrittenLeft, hasValue)));
-            }
-
             // We lower left ?? right to
             //
             // var temp = left;
