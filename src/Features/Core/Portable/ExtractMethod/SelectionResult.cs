@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return typeSymbol;
         }
 
+        public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
+
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
         public ExtractMethodOptions Options { get; }

@@ -75,7 +75,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
         }
 
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        public override SyntaxNode GetNodeForDataFlowAnalysis()
+        {
+            var node = base.GetNodeForDataFlowAnalysis();
+
+            // If we're returning a value by ref we actually want to do the analysis on the underlying expression.
+            return node is RefExpressionSyntax refExpression
+                ? refExpression.Expression
+                : node;
+        }
 
         protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
         {

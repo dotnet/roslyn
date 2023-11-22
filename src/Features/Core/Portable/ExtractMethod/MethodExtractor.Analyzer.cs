@@ -411,9 +411,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
             {
                 if (SelectionResult.SelectionInExpression)
-                {
-                    return model.AnalyzeDataFlow(SelectionResult.GetContainingScope());
-                }
+                    return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
                 var pair = GetFlowAnalysisNodeRange();
                 return model.AnalyzeDataFlow(pair.Item1, pair.Item2);
