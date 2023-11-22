@@ -1659,5 +1659,43 @@ class Program
                 options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [CombinatorialData]
+        public void RefModifier([CombinatorialValues("ref", "in")] string modifier)
+        {
+            var source = $$"""
+                class C
+                {
+                    static void M({{modifier}} int x, __arglist) => System.Console.Write(x);
+
+                    static void Main()
+                    {
+                        int x = 111;
+                        M({{modifier}} x, __arglist(x));
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "111", verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68714")]
+        public void InAsRValue()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int x, __arglist) => System.Console.Write(x);
+
+                    static void Main()
+                    {
+                        int x = 111;
+                        M(x, __arglist(x));
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "111", verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
     }
 }

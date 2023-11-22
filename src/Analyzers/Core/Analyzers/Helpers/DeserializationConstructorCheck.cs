@@ -6,18 +6,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    internal readonly struct DeserializationConstructorCheck
+    internal readonly struct DeserializationConstructorCheck(Compilation compilation)
     {
-        private readonly INamedTypeSymbol? _iSerializableType;
-        private readonly INamedTypeSymbol? _serializationInfoType;
-        private readonly INamedTypeSymbol? _streamingContextType;
-
-        public DeserializationConstructorCheck(Compilation compilation)
-        {
-            _iSerializableType = compilation.ISerializableType();
-            _serializationInfoType = compilation.SerializationInfoType();
-            _streamingContextType = compilation.StreamingContextType();
-        }
+        private readonly INamedTypeSymbol? _iSerializableType = compilation.ISerializableType();
+        private readonly INamedTypeSymbol? _serializationInfoType = compilation.SerializationInfoType();
+        private readonly INamedTypeSymbol? _streamingContextType = compilation.StreamingContextType();
 
         // True if the method is a constructor adhering to the pattern used for custom
         // deserialization by types that implement System.Runtime.Serialization.ISerializable

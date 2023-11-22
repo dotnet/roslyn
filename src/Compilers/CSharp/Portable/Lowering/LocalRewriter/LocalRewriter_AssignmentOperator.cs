@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess indexerAccess,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -312,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,
@@ -344,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rhsAssignment));
 
@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rewrittenRight));
 

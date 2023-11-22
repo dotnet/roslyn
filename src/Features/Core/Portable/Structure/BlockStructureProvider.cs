@@ -6,6 +6,6 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class BlockStructureProvider
     {
-        public abstract void ProvideBlockStructure(BlockStructureContext context);
+        public abstract void ProvideBlockStructure(in BlockStructureContext context);
     }
 }

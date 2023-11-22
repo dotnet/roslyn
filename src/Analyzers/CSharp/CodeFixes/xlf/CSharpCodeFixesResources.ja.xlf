@@ -137,11 +137,6 @@
         <target state="translated">次の行にトークンを配置する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">中かっこの間の空白行を削除する</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'new' 修飾子の削除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -192,9 +192,29 @@
         <target state="translated">'{0}' を使用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">コレクション式を使用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">挿入された逐語的文字列を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてフィールドを削除する)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてメンバーを削除する)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">プライマリ コンストラクターを使用する (そしてプロパティを削除する)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

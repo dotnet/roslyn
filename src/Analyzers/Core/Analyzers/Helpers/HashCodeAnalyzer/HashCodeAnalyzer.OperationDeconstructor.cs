@@ -18,24 +18,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <see cref="object.GetHashCode"/> patterns and extracting out the field and property
         /// symbols use to compute the hash.
         /// </summary>
-        private struct OperationDeconstructor : IDisposable
+        private struct OperationDeconstructor(
+            HashCodeAnalyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable) : IDisposable
         {
-            private readonly HashCodeAnalyzer _analyzer;
-            private readonly IMethodSymbol _method;
-            private readonly ILocalSymbol? _hashCodeVariable;
+            private readonly HashCodeAnalyzer _analyzer = analyzer;
+            private readonly IMethodSymbol _method = method;
+            private readonly ILocalSymbol? _hashCodeVariable = hashCodeVariable;
 
-            private readonly ArrayBuilder<ISymbol> _hashedSymbols;
-            private bool _accessesBase;
-
-            public OperationDeconstructor(
-                HashCodeAnalyzer analyzer, IMethodSymbol method, ILocalSymbol? hashCodeVariable)
-            {
-                _analyzer = analyzer;
-                _method = method;
-                _hashCodeVariable = hashCodeVariable;
-                _hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
-                _accessesBase = false;
-            }
+            private readonly ArrayBuilder<ISymbol> _hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
+            private bool _accessesBase = false;
 
             public readonly void Dispose()
                 => _hashedSymbols.Free();

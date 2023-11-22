@@ -147,63 +147,52 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this document itself but
         /// no tree information such as document info
         /// </summary>
-        internal sealed class DocumentAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class DocumentAttributes(
+            DocumentId id,
+            string name,
+            IReadOnlyList<string> folders,
+            SourceCodeKind sourceCodeKind,
+            string? filePath,
+            bool isGenerated,
+            bool designTimeOnly)
         {
             private Checksum? _lazyChecksum;
 
             /// <summary>
             /// The Id of the document.
             /// </summary>
-            public DocumentId Id { get; }
+            public DocumentId Id { get; } = id;
 
             /// <summary>
             /// The name of the document.
             /// </summary>
-            public string Name { get; }
+            public string Name { get; } = name;
 
             /// <summary>
             /// The names of the logical nested folders the document is contained in.
             /// </summary>
-            public IReadOnlyList<string> Folders { get; }
+            public IReadOnlyList<string> Folders { get; } = folders;
 
             /// <summary>
             /// The kind of the source code.
             /// </summary>
-            public SourceCodeKind SourceCodeKind { get; }
+            public SourceCodeKind SourceCodeKind { get; } = sourceCodeKind;
 
             /// <summary>
             /// The file path of the document.
             /// </summary>
-            public string? FilePath { get; }
+            public string? FilePath { get; } = filePath;
 
             /// <summary>
             /// True if the document is a side effect of the build.
             /// </summary>
-            public bool IsGenerated { get; }
+            public bool IsGenerated { get; } = isGenerated;
 
             /// <summary>
             /// True if the source code contained in the document is only used in design-time (e.g. for completion),
             /// but is not passed to the compiler when the containing project is built, e.g. a Razor view
             /// </summary>
-            public bool DesignTimeOnly { get; }
-
-            public DocumentAttributes(
-                DocumentId id,
-                string name,
-                IReadOnlyList<string> folders,
-                SourceCodeKind sourceCodeKind,
-                string? filePath,
-                bool isGenerated,
-                bool designTimeOnly)
-            {
-                Id = id;
-                Name = name;
-                Folders = folders;
-                SourceCodeKind = sourceCodeKind;
-                FilePath = filePath;
-                IsGenerated = isGenerated;
-                DesignTimeOnly = designTimeOnly;
-            }
+            public bool DesignTimeOnly { get; } = designTimeOnly;
 
             public DocumentAttributes With(
                 DocumentId? id = null,
@@ -242,8 +231,6 @@ namespace Microsoft.CodeAnalysis
             public string SyntaxTreeFilePath
                 => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
 
-            bool IObjectWritable.ShouldReuseInSerialization => true;
-
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);
@@ -270,8 +257,8 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(documentId, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
-            Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(this);
+            public Checksum Checksum
+                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
         }
     }
 }

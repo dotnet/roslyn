@@ -5,11 +5,14 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
@@ -24,8 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
+            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
@@ -44,6 +47,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.EnabledForTypes,
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
-            InlineHintsOptionsStorage.ForImplicitObjectCreation);
+            InlineHintsOptionsStorage.ForImplicitObjectCreation,
+            // EditorConfig
+            FormattingOptions2.TabSize,
+            FormattingOptions2.IndentationSize,
+            FormattingOptions2.UseTabs,
+            FormattingOptions2.NewLine,
+            FormattingOptions2.InsertFinalNewLine,
+            // Background analysis
+            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+            // Code lens options
+            LspOptionsStorage.LspEnableReferencesCodeLens,
+            LspOptionsStorage.LspEnableTestsCodeLens,
+            // Project system
+            LanguageServerProjectSystemOptionsStorage.BinaryLogPath);
     }
 }

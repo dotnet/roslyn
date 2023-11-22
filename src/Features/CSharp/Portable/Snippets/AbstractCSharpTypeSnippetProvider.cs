@@ -7,13 +7,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -23,24 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetProvider
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.NewKeyword,
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.AbstractKeyword,
-            SyntaxKind.SealedKeyword,
-            SyntaxKind.StaticKeyword,
-            SyntaxKind.UnsafeKeyword
-        };
-
-        protected override async Task<bool> HasPrecedingAccessibilityModifiersAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return tree.GetPrecedingModifiers(position, cancellationToken).Any(SyntaxFacts.IsAccessibilityModifier);
-        }
+        protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -50,10 +36,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return
                 syntaxContext.IsGlobalStatementContext ||
                 syntaxContext.IsTypeDeclarationContext(
-                    validModifiers: s_validModifiers,
+                    validModifiers: ValidModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
+        }
+
+        protected override async Task<TextChange?> GetAccessibilityModifiersChangeAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            if (!await AreAccessibilityModifiersRequiredAsync(document, cancellationToken).ConfigureAwait(false))
+                return null;
+
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            if (tree.GetPrecedingModifiers(position, cancellationToken).Any(SyntaxFacts.IsAccessibilityModifier))
+                return null;
+
+            var targetToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
+            var targetPosition = position;
+
+            var analyzerOptionsProvider = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var preferredModifierOrderString = analyzerOptionsProvider.GetAnalyzerConfigOptions().GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value;
+
+            if (CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrderString, out var preferredOrder) &&
+                preferredOrder.TryGetValue((int)SyntaxKind.PublicKeyword, out var publicModifierOrder))
+            {
+                while (targetToken.IsPotentialModifier(out var modifierKind))
+                {
+                    if (preferredOrder.TryGetValue((int)modifierKind, out var targetTokenOrder) &&
+                        targetTokenOrder > publicModifierOrder)
+                    {
+                        targetPosition = targetToken.SpanStart;
+                    }
+
+                    targetToken = targetToken.GetPreviousToken();
+                }
+            }
+
+            // If we are right after 'partial' token we need to insert modifier before it
+            targetPosition = targetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword) ? targetToken.SpanStart : targetPosition;
+
+            return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
         }
 
         protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
@@ -65,43 +88,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return line.Span.End;
         }
 
-        private static string GetIndentation(Document document, BaseTypeDeclarationSyntax typeDeclaration, SyntaxFormattingOptions syntaxFormattingOptions, CancellationToken cancellationToken)
-        {
-            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var openBraceLine = parsedDocument.Text.Lines.GetLineFromPosition(typeDeclaration.OpenBraceToken.SpanStart).LineNumber;
-
-            var indentationOptions = new IndentationOptions(syntaxFormattingOptions);
-            var newLine = indentationOptions.FormattingOptions.NewLine;
-
-            var indentationService = parsedDocument.LanguageServices.GetRequiredService<IIndentationService>();
-            var indentation = indentationService.GetIndentation(parsedDocument, openBraceLine + 1, indentationOptions, cancellationToken);
-
-            // Adding the offset calculated with one tab so that it is indented once past the line containing the opening brace
-            var newIndentation = new IndentationResult(indentation.BasePosition, indentation.Offset + syntaxFormattingOptions.TabSize);
-            return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
-        }
-
         protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
         {
             var node = root.FindNode(TextSpan.FromBounds(position, position));
             return node.GetAncestorOrThis<BaseTypeDeclarationSyntax>();
         }
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippet = root.GetAnnotatedNodes(_findSnippetAnnotation).FirstOrDefault();
+            var snippet = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
 
             if (snippet is not BaseTypeDeclarationSyntax originalTypeDeclaration)
                 return document;
 
             var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = GetIndentation(document, originalTypeDeclaration, syntaxFormattingOptions, cancellationToken);
+            var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
             var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
                 originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-            var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(_cursorAnnotation, _findSnippetAnnotation));
+            var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(CursorAnnotation, FindSnippetAnnotation));
             return document.WithSyntaxRoot(newRoot);
         }
 

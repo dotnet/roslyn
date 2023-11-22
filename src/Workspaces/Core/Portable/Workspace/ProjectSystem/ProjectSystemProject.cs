@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     internal sealed partial class ProjectSystemProject
     {
-        private static readonly char[] s_directorySeparator = { Path.DirectorySeparatorChar };
+        private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                     if (telemetryService?.HasActiveSession == true)
                     {
-                        var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetService<IWorkspaceStatusService>();
+                        var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
                         // We only log telemetry during solution open
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                         // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
                         // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
                         // fully loaded.
-                        var isFullyLoadedTask = workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                        var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(CancellationToken.None);
                         var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
 
                         if (!isFullyLoaded)
@@ -981,7 +981,12 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
         private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
         private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
-        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.NET.Sdk.Razor.SourceGenerators.dll";
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+            "Microsoft.NET.Sdk.Razor.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler");
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
+            assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
         private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
         {
@@ -996,7 +1001,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                 if (!vsixRazorAnalyzers.IsEmpty)
                 {
-                    if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                    if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
+                        static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
                     {
                         return OneOrMany.Create(vsixRazorAnalyzers);
                     }

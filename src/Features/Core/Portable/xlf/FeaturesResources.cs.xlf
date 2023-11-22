@@ -316,8 +316,8 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">Očekávaná úloha vrací {0}.</target>
+        <source>Awaited task returns {0}</source>
+        <target state="needs-review-translation">Očekávaná úloha vrací {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -360,6 +360,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Počet zachytávání nemůže být nulový</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
+        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
         <target state="translated">Zachycení proměnné {0}, která se předtím nezachytila, vyžaduje restartování aplikace.</target>
@@ -368,6 +373,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
         <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
         <target state="translated">Ukončení přístupu k zachycené proměnné {0} v {1} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
+        <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
+        <target state="translated">Dokončení zachytávání parametru primárního konstruktoru '{0}' '{1}' vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
@@ -425,9 +435,19 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Změna pole na událost nebo naopak vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">Změna omezení pro {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">Změna atributu {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -460,9 +480,9 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Změna návratového typu {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">Změna typu {0} vyžaduje restartování aplikace.</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Změna podpisu {0} vyžaduje restartování aplikace, protože ji modul runtime nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -478,6 +498,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
         <source>Changing visibility of {0} requires restarting the application.</source>
         <target state="translated">Změna viditelnosti {0} vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Chosen_version_0">
+        <source>Chosen version: '{0}'</source>
+        <target state="translated">Zvolená verze: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -525,6 +550,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Obsahující typ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_number">
+        <source>Convert number</source>
+        <target state="translated">Převést číslo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Převést na LINQ</target>
@@ -570,6 +600,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Soubor PDB nelze najít na disku, vloženém nebo na serveru symbolů.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_by_name_0">
+        <source>Could not find by name: '{0}'</source>
+        <target state="translated">Nepovedlo se najít podle názvu: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
         <target state="translated">Nepovedlo se najít implementaci symbolu {0}.</target>
@@ -593,6 +628,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Vytvořit a přiřadit zbývající položky jako vlastnosti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompilation_log">
+        <source>Decompilation log</source>
+        <target state="translated">Protokol o dekompilaci</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -700,11 +750,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Příklady:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
-        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="translated">Explicitně implementované metody záznamů musí mít názvy parametrů, které odpovídají kompilátorem vygenerovanému ekvivalentu {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Extrahovat základní třídu...</target>
@@ -740,6 +785,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Funkce Najít všechny odkazy se nevyvolala u použitelného symbolu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="new">Fix All: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Opravit překlep {0}</target>
@@ -753,6 +803,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Formátuje se dokument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_assemblies_for_1">
+        <source>Found '{0}' assemblies for '{1}':</source>
+        <target state="translated">Pro {1} se našlo několik ({0}) sestavení:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -773,6 +828,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Found_embedded_PDB_file">
         <source>Found embedded PDB file.</source>
         <target state="translated">Byl nalezen vložený soubor PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_exact_match_0">
+        <source>Found exact match: '{0}'</source>
+        <target state="translated">Našla se přesná shoda: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_higher_version_match_0">
+        <source>Found higher version match: '{0}'</source>
+        <target state="translated">Našla se shoda s vyšší verzí: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_single_assembly_0">
+        <source>Found single assembly: '{0}'</source>
+        <target state="translated">Našlo se jedno sestavení: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -920,16 +990,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Implementovat přes {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
-        <target state="translated">Implementace parametru pozičního záznamu {0} jako jen pro čtení vyžaduje restartování aplikace.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="translated">Implementace parametru pozičního záznamu {0} s přístupovým objektem set vyžaduje restartování aplikace.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Neúplné uvození znaků \p{X}</target>
@@ -1060,6 +1120,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Převrátit podmínku</target>
         <note />
       </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="translated">Načíst z {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Nastavení metody jako iterátor vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
@@ -1188,6 +1253,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
         <target state="translated">Úprava zdroje s povolenými experimentálními jazykovými funkcemi vyžaduje restartování aplikace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module_not_found">
+        <source>Module not found!</source>
+        <target state="translated">Modul se nenašel!</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -2470,14 +2540,14 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Odebrání dokumentu se nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Odebrat nepotřebné importy nebo použití</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Odebrat nepotřebná přetypování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="new">Remove unnecessary imports or usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2540,14 +2610,34 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">povinné</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
+      <trans-unit id="Resolve_0">
+        <source>Resolve: '{0}'</source>
+        <target state="translated">Přeložit: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Vyřešit značky konfliktů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_module_0_of_1">
+        <source>Resolve module: '{0}' of '{1}'</source>
+        <target state="translated">Přeložit modul: {0} z {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Hrubá úprava</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2785,6 +2875,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zrušit zalomení posloupnosti volání</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Zrušit zalomení výrazu</target>
@@ -2807,7 +2902,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Aktualizace {0} v rámci obecného typu nebo metody vyžaduje restartování aplikace, protože není podporována modulem runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
@@ -2832,7 +2927,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Aktualizace asnyc nebo iterátoru vyžaduje restartování aplikace, protože tuto akci modul runtime nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2920,6 +3015,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Hodnota je povinná</target>
         <note />
       </trans-unit>
+      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
+        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
+        <target state="translated">UPOZORNĚNÍ: Neshoda verzí. Očekáváno: {0}, získáno: {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Upozornění: Změna oboru názvů může vést k vytvoření neplatného kódu a změnit význam kódu.</target>
@@ -2950,6 +3050,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zalomit posloupnost volání</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Zalomit každý argument</target>
@@ -2978,6 +3083,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Zalomit dlouhou posloupnost volání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3098,6 +3208,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">{0} tady není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_items_in_cache">
+        <source>'{0}' items in cache</source>
+        <target state="translated">Počet položek v mezipaměti: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3374,6 +3489,11 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">a aktualizovat místa volání přímo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_with_explicit_or_sequential_layout">
+        <source>class with explicit or sequential layout</source>
+        <target state="new">class with explicit or sequential layout</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3713,11 +3833,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Nejde extrahovat rozhraní: Typ neobsahuje žádný člen, který by se dal extrahovat do rozhraní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">nejde konstruovat finální strom</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
@@ -4334,6 +4449,11 @@ Když se tento specifikátor standardního formátu použije, operace formátov�
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'Symbol nemůže být obor názvů.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
+        <source>{0} '{1}' of {2} '{3}'</source>
+        <target state="translated">{0} {1} z celkového počtu {2} {3}</target>
+        <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

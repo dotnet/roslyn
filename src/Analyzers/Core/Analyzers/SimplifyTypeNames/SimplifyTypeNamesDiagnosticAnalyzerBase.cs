@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -107,8 +106,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
         /// <see cref="AnalyzeSemanticModel"/>.</returns>
         protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree);
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
         {
@@ -192,9 +191,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
         {
-            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer;
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> _analyzer = analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
@@ -218,18 +217,15 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </description></item>
             /// </list>
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals
                 = new();
-
-            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum, TSimplifierOptions> analyzer)
-                => _analyzer = analyzer;
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
-                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), new TextSpanIntervalTree()));
                 if (completed.Value)
                     return;
 
@@ -237,10 +233,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 if (!TryProceedWithInterval(addIfAvailable: false, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
-                var diagnostics = _analyzer.AnalyzeCodeBlock(context);
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+                var diagnostics = _analyzer.AnalyzeCodeBlock(context, root);
 
                 // After this point, cancellation is not allowed due to possible state alteration
-                if (!TryProceedWithInterval(addIfAvailable: true, context.CodeBlock.FullSpan, completed, intervalTree))
+                if (!TryProceedWithInterval(addIfAvailable: root == context.CodeBlock, context.CodeBlock.FullSpan, completed, intervalTree))
                     return;
 
                 foreach (var diagnostic in diagnostics)
@@ -248,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     context.ReportDiagnostic(diagnostic);
                 }
 
-                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> intervalTree)
+                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, TextSpanIntervalTree intervalTree)
                 {
                     lock (completed)
                     {

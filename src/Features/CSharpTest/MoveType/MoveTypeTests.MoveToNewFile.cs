@@ -1234,7 +1234,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1286,7 +1285,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1340,7 +1338,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2
@@ -1392,7 +1389,6 @@ partial class Class1
 
             var expectedDocumentName = "Class2.cs";
             var destinationDocumentText = @"// Banner Text
-
 partial class Class1
 {
     class Class2

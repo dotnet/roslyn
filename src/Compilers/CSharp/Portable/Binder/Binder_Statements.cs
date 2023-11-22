@@ -1966,6 +1966,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private static Location GetAnonymousFunctionLocation(SyntaxNode node)
+            => node switch
+            {
+                LambdaExpressionSyntax lambda => lambda.ArrowToken.GetLocation(),
+                AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.DelegateKeyword.GetLocation(),
+                _ => node.Location,
+            };
+
         internal void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, SyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
         {
@@ -1984,7 +1992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: Instead of computing this again, cache the reason why the conversion failed in
             // CONSIDER: the Conversion result, and simply report that.
 
-            var reason = Conversions.IsAnonymousFunctionCompatibleWithType(anonymousFunction, targetType);
+            var reason = Conversions.IsAnonymousFunctionCompatibleWithType(anonymousFunction, targetType, this.Compilation);
 
             // It is possible that the conversion from lambda to delegate is just fine, and
             // that we ended up here because the target type, though itself is not an error
@@ -2012,7 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
                     {
-                        Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
+                        conversionError(diagnostics, ErrorCode.ERR_CannotInferDelegateType);
                         var lambda = anonymousFunction.BindForErrorRecovery();
                         diagnostics.AddRange(lambda.Diagnostics);
                         return;
@@ -2020,27 +2028,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
-                Error(diagnostics, ErrorCode.ERR_AnonMethToNonDel, syntax, id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_AnonMethToNonDel, id, targetType);
                 return;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument)
             {
                 Debug.Assert(targetType.IsExpressionTree());
-                Error(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, syntax, ((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
+                conversionError(diagnostics, ErrorCode.ERR_ExpressionTreeMustHaveDelegate, ((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type);
                 return;
             }
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
                 Debug.Assert(targetType.IsGenericOrNonGenericExpressionType(out _));
-                Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, syntax);
+                conversionError(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree);
                 return;
             }
 
             if (reason == LambdaConversionResult.MismatchedReturnType)
             {
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, syntax, id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, id, targetType);
                 return;
             }
 
@@ -2066,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This seems redundant, (because there is no "parameter 1" in the source code)
                 // and unnecessary. I propose that we eliminate the first error.
 
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, syntax, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, targetType);
                 return;
             }
 
@@ -2078,7 +2086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.BadParameterCount)
             {
                 // Delegate '{0}' does not take {1} arguments
-                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, delegateType, anonymousFunction.ParameterCount);
+                conversionError(diagnostics, ErrorCode.ERR_BadDelArgCount, delegateType, anonymousFunction.ParameterCount);
                 return;
             }
 
@@ -2137,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
                 // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
-                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, syntax, id, targetType);
+                conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
@@ -2189,6 +2197,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
+
+            void conversionError(BindingDiagnosticBag diagnostics, ErrorCode code, params object[] args)
+                => Error(diagnostics, code, GetAnonymousFunctionLocation(syntax), args);
         }
 #nullable disable
 
@@ -2197,11 +2208,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);
 
-            // If the either type is an error then an error has already been reported
+            // If the either type has an error then an error has already been reported
             // for some aspect of the analysis of this expression. (For example, something like
             // "garbage g = null; short s = g;" -- we don't want to report that g is not
             // convertible to short because we've already reported that g does not have a good type.
-            if (!sourceType.IsErrorType() && !targetType.IsErrorType())
+            if (!sourceType.ContainsErrorType() && !targetType.ContainsErrorType())
             {
                 if (conversion.IsExplicit)
                 {
@@ -2362,7 +2373,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
-
+                case BoundKind.UnconvertedCollectionExpression:
+                    {
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
+                        return;
+                    }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);
@@ -3859,9 +3874,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
-                argumentNamesOpt: ImmutableArray<string>.Empty,
+                argumentNamesOpt: ImmutableArray<string?>.Empty,
                 argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
                 isDelegateCall: false,
                 expanded: false,
@@ -3905,6 +3921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray.Create(argument),
                 argumentNamesOpt: default,

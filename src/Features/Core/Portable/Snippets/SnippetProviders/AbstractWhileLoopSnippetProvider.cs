@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsWhileStatement;
 
         protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
-            => generator.WhileStatement(inlineExpression ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
+            => generator.WhileStatement(inlineExpression?.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
     }
 }

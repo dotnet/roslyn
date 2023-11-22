@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i, string s)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 }
                 """,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 }
                 """,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int i, string s)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 }
                 """,
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "Program(int i, string s)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(bool)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(bool b)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 }
                 """,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(bool)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(bool b)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1286,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 2,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j, int k)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 4,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 5,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j, int k)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 1,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, double j, int k)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 3,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, double j)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                 TestCode = source,
                 FixedCode = expected,
                 CodeActionIndex = 2,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int l, double m, int n)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2025,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2065,7 +2065,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2105,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2145,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2227,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2267,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2307,7 +2307,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2347,7 +2347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2387,7 +2387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int i)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -2690,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
                     }
                 }
                 """,
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "C(int, int)"), codeAction.Title)
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "C(int original, int original2)"), codeAction.Title)
             }.RunAsync();
         }
 

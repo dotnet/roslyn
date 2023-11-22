@@ -4,6 +4,10 @@
 
 #nullable disable
 
+// We're not actually doing formatter-based serialization in this file.
+// We're simply propagating along the attributes of symbols we are emitting to metadata.
+#pragma warning disable SYSLIB0050 // 'FieldAttributes.NotSerialized' is obsolete: 'Formatter-based serialization is obsolete and should not be used.'
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,6 +27,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Emit.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -1107,6 +1112,11 @@ namespace Microsoft.Cci
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
+            if (methodReference is DeletedPEMethodDefinition { MetadataSignatureHandle: { IsNil: false } handle })
+            {
+                return handle;
+            }
+
             return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
@@ -1167,6 +1177,11 @@ namespace Microsoft.Cci
 
         internal EntityHandle GetMethodHandle(IMethodReference methodReference)
         {
+            if (methodReference is IDeletedMethodDefinition { MetadataHandle: var deletedMethodHandle })
+            {
+                return deletedMethodHandle;
+            }
+
             MethodDefinitionHandle methodDefHandle;
             IMethodDefinition methodDef = null;
             IUnitReference definingUnit = GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
@@ -1724,6 +1739,13 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
+            // TODO: Update SRM to not sort Custom Attribute table when emitting EnC delta
+            // https://github.com/dotnet/roslyn/issues/70389
+            if (!IsFullMetadata)
+            {
+                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(metadata, false);
+            }
+
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
@@ -1795,15 +1817,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
-                EmbedTypeDefinitionDocumentInformation(module);
-
-                if (module.SourceLinkStreamOpt != null)
+                if (IsFullMetadata)
                 {
-                    EmbedSourceLink(module.SourceLinkStreamOpt);
-                }
+                    // Do not emit TypeDefinitionDocuments or Source Link to EnC deltas.
+                    // This information is only needed to support navigation to symbols from metadata references.
 
-                if (!module.IsEncDelta)
-                {
+                    EmbedTypeDefinitionDocumentInformation(module);
+
+                    if (module.SourceLinkStreamOpt != null)
+                    {
+                        EmbedSourceLink(module.SourceLinkStreamOpt);
+                    }
+
                     EmbedCompilationOptions(module);
                     EmbedMetadataReferenceInformation(module);
                 }
@@ -1981,38 +2006,32 @@ namespace Microsoft.Cci
 
         private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddAssemblyAttributesToTable();
+                AddAssemblyAttributesToTable();
             }
 
-            this.AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
+            AddCustomAttributesToTable(GetMethodDefs(), def => GetMethodDefinitionHandle(def));
+            AddCustomAttributesToTable(GetFieldDefs(), def => GetFieldDefinitionHandle(def));
 
-            // this.AddCustomAttributesToTable(this.typeRefList, 2);
             var typeDefs = GetTypeDefs();
-            this.AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
-            this.AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
+            AddCustomAttributesToTable(typeDefs, def => GetTypeDefinitionHandle(def));
+            AddCustomAttributesToTable(GetParameterDefs(), def => GetParameterHandle(def));
 
-            // TODO: attributes on member reference entries 6
-            if (this.IsFullMetadata)
+            if (IsFullMetadata)
             {
-                this.AddModuleAttributesToTable(module);
+                AddModuleAttributesToTable(module);
             }
 
-            // TODO: declarative security entries 8
-            this.AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
-            this.AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(GetPropertyDefs(), def => GetPropertyDefIndex(def));
+            AddCustomAttributesToTable(GetEventDefs(), def => GetEventDefinitionHandle(def));
+            AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
 
-            // TODO: standalone signature entries 11
+            FinalizeCustomAttributeTableRows();
+        }
 
-            // TODO: type spec entries 13
-            // this.AddCustomAttributesToTable(this.module.AssemblyReferences, 15);
-            // TODO: this.AddCustomAttributesToTable(assembly.Files, 16);
-            // TODO: exported types 17
-            // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
-
-            this.AddCustomAttributesToTable(sortedGenericParameters, TableIndex.GenericParam);
+        protected virtual void FinalizeCustomAttributeTableRows()
+        {
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2082,48 +2101,60 @@ namespace Microsoft.Cci
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
-            where T : IReference
+            where T : IDefinition
         {
             int parentRowId = 1;
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, Func<T, EntityHandle> getDefinitionHandle)
-            where T : IReference
+            where T : IDefinition
         {
             foreach (var parent in parentList)
             {
+                if (parent.IsEncDeleted)
+                {
+                    // Custom attributes are not needed for EnC definition deletes
+                    continue;
+                }
+
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
-        protected virtual int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
+        protected virtual void AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
         {
-            int count = 0;
             foreach (var attr in attributes)
             {
-                count++;
                 AddCustomAttributeToTable(parentHandle, attr);
             }
-            return count;
         }
 
-        private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
+        protected bool AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
             IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
-
             if (constructor != null)
             {
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
                     constructor: GetCustomAttributeTypeCodedIndex(constructor),
                     value: GetCustomAttributeSignatureIndex(customAttribute));
+
+                return true;
             }
+
+            return false;
         }
 
         private void PopulateDeclSecurityTableRows()
@@ -2145,7 +2176,7 @@ namespace Microsoft.Cci
 
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.HasDeclarativeSecurity)
+                if (methodDef.IsEncDeleted || !methodDef.HasDeclarativeSecurity)
                 {
                     continue;
                 }
@@ -2443,7 +2474,7 @@ namespace Microsoft.Cci
         {
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
             {
-                if (!methodDef.IsPlatformInvoke)
+                if (methodDef.IsEncDeleted || !methodDef.IsPlatformInvoke)
                 {
                     continue;
                 }
@@ -2856,7 +2887,7 @@ namespace Microsoft.Cci
             int methodRid = 0;
             foreach (IMethodDefinition method in methods)
             {
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     if (bodyOffsetCache == -1)
                     {
@@ -2877,6 +2908,8 @@ namespace Microsoft.Cci
 
         private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter nativePdbWriterOpt, out Blob mvidStringFixup)
         {
+            Debug.Assert(!MetadataOnly);
+
             CustomDebugInfoWriter customDebugInfoWriter = (nativePdbWriterOpt != null) ? new CustomDebugInfoWriter(nativePdbWriterOpt) : null;
 
             var methods = this.GetMethodDefs();
@@ -2898,24 +2931,17 @@ namespace Microsoft.Cci
                 IMethodBody body;
                 StandaloneSignatureHandle localSignatureHandleOpt;
 
-                if (method.HasBody())
+                if (method.HasBody)
                 {
                     body = method.GetBody(Context);
+                    Debug.Assert(body != null);
 
-                    if (body != null)
-                    {
-                        localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
+                    localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
 
-                        // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
+                    // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
+                    bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
 
-                        nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
-                    }
-                    else
-                    {
-                        bodyOffset = 0;
-                        localSignatureHandleOpt = default(StandaloneSignatureHandle);
-                    }
+                    nativePdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
                 }
                 else
                 {

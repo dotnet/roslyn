@@ -108,7 +108,6 @@ namespace RunTests
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
-        <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
@@ -123,9 +122,22 @@ namespace RunTests
 
             File.WriteAllText("helix-tmp.csproj", project);
 
+            var arguments = $"build helix-tmp.csproj";
+            if (!string.IsNullOrEmpty(_options.HelixApiAccessToken))
+            {
+                // Internal queues require an access token.
+                // We don't put it in the project string itself since it can cause escaping issues.
+                arguments += $" /p:HelixAccessToken={_options.HelixApiAccessToken}";
+            }
+            else
+            {
+                // If we're not using authenticated access we need to specify a creator.
+                arguments += $" /p:Creator={queuedBy}";
+            }
+
             var process = ProcessRunner.CreateProcess(
                 executable: _options.DotnetFilePath,
-                arguments: "build helix-tmp.csproj",
+                arguments: arguments,
                 captureOutput: true,
                 onOutputDataReceived: (e) => { Debug.Assert(e.Data is not null); ConsoleUtil.WriteLine(e.Data); },
                 cancellationToken: cancellationToken);

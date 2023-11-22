@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     // _primary buffer (in this case razor html files) is not in roslyn snapshot, so mapping from roslyn snapshot to razor document
                     // always just map to current snapshot which have potential to have a race since content could have changed while we are doing this.
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new DocumentExcerpter for every char user types.
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     var primarySnapshot = (IProjectionSnapshot)_primaryBuffer.CurrentSnapshot;
 

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports SyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.SyntaxUtilities
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
             Dim newRoot = SyntaxFactory.ParseSyntaxTree(newSource).GetRoot()
 
             For Each oldNode In oldRoot.DescendantNodes().Where(Function(n) n.FullSpan.Length > 0)
-                Dim newNode = SyntaxUtilities.FindPartner(oldRoot, newRoot, oldNode)
+                Dim newNode = AbstractEditAndContinueAnalyzer.FindPartner(newRoot, oldRoot, oldNode)
                 Assert.True(SyntaxFactory.AreEquivalent(oldNode, newNode), $"Node 'oldNodeEnd' not equivalent to 'newNodeEnd'.")
             Next
         End Sub
@@ -81,7 +82,7 @@ End Class
 
             Dim leftNode As SyntaxNode = Nothing
             Dim rightNodeOpt As SyntaxNode = Nothing
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, leftNode, rightNodeOpt)
+            AbstractEditAndContinueAnalyzer.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, leftNode, rightNodeOpt)
             Assert.Equal("0", leftNode.ToString())
             Assert.Null(rightNodeOpt)
         End Sub
@@ -125,7 +126,7 @@ End Class
 
             Dim leftNode As SyntaxNode = Nothing
             Dim rightNodeOpt As SyntaxNode = Nothing
-            SyntaxUtilities.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, leftNode, rightNodeOpt)
+            AbstractEditAndContinueAnalyzer.FindLeafNodeAndPartner(leftRoot, leftPosition, rightRoot, leftNode, rightNodeOpt)
             Assert.Equal("3", leftNode.ToString())
             Assert.Null(rightNodeOpt)
         End Sub

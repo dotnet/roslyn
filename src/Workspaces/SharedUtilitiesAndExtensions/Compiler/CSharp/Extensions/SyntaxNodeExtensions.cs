@@ -88,10 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyArgumentList([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
-            return node.IsKind(SyntaxKind.ArgumentList) ||
-                   node.IsKind(SyntaxKind.AttributeArgumentList) ||
-                   node.IsKind(SyntaxKind.BracketedArgumentList) ||
-                   node.IsKind(SyntaxKind.TypeArgumentList);
+            return node?.Kind()
+                is SyntaxKind.ArgumentList
+                or SyntaxKind.AttributeArgumentList
+                or SyntaxKind.BracketedArgumentList
+                or SyntaxKind.TypeArgumentList;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode? node)
@@ -311,11 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAnyLambda([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return
-                node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) ||
-                node.IsKind(SyntaxKind.SimpleLambdaExpression);
-        }
+            => node?.Kind() is SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression;
 
         public static bool IsAnyLambdaOrAnonymousMethod([NotNullWhen(returnValue: true)] this SyntaxNode? node)
             => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
@@ -402,43 +399,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInStaticContext(this SyntaxNode node)
         {
-            // this/base calls are always static.
-            if (node.FirstAncestorOrSelf<ConstructorInitializerSyntax>() != null)
+            for (var current = node; current != null; current = current.Parent)
             {
-                return true;
-            }
+                switch (current)
+                {
+                    // this/base calls are always static.
+                    case ConstructorInitializerSyntax:
+                        return true;
 
-            var memberDeclaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-            if (memberDeclaration == null)
-            {
-                return false;
-            }
+                    case LocalFunctionStatementSyntax localFunction when localFunction.Modifiers.Any(SyntaxKind.StaticKeyword):
+                        return true;
 
-            switch (memberDeclaration.Kind())
-            {
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.EventDeclaration:
-                case SyntaxKind.IndexerDeclaration:
-                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                    case AnonymousFunctionExpressionSyntax anonymousFunction when anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword):
+                        return true;
 
-                case SyntaxKind.PropertyDeclaration:
-                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword) ||
-                        node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
+                    case BaseMethodDeclarationSyntax or IndexerDeclarationSyntax or EventDeclarationSyntax:
+                        return current.GetModifiers().Any(SyntaxKind.StaticKeyword);
 
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                    // Inside a field one can only access static members of a type (unless it's top-level).
-                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
+                    case PropertyDeclarationSyntax property:
+                        return property.Modifiers.Any(SyntaxKind.StaticKeyword) ||
+                            node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
-                case SyntaxKind.DestructorDeclaration:
-                    return false;
-            }
+                    case FieldDeclarationSyntax or EventFieldDeclarationSyntax:
+                        // Inside a field one can only access static members of a type (unless it's top-level).
+                        return !current.Parent.IsKind(SyntaxKind.CompilationUnit);
 
-            // Global statements are not a static context.
-            if (node.FirstAncestorOrSelf<GlobalStatementSyntax>() != null)
-            {
-                return false;
+                    case GlobalStatementSyntax:
+                        // Global statements are not a static context.
+                        return false;
+                }
             }
 
             // any other location is considered static
@@ -649,10 +638,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 else if (trivia.GetStructure() is (kind: SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia))
                 {
                     var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
-                    if (directives != null && directives.Count > 0)
+                    if (directives.Length > 0)
                     {
                         if (!textSpan.Contains(directives[0].SpanStart) ||
-                            !textSpan.Contains(directives[directives.Count - 1].SpanStart))
+                            !textSpan.Contains(directives.Last().SpanStart))
                         {
                             // This else/elif belongs to a pp span that isn't 
                             // entirely within this node.
@@ -775,46 +764,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        /// <summary>
-        /// Returns child node or token that contains given position.
-        /// </summary>
-        /// <remarks>
-        /// This is a copy of <see cref="SyntaxNode.ChildThatContainsPosition"/> that also returns the index of the child node.
-        /// </remarks>
-        internal static SyntaxNodeOrToken ChildThatContainsPosition(this SyntaxNode self, int position, out int childIndex)
-        {
-            var childList = self.ChildNodesAndTokens();
-
-            var left = 0;
-            var right = childList.Count - 1;
-
-            while (left <= right)
-            {
-                var middle = left + ((right - left) / 2);
-                var node = childList[middle];
-
-                var span = node.FullSpan;
-                if (position < span.Start)
-                {
-                    right = middle - 1;
-                }
-                else if (position >= span.End)
-                {
-                    left = middle + 1;
-                }
-                else
-                {
-                    childIndex = middle;
-                    return node;
-                }
-            }
-
-            // we could check up front that index is within FullSpan,
-            // but we wan to optimize for the common case where position is valid.
-            Debug.Assert(!self.FullSpan.Contains(position), "Position is valid. How could we not find a child?");
-            throw new ArgumentOutOfRangeException(nameof(position));
-        }
-
         public static (SyntaxToken openParen, SyntaxToken closeParen) GetParentheses(this SyntaxNode node)
         {
             switch (node)
@@ -848,18 +797,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
-        {
-            switch (node)
+            => node switch
             {
-                case ArrayRankSpecifierSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedArgumentListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ListPatternSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default;
-            }
-        }
+                ArrayRankSpecifierSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedArgumentListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ImplicitArrayCreationExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                AttributeListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedParameterListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ListPatternSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                CollectionExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                _ => default,
+            };
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode? member)
             => member switch
@@ -1044,14 +992,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             deconstructionLeft = null;
             return false;
         }
-
-        public static bool IsTopLevelOfUsingAliasDirective(this SyntaxToken node)
-            => node switch
-            {
-                { Parent: NameEqualsSyntax { Parent: UsingDirectiveSyntax _ } } => true,
-                { Parent: IdentifierNameSyntax { Parent: UsingDirectiveSyntax _ } } => true,
-                _ => false
-            };
 
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode

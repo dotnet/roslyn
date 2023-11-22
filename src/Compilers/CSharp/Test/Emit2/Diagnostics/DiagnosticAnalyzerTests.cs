@@ -516,7 +516,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             }
         }
 
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestDisabledAnalyzers()
         {
             var fullyDisabledAnalyzer = new FullyDisabledAnalyzer();
@@ -3511,8 +3511,7 @@ internal class A
             var compWithAnalyzers = new CompilationWithAnalyzers(
                 compilation,
                 analyzers.ToImmutableArray(),
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                CancellationToken.None);
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
         }
@@ -4010,6 +4009,68 @@ public record A(int X, int Y);";
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class PrimaryConstructorBaseTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "SyntaxKind: {0}, Symbol: {1}";
+            internal const string Category = "Category";
+            private readonly SyntaxNode _topmostNode;
+            private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public PrimaryConstructorBaseTypeAnalyzer(SyntaxNode topmostNode, ImmutableArray<SyntaxKind> syntaxKinds)
+            {
+                _topmostNode = topmostNode;
+                _syntaxKinds = syntaxKinds;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzePrimaryConstructorBaseType, _syntaxKinds);
+            }
+
+            private void AnalyzePrimaryConstructorBaseType(SyntaxNodeAnalysisContext context)
+            {
+                // Bail out on callbacks outside the topmost node to analyze.
+                if (!_topmostNode.FullSpan.Contains(context.Node.FullSpan))
+                    return;
+
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation(), context.Node.Kind(), context.ContainingSymbol.Name);
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70488")]
+        public void TestNoDuplicateCallbacksForPrimaryConstructorBaseType()
+        {
+            string source = @"#pragma warning disable CS9113 // warning CS9113: Parameter 'a' is unread.
+class Base(int a) { }
+
+class Derived(int a) : Base(a);";
+
+            var compilation = CreateCompilation(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var baseListNode = root.DescendantNodes().OfType<BaseListSyntax>().Single();
+            var syntaxKinds = baseListNode.DescendantNodesAndSelf().Select(node => node.Kind()).Distinct().AsImmutable();
+            var analyzers = new DiagnosticAnalyzer[] { new PrimaryConstructorBaseTypeAnalyzer(baseListNode, syntaxKinds) };
+
+            compilation
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                    Diagnostic("MyDiagnostic", ": Base(a)").WithArguments("BaseList", "Derived").WithLocation(4, 22),
+                    Diagnostic("MyDiagnostic", "Base(a)").WithArguments("PrimaryConstructorBaseType", ".ctor").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "Base").WithArguments("IdentifierName", "Derived").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "(a)").WithArguments("ArgumentList", ".ctor").WithLocation(4, 28),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("Argument", ".ctor").WithLocation(4, 29),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("IdentifierName", ".ctor").WithLocation(4, 29));
+        }
+
         [Theory, CombinatorialData]
         [WorkItem(64771, "https://github.com/dotnet/roslyn/issues/64771")]
         [WorkItem(66085, "https://github.com/dotnet/roslyn/issues/66085")]
@@ -4131,67 +4192,126 @@ class C
 
         [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
         [CombinatorialData]
-        public async Task TestFilterSpanOnContextAsync(bool testSyntaxTreeAction, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind analysisKind, bool testGetAnalysisResultApi, bool testAnalyzersBasedOverload)
         {
-            string source = @"
-class B
+            string source1 = @"
+partial class B
 {
     void M()
     {
         int x = 1;
     }
 }";
+            string source2 = @"
+partial class B
+{
+    void M2()
+    {
+        int x2 = 1;
+    }
+}";
+            string additionalText = @"This is an additional file!";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source });
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
             var tree = compilation.SyntaxTrees[0];
             var localDeclaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var analyzer = new FilterSpanTestAnalyzer(testSyntaxTreeAction);
+            var analyzer = new FilterSpanTestAnalyzer(analysisKind);
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var additionalTextFile = new TestAdditionalText(additionalText);
+            var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalTextFile));
+            var options = new CompilationWithAnalyzersOptions(analyzerOptions, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, options);
 
             // Invoke "GetAnalysisResultAsync" for a sub-span and then
-            // for the entire tree span and verify FilterSpan on the callback context.
+            // for the entire tree span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
-            await verifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
+            Assert.Null(analyzer.CallbackFilterTree);
+            var filterSpan = analysisKind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                ? new TextSpan(0, 1)
+                : localDeclaration.Span;
+            await verifyCallbackSpanAsync(filterSpan);
             await verifyCallbackSpanAsync(filterSpan: null);
 
             async Task verifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                if (testSyntaxTreeAction)
+                switch (analysisKind)
                 {
-                    if (testGetAnalysisResultApi)
-                    {
+                    case FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree:
+                        if (testGetAnalysisResultApi)
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
+                        }
+                        else
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
+                        }
+
+                        break;
+
+                    case FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile:
                         _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
-                    }
-                    else
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, filterSpan, CancellationToken.None);
-                    }
-                }
-                else
-                {
-                    if (testGetAnalysisResultApi)
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, CancellationToken.None);
-                    }
-                    else
-                    {
-                        _ = testAnalyzersBasedOverload
-                            ? await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
-                            : await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, CancellationToken.None);
-                    }
+                            ? await compilationWithAnalyzers.GetAnalysisResultAsync(additionalTextFile, filterSpan, analyzers, CancellationToken.None)
+                            : await compilationWithAnalyzers.GetAnalysisResultAsync(additionalTextFile, filterSpan, CancellationToken.None);
+                        break;
+
+                    default:
+                        if (testGetAnalysisResultApi)
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan, CancellationToken.None);
+                        }
+                        else
+                        {
+                            _ = testAnalyzersBasedOverload
+                                ? await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, analyzers, CancellationToken.None)
+                                : await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan, CancellationToken.None);
+                        }
+                        break;
                 }
 
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                if (analysisKind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
+                {
+                    Assert.Equal(additionalTextFile, analyzer.CallbackFilterFile);
+                    Assert.Null(analyzer.CallbackFilterTree);
+                }
+                else
+                {
+                    Assert.Equal(tree, analyzer.CallbackFilterTree);
+                    Assert.Null(analyzer.CallbackFilterFile);
+                }
             }
+        }
+
+        [Theory]
+        // IDE scenario where no reported severities are filtered.
+        [InlineData(SeverityFilter.None, DiagnosticSeverity.Hidden)]
+        // Command line scenario where hidden and info severities are filtered.
+        [InlineData(SeverityFilter.Hidden | SeverityFilter.Info, DiagnosticSeverity.Warning)]
+        internal async Task TestMinimumReportedSeverity(SeverityFilter severityFilter, DiagnosticSeverity expectedMinimumReportedSeverity)
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            var compilation = CreateCompilation(new[] { tree });
+
+            var analyzer = new MinimumReportedSeverityAnalyzer();
+            var analyzersArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzersArray);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzersArray, AnalyzerOptions.Empty, analyzerManager, onAnalyzerException: null,
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            _ = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            Assert.True(analyzer.AnalyzerInvoked);
+            Assert.Equal(expectedMinimumReportedSeverity, analyzer.MinimumReportedSeverity);
         }
     }
 }

@@ -1867,6 +1867,86 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_01()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([DefaultParameterValue(Evil)]) {}
+
+    public static void Main() {}
+}
+";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,52): warning CS8974: Converting method group 'Evil' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Evil").WithArguments("Evil", "object").WithLocation(6, 52),
+                // (6,52): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Evil").WithLocation(6, 52),
+                // (6,58): error CS1031: Type expected
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(6, 58),
+                // (6,58): error CS1001: Identifier expected
+                //     public static void Evil([DefaultParameterValue(Evil)]) {}
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_02()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+
+    public static void Main() {}
+}
+";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (6,52): warning CS8974: Converting method group 'Evil' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Evil").WithArguments("Evil", "object").WithLocation(6, 52),
+                // (6,52): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Evil").WithLocation(6, 52),
+                // (6,70): error CS8017: The parameter has multiple distinct default values.
+                //     public static void Evil([DefaultParameterValue(Evil)] object x = null) {}
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "null").WithLocation(6, 70)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70206")]
+        public void DefaultParameterValueWithMethodGroup_03()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+static class Program
+{
+    public static void Evil([Optional][DefaultParameterValue(nameof(Evil))] string x)
+    {
+        System.Console.WriteLine(x);
+    }
+
+    public static void Main()
+    {
+        Evil();
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "Evil").VerifyDiagnostics();
+        }
+
         #endregion
 
         #region DecimalConstantAttribute
@@ -4748,11 +4828,15 @@ delegate void D();
                         case "B":
                         case "E":
                         case "D":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal(TypeAttributes.Serializable, row.Attributes & TypeAttributes.Serializable);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         case "<Module>":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal((TypeAttributes)0, row.Attributes & TypeAttributes.Serializable);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         default:
@@ -4770,11 +4854,15 @@ delegate void D();
                         case "e":
                         case "x":
                         case "A":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal(FieldAttributes.NotSerialized, flags & FieldAttributes.NotSerialized);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
 
                         case "value__":
+#pragma warning disable SYSLIB0050 // Type or member is obsolete
                             Assert.Equal((FieldAttributes)0, flags & FieldAttributes.NotSerialized);
+#pragma warning restore SYSLIB0050 // Type or member is obsolete
                             break;
                     }
                 }
@@ -6493,12 +6581,9 @@ public class SomeAttr1: Attribute
                 // (31,15): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
                 //     [Obsolete(Method1)]
                 Diagnostic(ErrorCode.ERR_BadArgType, "Method1").WithArguments("1", "method group", "string").WithLocation(31, 15),
-                // (35,16): warning CS0612: 'Test.Method2()' is obsolete
+                // (35,16): error CS0120: An object reference is required for the non-static field, method, or property 'Test.Method2()'
                 //     [SomeAttr1(Method2)]
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Method2").WithArguments("Test.Method2()").WithLocation(35, 16),
-                // (35,6): error CS0181: Attribute constructor parameter 'x' has type 'Action', which is not a valid attribute parameter type
-                //     [SomeAttr1(Method2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "SomeAttr1").WithArguments("x", "System.Action").WithLocation(35, 6),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method2").WithArguments("Test.Method2()").WithLocation(35, 16),
                 // (43,15): error CS0619: 'Test.F7' is obsolete: 'F7 is obsolete'
                 //     [Obsolete(F7, true)]
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "F7").WithArguments("Test.F7", "F7 is obsolete").WithLocation(43, 15),
@@ -8123,19 +8208,19 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
                 // (26,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(26, 13),
                 // (26,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(26, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(27, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(27, 13),
                 // (23,9): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //         foreach (int i in new Convertible[1])
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(23, 9));
         }
 
         [Fact]

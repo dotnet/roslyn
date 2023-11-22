@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -222,6 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Indicates the minimum reported diagnostic severity for this analysis context.
+        /// Analyzer diagnostics with severity lesser than this severity are not reported.
+        /// </summary>
+        public virtual DiagnosticSeverity MinimumReportedSeverity => DiagnosticSeverity.Hidden;
+
+        /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
         /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
@@ -232,6 +239,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="value">Value associated with the key.</param>
         /// <returns>Returns true on success, false otherwise.</returns>
         public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
@@ -486,6 +508,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> instance for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
         /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
@@ -593,6 +630,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+        /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+        /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+        /// <param name="text"><see cref="AdditionalText"/> for which the value is queried.</param>
+        /// <param name="valueProvider">Provider that computes the underlying value.</param>
+        /// <param name="value">Value associated with the key.</param>
+        /// <returns>Returns true on success, false otherwise.</returns>
+        public bool TryGetValue<TValue>(AdditionalText text, AdditionalTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        {
+            return TryGetValue(text, valueProvider.CoreValueProvider, out value);
+        }
+
+        /// <summary>
         /// Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
         /// Note that the pair {<paramref name="valueProvider"/>, <paramref name="tree"/>} acts as the key.
         /// Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
@@ -650,7 +702,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
         /// <summary>
-        /// Optional filter span for which to compute diagnostics.
+        /// Syntax tree for the <see cref="SemanticModel"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -678,6 +737,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = semanticModel.SyntaxTree;
             FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
@@ -726,6 +786,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Optional filter tree being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire compilation.
+        /// </summary>
+        public SyntaxTree? FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        /// <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="FilterTree"/> is <see langword="null"/>.</remarks>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
@@ -739,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(symbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, filterTree: null, filterSpan: null, cancellationToken)
         {
         }
 
@@ -750,14 +824,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             bool isGeneratedCode,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(!filterSpan.HasValue || filterTree != null);
+
             _symbol = symbol;
             _compilation = compilation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             IsGeneratedCode = isGeneratedCode;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             _cancellationToken = cancellationToken;
         }
 
@@ -802,22 +882,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsGeneratedCode { get; }
 
         /// <summary>
+        /// Optional filter tree being analyzed.
+        /// <see langword="null"/> if we are analyzing the entire compilation.
+        /// </summary>
+        public SyntaxTree? FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        /// <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="FilterTree"/> is <see langword="null"/>.</remarks>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(symbol, compilation, options, isGeneratedCode: false, cancellationToken)
+            : this(symbol, compilation, options, isGeneratedCode: false, filterTree: null, filterSpan: null, cancellationToken)
         {
         }
 
-        internal SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, bool isGeneratedCode, CancellationToken cancellationToken)
+        internal SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, bool isGeneratedCode, SyntaxTree? filterTree, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
+            Debug.Assert(!filterSpan.HasValue || filterTree != null);
+
             Symbol = symbol;
             Compilation = compilation;
             Options = options;
             IsGeneratedCode = isGeneratedCode;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             CancellationToken = cancellationToken;
         }
 
@@ -946,6 +1044,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Syntax tree corresponding to the code block being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="CodeBlock"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -957,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         protected CodeBlockStartAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
-            : this(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode: false, cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -966,6 +1076,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol owningSymbol,
             SemanticModel semanticModel,
             AnalyzerOptions options,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -973,6 +1084,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
             _options = options;
+            FilterTree = codeBlock.SyntaxTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1041,6 +1154,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
+        /// Syntax tree for the code block being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="CodeBlock"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1052,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public CodeBlockAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(codeBlock, owningSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1063,6 +1188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1072,6 +1198,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = codeBlock.SyntaxTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1136,6 +1264,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Syntax tree for the <see cref="OperationBlocks"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="OperationBlocks"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1152,7 +1292,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph: null,
+                  filterTree: operationBlocks[0].Syntax.SyntaxTree, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1162,6 +1303,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             AnalyzerOptions options,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            SyntaxTree filterTree,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1170,6 +1313,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilation = compilation;
             _options = options;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1261,6 +1406,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Syntax tree for the <see cref="OperationBlocks"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="OperationBlocks"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1279,7 +1436,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operationBlocks, owningSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null,
+                  filterTree: operationBlocks[0].Syntax.SyntaxTree, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1291,6 +1449,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            SyntaxTree filterTree,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1301,6 +1461,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = filterTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1362,7 +1524,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
-        /// Optional filter span for analysis.
+        /// Optional filter span within the <see cref="Tree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="Tree"/>
+        /// or the entire compilation.
         /// </summary>
         public TextSpan? FilterSpan { get; }
 
@@ -1438,6 +1602,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options { get; }
 
         /// <summary>
+        /// Optional filter span within the <see cref="AdditionalFile"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="AdditionalFile"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken { get; }
@@ -1453,6 +1624,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Compilation compilation,
+            TextSpan? filterSpan,
             CancellationToken cancellationToken)
         {
             AdditionalFile = additionalFile;
@@ -1460,6 +1632,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             Compilation = compilation;
+            FilterSpan = filterSpan;
             CancellationToken = cancellationToken;
         }
 
@@ -1518,6 +1691,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Syntax tree for the <see cref="Node"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="Node"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1529,13 +1714,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SyntaxNodeAnalysisContext(SyntaxNode node, ISymbol? containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+            : this(node, containingSymbol, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
         [Obsolete("Use CompilationWithAnalyzers instead. See https://github.com/dotnet/roslyn/issues/63440 for more details.")]
         public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), isGeneratedCode: false, cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1546,6 +1731,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1555,6 +1741,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterTree = node.SyntaxTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
@@ -1609,6 +1797,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerOptions Options => _options;
 
         /// <summary>
+        /// Syntax tree for the <see cref="Operation"/> being analyzed.
+        /// </summary>
+        public SyntaxTree FilterTree { get; }
+
+        /// <summary>
+        /// Optional filter span within the <see cref="FilterTree"/> for which to compute diagnostics.
+        /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
+        /// or the entire compilation.
+        /// </summary>
+        public TextSpan? FilterSpan { get; }
+
+        /// <summary>
         /// Indicates if the <see cref="Operation"/> is generated code.
         /// </summary>
         public bool IsGeneratedCode { get; }
@@ -1627,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, isGeneratedCode: false, cancellationToken)
+            : this(operation, containingSymbol, compilation, options, reportDiagnostic, isSupportedDiagnostic: (d, _) => isSupportedDiagnostic(d), getControlFlowGraph: null, filterSpan: null, isGeneratedCode: false, cancellationToken)
         {
         }
 
@@ -1639,6 +1839,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
+            TextSpan? filterSpan,
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
@@ -1649,6 +1850,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
+            FilterTree = operation.Syntax.SyntaxTree;
+            FilterSpan = filterSpan;
             IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }

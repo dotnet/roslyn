@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     }
 
     [DataContract]
-    internal readonly struct HighlightSpan
+    internal readonly record struct HighlightSpan
     {
         [DataMember(Order = 0)]
         public TextSpan TextSpan { get; }
@@ -35,16 +35,10 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
     }
 
-    internal readonly struct DocumentHighlights
+    internal readonly struct DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
     {
-        public Document Document { get; }
-        public ImmutableArray<HighlightSpan> HighlightSpans { get; }
-
-        public DocumentHighlights(Document document, ImmutableArray<HighlightSpan> highlightSpans)
-        {
-            Document = document;
-            HighlightSpans = highlightSpans;
-        }
+        public Document Document { get; } = document;
+        public ImmutableArray<HighlightSpan> HighlightSpans { get; } = highlightSpans;
     }
 
     /// <summary>

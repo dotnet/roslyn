@@ -90,7 +90,8 @@ namespace Roslyn.Test.Utilities
 
         Net50,
         Net60,
-        Net70
+        Net70,
+        Net80
     }
 
     /// <summary>
@@ -206,6 +207,7 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
             TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
+            TargetFramework.Net80 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net80")),
             TargetFramework.NetFramework => NetFramework.References,
             TargetFramework.NetLatest => NetLatest,
             TargetFramework.Standard => StandardReferences,
@@ -322,6 +324,11 @@ namespace Roslyn.Test.Utilities
 
                 var type = assembly.GetType(assemblyName, throwOnError: true);
                 var prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
+                if (prop is null)
+                {
+                    type = assembly.GetType(assemblyName + "+References", throwOnError: true);
+                    prop = type.GetProperty("All", BindingFlags.Public | BindingFlags.Static);
+                }
                 var obj = prop.GetGetMethod()!.Invoke(obj: null, parameters: null);
                 references = ((IEnumerable<PortableExecutableReference>)obj).ToImmutableArray();
 

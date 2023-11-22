@@ -22,10 +22,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
         Private Class FakeNavigableItem
             Implements INavigableItem
 
-            Private ReadOnly _document As Document
+            Private ReadOnly _document As INavigableItem.NavigableDocument
 
             Public Sub New(document As Document)
-                _document = document
+                _document = INavigableItem.NavigableDocument.FromDocument(document)
             End Sub
 
             Public ReadOnly Property ChildItems As ImmutableArray(Of INavigableItem) Implements INavigableItem.ChildItems
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 End Get
             End Property
 
-            Public ReadOnly Property Document As Document Implements INavigableItem.Document
+            Public ReadOnly Property Document As INavigableItem.NavigableDocument Implements INavigableItem.Document
                 Get
                     Return _document
                 End Get

@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraintTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var interfacesBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(template);
 
                 // Resolve base types, determine the effective base class and
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             ConversionsBase conversions)
         {
-            var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
@@ -777,8 +777,12 @@ hasRelatedInterfaces:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, in args, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                ref useSiteDiagnosticsBuilder);
+            var result = CheckMethodConstraints(
+                method,
+                in args,
+                diagnosticsBuilder,
+                nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null,
+                ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {

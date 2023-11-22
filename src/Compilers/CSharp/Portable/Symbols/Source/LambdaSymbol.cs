@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
-        private readonly BindingDiagnosticBag _declarationDiagnostics;
+        private readonly DiagnosticBag _declarationDiagnostics;
+        private readonly HashSet<AssemblySymbol> _declarationDependencies;
 
         /// <summary>
         /// This symbol is used as the return type of a LambdaSymbol when we are interpreting
@@ -64,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
             _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
-            _declarationDiagnostics = new BindingDiagnosticBag();
+            _declarationDiagnostics = new DiagnosticBag();
+            _declarationDependencies = new HashSet<AssemblySymbol>();
         }
 
         public MessageID MessageID { get { return _messageID; } }
@@ -284,17 +287,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
-            AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, _declarationDiagnostics);
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            Debug.Assert(diagnostics.DiagnosticBag is { });
+            Debug.Assert(diagnostics.DependenciesBag is { });
+
+            AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, diagnostics);
             if (!HasExplicitReturnType && this.HasAsyncMethodBuilderAttribute(out _))
             {
                 addTo.Add(ErrorCode.ERR_BuilderAttributeDisallowed, DiagnosticLocation);
             }
 
-            addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
+            _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+            _declarationDependencies.AddAll(diagnostics.DependenciesBag);
+            diagnostics.Free();
+
+            addTo.AddRange(_declarationDiagnostics);
+            addTo.AddDependencies((IReadOnlyCollection<AssemblySymbol>)_declarationDependencies);
         }
 
         internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
-            => _declarationDiagnostics.AddRange(diagnostics);
+        {
+            if (diagnostics.DiagnosticBag is { } diagnosticBag)
+            {
+                _declarationDiagnostics.AddRange(diagnosticBag);
+            }
+
+            if (diagnostics.DependenciesBag is { } dependenciesBag)
+            {
+                _declarationDependencies.AddAll(dependenciesBag);
+            }
+        }
 
         private ImmutableArray<ParameterSymbol> MakeParameters(
             CSharpCompilation compilation,

@@ -8,63 +8,67 @@
           "filteredTestCases": [
             {
               "filename": "/Microsoft.CodeAnalysis.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
-              "filename": "/Microsoft.CodeAnalysis.Remote.Workspaces.dll",
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_cs" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.VisualBasic.Features.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Remote.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" , "WinForms.OptProfTests.winforms_largeform_cs"]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.EditorFeatures.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Features.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Features.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
-              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs"]
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.Implementation.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
+              "filename": "/Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_cs" ]
+            },            
+            {
               "filename": "/Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_cs" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
@@ -72,7 +76,7 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
             }
           ]
         },

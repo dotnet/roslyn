@@ -87,15 +87,15 @@ static class Utils
                 // (6,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Delegate'. Did you intend to invoke the method?
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Delegate").WithLocation(6, 13),
-                // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (7,16): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         d = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 16),
                 // (8,13): error CS1660: Cannot convert anonymous method to type 'Delegate' because it is not a delegate type
                 //         d = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 13),
-                // (9,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 13),
+                // (9,51): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 48));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 51));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
@@ -307,18 +307,18 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (6,23): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         object o = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "object").WithLocation(6, 20),
-                // (7,24): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(6, 23),
+                // (7,27): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
                 //         ICloneable c = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 24),
-                // (8,22): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 27),
+                // (8,25): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         Delegate d = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 22),
-                // (9,31): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 25),
+                // (9,34): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
                 //         MulticastDelegate m = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 34));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action
@@ -351,18 +351,18 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (6,29): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         var o = (object)(() => { });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "object").WithLocation(6, 26),
-                // (7,30): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(6, 29),
+                // (7,33): error CS1660: Cannot convert lambda expression to type 'ICloneable' because it is not a delegate type
                 //         var c = (ICloneable)(() => { });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 30),
-                // (8,28): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.ICloneable").WithLocation(7, 33),
+                // (8,31): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         var d = (Delegate)(() => { });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 28),
-                // (9,37): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(8, 31),
+                // (9,40): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
                 //         var m = (MulticastDelegate)(() => { });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 37));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(9, 40));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action
@@ -392,12 +392,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,24): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (7,27): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(7, 24),
-                // (9,26): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(7, 27),
+                // (9,29): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         e = (Expression)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 26));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 29));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
@@ -425,12 +425,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,30): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
+                // (7,33): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
                 //         LambdaExpression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(7, 30),
-                // (9,32): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(7, 33),
+                // (9,35): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
                 //         e = (LambdaExpression)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 32));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 35));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
@@ -459,45 +459,45 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,22): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (7,24): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         Delegate d = x => x;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 22),
-                // (8,29): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 24),
+                // (8,31): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         object o = (object)(x => x);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "object").WithLocation(8, 29),
-                // (9,24): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(8, 31),
+                // (9,26): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         Expression e = x => x;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 24),
-                // (10,26): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 26),
+                // (10,28): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         e = (Expression)(x => x);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(10, 26),
-                // (11,30): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(10, 28),
+                // (11,32): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
                 //         LambdaExpression l = x => x;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(11, 30),
-                // (12,32): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(11, 32),
+                // (12,34): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
                 //         l = (LambdaExpression)(x => x);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(12, 32));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(12, 34));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,22): error CS8917: The delegate type could not be inferred.
+                // (7,24): error CS8917: The delegate type could not be inferred.
                 //         Delegate d = x => x;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(7, 22),
-                // (8,29): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 24),
+                // (8,31): error CS8917: The delegate type could not be inferred.
                 //         object o = (object)(x => x);
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(8, 29),
-                // (9,24): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(8, 31),
+                // (9,26): error CS8917: The delegate type could not be inferred.
                 //         Expression e = x => x;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 24),
-                // (10,26): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(9, 26),
+                // (10,28): error CS8917: The delegate type could not be inferred.
                 //         e = (Expression)(x => x);
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(10, 26),
-                // (11,30): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(10, 28),
+                // (11,32): error CS8917: The delegate type could not be inferred.
                 //         LambdaExpression l = x => x;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(11, 30),
-                // (12,32): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(11, 32),
+                // (12,34): error CS8917: The delegate type could not be inferred.
                 //         l = (LambdaExpression)(x => x);
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(12, 32));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(12, 34));
         }
 
         [Fact]
@@ -524,12 +524,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (7,41): error CS1660: Cannot convert lambda expression to type 'LambdaExpression<Func<int>>' because it is not a delegate type
-                //         LambdaExpression<Func<int>> l = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression<System.Func<int>>").WithLocation(7, 41),
-                // (8,43): error CS1660: Cannot convert lambda expression to type 'LambdaExpression<Func<int>>' because it is not a delegate type
-                //         l = (LambdaExpression<Func<int>>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression<System.Func<int>>").WithLocation(8, 43)
+                    // 1.cs(7,44): error CS1660: Cannot convert lambda expression to type 'LambdaExpression<Func<int>>' because it is not a delegate type
+                    //         LambdaExpression<Func<int>> l = () => 1;
+                    Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression<System.Func<int>>").WithLocation(7, 44),
+                    // 1.cs(8,46): error CS1660: Cannot convert lambda expression to type 'LambdaExpression<Func<int>>' because it is not a delegate type
+                    //         l = (LambdaExpression<Func<int>>)(() => 2);
+                    Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression<System.Func<int>>").WithLocation(8, 46)
             };
 
             var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
@@ -586,16 +586,16 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,20): error CS1660: Cannot convert anonymous method to type 'object' because it is not a delegate type
                 //         object o = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "object").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "object").WithLocation(6, 20),
                 // (7,24): error CS1660: Cannot convert anonymous method to type 'ICloneable' because it is not a delegate type
                 //         ICloneable c = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.ICloneable").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.ICloneable").WithLocation(7, 24),
                 // (8,22): error CS1660: Cannot convert anonymous method to type 'Delegate' because it is not a delegate type
                 //         Delegate d = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 22),
                 // (9,31): error CS1660: Cannot convert anonymous method to type 'MulticastDelegate' because it is not a delegate type
                 //         MulticastDelegate m = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.MulticastDelegate").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.MulticastDelegate").WithLocation(9, 31));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Action
@@ -625,28 +625,28 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,48): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e = delegate () { return 1; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 1; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(6, 48),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(6, 48),
                 // (7,25): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         e = (Expression)delegate () { return 2; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 2; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(7, 25),
                 // (8,30): error CS1660: Cannot convert anonymous method to type 'LambdaExpression' because it is not a delegate type
                 //         LambdaExpression l = delegate () { return 3; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 3; }").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(8, 30),
                 // (9,31): error CS1660: Cannot convert anonymous method to type 'LambdaExpression' because it is not a delegate type
                 //         l = (LambdaExpression)delegate () { return 4; };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 4; }").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 31));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,48): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         System.Linq.Expressions.Expression e = delegate () { return 1; };
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 1; }").WithLocation(6, 48),
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(6, 48),
                 // (7,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         e = (Expression)delegate () { return 2; };
                 Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "(Expression)delegate () { return 2; }").WithLocation(7, 13),
                 // (8,30): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         LambdaExpression l = delegate () { return 3; };
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 3; }").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(8, 30),
                 // (9,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         l = (LambdaExpression)delegate () { return 4; };
                 Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "(LambdaExpression)delegate () { return 4; }").WithLocation(9, 13));
@@ -673,9 +673,9 @@ class Program
                 // (7,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'dynamic'. Did you intend to invoke the method?
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "dynamic").WithLocation(7, 13),
-                // (8,13): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
+                // (8,16): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
                 //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "dynamic").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "dynamic").WithLocation(8, 16));
         }
 
         private static IEnumerable<object?[]> GetMethodGroupData(Func<string, string, DiagnosticDescription[]> getExpectedDiagnostics)
@@ -695,8 +695,8 @@ class Program
             yield return getData("static void F() { }", "F", "F", "System.Action");
             yield return getData("static void F(int x, int y) { }", "F", "F", "System.Action<System.Int32, System.Int32>");
             yield return getData("static void F(out int x, int y) { x = 0; }", "F", "F", "<>A{00000002}<System.Int32, System.Int32>");
-            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000004}<System.Int32, System.Int32>");
-            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{0000000c}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, ref int y) { }", "F", "F", "<>A{00000008}<System.Int32, System.Int32>");
+            yield return getData("static void F(int x, in int y) { }", "F", "F", "<>A{00000018}<System.Int32, System.Int32>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "F", "F", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("static void F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "F", "F", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
             yield return getData("static object F(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => null;", "F", "F", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Object>");
@@ -810,8 +810,8 @@ $@"class Program
             yield return getData("() => { }", "System.Action");
             yield return getData("(int x, int y) => { }", "System.Action<System.Int32, System.Int32>");
             yield return getData("(out int x, int y) => { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int x, in int y) => { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int x, ref int y) => { x = 0; }", "<>A{00000008}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int x, in int y) => { x = 0; }", "<>A{00000018}<System.Int32, System.Int32>", "<anonymous delegate>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>", "<anonymous delegate>");
             yield return getData("(int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) => _1", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -837,8 +837,8 @@ $@"class Program
             yield return getData("void () => { }", "System.Action");
 
             // Distinct names for distinct signatures with > 16 parameters: https://github.com/dotnet/roslyn/issues/55570
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{100000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{300000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{1000000000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{3000000000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>", "<anonymous delegate>");
 
             static object?[] getData(string expr, string? expectedType, string? expectedDisplayString = null) =>
                 new object?[] { expr, expectedType, expectedDisplayString ?? expectedType };
@@ -852,8 +852,8 @@ $@"class Program
             yield return getData("delegate () { }", "System.Action");
             yield return getData("delegate (int x, int y) { }", "System.Action<System.Int32, System.Int32>");
             yield return getData("delegate (out int x, int y) { x = 0; }", "<>A{00000002}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000004}<System.Int32, System.Int32>", "<anonymous delegate>");
-            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{0000000c}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("delegate (int x, ref int y) { x = 0; }", "<>A{00000008}<System.Int32, System.Int32>", "<anonymous delegate>");
+            yield return getData("delegate (int x, in int y) { x = 0; }", "<>A{00000018}<System.Int32, System.Int32>", "<anonymous delegate>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { }", "System.Action<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) { }", "<>A<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>", "<anonymous delegate>");
             yield return getData("delegate (int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16) { return _1; }", "System.Func<System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32, System.Object, System.Int32>");
@@ -881,9 +881,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,29): error CS8917: The delegate type could not be inferred.
-                    //         System.Delegate d = x => x;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 29));
+                    // 0.cs(5,32): error CS8917: The delegate type could not be inferred.
+                    //         System.Delegate d = () => throw null;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction.StartsWith("delegate") ? "delegate" : "=>"));
             }
             else
             {
@@ -924,9 +924,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,38): error CS8917: The delegate type could not be inferred.
-                    //         object o = (System.Delegate)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 38));
+                    // 0.cs(5,41): error CS8917: The delegate type could not be inferred.
+                    //         object o = (System.Delegate)(() => throw null);
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction.StartsWith("delegate") ? "delegate" : "=>"));
             }
             else
             {
@@ -951,7 +951,7 @@ $@"class Program
 
         private static bool HaveMatchingSignatures(IMethodSymbol methodA, IMethodSymbol methodB)
         {
-            return MemberSignatureComparer.MethodGroupSignatureComparer.Equals(methodA.GetSymbol<MethodSymbol>(), methodB.GetSymbol<MethodSymbol>());
+            return MemberSignatureComparer.CSharp10MethodGroupSignatureComparer.Equals(methodA.GetSymbol<MethodSymbol>(), methodB.GetSymbol<MethodSymbol>());
         }
 
         public static IEnumerable<object?[]> GetExpressionData()
@@ -982,9 +982,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,48): error CS8917: The delegate type could not be inferred.
+                    // (5,50): error CS8917: The delegate type could not be inferred.
                     //         System.Linq.Expressions.Expression e = x => x;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 48));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 50));
             }
             else
             {
@@ -1022,9 +1022,9 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,57): error CS8917: The delegate type could not be inferred.
+                    // (5,59): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Linq.Expressions.Expression)(x => x);
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 57));
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(5, 59));
             }
             else
             {
@@ -1067,9 +1067,9 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,23): error CS8917: The delegate type could not be inferred.
+                // (6,26): error CS8917: The delegate type could not be inferred.
                 //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; }").WithLocation(6, 23),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 26),
                 // (6,68): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(6, 68),
@@ -1141,9 +1141,7 @@ internal new void F(object? x) { }
     @"#nullable enable
 internal object? F() => throw null!;
 #nullable disable", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // different nullability
-            yield return getData("internal void F() { }", "internal void F<T>() { }", "F", "F"); // different arity
             yield return getData("internal void F() { }", "internal void F<T>() { }", "F<int>", "F<int>", null, "System.Action"); // different arity
-            yield return getData("internal void F<T>() { }", "internal void F() { }", "F", "F"); // different arity
             yield return getData("internal void F<T>() { }", "internal void F() { }", "F<int>", "F<int>", null, "System.Action"); // different arity
             yield return getData("internal void F<T>() { }", "internal void F<T, U>() { }", "F<int>", "F<int>", null, "System.Action"); // different arity
             yield return getData("internal void F<T>() { }", "internal void F<T, U>() { }", "F<int, object>", "F<int, object>", null, "System.Action"); // different arity
@@ -1222,6 +1220,42 @@ partial class B : A
             Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
         }
 
+        [Fact]
+        public void MethodGroup_BaseAndDerivedTypes_1()
+        {
+            var source = """
+new B().M();
+
+partial class B
+{
+    public void M()
+    {
+        System.Delegate d = F;
+        d.DynamicInvoke();
+        System.Console.Write(d.GetDelegateTypeName());
+    }
+}
+abstract class A
+{
+    internal void F() { System.Console.Write("RAN "); }
+}
+partial class B : A
+{
+    internal void F<T>() => throw null;
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN System.Action");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+        }
+
         public static IEnumerable<object?[]> GetExtensionMethodsSameScopeData()
         {
             yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "B.F", "System.Action"); // different parameter type
@@ -1231,9 +1265,7 @@ partial class B : A
             yield return getData("internal static void F(this object x, ref object y) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different parameter ref kind
             yield return getData("internal static object F(this object x) => throw null;", "internal static ref object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
             yield return getData("internal static ref object F(this object x) => throw null;", "internal static object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
-            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F", "F"); // different arity
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "B.F", "System.Action<System.Int32>"); // different arity
-            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>",
                 new[]
@@ -1249,13 +1281,6 @@ partial class B : A
                     //         System.Delegate d = this.F<object>;
                     Diagnostic(ErrorCode.ERR_AmbigCall, "this.F<object>").WithArguments("A.F<T>(T)", "B.F<T>(T)").WithLocation(5, 29)
                 }); // different type parameter constraints
-            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>",
-                new[]
-                {
-                    // (5,34): error CS0123: No overload for 'F' matches delegate 'Action'
-                    //         System.Delegate d = this.F<int>;
-                    Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "F<int>").WithArguments("F", "System.Action").WithLocation(5, 34)
-                 }); // different type parameter constraints
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
             {
@@ -1321,7 +1346,137 @@ static class B
             Assert.Null(symbolInfo.Symbol);
         }
 
-        public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData()
+        [Fact]
+        public void MethodGroup_ExtensionMethodsSameScope_1()
+        {
+            var source = """
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        d.DynamicInvoke(42);
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+static class A
+{
+    internal static void F(this object x, object y) { System.Console.Write($"RAN({y}) "); }
+}
+static class B
+{
+    internal static void F<T>(this object x, T y) => throw null;
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN(42) A.F: System.Action<System.Object>", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+
+            Assert.Equal(["void System.Object.F(System.Object y)", "void System.Object.F<T>(T y)"],
+                model.GetMemberGroup(expr).ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsSameScope_2()
+        {
+            var source = """
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        d.DynamicInvoke();
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+static class A
+{
+    internal static void F<T>(this object x) => throw null;
+}
+static class B
+{
+    internal static void F(this object x) { System.Console.Write("RAN "); }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN B.F: System.Action", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+
+            Assert.Equal(["void System.Object.F<T>()", "void System.Object.F()"],
+                model.GetMemberGroup(expr).ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void MethodGroup_ExtensionMethodsSameScope_3()
+        {
+            var source = """
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F<int>;
+    }
+}
+static class A
+{
+    internal static void F<T>(this T t) where T : class { }
+}
+static class B
+{
+    internal static void F<T>(this T t) where T : struct { }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // 0.cs(7,34): error CS8917: The delegate type could not be inferred.
+                //         System.Delegate d = this.F<int>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F<int>").WithLocation(7, 34)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(model.GetMemberGroup(expr));
+        }
+
+        public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData_CSharp10()
         {
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "A.F", "System.Action"); // hiding
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter name
@@ -1365,8 +1520,8 @@ static class B
         }
 
         [Theory]
-        [MemberData(nameof(GetExtensionMethodsDifferentScopeData))]
-        public void MethodGroup_ExtensionMethodsDifferentScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
+        [MemberData(nameof(GetExtensionMethodsDifferentScopeData_CSharp10))]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp10(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
         {
             var source =
 $@"using N;
@@ -1393,7 +1548,7 @@ namespace N
         {methodB}
     }}
 }}";
-            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.Regular12, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
                 // ILVerify: Unrecognized arguments for delegate .ctor.
@@ -1414,6 +1569,1644 @@ namespace N
             var symbolInfo = model.GetSymbolInfo(expr);
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData_CSharp13()
+        {
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "A.F", "System.Action"); // hiding
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter name
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "A.F", "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x, System.IntPtr y) { }", "internal static void F(this object x, nint y) { }", "this.F", "F", null, "A.F", "System.Action<System.IntPtr>"); // System.IntPtr/nint
+            yield return getData("internal static nint F(this object x) => throw null;", "internal static System.IntPtr F(this object x) => throw null;", "this.F", "F", null, "A.F", "System.Func<System.IntPtr>"); // System.IntPtr/nint
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "N.B.F", "System.Action<System.Int32>"); // different arity
+            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
+            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
+            yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
+
+            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
+            {
+                if (expectedDiagnostics is null && expectedType is null)
+                {
+                    int offset = methodGroupExpression.Length - methodGroupOnly.Length;
+                    expectedDiagnostics = new[]
+                    {
+                        // (6,29): error CS8917: The delegate type could not be inferred.
+                        //         System.Delegate d = F;
+                        Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
+                    };
+                }
+                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(GetExtensionMethodsDifferentScopeData_CSharp13))]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
+        {
+            var source =
+$@"using N;
+class Program
+{{
+   void M()
+    {{
+        System.Delegate d = {methodGroupExpression};
+        System.Console.Write(""{{0}}: {{1}}"", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }}
+    static void Main()
+    {{
+        new Program().M();
+    }}
+}}
+static class A
+{{
+    {methodA}
+}}
+namespace N
+{{
+    static class B
+    {{
+        {methodB}
+    }}
+}}";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            if (expectedDiagnostics is null)
+            {
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
+            }
+            else
+            {
+                comp.VerifyDiagnostics(expectedDiagnostics);
+            }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_2(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_3(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, ref object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_4(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, ref object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x, object y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>A{00000001}<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_5(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static object F(this object x) => throw null;
+}
+namespace N
+{
+    static class B
+    {
+        internal static ref object F(this object x) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Func<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_6(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static ref object F(this object x) => throw null;
+}
+namespace N
+{
+    static class B
+    {
+        internal static object F(this object x) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: <>F{00000001}<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_7(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F(this object x, object y) { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F<T>(this object x, T y) { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "A.F: System.Action<System.Object>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_8(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F;
+        d.DynamicInvoke();
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F<T>(this object x) => throw null;
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F(this object x) { System.Console.Write("RAN "); }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN N.B.F: System.Action", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        public void MethodGroup_ExtensionMethodsDifferentScope_CSharp13_9(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+new Program().M();
+
+partial class Program
+{
+    public void M()
+    {
+        System.Delegate d = this.F<int>;
+        System.Console.Write("{0}: {1}", d.GetDelegateMethodName(), d.GetDelegateTypeName());
+    }
+}
+
+static class A
+{
+    internal static void F<T>(this T t) where T : class { }
+}
+namespace N
+{
+    static class B
+    {
+        internal static void F<T>(this T t) where T : struct { }
+    }
+}
+""";
+            var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // 0.cs(9,34): error CS8917: The delegate type could not be inferred.
+                //         System.Delegate d = this.F<int>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F<int>").WithLocation(9, 34)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InstanceBeforeExtensions(bool useCSharp13)
+        {
+            // Instance method takes priority over extensions for method group natural type in C# 13
+            var source = """
+System.Action x = new C().M;
+x();
+
+System.Action<object> y = new C().M;
+y(42);
+
+var z = new C().M;
+z();
+
+public class C
+{
+    public void M()
+    {
+        System.Console.Write("C.M ");
+    }
+}
+
+public static class E
+{
+    public static void M(this C c, object o)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(7, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "C.M E.M C.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_AmbiguityWithScope_SameSignature(bool useCSharp13)
+        {
+            // All extensions in a given scope are considered together for method group natural type
+            // In C# 13, multiple extension methods in inner scope having the same signature means
+            // we can pick a natural type for the method group
+            var source = """
+using N;
+
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c) { }
+}
+
+public static class E2
+{
+    public static void M(this C c) { }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().M").WithArguments("E1.M(C)", "E2.M(C)").WithLocation(3, 19),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().M").WithArguments("E1.M(C)", "E2.M(C)").WithLocation(3, 19),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M(C)' and 'E2.M(C)'
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C().M").WithArguments("E1.M(C)", "E2.M(C)").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M()", "void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_AmbiguityWithScope_DifferentSignature(bool useCSharp13)
+        {
+            // All extensions in a given scope are considered together for method group natural type
+            // Two inner scope extension with different signatures means
+            // we can't determine the natural type of the method group
+            var source = """
+using N;
+
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c) { }
+}
+
+public static class E2
+{
+    public static void M(this C c, object o) { }
+}
+
+namespace N
+{
+    public static class E3
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+            Assert.Equal(["void C.M()", "void C.M(System.Object o)", "void C.M(System.Object o)"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InnerScopeBeforeOuterScope(bool useCSharp13)
+        {
+            // In C# 13, extensions in inner scopes take precedence over those in outer scopes
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E1.M ");
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c, object o) { } // ignored
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E1.M E1.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InaccessibleInInnerScope(bool useCSharp13)
+        {
+            // Inaccessible extension method in inner scope is ignored
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    private static void M(this C c) { } // ignored
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c)
+        {
+            System.Console.Write("E2.M ");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M E2.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InaccessibleInstance(bool useCSharp13)
+        {
+            // Inaccessible instance method is ignored
+            var source = """
+var z = new C().M;
+z();
+
+public class C
+{
+    protected static void M(object o) { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_InstanceReceiver(bool useCSharp13)
+        {
+            // Static method is ignored on instance receiver
+            var source = """
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C
+{
+    static void M() { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M ");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M E.M");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeReceiver(bool useCSharp13)
+        {
+            // Instance method and extension methods are ignored on type receiver
+            var source = """
+System.Action x = C.M;
+x();
+
+var z = C.M;
+z();
+
+public class C
+{
+    public void M(C c) { } // ignored
+}
+
+public static class E
+{
+    public static void M(this C c) { }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
+                // System.Action x = C.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = C.M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0123: No overload for 'M' matches delegate 'Action'
+                // System.Action x = C.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 21),
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = C.M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "C.M").WithLocation(4, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M(C c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_ExtensionMethodHasZeroArity(bool useCSharp13)
+        {
+            var source = """
+var z = new C().M;
+z();
+
+public class C
+{
+    public void M<T>() { }
+}
+
+public static class E
+{
+    public static void M(this C c)
+    {
+        System.Console.Write("E.M");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "E.M", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_OuterExtensionMethodHasZeroArity(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this C c) => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c) { System.Console.Write("E2.M "); }
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "E2.M E2.M", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments_InnerExtensionMethodHasArityOne(bool useCSharp13)
+        {
+            var source = """
+using N;
+
+System.Action x = new C().M;
+x();
+
+var z = new C().M;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this T c) { System.Console.Write("E1.M "); }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M(this C c) => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(6, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "E1.M E1.M", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M<C>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M<C>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeArgumentsDoNotMatchInstanceMethod(bool useCSharp13)
+        {
+            // An instance method differing from requested non-zero arity is ignored
+            var source = """
+System.Action x = new C().M<int, int>;
+x();
+
+var z = new C().M<int, int>;
+z();
+
+public class C
+{
+    public void M<T>(C c) { }
+}
+
+public static class E
+{
+    public static void M<T, U>(this C c)
+    {
+        System.Console.Write("E.M<T, U> ");
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M<int, int>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M<int, int>").WithLocation(4, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E.M<T, U> E.M<T, U>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M<int, int>").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_TypeArgumentsDoNotMatchInnerScopeExtensionMethod(bool useCSharp13)
+        {
+            // An extension method in inner scope differing from requested non-zero arity is ignored
+            var source = """
+using N;
+
+System.Action x = new C().M<int, int>;
+x();
+
+var z = new C().M<int, int>;
+z();
+
+public class C { }
+
+public static class E1
+{
+    public static void M<T>(this C c) => throw null;
+}
+
+namespace N
+{
+    public static class E2
+    {
+        public static void M<T, U>(this C c)
+        {
+            System.Console.Write("E2.M<T, U> ");
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "E2.M<T, U> E2.M<T, U>");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M<int, int>").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
+            Assert.Equal("void C.M<System.Int32, System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_NoTypeArguments(bool useCSharp13)
+        {
+            var source = """
+System.Action x = new C().M;
+var z = new C().M;
+
+public class C
+{
+    public void M<T>() => throw null;
+}
+
+public static class E
+{
+    public static void M<T, U>(this C c) => throw null;
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C().M").WithArguments("C.M<T>()").WithLocation(1, 19),
+                // (2,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
+                );
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (1,19): error CS0411: The type arguments for method 'C.M<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // System.Action x = new C().M;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C().M").WithArguments("C.M<T>()").WithLocation(1, 19),
+                // (2,9): error CS8917: The delegate type could not be inferred.
+                // var z = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").Last();
+            var typeInfo = model.GetTypeInfo(memberAccess);
+            Assert.Null(typeInfo.Type);
+            Assert.True(typeInfo.ConvertedType!.IsErrorType());
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M<T>()", "void C.M<T, U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_BreakingChange(bool useCSharp13)
+        {
+            var source = """
+var c = new C();
+var d = new D();
+d.Del(c.M); // used to bind to DExt.Del, now binds to D.Del
+
+public class C
+{
+    public void M() { }
+}
+
+public static class CExt
+{
+    public static void M(this C c, object o) { }
+}
+
+public class D
+{
+    public void Del(System.Delegate d) { System.Console.Write("ran12"); }
+}
+
+public static class DExt
+{
+    public static void Del(this D d, System.Action<object> action) { System.Console.Write("ran11"); }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics();
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, expectedOutput: "ran11", verify: Verification.FailsILVerify);
+
+            comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran12");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.M");
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
+        public void MethodGroup_ScopeByScope_SameSignatureDifferentArities()
+        {
+            var source = """
+var x = new C().M;
+x();
+
+public class C
+{
+    public void M() { System.Console.Write("ran"); }
+    public void M<T>() => throw null;
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9));
+
+            comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod()
+        {
+            var source = """
+var d = new object().M;
+d();
+
+static class E
+{
+    public static void M<T>(this T t)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+            Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_Nested()
+        {
+            var source = """
+var d = new C<int, long>().M;
+d();
+
+class C<T, U> { }
+
+static class E
+{
+    public static void M<T1, T2>(this C<T1, T2> t)
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int, long>().M");
+            Assert.Equal("void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()",
+                model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            Assert.Equal(["void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()"],
+                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_UnsubstitutedTypeParameter()
+        {
+            var source = """
+var d = new C().M;
+d();
+
+class C { }
+
+static class E
+{
+    public static void M<T>(this C c) { }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(1, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            Assert.Equal(["void C.M<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericInstanceMethod_Constraint()
+        {
+            var source = """
+var x = new C().M<int>;
+x();
+
+public class C
+{
+    public void M<T>()
+    {
+        System.Console.Write("ran");
+    }
+
+    public void M<T>(object o) where T : class { }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
+            Assert.Equal("void C.M<System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            Assert.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericInstanceMethod_Constraint_Nullability_Ambiguity()
+        {
+            var source = """
+#nullable enable
+var x = new C().M<object?>;
+x();
+
+public class C
+{
+    public void M<T>() { }
+
+    public void M<T>(object o) where T : class { }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().M<object?>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M<object?>").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+            Assert.Equal(["void C.M<System.Object?>()", "void C.M<System.Object?>(System.Object o)"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericInstanceMethod_Constraint_Nullability_Warn()
+        {
+            var source = """
+#nullable enable
+var x = new C().M<object?>;
+x();
+
+public class C
+{
+    public void M<T>() where T : class
+    {
+        System.Console.Write("ran");
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran");
+            verifier.VerifyDiagnostics(
+                // (2,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>()'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                // var x = new C().M<object?>;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "new C().M<object?>").WithArguments("C.M<T>()", "T", "object?").WithLocation(2, 9)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
+            Assert.Equal("void C.M<System.Object?>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void C.M<System.Object?>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_Constraint_ImplicitTypeArguments()
+        {
+            var source = """
+var x = new object().M;
+x();
+
+static class E1
+{
+    public static void M<T>(this T t)
+    {
+        System.Console.Write("ran");
+    }
+}
+
+static class E2
+{
+    public static void M<T>(this T t, object ignored) where T : struct { }
+}
+""";
+            var comp = CreateCompilation(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+            Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
+        public void MethodGroup_GenericExtensionMethod_Constraint_ExplicitTypeArguments()
+        {
+            var source = """
+var x = new object().M<object>;
+x();
+
+static class E1
+{
+    public static void M<T>(this T t)
+    {
+        System.Console.Write("ran");
+    }
+}
+
+static class E2
+{
+    public static void M<T>(this T t, object ignored) where T : struct { }
+}
+""";
+            var comp = CreateCompilation(source);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<object>");
+            Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            Assert.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Theory, CombinatorialData]
+        public void GenericExtensionMethod_ArityIgnoredInSignature(bool useCSharp13)
+        {
+            var source = """
+var x = new object().F;
+x();
+
+static class B
+{
+    internal static void F<T>(this T x) => throw null;
+}
+
+static class A
+{
+    internal static void F(this object x) { System.Console.Write("A.F"); }
+}
+""";
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new object().F;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new object().F").WithLocation(1, 9));
+
+            var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, expectedOutput: "A.F", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().F");
+            Assert.Equal("void System.Object.F()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+            Assert.Equal(["void System.Object.F<System.Object>()", "void System.Object.F()"],
+                model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void GenericExtensionMethod_Constraint()
+        {
+            // In C# 13, a method group that cannot be successfully substituted (ie. respecting constraints)
+            // does not contribute to the natural type determination
+            var source = """
+var x = new C().F<object>;
+
+class C { }
+
+static class E
+{
+    public static void F<T>(this C c) where T : struct { }
+}
+""";
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (1,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.F<T>(C)'
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("E.F<T>(C)", "T", "object").WithLocation(1, 9));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void GenericInstanceMethod_Constraint()
+        {
+            // In C# 13, a method that cannot be successfully substituted (ie. respecting constraints)
+            // does not contribute to the natural type determination
+            var source = """
+var x = new C().F<object>;
+
+class C
+{
+    public void F<T>() where T : struct { }
+}
+""";
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (1,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>()'
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "new C().F<object>").WithArguments("C.F<T>()", "T", "object").WithLocation(1, 9));
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var x = new C().F<object>;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().F<object>").WithLocation(1, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/csharplang/discussions/129")]
+        public void BoundInferenceFromMethodGroup()
+        {
+            var source = """
+int result1 = Test(IsEven); // 1
+bool result2 = Test2(IsEven);
+int result3 = Test3(IsEven); // 2
+bool result4 = Test4(IsEven);
+System.Func<int, bool> result5 = Test5(IsEven);
+
+delegate bool Predicate<T>(T t);
+delegate T Predicate2<T>(int i);
+
+partial class Program
+{
+    public static bool IsEven(int x) => x % 2 == 0;
+
+    public static T Test<T>(System.Func<T, bool> predicate) => throw null;
+    public static T Test2<T>(System.Func<int, T> predicate) => throw null;
+    public static T Test3<T>(Predicate<T> predicate) => throw null;
+    public static T Test4<T>(Predicate2<T> predicate) => throw null;
+    public static T Test5<T>(T predicate) => throw null;
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,15): error CS0411: The type arguments for method 'Program.Test<T>(Func<T, bool>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // int result1 = Test(IsEven); // 1
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Program.Test<T>(System.Func<T, bool>)").WithLocation(1, 15),
+                // (3,15): error CS0411: The type arguments for method 'Program.Test3<T>(Predicate<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // int result3 = Test3(IsEven); // 2
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test3").WithArguments("Program.Test3<T>(Predicate<T>)").WithLocation(3, 15));
         }
 
         [Fact]
@@ -1788,11 +3581,33 @@ class Program
         d = p.F2;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (14,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 15));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var f1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "p.F1");
+            var typeInfo1 = model.GetTypeInfo(f1);
+            Assert.Null(typeInfo1.Type);
+            Assert.Equal("System.Delegate", typeInfo1.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(f1).Symbol);
+            Assert.Equal(new[] { "void System.Object.F1(System.Int32 y)" }, model.GetMemberGroup(f1).ToTestDisplayStrings());
+
+            var f2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "p.F2");
+            var typeInfo2 = model.GetTypeInfo(f2);
+            Assert.Null(typeInfo2.Type);
+            Assert.Equal("System.Delegate", typeInfo2.ConvertedType!.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(f2).Symbol);
+
+            Assert.Equal(new[] { "void Program.F2(System.Int32 x)", "void System.Object.F2()" },
+                model.GetMemberGroup(f2).ToTestDisplayStrings());
         }
 
         [Fact]
@@ -1856,20 +3671,26 @@ class Program
     {
         System.Delegate d;
         var p = new Program();
-        d = p.F1;
-        d = p.F2;
+        d = p.F1; // 1
+        d = p.F2; // 2
         d = p.F3;
         d = E1.F1;
         d = E2.F1;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (22,15): error CS8917: The delegate type could not be inferred.
-                //         d = p.F1;
+                //         d = p.F1; // 1
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(22, 15),
                 // (23,15): error CS8917: The delegate type could not be inferred.
-                //         d = p.F2;
+                //         d = p.F2; // 2
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(23, 15));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (23,15): error CS8917: The delegate type could not be inferred.
+                //         d = p.F2; // 2
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(23, 15));
         }
 
@@ -1941,8 +3762,8 @@ class Program
     static void F<T>(T t) where T : class
     {
         System.Delegate d;
-        d = t.F1;
-        d = t.F2;
+        d = t.F1; // 1
+        d = t.F2; // 2
         d = t.F1<int>;
         d = t.F1<T>;
         d = t.F2<T, object>;
@@ -1952,10 +3773,10 @@ class Program
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (11,15): error CS8917: The delegate type could not be inferred.
-                //         d = t.F1;
+                //         d = t.F1; // 1
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(11, 15),
                 // (12,15): error CS8917: The delegate type could not be inferred.
-                //         d = t.F2;
+                //         d = t.F2; // 2
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
 
@@ -2041,7 +3862,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
             CompileAndVerify(source, expectedOutput:
-@"<>A{00000004}`2[System.String,System.Int32]
+@"<>A{00000008}`2[System.String,System.Int32]
 <>F{00000001}`1[System.String]
 ");
         }
@@ -2296,12 +4117,12 @@ static class E2
                 // (6,13): error CS0518: Predefined type 'System.Action' is not defined or imported
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Main").WithArguments("System.Action").WithLocation(6, 13),
-                // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
-                //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13),
                 // (7,13): error CS0518: Predefined type 'System.Func`1' is not defined or imported
                 //         d = () => 1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Func`1").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Func`1").WithLocation(7, 13),
+                // (7,16): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         d = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 16));
         }
 
         private static MetadataReference GetCorlibWithInvalidActionAndFuncOfT()
@@ -2465,12 +4286,12 @@ static class E2
 
             var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
-                //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 48),
                 // (5,48): error CS0518: Predefined type 'System.Linq.Expressions.Expression`1' is not defined or imported
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Linq.Expressions.Expression`1").WithLocation(5, 48));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Linq.Expressions.Expression`1").WithLocation(5, 48),
+                // (5,51): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         System.Linq.Expressions.Expression e = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 51));
         }
 
         [Fact]
@@ -2641,9 +4462,9 @@ static class E2
 
             var comp = CreateEmptyCompilation(sourceB, new[] { refA });
             comp.VerifyDiagnostics(
-                // (5,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (5,51): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 48));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 51));
         }
 
         [Fact]
@@ -2710,15 +4531,15 @@ namespace System.Linq
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (5,49): error CS1660: Cannot convert lambda expression to type 'Expressions.Expression' because it is not a delegate type
+                // 1.cs(5,52): error CS1660: Cannot convert lambda expression to type 'Expressions.Expression' because it is not a delegate type
                 //         System.Linq.Expressions.Expression e1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 49),
-                // (6,55): error CS1660: Cannot convert lambda expression to type 'Expressions.LambdaExpression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 52),
+                // 1.cs(6,58): error CS1660: Cannot convert lambda expression to type 'Expressions.LambdaExpression' because it is not a delegate type
                 //         System.Linq.Expressions.LambdaExpression e2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(6, 55),
-                // (7,67): error CS1660: Cannot convert lambda expression to type 'Expressions.Expression<Func<int>>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(6, 58),
+                // 1.cs(7,70): error CS1660: Cannot convert lambda expression to type 'Expressions.Expression<Func<int>>' because it is not a delegate type
                 //         System.Linq.Expressions.Expression<System.Func<int>> e3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int>>").WithLocation(7, 67));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int>>").WithLocation(7, 70));
         }
 
         /// <summary>
@@ -2762,15 +4583,15 @@ class Program
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics(
-                // (7,25): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // 1.cs(7,28): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         Expression e1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "Root.System.Linq.Expressions.Expression").WithLocation(7, 25),
-                // (8,31): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Root.System.Linq.Expressions.Expression").WithLocation(7, 28),
+                // 1.cs(8,34): error CS1660: Cannot convert lambda expression to type 'LambdaExpression' because it is not a delegate type
                 //         LambdaExpression e2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "Root.System.Linq.Expressions.LambdaExpression").WithLocation(8, 31),
-                // (9,36): error CS1660: Cannot convert lambda expression to type 'Expression<Func<int>>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Root.System.Linq.Expressions.LambdaExpression").WithLocation(8, 34),
+                // 1.cs(9,39): error CS1660: Cannot convert lambda expression to type 'Expression<Func<int>>' because it is not a delegate type
                 //         Expression<Func<int>> e3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "Root.System.Linq.Expressions.Expression<System.Func<int>>").WithLocation(9, 36));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Root.System.Linq.Expressions.Expression<System.Func<int>>").WithLocation(9, 39));
         }
 
         [Fact]
@@ -2907,9 +4728,9 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (6,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // 1.cs(6,25): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         d = (ref int i) => i;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(ref int i) => i").WithArguments("lambda expression", "System.Delegate").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(6, 25));
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
@@ -3162,19 +4983,19 @@ class Program
             comp.VerifyDiagnostics(
                 // (9,11): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         F(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return 0; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(9, 11),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(9, 11),
                 // (10,11): error CS1660: Cannot convert anonymous method to type 'Expression' because it is not a delegate type
                 //         F(delegate () { return string.Empty; });
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { return string.Empty; }").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate").WithArguments("anonymous method", "System.Linq.Expressions.Expression").WithLocation(10, 11));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (9,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 0; }").WithLocation(9, 11),
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(9, 11),
                 // (10,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return string.Empty; });
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return string.Empty; }").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(10, 11));
         }
 
         [WorkItem(55319, "https://github.com/dotnet/roslyn/issues/55319")]
@@ -3284,27 +5105,27 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,12): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         F1(x => x);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 12),
-                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 14),
+                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Delegate'
                 //         F1(M1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M1").WithArguments("1", "method group", "System.Delegate").WithLocation(10, 12),
-                // (11,12): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (11,14): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         F2(x => x);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "x => x").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 12));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 14));
 
             var expectedDiagnostics10AndLater = new[]
             {
-                // (9,12): error CS8917: The delegate type could not be inferred.
+                // (9,14): error CS8917: The delegate type could not be inferred.
                 //         F1(x => x);
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 12),
-                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(9, 14),
+                // (10,12): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Delegate'
                 //         F1(M1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "M1").WithArguments("1", "method group", "System.Delegate").WithLocation(10, 12),
-                // (11,12): error CS8917: The delegate type could not be inferred.
+                // (11,14): error CS8917: The delegate type could not be inferred.
                 //         F2(x => x);
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(11, 12)
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(11, 14)
             };
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
@@ -4005,9 +5826,9 @@ class Program
                 // (9,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(() => 1, () => 2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(9, 9),
-                // (10,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (10,14): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(10, 11),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(10, 14),
                 // (11,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(f, () => 2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(11, 9));
@@ -4077,12 +5898,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11),
-                // (10,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 14),
+                // (10,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 14));
 
             var expectedOutput =
 @"M<T, U>(T x, U y)
@@ -4111,12 +5932,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Delegate'
                 //         F(Main);
                 Diagnostic(ErrorCode.ERR_BadArgType, "Main").WithArguments("1", "method group", "System.Delegate").WithLocation(8, 11),
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         F(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 14));
 
             var expectedOutput =
 @"F<Action>(Action t)
@@ -4146,9 +5967,9 @@ class Program
                 // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 //         F(Main);
                 Diagnostic(ErrorCode.ERR_BadArgType, "Main").WithArguments("1", "method group", "object").WithLocation(8, 11),
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //         F(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "object").WithLocation(9, 14));
 
             var expectedOutput =
 @"F(Delegate d)
@@ -4178,12 +5999,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (12,14): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         F(() => 1, () => 2, string.Empty);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 11),
-                // (12,20): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 14),
+                // (12,23): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         F(() => 1, () => 2, string.Empty);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 20));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 23));
 
             var expectedDiagnostics = new[]
             {
@@ -4250,9 +6071,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (9,14): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         M(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 14));
 
             var expectedOutput = @"M(Expression e)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
@@ -4279,12 +6100,12 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Expression'
+                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Linq.Expressions.Expression'
                 //         M(F);
                 Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11),
-                // (11,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                // (11,14): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         M(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 14));
 
             var expectedDiagnostics = new[]
             {
@@ -4374,7 +6195,7 @@ E.M");
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13),
                 // (10,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         c.M(delegate () { return 1; });
-                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 1; }").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate").WithLocation(10, 13)
             };
 
             // Breaking change from C#9 which binds to E.M in each case.
@@ -4935,12 +6756,12 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,26): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
-                //         var a1 = new[] { (object o) => { }, (string s) => { } };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(6, 26),
                 // (6,34): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         var a1 = new[] { (object o) => { }, (string s) => { } };
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(6, 34));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(6, 34),
+                // (6,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         var a1 = new[] { (object o) => { }, (string s) => { } };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<string>").WithLocation(6, 37));
         }
 
         [Fact]
@@ -4972,7 +6793,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F2<object, string>, F2<object, string> }").WithLocation(9, 18));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"<>A{00000004}`2[System.String,System.Object]
+@"<>A{00000008}`2[System.String,System.Object]
 <>A{00000001}`2[System.Object,System.String]");
         }
 
@@ -5086,7 +6907,7 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"<>A{00000001}`1[System.Object]
 <>A{00000001}`1[System.String]
-<>A{00000004}`2[System.Object,System.String]
+<>A{00000008}`2[System.Object,System.String]
 ");
         }
 
@@ -5200,12 +7021,12 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,35): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                // (7,38): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
                 //         var a1 = new Delegate[] { () => 1 };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 35),
-                // (8,37): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 38),
+                // (8,40): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
                 //         var a2 = new Expression[] { () => 2 };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(8, 37));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(8, 40));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Int32]
@@ -5406,12 +7227,12 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8917: The delegate type could not be inferred.
+                // (6,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return null; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return null; }").WithLocation(6, 16),
-                // (7,16): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 25),
+                // (7,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return; else return null; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return; else return null; }").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 25),
                 // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
                 //         Report((bool b) => { if (b) return; else return null; });
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
@@ -5434,12 +7255,12 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8917: The delegate type could not be inferred.
+                // (6,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return default; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return default; }").WithLocation(6, 16),
-                // (7,16): error CS8917: The delegate type could not be inferred.
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(6, 25),
+                // (7,25): error CS8917: The delegate type could not be inferred.
                 //         Report((bool b) => { if (b) return; else return default; });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return; else return default; }").WithLocation(7, 16),
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 25),
                 // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
                 //         Report((bool b) => { if (b) return; else return default; });
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
@@ -5729,7 +7550,7 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Func`1[System.Object]
 System.Func`1[System.String]
-<>A{00000004}`2[System.Object,System.String]
+<>A{00000008}`2[System.Object,System.String]
 <>A{00000001}`2[System.Object,System.String]
 ");
         }
@@ -5783,12 +7604,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,22): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F(d1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(11, 22),
                 // (11,30): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F(d1, (object o) => { }));
                 Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(11, 30),
+                // (11,33): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F(d1, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1<string>").WithLocation(11, 33),
                 // (12,24): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         Report(F(() => 1.0, d2));
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1.0").WithArguments("double", "int").WithLocation(12, 24),
@@ -5831,12 +7652,12 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F((string s) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 37),
                 // (7,45): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F((string s) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45),
+                // (7,48): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 48));
         }
 
         [Fact]
@@ -5890,12 +7711,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (12,23): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F1(a1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 23),
                 // (12,31): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F1(a1, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 31)
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 31),
+                // (12,34): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F1(a1, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1<string>").WithLocation(12, 34)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -5926,12 +7747,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                   // (10,42): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F1((D1<string> d) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(10, 42),
                 // (10,50): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F1((D1<string> d) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(10, 50)
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(10, 50),
+                // (10,53): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1<string>").WithLocation(10, 53)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -5992,12 +7813,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                    // (12,27): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
-                    //         Report(F1(ref d1, (object o) => { }));
-                    Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "D1<string>").WithLocation(12, 27),
-                    // (12,35): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
-                    //         Report(F1(ref d1, (object o) => { }));
-                    Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 35)
+                // (12,35): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         Report(F1(ref d1, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(12, 35),
+                // (12,38): error CS1661: Cannot convert lambda expression to type 'D1<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F1(ref d1, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1<string>").WithLocation(12, 38)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -6041,14 +7862,14 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,42): error CS1661: Cannot convert lambda expression to type 'Action<D1<string>>' because the parameter types do not match the delegate parameter types
-                //         Report(F1((D1<string> d) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<D1<string>>").WithLocation(10, 42),
                 // (10,50): error CS1678: Parameter 1 is declared as type 'object' but should be 'D1<string>'
                 //         Report(F1((D1<string> d) => { }, (object o) => { }));
                 Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "D1<string>").WithLocation(10, 50),
+                // (10,53): error CS1661: Cannot convert lambda expression to type 'Action<D1<string>>' because the parameter types do not match the delegate parameter types
+                //         Report(F1((D1<string> d) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<D1<string>>").WithLocation(10, 53),
                 // (11,16): error CS0411: The type arguments for method 'Program.F2<T>(T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Report(F2(() => 1.0, (D2<int> d) => { }));
+                //         Report(F2(() => string.Empty, (D2<object> d) => { }));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, in T)").WithLocation(11, 16));
         }
 
@@ -6111,15 +7932,15 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
-                //         Report(F((string s) => { }, (object o) => { }));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 37),
                 // (7,45): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Report(F((string s) => { }, (object o) => { }));
                 Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45),
-                // (8,18): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                // (7,48): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 48),
+                // (8,28): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
                 //         Report(F(string () => default, object () => default));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => default").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 28));
         }
 
         [Fact]
@@ -7412,12 +9233,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,29): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
-                //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(8, 29),
                 // (8,37): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(8, 37));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(8, 37),
+                // (8,40): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Action<string> a3 = (object o) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Action<string>").WithLocation(8, 40));
         }
 
         [Fact]
@@ -7436,9 +9257,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,27): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                // (7,37): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
                 //         Func<object> f2 = string () => string.Empty;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => string.Empty").WithArguments("lambda expression", "System.Func<object>").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "=>").WithArguments("lambda expression", "System.Func<object>").WithLocation(7, 37));
         }
 
         [Fact]
@@ -8481,9 +10302,9 @@ class Program
 
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"<>A{00000001}`2[System.Int32,System.Int32]
-<>A{00000004}`2[System.Int32,System.Int32]
+<>A{00000008}`2[System.Int32,System.Int32]
 <>A{00000001}`2[System.Single,System.Int32]
-<>A{00000004}`2[System.Single,System.Int32]
+<>A{00000008}`2[System.Single,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -8505,7 +10326,7 @@ class Program
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""void Program.<>c.<Main>b__0_1(int, ref int)""
-  IL_0038:  newobj     ""<>A{00000004}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>A{00000008}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
   IL_003e:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
@@ -8525,7 +10346,7 @@ class Program
   IL_0074:  pop
   IL_0075:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_007a:  ldftn      ""void Program.<>c.<Main>b__0_3(float, ref int)""
-  IL_0080:  newobj     ""<>A{00000004}<float, int>..ctor(object, System.IntPtr)""
+  IL_0080:  newobj     ""<>A{00000008}<float, int>..ctor(object, System.IntPtr)""
   IL_0085:  dup
   IL_0086:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_3""
   IL_008b:  call       ""void Program.Report(System.Delegate)""
@@ -8698,8 +10519,8 @@ class Program
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
 @"<>F{00000001}`2[System.Int32,System.Int32]
-<>F{00000005}`2[System.Int32,System.Int32]
-<>F{0000000d}`2[System.Int32,System.Int32]
+<>F{00000009}`2[System.Int32,System.Int32]
+<>F{00000019}`2[System.Int32,System.Int32]
 ");
             verifier.VerifyIL("Program.Main",
 @"{
@@ -8721,7 +10542,7 @@ class Program
   IL_002c:  pop
   IL_002d:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0032:  ldftn      ""ref int Program.<>c.<Main>b__0_1(ref int)""
-  IL_0038:  newobj     ""<>F{00000005}<int, int>..ctor(object, System.IntPtr)""
+  IL_0038:  newobj     ""<>F{00000009}<int, int>..ctor(object, System.IntPtr)""
   IL_003d:  dup
   IL_003e:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_1""
   IL_0043:  call       ""void Program.Report(System.Delegate)""
@@ -8731,7 +10552,7 @@ class Program
   IL_0050:  pop
   IL_0051:  ldsfld     ""Program.<>c Program.<>c.<>9""
   IL_0056:  ldftn      ""ref readonly int Program.<>c.<Main>b__0_2(ref int)""
-  IL_005c:  newobj     ""<>F{0000000d}<int, int>..ctor(object, System.IntPtr)""
+  IL_005c:  newobj     ""<>F{00000019}<int, int>..ctor(object, System.IntPtr)""
   IL_0061:  dup
   IL_0062:  stsfld     ""<anonymous delegate> Program.<>c.<>9__0_2""
   IL_0067:  call       ""void Program.Report(System.Delegate)""
@@ -9082,6 +10903,7 @@ System.Action`1[System.Byte*[]]
 ");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void SynthesizedDelegateTypes_16()
         {
@@ -9110,16 +10932,27 @@ unsafe class Program
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput:
-@"System.Func`1[(fnptr)[]]
-System.Action`1[(fnptr)[]]
-<>F{00000001}`2[System.Int32,(fnptr)[]]
-<>A{00000001}`1[(fnptr)[]]
-System.Func`1[(fnptr)[]]
-System.Action`1[(fnptr)[]]
-<>F{00000001}`2[System.Int32,(fnptr)[]]
-<>A{00000001}`1[(fnptr)[]]
-");
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr
+            ? """
+              System.Func`1[System.Int32&(System.Int32)[]]
+              System.Action`1[System.Void(System.Int32, System.Int32&)[]]
+              <>F{00000001}`2[System.Int32,System.Int32&(System.Int32)[]]
+              <>A{00000001}`1[System.Void(System.Int32, System.Int32&)[]]
+              System.Func`1[System.Int32&()[]]
+              System.Action`1[System.Void(System.Int32&)[]]
+              <>F{00000001}`2[System.Int32,System.Int32&()[]]
+              <>A{00000001}`1[System.Void(System.Int32&)[]]
+              """
+            : """
+              System.Func`1[(fnptr)[]]
+              System.Action`1[(fnptr)[]]
+              <>F{00000001}`2[System.Int32,(fnptr)[]]
+              <>A{00000001}`1[(fnptr)[]]
+              System.Func`1[(fnptr)[]]
+              System.Action`1[(fnptr)[]]
+              <>F{00000001}`2[System.Int32,(fnptr)[]]
+              <>A{00000001}`1[(fnptr)[]]
+              """);
         }
 
         [Fact]
@@ -9161,9 +10994,9 @@ System.Action`2[System.IntPtr,System.IntPtr]
 System.Action`1[System.ValueTuple`2[System.Int32,System.Int32]]
 System.Action`2[System.Object,System.Object[]]
 <>A{00000001}`2[System.Object,System.Object]
-<>A{00000004}`2[System.IntPtr,System.IntPtr]
+<>A{00000008}`2[System.IntPtr,System.IntPtr]
 <>A{00000001}`1[System.ValueTuple`2[System.Int32,System.Int32]]
-<>A{00000004}`2[System.Object,System.Object[]]
+<>A{00000008}`2[System.Object,System.Object[]]
 ");
         }
 
@@ -9188,9 +11021,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"<>F`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{200000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{100000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
-<>F{300000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{2000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{1000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{3000000000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
 ");
         }
 
@@ -9219,9 +11052,9 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"<>A{00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{800000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{400000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
-<>A{c00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{10000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{8000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{18000000000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
 ");
         }
 
@@ -9257,10 +11090,10 @@ class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
-@"<>A{4000000000000000\,00000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000002}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000001}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
-<>A{4000000000000000\,00000003}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+@"<>A{00000000\,20000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,220000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,120000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{00000000\,320000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
 ");
         }
 
@@ -9331,7 +11164,7 @@ class Program
             var verifier = CompileAndVerify(comp, validator: validator, expectedOutput:
 @"<>A{00000001}`2[System.Object,System.Object]
 D2
-<>A{00000009}`2[System.Object,System.Object]
+<>A{00000011}`2[System.Object,System.Object]
 D4");
 
             static void validator(PEAssembly assembly)
@@ -9339,7 +11172,7 @@ D4");
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000011}`2", "D2", "D4", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -10903,12 +12736,12 @@ class Program
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net70, verify: Verification.Skipped, expectedOutput:
                 """
-                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>F{00000049}`3[System.Int32,System.Int32,System.Int32]
                 <>f__AnonymousDelegate0
                 <>f__AnonymousDelegate1
                 <>f__AnonymousDelegate1
                 <>f__AnonymousDelegate0
-                <>F{00000015}`3[System.Int32,System.Int32,System.Int32]
+                <>F{00000049}`3[System.Int32,System.Int32,System.Int32]
                 """);
         }
 
@@ -11506,9 +13339,9 @@ public class Program
 
             var expectedDiagnostics = new[]
             {
-                // (7,20): error CS1660: Cannot convert lambda expression to type 'Program.Field' because it is not a delegate type
+                // (7,33): error CS1660: Cannot convert lambda expression to type 'Program.Field' because it is not a delegate type
                 //         SomeMethod((Employee e) => e.Name);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(Employee e) => e.Name").WithArguments("lambda expression", "Program.Field").WithLocation(7, 20)
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Program.Field").WithLocation(7, 33)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -11548,12 +13381,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (16,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (16,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(16, 17),
-                // (17,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(16, 20),
+                // (17,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(17, 20),
                 // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(18, 14)
@@ -11603,24 +13436,24 @@ class Program
                 // (8,37): error CS0552: 'C2.implicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
                 //     public static implicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.implicit operator C2(System.ICloneable)").WithLocation(8, 37),
-                // (15,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (15,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(15, 17),
-                // (16,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(15, 20),
+                // (16,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(16, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(16, 20),
                 // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(17, 14),
                 // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(18, 14),
-                // (19,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (19,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(19, 18),
-                // (20,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(19, 21),
+                // (20,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(20, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(20, 21),
                 // (21,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(21, 13),
@@ -11680,36 +13513,36 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (24,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (24,20): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 17),
-                // (25,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(24, 20),
+                // (25,20): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         C2 c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(25, 17),
-                // (26,17): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(25, 20),
+                // (26,20): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
                 //         C3 c3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(26, 17),
-                // (27,17): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C3").WithLocation(26, 20),
+                // (27,20): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
                 //         C4 c4 = () => 4;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(27, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C4").WithLocation(27, 20),
                 // (28,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(28, 14),
                 // (29,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(29, 14),
-                // (30,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (30,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(30, 18),
-                // (31,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(30, 21),
+                // (31,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(31, 18),
-                // (32,18): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(31, 21),
+                // (32,21): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
                 //         _ = (C3)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(32, 18),
-                // (33,18): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C3").WithLocation(32, 21),
+                // (33,21): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
                 //         _ = (C4)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(33, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C4").WithLocation(33, 21),
                 // (34,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(34, 13),
@@ -11752,24 +13585,24 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,24): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                // (11,27): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         C<object> c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 24),
-                // (12,28): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<object>").WithLocation(11, 27),
+                // (12,31): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
                 //         C<ICloneable> c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 31),
                 // (13,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<object>'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<object>").WithLocation(13, 14),
                 // (14,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<ICloneable>'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.ICloneable>").WithLocation(14, 14),
-                // (15,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                // (15,28): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         _ = (C<object>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(15, 25),
-                // (16,29): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<object>").WithLocation(15, 28),
+                // (16,32): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
                 //         _ = (C<ICloneable>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(16, 32),
                 // (17,13): error CS0030: Cannot convert type 'method' to 'C<object>'
                 //         _ = (C<object>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(17, 13),
@@ -11817,36 +13650,36 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (12,26): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                // (12,29): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         C<Delegate> c1 = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 26),
-                // (13,35): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 29),
+                // (13,38): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
                 //         C<MulticastDelegate> c2 = () => 2;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 35),
-                // (14,28): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 38),
+                // (14,31): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
                 //         C<Expression> c3 = () => 3;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 28),
-                // (15,34): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 31),
+                // (15,37): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
                 //         C<LambdaExpression> c4 = () => 4;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 34),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 37),
                 // (16,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<Delegate>'. Did you intend to invoke the method?
                 //         c1 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.Delegate>").WithLocation(16, 14),
                 // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<MulticastDelegate>'. Did you intend to invoke the method?
                 //         c2 = F;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.MulticastDelegate>").WithLocation(17, 14),
-                // (18,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                // (18,30): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         _ = (C<Delegate>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(18, 27),
-                // (19,36): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(18, 30),
+                // (19,39): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
                 //         _ = (C<MulticastDelegate>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(19, 36),
-                // (20,29): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(19, 39),
+                // (20,32): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
                 //         _ = (C<Expression>)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(20, 29),
-                // (21,35): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(20, 32),
+                // (21,38): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
                 //         _ = (C<LambdaExpression>)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(21, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(21, 38),
                 // (22,13): error CS0030: Cannot convert type 'method' to 'C<Delegate>'
                 //         _ = (C<Delegate>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(22, 13),
@@ -11929,12 +13762,12 @@ class Program
                 // (8,37): error CS0552: 'C2.explicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
                 //     public static explicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.explicit operator C2(System.ICloneable)").WithLocation(8, 37),
-                // (15,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (15,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(15, 18),
-                // (16,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(15, 21),
+                // (16,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(16, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(16, 21),
                 // (17,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(17, 13),
@@ -11988,18 +13821,18 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (24,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                // (24,21): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 18),
-                // (25,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C1").WithLocation(24, 21),
+                // (25,21): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
                 //         _ = (C2)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(25, 18),
-                // (26,18): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C2").WithLocation(25, 21),
+                // (26,21): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
                 //         _ = (C3)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(26, 18),
-                // (27,18): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C3").WithLocation(26, 21),
+                // (27,21): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
                 //         _ = (C4)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(27, 18),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C4").WithLocation(27, 21),
                 // (28,13): error CS0030: Cannot convert type 'method' to 'C1'
                 //         _ = (C1)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(28, 13),
@@ -12038,12 +13871,12 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                // (11,28): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         _ = (C<object>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 25),
-                // (12,29): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<object>").WithLocation(11, 28),
+                // (12,32): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
                 //         _ = (C<ICloneable>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 29),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 32),
                 // (13,13): error CS0030: Cannot convert type 'method' to 'C<object>'
                 //         _ = (C<object>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(13, 13),
@@ -12085,18 +13918,18 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (12,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                // (12,30): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         _ = (C<Delegate>)(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 27),
-                // (13,36): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 30),
+                // (13,39): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
                 //         _ = (C<MulticastDelegate>)(() => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 36),
-                // (14,29): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 39),
+                // (14,32): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
                 //         _ = (C<Expression>)(() => 3);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 29),
-                // (15,35): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 32),
+                // (15,38): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
                 //         _ = (C<LambdaExpression>)(() => 4);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 35),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 38),
                 // (16,13): error CS0030: Cannot convert type 'method' to 'C<Delegate>'
                 //         _ = (C<Delegate>)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(16, 13),
@@ -12884,12 +14717,12 @@ class Program
     }
     """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
-                //         D d = (int x, double d = 3.0) => x + d;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, double d = 3.0) => x + d").WithArguments("lambda expression", "Program.D").WithLocation(6, 15),
                 // (6,30): error CS1678: Parameter 2 is declared as type 'double' but should be 'int'
                 //         D d = (int x, double d = 3.0) => x + d;
-                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("2", "", "double", "", "int").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("2", "", "double", "", "int").WithLocation(6, 30),
+                // (6,39): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, double d = 3.0) => x + d;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Program.D").WithLocation(6, 39));
         }
 
         [Fact]
@@ -12912,12 +14745,12 @@ class Program
     }
     """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,15): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
-                //         D d = (int x, A a = null) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(int x, A a = null) => { }").WithArguments("lambda expression", "Program.D").WithLocation(12, 15),
                 // (12,25): error CS1678: Parameter 2 is declared as type 'A' but should be 'B'
                 //         D d = (int x, A a = null) => { };
-                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25));
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("2", "", "A", "", "B").WithLocation(12, 25),
+                // (12,35): error CS1661: Cannot convert lambda expression to type 'Program.D' because the parameter types do not match the delegate parameter types
+                //         D d = (int x, A a = null) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Program.D").WithLocation(12, 35));
         }
 
         [Fact]

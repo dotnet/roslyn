@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -71,8 +71,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             else
             {
                 Assert.NotNull(clientProvider);
-                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
-                clientProvider!.ExcludedRemoteParts = new[] { typeof(EditAndContinueService) };
+                clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueWorkspaceService)];
+                clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
@@ -109,7 +109,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
             var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
             var emitDiagnosticsClearedCount = 0;
-            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => emitDiagnosticsUpdated.Add(args);
+            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, ImmutableArray<DiagnosticsUpdatedArgs> args) => emitDiagnosticsUpdated.AddRange(args);
             diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => emitDiagnosticsClearedCount++;
 
             var span1 = new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
@@ -291,32 +291,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             mockEncService.DiscardSolutionUpdateImpl = () => called = true;
             await sessionProxy.DiscardSolutionUpdateAsync(CancellationToken.None);
             Assert.True(called);
-
-            // GetCurrentActiveStatementPosition
-
-            mockEncService.GetCurrentActiveStatementPositionImpl = (solution, activeStatementSpanProvider, instructionId) =>
-            {
-                Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
-                Assert.Equal(instructionId1, instructionId);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
-                return new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
-            };
-
-            Assert.Equal(span1, await sessionProxy.GetCurrentActiveStatementPositionAsync(
-                localWorkspace.CurrentSolution,
-                activeStatementSpanProvider,
-                instructionId1,
-                CancellationToken.None));
-
-            // IsActiveStatementInExceptionRegion
-
-            mockEncService.IsActiveStatementInExceptionRegionImpl = (solution, instructionId) =>
-            {
-                Assert.Equal(instructionId1, instructionId);
-                return true;
-            };
-
-            Assert.True(await sessionProxy.IsActiveStatementInExceptionRegionAsync(localWorkspace.CurrentSolution, instructionId1, CancellationToken.None));
 
             // GetBaseActiveStatementSpans
 

@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
+    using static InitializeParameterHelpersCore;
+
     internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         TTypeDeclarationSyntax,
         TParameterSyntax,
@@ -434,7 +436,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 if (checkStatement != null)
                 {
                     var statementIndex = blockStatement.Operations.IndexOf(checkStatement);
-                    return statementIndex > 0 ? blockStatement.Operations[statementIndex - 1].Syntax : null;
+                    return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
+                        ? priorSyntax
+                        : null;
                 }
             }
 
@@ -457,6 +461,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 foreach (var statement in blockStatement.Operations)
                 {
+                    // Ignore implicit code the compiler inserted at the top of the block (for example, the implicit
+                    // call to mybase.new() in VB).
+                    if (statement.IsImplicit)
+                        continue;
+
                     if (statement is IConditionalOperation ifStatement)
                     {
                         if (ContainsParameterReference(semanticModel, ifStatement.Condition, parameterSymbol, cancellationToken))

@@ -68992,5 +68992,232 @@ public struct S : MyEnumerable
 }
 """);
         }
+
+        [Fact]
+        public void InParameters_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator !(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ~(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator ++(in I1 x)
+    {
+        return x;
+    }
+
+    public static I1 operator --(in I1 x)
+    {
+        return x;
+    }
+
+    public static bool operator true(in I1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(in I1 x)
+    {
+        return false;
+    }
+
+    public static I1 operator +(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator -(in I1 x, in I1 y)
+    {
+        return x;
+    }
+
+    public static I1 operator *(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""*"");
+        return x;
+    }
+
+    public static I1 operator /(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""/"");
+        return x;
+    }
+
+    public static I1 operator %(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""%"");
+        return x;
+    }
+
+    public static I1 operator &(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""&"");
+        return x;
+    }
+
+    public static I1 operator |(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""|"");
+        return x;
+    }
+
+    public static I1 operator ^(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""^"");
+        return x;
+    }
+
+    public static I1 operator <<(in I1 x, in int y)
+    {
+        System.Console.WriteLine(""<<"");
+        return x;
+    }
+
+    public static I1 operator >>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>"");
+        return x;
+    }
+
+    public static I1 operator >(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">"");
+        return x;
+    }
+
+    public static I1 operator <(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<"");
+        return x;
+    }
+
+    public static I1 operator >=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine("">="");
+        return x;
+    }
+
+    public static I1 operator <=(in I1 x, in I1 y)
+    {
+        System.Console.WriteLine(""<="");
+        return x;
+    }
+
+    public static I1 operator >>>(in I1 x, in int y)
+    {
+        System.Console.WriteLine("">>>"");
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    foreach (var p in m01.Parameters)
+                    {
+                        Assert.Equal(RefKind.In, p.RefKind);
+                        Assert.Empty(p.RefCustomModifiers);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69413")]
+        public void IsBeforeFieldInit_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+}
+
+public interface I2
+{
+    public static int F2;
+}
+
+public interface I3
+{
+    public static int F3 = 9;
+}
+
+public interface I4
+{
+    public static int F4;
+
+    static I4()
+    {
+        F4 = 10;
+    }
+}
+
+public interface I5
+{
+    static I5()
+    {
+        System.Console.WriteLine();
+    }
+}
+
+public interface I6
+{
+    public static int F6 = 18;
+    
+    static I6()
+    {
+        System.Console.WriteLine();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(compilation1, symbolValidator: validate, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                Assert.True(hasBeforeFieldInitFlag(module, "I1"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I2"));
+                Assert.True(hasBeforeFieldInitFlag(module, "I3"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I4"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I5"));
+                Assert.False(hasBeforeFieldInitFlag(module, "I6"));
+            }
+
+            static bool hasBeforeFieldInitFlag(ModuleSymbol module, string name)
+            {
+                return (((PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember(name)).Flags & System.Reflection.TypeAttributes.BeforeFieldInit) != 0;
+            }
+        }
     }
 }

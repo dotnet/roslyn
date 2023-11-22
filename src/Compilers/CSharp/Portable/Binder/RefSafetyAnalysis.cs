@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class RefSafetyAnalysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        internal static void Analyze(CSharpCompilation compilation, Symbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
+        internal static void Analyze(CSharpCompilation compilation, MethodSymbol symbol, BoundNode node, BindingDiagnosticBag diagnostics)
         {
             var visitor = new RefSafetyAnalysis(
                 compilation,
@@ -30,27 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (CancelledByStackGuardException e)
             {
                 e.AddAnError(diagnostics);
-            }
-        }
-
-        internal static void Analyze(CSharpCompilation compilation, Symbol symbol, ImmutableArray<BoundInitializer> fieldAndPropertyInitializers, BindingDiagnosticBag diagnostics)
-        {
-            var visitor = new RefSafetyAnalysis(
-                compilation,
-                symbol,
-                inUnsafeRegion: InUnsafeMethod(symbol),
-                useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
-                diagnostics);
-            foreach (var initializer in fieldAndPropertyInitializers)
-            {
-                try
-                {
-                    visitor.VisitFieldOrPropertyInitializer(initializer);
-                }
-                catch (CancelledByStackGuardException e)
-                {
-                    e.AddAnError(diagnostics);
-                }
             }
         }
 
@@ -76,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private readonly CSharpCompilation _compilation;
-        private readonly Symbol _symbol;
+        private readonly MethodSymbol _symbol;
         private readonly bool _useUpdatedEscapeRules;
         private readonly BindingDiagnosticBag _diagnostics;
         private bool _inUnsafeRegion;
@@ -91,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private RefSafetyAnalysis(
             CSharpCompilation compilation,
-            Symbol symbol,
+            MethodSymbol symbol,
             bool inUnsafeRegion,
             bool useUpdatedEscapeRules,
             BindingDiagnosticBag diagnostics,
@@ -309,17 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private void VisitFieldOrPropertyInitializer(BoundInitializer initializer)
+        public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
-            var fieldEqualsValue = (BoundFieldEqualsValue)initializer;
-            var field = fieldEqualsValue.Field;
-            var value = fieldEqualsValue.Value;
-
-            using var _ = new LocalScope(this, fieldEqualsValue.Locals);
-
-            Visit(value);
-
-            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -663,6 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitArguments(BoundCall node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
@@ -672,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -777,6 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         constructor,
                         receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructor.Parameters,
                         node.Arguments,
                         node.ArgumentRefKindsOpt,
@@ -787,8 +761,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             Visit(node.ReceiverOpt);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
@@ -799,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     indexer,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -821,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     receiverOpt: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -921,6 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 deconstructMethod,
                 invocation.ReceiverOpt,
+                invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
                 invocation.Arguments,
                 invocation.ArgumentRefKindsOpt,
@@ -995,7 +979,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
             this.Visit(node.Expression);
-            uint collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+            uint collectionEscape;
+
+            if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var spanType, InlineArrayUsedAsValue: false })
+            {
+                ImmutableArray<BoundExpression> arguments;
+                ImmutableArray<RefKind> refKinds;
+
+                SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(
+                    // Strip identity conversion added by compiler on top of inline array.
+                    inlineArray: node.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ? node.Expression : operand,
+                    resultType: node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.ContainingType,
+                    out arguments, out refKinds);
+
+                collectionEscape = GetInvocationEscapeScope(
+                    equivalentSignatureMethod,
+                    receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
+                    equivalentSignatureMethod.Parameters,
+                    arguments,
+                    refKinds,
+                    argsToParamsOpt: default,
+                    _localScopeDepth,
+                    isRefEscape: false);
+            }
+            else
+            {
+                collectionEscape = GetValEscape(node.Expression, _localScopeDepth);
+            }
+
             using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty);
 
             foreach (var local in node.IterationVariables)

@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed class DeletedMethodBody : IMethodBody
     {
-        private readonly DeletedMethodDefinition _methodDef;
+        private readonly IMethodDefinition _methodDef;
         private readonly ImmutableArray<byte> _ilBytes;
 
-        public DeletedMethodBody(DeletedMethodDefinition methodDef, EmitContext context)
+        public DeletedMethodBody(IMethodDefinition methodDef, EmitContext context)
         {
             _methodDef = methodDef;
             _ilBytes = GetIL(context);

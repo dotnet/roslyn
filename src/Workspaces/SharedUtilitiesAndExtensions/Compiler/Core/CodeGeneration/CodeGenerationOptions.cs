@@ -65,24 +65,19 @@ internal readonly record struct CodeAndImportGenerationOptions
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
 
-    private sealed class Provider : CodeAndImportGenerationOptionsProvider
+    private sealed class Provider(CodeAndImportGenerationOptions options) : CodeAndImportGenerationOptionsProvider
     {
-        private readonly CodeAndImportGenerationOptions _options;
-
-        public Provider(CodeAndImportGenerationOptions options)
-            => _options = options;
-
         ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options);
+            => ValueTaskFactory.FromResult(options);
 
         ValueTask<CodeGenerationOptions> OptionsProvider<CodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.GenerationOptions);
+            => ValueTaskFactory.FromResult(options.GenerationOptions);
 
         ValueTask<NamingStylePreferences> OptionsProvider<NamingStylePreferences>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.GenerationOptions.NamingStyle);
+            => ValueTaskFactory.FromResult(options.GenerationOptions.NamingStyle);
 
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_options.AddImportOptions);
+            => ValueTaskFactory.FromResult(options.AddImportOptions);
     }
 #endif
 }

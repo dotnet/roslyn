@@ -101,6 +101,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       $apiKey = Get-PublishKey $uploadUrl
 
       if (-not $test) {
+        Write-Host "Publishing $nupkg"
         Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }

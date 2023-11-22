@@ -62,9 +62,9 @@
         <target state="translated">更偏好简化的对象创建</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports">
-        <source>Remove unnecessary Imports</source>
-        <target state="translated">删除不必要的 Import</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -310,11 +310,6 @@
       <trans-unit id="Unused_local">
         <source>Unused local</source>
         <target state="translated">未使用的本地</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="VB_Coding_Conventions">
-        <source>VB Coding Conventions</source>
-        <target state="translated">vb 编码约定</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

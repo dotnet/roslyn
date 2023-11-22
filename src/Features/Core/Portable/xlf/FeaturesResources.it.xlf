@@ -316,8 +316,8 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">L'attività attesa restituisce '{0}'</target>
+        <source>Awaited task returns {0}</source>
+        <target state="needs-review-translation">L'attività attesa restituisce '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -360,6 +360,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Il numero di acquisizioni non può essere zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
+        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
         <target state="translated">Se si acquisisce la variabile '{0}' che non è stata acquisita prima, è necessario riavviare l'applicazione.</target>
@@ -368,6 +373,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
         <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
         <target state="translated">Se si interrompe l'accesso alla variabile catturata '{0}' in {1}, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
+        <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
+        <target state="translated">Per non acquisire il parametro del costruttore primario '{0}' di '{1}' è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
@@ -425,9 +435,19 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si modifica un campo per un evento o viceversa, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">Se si modificano i vincoli di {0}, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">La modifica dell'attributo '{0}' richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -460,9 +480,9 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Se si modifica il tipo restituito di {0}, è necessario riavviare l'applicazione.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">Se si modifica il tipo di {0}, è necessario riavviare l'applicazione.</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Se si modifica la firma di {0}, è necessario riavviare l'applicazione perché l'operazione non è supportata dal runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -478,6 +498,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
         <source>Changing visibility of {0} requires restarting the application.</source>
         <target state="translated">Se si modifica la visibilità di {0}, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Chosen_version_0">
+        <source>Chosen version: '{0}'</source>
+        <target state="translated">Versione selezionata: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -525,6 +550,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Tipo contenitore</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_number">
+        <source>Convert number</source>
+        <target state="translated">Converti numero</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Converti in LINQ</target>
@@ -570,6 +600,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Impossibile trovare PDB su disco, incorporato o su un server di simboli.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_by_name_0">
+        <source>Could not find by name: '{0}'</source>
+        <target state="translated">Non è stato possibile eseguire la ricerca per nome: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
         <target state="translated">Non è stato possibile trovare l'implementazione del simbolo '{0}'</target>
@@ -593,6 +628,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Crea e assegna rimanenti come proprietà</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompilation_log">
+        <source>Decompilation log</source>
+        <target state="translated">Log di decompilazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -700,11 +750,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Esempi:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
-        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="translated">I metodi dei record implementati in modo esplicito devono avere nomi di parametro corrispondenti all'equivalente generato dal compilatore '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Estrai classe di base...</target>
@@ -740,6 +785,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">'Trova tutti i riferimenti' non richiamato su un simbolo applicabile</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="new">Fix All: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Correggi l'errore di ortografia '{0}'</target>
@@ -753,6 +803,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Formattazione del documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_assemblies_for_1">
+        <source>Found '{0}' assemblies for '{1}':</source>
+        <target state="translated">Sono stati trovati '{0}' assembly per '{1}':</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -773,6 +828,21 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Found_embedded_PDB_file">
         <source>Found embedded PDB file.</source>
         <target state="translated">Trovato file PDB incorporato.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_exact_match_0">
+        <source>Found exact match: '{0}'</source>
+        <target state="translated">È stata trovata una corrispondenza esatta: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_higher_version_match_0">
+        <source>Found higher version match: '{0}'</source>
+        <target state="translated">È stata trovata una versione corrispondente successiva: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_single_assembly_0">
+        <source>Found single assembly: '{0}'</source>
+        <target state="translated">È stato trovato un solo assembly: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -920,16 +990,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Implementa tramite '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
-        <target state="translated">Se si implementa un parametro posizionale di record '{0}' come di sola lettura, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="translated">Se si implementa un parametro posizionale di record '{0}' con una funzione di accesso set, è necessario riavviare l'applicazione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Sequenza di caratteri di escape \p{X} incompleta</target>
@@ -1060,6 +1120,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Inverti espressione condizionale</target>
         <note />
       </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="translated">Carica da: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Per rendere un metodo un iteratore, è necessario riavviare l'applicazione perché non è supportata dal runtime.</target>
@@ -1188,6 +1253,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
         <target state="translated">Se si modifica l'origine con le funzionalità del linguaggio sperimentali abilitate, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module_not_found">
+        <source>Module not found!</source>
+        <target state="translated">Modulo non trovato.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -2470,14 +2540,14 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">La rimozione del documento non è supportata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Rimuovi importazioni o utilizzi non necessari</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Rimuovi i cast non necessari</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="new">Remove unnecessary imports or usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2540,14 +2610,34 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">obbligatorio</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
+      <trans-unit id="Resolve_0">
+        <source>Resolve: '{0}'</source>
+        <target state="translated">Risolvi: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Risolvi gli indicatori di conflitto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_module_0_of_1">
+        <source>Resolve module: '{0}' of '{1}'</source>
+        <target state="translated">Risolvi il modulo: '{0}' di '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2785,6 +2875,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Annulla il ritorno a capo per la catena di chiamate</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Annulla il ritorno a capo per l'espressione</target>
@@ -2807,7 +2902,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">L'aggiornamento di {0} all'interno del tipo o del metodo generico richiede il riavvio dell'applicazione perché non è supportato dal runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
@@ -2832,7 +2927,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">L'aggiornamento asincrono o iteratore richiede il riavvio dell'applicazione perché non è supportato dal runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2920,6 +3015,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Valore obbligatorio</target>
         <note />
       </trans-unit>
+      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
+        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
+        <target state="translated">AVVISO: versione non corrispondente. Prevista: '{0}'. Ottenuta: '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Avviso: la modifica dello spazio dei nomi può comportare la creazione di codice non valido e modificare il significato del codice.</target>
@@ -2950,6 +3050,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Imposta il ritorno a capo alla catena di chiamate</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Imposta il ritorno a capo a ogni argomento</target>
@@ -2978,6 +3083,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Imposta il ritorno a capo alla catena di chiamate lunga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3098,6 +3208,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' non è Null in questo punto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_items_in_cache">
+        <source>'{0}' items in cache</source>
+        <target state="translated">'{0}' elementi nella cache</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3374,6 +3489,11 @@ Se l'identificatore di formato "H" viene usato senza altri identificatori di for
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">e aggiornare direttamente i siti di chiamata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_with_explicit_or_sequential_layout">
+        <source>class with explicit or sequential layout</source>
+        <target state="new">class with explicit or sequential layout</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3713,11 +3833,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Non è possibile estrarre l'interfaccia: il tipo non contiene membri che possono essere estratti in un'interfaccia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">non è possibile costruire l'albero finale</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
@@ -4334,6 +4449,11 @@ Quando si usa questo identificatore di formato standard, la formattazione o l'op
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'L'elemento 'symbol' non può essere uno spazio dei nomi.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
+        <source>{0} '{1}' of {2} '{3}'</source>
+        <target state="translated">{0}: {1} di {2} {3}</target>
+        <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

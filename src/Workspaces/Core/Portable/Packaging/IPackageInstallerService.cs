@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         Task<bool> TryInstallPackageAsync(
             Workspace workspace, DocumentId documentId,
-            string source, string packageName,
+            string? source, string packageName,
             string? version, bool includePrerelease,
-            IProgressTracker progressTracker, CancellationToken cancellationToken);
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
@@ -45,19 +46,13 @@ namespace Microsoft.CodeAnalysis.Packaging
     }
 
     [DataContract]
-    internal readonly struct PackageSource : IEquatable<PackageSource>
+    internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
     {
         [DataMember(Order = 0)]
-        public readonly string Name;
+        public readonly string Name = name;
 
         [DataMember(Order = 1)]
-        public readonly string Source;
-
-        public PackageSource(string name, string source)
-        {
-            Name = name;
-            Source = source;
-        }
+        public readonly string Source = source;
 
         public override bool Equals(object? obj)
             => obj is PackageSource source && Equals(source);

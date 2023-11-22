@@ -11,19 +11,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class SymbolEquivalenceComparer
     {
-        internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol?>
+        internal class ParameterSymbolEqualityComparer(
+            SymbolEquivalenceComparer symbolEqualityComparer,
+            bool distinguishRefFromOut) : IEqualityComparer<IParameterSymbol?>
         {
-            private readonly SymbolEquivalenceComparer _symbolEqualityComparer;
-            private readonly bool _distinguishRefFromOut;
-
-            public ParameterSymbolEqualityComparer(
-                SymbolEquivalenceComparer symbolEqualityComparer,
-                bool distinguishRefFromOut)
-            {
-                _symbolEqualityComparer = symbolEqualityComparer;
-                _distinguishRefFromOut = distinguishRefFromOut;
-            }
-
             public bool Equals(
                 IParameterSymbol? x,
                 IParameterSymbol? y,
@@ -53,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // equality, then we want to consider method type parameters by index only.
 
                 return
-                    AreRefKindsEquivalent(x.RefKind, y.RefKind, _distinguishRefFromOut) &&
+                    AreRefKindsEquivalent(x.RefKind, y.RefKind, distinguishRefFromOut) &&
                     nameComparisonCheck &&
-                    _symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
-                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
+                    symbolEqualityComparer.GetEquivalenceVisitor().AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
+                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
             }
 
             public bool Equals(IParameterSymbol? x, IParameterSymbol? y)
@@ -74,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return
                     Hash.Combine(x.IsRefOrOut(),
-                    _symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
+                    symbolEqualityComparer.SignatureTypeEquivalenceComparer.GetHashCode(x.Type));
             }
         }
 

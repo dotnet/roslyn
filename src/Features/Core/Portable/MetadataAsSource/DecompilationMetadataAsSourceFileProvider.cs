@@ -26,7 +26,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
-    internal class DecompilationMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "Decompilation";
 
@@ -44,19 +46,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// </summary>
         private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
+        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService = implementationAssemblyLookupService;
 
         /// <summary>
         /// Only accessed and mutated from UI thread.
         /// </summary>
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService)
-        {
-            _implementationAssemblyLookupService = implementationAssemblyLookupService;
-        }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
             MetadataAsSourceWorkspace metadataWorkspace,
@@ -153,15 +148,38 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 // We have the content, so write it out to disk
-                var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                 // to retry this a few times.
+                //
+                // If we still can't create the folder after 5 seconds, assume we will not be able to create it and
+                // continue without actually writing the text to disk.
                 var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
+                var stopwatch = SharedStopwatch.StartNew();
+                var timeout = TimeSpan.FromSeconds(5);
+                var firstAttempt = true;
+                var skipWritingFile = false;
                 while (!Directory.Exists(directoryToCreate))
                 {
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                    {
+                        // If we still can't create the folder after 5 seconds, assume we will not be able to create it.
+                        skipWritingFile = true;
+                        break;
+                    }
+
                     try
                     {
+                        if (firstAttempt)
+                        {
+                            firstAttempt = false;
+                        }
+                        else
+                        {
+                            await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
+                        }
+
                         Directory.CreateDirectory(directoryToCreate);
                     }
                     catch (DirectoryNotFoundException)
@@ -172,13 +190,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     }
                 }
 
-                using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                if (!skipWritingFile)
                 {
-                    text.Write(textWriter, cancellationToken);
-                }
+                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
+                    {
+                        text.Write(textWriter, cancellationToken);
+                    }
 
-                // Mark read-only
-                new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
+                    // Mark read-only
+                    new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
+                }
 
                 // Locate the target in the thing we just created
                 navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);

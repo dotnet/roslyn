@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.ChangingCapturedVariableScope, nameof(FeaturesResources.Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ChangingLambdaParameters, nameof(FeaturesResources.Changing_the_parameters_of_0_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.ChangingLambdaReturnType, nameof(FeaturesResources.Changing_the_return_type_of_0_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.ChangingQueryLambdaType, nameof(FeaturesResources.Changing_the_type_of_0_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.ChangingQueryLambdaType, nameof(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.AccessingCapturedVariableInLambda, nameof(FeaturesResources.Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.NotAccessingCapturedVariableInLambda, nameof(FeaturesResources.Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application));
             AddRudeEdit(RudeEditKind.InsertLambdaWithMultiScopeCapture, nameof(FeaturesResources.Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application));
@@ -133,9 +133,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MemberBodyInternalError, nameof(FeaturesResources.Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1));
             AddRudeEdit(RudeEditKind.MemberBodyTooBig, nameof(FeaturesResources.Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements));
             AddRudeEdit(RudeEditKind.SourceFileTooBig, nameof(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big));
-            AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application));
-            AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
             AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.MakeMethodIteratorNotSupportedByRuntime, nameof(FeaturesResources.Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
@@ -149,10 +146,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.RenamingNotSupportedByRuntime, nameof(FeaturesResources.Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.ChangingNonCustomAttribute, nameof(FeaturesResources.Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application));
             AddRudeEdit(RudeEditKind.ChangingNamespace, nameof(FeaturesResources.Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application));
-            AddRudeEdit(RudeEditKind.ChangingTypeNotSupportedByRuntime, nameof(FeaturesResources.Changing_the_type_of_0_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.ChangingSignatureNotSupportedByRuntime, nameof(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.DeleteNotSupportedByRuntime, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.UpdatingStateMachineMethodNotSupportedByRuntime, nameof(FeaturesResources.Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
             AddRudeEdit(RudeEditKind.UpdatingGenericNotSupportedByRuntime, nameof(FeaturesResources.Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.CapturingPrimaryConstructorParameter, nameof(FeaturesResources.Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.NotCapturingPrimaryConstructorParameter, nameof(FeaturesResources.Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.ChangingAttribute, nameof(FeaturesResources.Changing_attribute_0_requires_restarting_the_application));
+            AddRudeEdit(RudeEditKind.ChangingNameOrSignatureOfActiveMember, nameof(FeaturesResources.Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

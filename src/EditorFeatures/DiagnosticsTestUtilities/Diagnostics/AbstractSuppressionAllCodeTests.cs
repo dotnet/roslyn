@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     }
 
                     var operations = fix.GetOperationsAsync(
-                        document.Project.Solution, new ProgressTracker(), CancellationToken.None).GetAwaiter().GetResult();
+                        document.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None).GetAwaiter().GetResult();
 
                     var applyChangesOperation = operations.OfType<ApplyChangesOperation>().Single();
                     var newDocument = applyChangesOperation.ChangedSolution.Projects.Single().Documents.Single();
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             private readonly DiagnosticDescriptor _descriptor =
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions options) => false;
 

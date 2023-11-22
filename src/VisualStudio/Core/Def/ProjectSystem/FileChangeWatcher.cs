@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -417,19 +416,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IWatchedFile EnqueueWatchingFile(string filePath)
             {
                 // If we already have this file under our path, we may not have to do additional watching
-                foreach (var watchedDirectory in _watchedDirectories)
-                {
-                    if (filePath.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // If ExtensionFilter is null, then we're watching for all files in the directory so the prior check
-                        // of the directory containment was sufficient. If it isn't null, then we have to check the extension
-                        // matches.
-                        if (watchedDirectory.ExtensionFilter == null || filePath.EndsWith(watchedDirectory.ExtensionFilter, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return NoOpWatchedFile.Instance;
-                        }
-                    }
-                }
+                if (WatchedDirectory.FilePathCoveredByWatchedDirectories(_watchedDirectories, filePath, StringComparison.OrdinalIgnoreCase))
+                    return NoOpWatchedFile.Instance;
 
                 var token = new RegularWatchedFile(this);
 
@@ -509,23 +497,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             int IVsFileChangeEvents.DirectoryChanged(string pszDirectory)
                 => VSConstants.E_NOTIMPL;
-
-            /// <summary>
-            /// When a FileChangeWatcher already has a watch on a directory, a request to watch a specific file is a no-op. In that case, we return this token,
-            /// which when disposed also does nothing.
-            /// </summary>
-            internal sealed class NoOpWatchedFile : IWatchedFile
-            {
-                public static readonly IWatchedFile Instance = new NoOpWatchedFile();
-
-                private NoOpWatchedFile()
-                {
-                }
-
-                public void Dispose()
-                {
-                }
-            }
 
             public sealed class RegularWatchedFile : IWatchedFile
             {

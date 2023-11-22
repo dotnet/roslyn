@@ -712,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
                     // NOTE: passing "ReadOnlyStrict" here. 
                     //       we should not get an address of a copy if at all possible
                     var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
@@ -930,9 +931,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
-            Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(arguments.Length == parameters.Length ||
+                (arguments.Length == parameters.Length + 1 && arguments is [.., BoundArgListOperator]), "argument count must match parameter count");
             Debug.Assert(parameters.All(p => p.RefKind == RefKind.None) || !argRefKindsOpt.IsDefault, "there are nontrivial parameters, so we must have argRefKinds");
-            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length, "if we have argRefKinds, we should have one for each argument");
+            // We might have a missing ref kind for the __arglist() of a varargs method.
+            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length ||
+                (argRefKindsOpt.Length == arguments.Length - 1 && arguments is [.., BoundArgListOperator]), "if we have argRefKinds, we should have one for each argument");
 
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -956,13 +960,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     argRefKind = argRefKindsOpt[i];
 
                     Debug.Assert(argRefKind == parameters[i].RefKind ||
-                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            parameters[i].RefKind switch
+                            {
+                                RefKind.In => argRefKind == RefKindExtensions.StrictIn,
+                                RefKind.RefReadOnlyParameter => argRefKind is RefKind.In or RefKindExtensions.StrictIn,
+                                _ => false,
+                            },
                             "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
+                    Debug.Assert(parameters[i].RefKind != RefKind.RefReadOnlyParameter,
+                        "LocalRewriter.GetEffectiveArgumentRefKinds should ensure 'ref readonly' parameters get an entry in 'argRefKindsOpt'.");
+
                     // otherwise fallback to the refKind of the parameter
-                    argRefKind = parameters[i].RefKind;
+                    argRefKind = parameters[i].RefKind switch
+                    {
+                        RefKind.RefReadOnlyParameter => RefKind.In, // should not happen, asserted above
+                        var refKind => refKind
+                    };
                 }
             }
             else
@@ -1854,7 +1870,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // receiver is generic and method must come from the base or an interface or a generic constraint
                     // if the receiver is actually a value type it would need to be boxed.
                     // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                    callKind = receiverType.IsReferenceType &&
+                               (!IsRef(receiver) ||
+                                (!ReceiverIsKnownToReferToTempIfReferenceType(receiver) && !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))) ?
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 
@@ -2949,7 +2967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
@@ -3666,8 +3684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
-                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
-                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                expr.Consequence.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isConsequenceOne) == true &&
+                expr.Alternative.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isAlternativeOne) == true &&
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
@@ -3743,33 +3761,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
-
-            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
-            {
-                if (expr.ConstantValueOpt is { } constantValue)
-                {
-                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
-                    {
-                        isOne = i == 1;
-                        return true;
-                    }
-
-                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
-                    {
-                        isOne = b;
-                        return true;
-                    }
-
-                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
-                    {
-                        isOne = c == 1;
-                        return true;
-                    }
-                }
-
-                isOne = false;
-                return false;
-            }
         }
 
         /// <summary>

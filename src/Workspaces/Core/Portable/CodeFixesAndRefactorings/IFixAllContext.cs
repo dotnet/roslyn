@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         FixAllScope Scope { get; }
         string? CodeActionEquivalenceKey { get; }
         CancellationToken CancellationToken { get; }
-        IProgressTracker ProgressTracker { get; }
+        IProgress<CodeAnalysisProgress> Progress { get; }
 
         string GetDefaultFixAllTitle();
         IFixAllContext With(

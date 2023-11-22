@@ -172,10 +172,9 @@ namespace Microsoft.CodeAnalysis
             // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
+
             // check to see if we already have the tree before actually going async
             if (TryGetSyntaxTree(out var tree))
             {
@@ -184,15 +183,11 @@ namespace Microsoft.CodeAnalysis
                 // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
                 Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
 
             // do it async for real.
-            // GetSyntaxTreeAsync returns a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-            // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask()!;
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
         }
 
         internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -410,8 +405,8 @@ namespace Microsoft.CodeAnalysis
                         return tree.GetChanges(oldTree);
                     }
 
-                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return text.GetTextChanges(oldText).ToList();
                 }

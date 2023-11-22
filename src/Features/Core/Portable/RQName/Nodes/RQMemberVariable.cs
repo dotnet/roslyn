@@ -7,15 +7,9 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQMemberVariable : RQMember
+    internal class RQMemberVariable(RQUnconstructedType containingType, string name) : RQMember(containingType)
     {
-        public readonly string Name;
-
-        public RQMemberVariable(RQUnconstructedType containingType, string name)
-            : base(containingType)
-        {
-            Name = name;
-        }
+        public readonly string Name = name;
 
         public override string MemberName
         {

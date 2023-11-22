@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
+            hasDeclarationErrors |= compilation.CheckDuplicateInterceptions(diagnostics);
+
             if (compilation.PreviousSubmission != null)
             {
                 // In case there is a previous submission, we should ensure
@@ -174,12 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 methodCompiler.WaitForWorkers();
 
-                var privateImplClass = moduleBeingBuiltOpt.PrivateImplClass;
+                // all threads that were adding methods must be finished now, we can freeze the class:
+                var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
                 if (privateImplClass != null)
                 {
-                    // all threads that were adding methods must be finished now, we can freeze the class:
-                    privateImplClass.Freeze();
-
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
             }
@@ -536,17 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
 
-                    case SymbolKind.Event:
-                        {
-                            SourceEventSymbol eventSymbol = member as SourceEventSymbol;
-                            if ((object)eventSymbol != null && eventSymbol.HasAssociatedField && !eventSymbol.IsAbstract && compilationState.Emitting)
-                            {
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: true);
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: false);
-                            }
-                            break;
-                        }
-
                     case SymbolKind.Field:
                         {
                             var fieldSymbol = (FieldSymbol)member;
@@ -653,11 +642,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
         {
-            if (IsFieldLikeEventAccessor(method))
-            {
-                return null;
-            }
-
             if (method.IsPartialDefinition())
             {
                 return method.PartialImplementationPart;
@@ -671,7 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true)))
+            var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
@@ -811,14 +796,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsFieldLikeEventAccessor(MethodSymbol method)
-        {
-            Symbol associatedPropertyOrEvent = method.AssociatedSymbol;
-            return (object)associatedPropertyOrEvent != null &&
-                associatedPropertyOrEvent.Kind == SymbolKind.Event &&
-                ((EventSymbol)associatedPropertyOrEvent).HasAssociatedField;
-        }
-
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
         /// base type from another assembly) it is necessary for the compiler to generate explicit implementations for
@@ -859,57 +836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 discardedDiagnostics.Free();
 
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetCciAdapter());
-            }
-        }
-
-        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
-        private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
-        {
-            Debug.Assert(_moduleBeingBuiltOpt != null);
-
-            MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
-
-            var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
-            try
-            {
-                BoundBlock boundBody = MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(eventSymbol, isAddMethod, _compilation, diagnosticsThisMethod);
-                var hasErrors = diagnosticsThisMethod.HasAnyErrors();
-                SetGlobalErrorIfTrue(hasErrors);
-
-                // we cannot rely on GlobalHasErrors since that can be changed concurrently by other methods compiling
-                // we however do not want to continue with generating method body if we have errors in this particular method - generating may crash
-                // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
-                if (!hasErrors && !_hasDeclarationErrors && _emitMethodBodies)
-                {
-                    const int accessorOrdinal = -1;
-
-                    var instrumentation = _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(accessor);
-
-                    MethodBody emittedBody = GenerateMethodBody(
-                        _moduleBeingBuiltOpt,
-                        accessor,
-                        accessorOrdinal,
-                        boundBody,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
-                        ImmutableArray<StateMachineStateDebugInfo>.Empty,
-                        stateMachineTypeOpt: null,
-                        variableSlotAllocatorOpt: null,
-                        diagnostics: diagnosticsThisMethod,
-                        debugDocumentProvider: GetDebugDocumentProvider(instrumentation),
-                        importChainOpt: null,
-                        emittingPdb: false,
-                        codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
-                        entryPointOpt: null);
-
-                    _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
-                    // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
-                }
-            }
-            finally
-            {
-                _diagnostics.AddRange(diagnosticsThisMethod);
-                diagnosticsThisMethod.Free();
             }
         }
 
@@ -1051,7 +977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol, processedInitializers.BoundInitializers, diagsForCurrentMethod);
+                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
+                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
+                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
@@ -1931,7 +1859,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
-                        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 

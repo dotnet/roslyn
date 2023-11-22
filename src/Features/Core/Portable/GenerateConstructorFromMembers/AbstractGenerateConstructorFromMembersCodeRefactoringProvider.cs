@@ -73,11 +73,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 context.CancellationToken);
         }
 
-        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
         {
             var accessibility = intentDataProvider.GetIntentData<GenerateConstructorIntentData>()?.Accessibility;
 
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             await ComputeRefactoringsAsync(
                 priorDocument,
                 priorSelection,
@@ -94,19 +95,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // The refactorings returned will be in the following order (if available)
             // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
-            using var resultsBuilder = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            using var _2 = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
-                var intentResult = await GetIntentProcessorResultAsync(priorDocument, action, cancellationToken).ConfigureAwait(false);
+                // Intents don't current support progress.
+                var intentResult = await GetIntentProcessorResultAsync(
+                    priorDocument, action, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 results.AddIfNotNull(intentResult);
             }
 
             return results.ToImmutable();
 
-            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(Document priorDocument, CodeAction codeAction, CancellationToken cancellationToken)
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
+                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var operations = await GetCodeActionOperationsAsync(
-                    priorDocument.Project.Solution, codeAction, cancellationToken).ConfigureAwait(false);
+                    priorDocument.Project.Solution, codeAction, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
                 // We can only return edits, so we only care about the ApplyChangesOperation.
@@ -123,6 +127,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
                 Solution originalSolution,
                 CodeAction action,
+                IProgress<CodeAnalysisProgress> progressTracker,
                 CancellationToken cancellationToken)
             {
                 if (action is GenerateConstructorWithDialogCodeAction dialogAction)
@@ -133,12 +138,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         dialogAction.ViableMembers,
                         dialogAction.PickMembersOptions,
                         selectedAll: true);
-                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, cancellationToken).ConfigureAwait(false);
+                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
                     return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
                 }
                 else
                 {
-                    return await action.GetOperationsAsync(originalSolution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                    return await action.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             CancellationToken cancellationToken)
         {
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,

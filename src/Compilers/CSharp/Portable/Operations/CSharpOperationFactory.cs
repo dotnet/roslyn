@@ -100,6 +100,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                case BoundKind.CollectionExpression:
+                    return CreateBoundCollectionExpression((BoundCollectionExpression)boundNode);
+                case BoundKind.CollectionExpressionSpreadElement:
+                    return CreateBoundCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -137,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.ImplicitIndexerAccess:
                     return CreateBoundImplicitIndexerAccessOperation((BoundImplicitIndexerAccess)boundNode);
+                case BoundKind.InlineArrayAccess:
+                    return CreateBoundInlineArrayAccessOperation((BoundInlineArrayAccess)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -300,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.UnconvertedCollectionExpression:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -745,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IObjectOrCollectionInitializerOperation? initializer = (IObjectOrCollectionInitializerOperation?)Create(boundDynamicObjectCreationExpression.InitializerExpressionOpt);
             ImmutableArray<IOperation> arguments = CreateFromArray<BoundExpression, IOperation>(boundDynamicObjectCreationExpression.Arguments);
-            ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<string?> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicObjectCreationExpression.Syntax;
             ITypeSymbol? type = boundDynamicObjectCreationExpression.GetPublicTypeSymbol();
@@ -774,7 +781,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation operation = CreateBoundDynamicInvocationExpressionReceiver(boundDynamicInvocation.Expression);
             ImmutableArray<IOperation> arguments = CreateFromArray<BoundExpression, IOperation>(boundDynamicInvocation.Arguments);
-            ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<string?> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicInvocation.Syntax;
             ITypeSymbol? type = boundDynamicInvocation.GetPublicTypeSymbol();
@@ -805,6 +812,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromArray<BoundExpression, IOperation>(boundDynamicAccess.Arguments);
 
                 case BoundObjectInitializerMember boundObjectInitializerMember:
+                    Debug.Assert(!boundObjectInitializerMember.Expanded);
                     return CreateFromArray<BoundExpression, IOperation>(boundObjectInitializerMember.Arguments);
 
                 default:
@@ -816,7 +824,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IOperation operation = CreateBoundDynamicIndexerAccessExpressionReceiver(boundDynamicIndexerAccess);
             ImmutableArray<IOperation> arguments = CreateBoundDynamicIndexerAccessArguments(boundDynamicIndexerAccess);
-            ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<string?> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
             SyntaxNode syntax = boundDynamicIndexerAccess.Syntax;
             ITypeSymbol? type = boundDynamicIndexerAccess.GetPublicTypeSymbol();
@@ -855,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 IOperation operation = CreateBoundDynamicIndexerAccessExpressionReceiver(boundObjectInitializerMember);
                 ImmutableArray<IOperation> arguments = CreateBoundDynamicIndexerAccessArguments(boundObjectInitializerMember);
-                ImmutableArray<string> argumentNames = boundObjectInitializerMember.ArgumentNamesOpt.NullToEmpty();
+                ImmutableArray<string?> argumentNames = boundObjectInitializerMember.ArgumentNamesOpt.NullToEmpty();
                 ImmutableArray<RefKind> argumentRefKinds = boundObjectInitializerMember.ArgumentRefKindsOpt.NullToEmpty();
                 return new DynamicIndexerAccessOperation(operation, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, isImplicit);
             }
@@ -972,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol? type = boundCollectionElementInitializer.GetPublicTypeSymbol();
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
-            return new DynamicInvocationOperation(operation, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, isImplicit);
+            return new DynamicInvocationOperation(operation, arguments, argumentNames: ImmutableArray<string?>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, isImplicit);
         }
 
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
@@ -1212,6 +1220,47 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundArrayInitialization.Syntax;
             bool isImplicit = boundArrayInitialization.WasCompilerGenerated;
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
+        }
+
+        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression boundCollectionExpression)
+        {
+            ImmutableArray<IOperation> elements = createChildren(boundCollectionExpression.Elements);
+            SyntaxNode syntax = boundCollectionExpression.Syntax;
+            ITypeSymbol? type = boundCollectionExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionExpression.WasCompilerGenerated;
+            return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
+
+            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundNode> elements)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    var child = createChild(element);
+                    if (child is { })
+                    {
+                        builder.Add(child);
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            IOperation? createChild(BoundNode element)
+            {
+                var result = element switch
+                {
+                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
+                    _ => element,
+                };
+                return Create(result);
+            }
+        }
+
+        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement boundSpreadExpression)
+        {
+            SyntaxNode syntax = boundSpreadExpression.Syntax;
+            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
+            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
+            return new NoneOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
         }
 
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
@@ -1587,6 +1636,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ImplicitIndexerReferenceOperation(instance, argument, lengthSymbol, indexerSymbol, _semanticModel, syntax, type, isImplicit);
         }
 
+        private IInlineArrayAccessOperation CreateBoundInlineArrayAccessOperation(BoundInlineArrayAccess boundInlineArrayAccess)
+        {
+            IOperation arrayReference = Create(boundInlineArrayAccess.Expression);
+            IOperation argument = Create(boundInlineArrayAccess.Argument);
+            SyntaxNode syntax = boundInlineArrayAccess.Syntax;
+            ITypeSymbol? type = boundInlineArrayAccess.GetPublicTypeSymbol();
+            bool isImplicit = boundInlineArrayAccess.WasCompilerGenerated;
+
+            return new InlineArrayAccessOperation(arrayReference, argument, _semanticModel, syntax, type, isImplicit);
+        }
+
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {
             IOperation argument = Create(boundNameOfOperator.Argument);
@@ -1796,6 +1856,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
                                                     enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    inlineArrayConversion: enumeratorInfoOpt.InlineArraySpanType is WellKnownType.Unknown ? null : Conversion.InlineArray,
+                                                    collectionIsInlineArrayValue: enumeratorInfoOpt.InlineArrayUsedAsValue,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
@@ -1806,10 +1868,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
-                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
+                                                    getEnumeratorArguments: createArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo),
+                                                    moveNextArguments: createArgumentOperations(enumeratorInfoOpt.MoveNextInfo),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo)
                                                         : default);
             }
             else
@@ -1819,8 +1881,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return info;
 
-            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
-                 SyntaxNode invocationSyntax)
+            ImmutableArray<IArgumentOperation> createArgumentOperations(MethodArgumentInfo? info)
             {
                 if (info == null)
                 {
@@ -1835,8 +1896,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     info.Arguments,
                     argumentsToParametersOpt: default,
                     info.DefaultArguments,
-                    info.Expanded,
-                    invocationSyntax: invocationSyntax,
                     invokedAsExtensionMethod: info.Method.IsExtensionMethod
                 );
                 return Operation.SetParentOperation(args, null);
@@ -1866,7 +1925,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
             IOperation loopControlVariable = CreateBoundForEachStatementLoopControlVariable(boundForEachStatement);
-            IOperation collection = Create(boundForEachStatement.Expression);
+            // Strip identity conversion added by compiler on top of inline array. Conversion produces an rvalue, but we need the IOperation tree to preserve lvalue-ness of the original collection. 
+            IOperation collection = Create(boundForEachStatement.EnumeratorInfoOpt?.InlineArraySpanType is null or WellKnownType.Unknown ||
+                                           boundForEachStatement.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ?
+                                               boundForEachStatement.Expression :
+                                               operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
             ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);
@@ -1926,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DisposeOperationInfo disposeOperationInfo = boundUsingStatement.PatternDisposeInfoOpt is object
                                                          ? new DisposeOperationInfo(
                                                                  disposeMethod: boundUsingStatement.PatternDisposeInfoOpt.Method.GetPublicSymbol(),
-                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.PatternDisposeInfoOpt, boundUsingStatement.Syntax))
+                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.PatternDisposeInfoOpt))
                                                          : default;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
@@ -2065,7 +2128,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     disposeInfo: usingDecl.PatternDisposeInfoOpt is object
                                    ? new DisposeOperationInfo(
                                            disposeMethod: usingDecl.PatternDisposeInfoOpt.Method.GetPublicSymbol(),
-                                           disposeArguments: CreateDisposeArguments(usingDecl.PatternDisposeInfoOpt, usingDecl.Syntax))
+                                           disposeArguments: CreateDisposeArguments(usingDecl.PatternDisposeInfoOpt))
                                    : default,
                      _semanticModel,
                     declarationGroupSyntax,
@@ -2257,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return builder.ToImmutableAndFree();
 
-                static (BoundExpression Value, BoundExpression? Alignment, BoundExpression? Format) getCallInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, (bool IsLiteral, bool HasAlignment, bool HasFormat) currentPosition)
+                static (BoundExpression Value, BoundExpression? Alignment, BoundExpression? Format) getCallInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, (bool IsLiteral, bool HasAlignment, bool HasFormat) currentPosition)
                 {
                     BoundExpression value = arguments[0];
 
@@ -2792,7 +2855,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
-        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodArgumentInfo patternDisposeInfo, SyntaxNode syntax)
+        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodArgumentInfo patternDisposeInfo)
         {
             // can't be an extension method for dispose
             Debug.Assert(!patternDisposeInfo.Method.IsStatic);
@@ -2807,10 +2870,8 @@ namespace Microsoft.CodeAnalysis.Operations
             var args = DeriveArguments(
                             patternDisposeInfo.Method,
                             patternDisposeInfo.Arguments,
-                            patternDisposeInfo.ArgsToParamsOpt,
+                            argumentsToParametersOpt: default,
                             patternDisposeInfo.DefaultArguments,
-                            patternDisposeInfo.Expanded,
-                            syntax,
                             invokedAsExtensionMethod: false);
 
             return Operation.SetParentOperation(args, null);

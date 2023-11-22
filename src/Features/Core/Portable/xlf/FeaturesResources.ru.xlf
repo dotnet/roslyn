@@ -316,8 +316,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">Ожидаемая задача возвращает "{0}".</target>
+        <source>Awaited task returns {0}</source>
+        <target state="needs-review-translation">Ожидаемая задача возвращает "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -360,6 +360,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Номер записи не может быть равен нулю</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
+        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
         <target state="translated">Для фиксации переменной "{0}", которая ранее не была зафиксированной, требуется перезапустить приложение.</target>
@@ -368,6 +373,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
         <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
         <target state="translated">Для прекращения доступа к зафиксированной переменной "{0}" в {1} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
+        <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
+        <target state="translated">Для записи параметра первичного конструктора '{0}' '{1}' требуется перезапуск приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
@@ -425,9 +435,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для изменения поля на событие или наоборот требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">Для изменения ограничений {0} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">Для изменения атрибута "{0}" требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -460,9 +480,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для изменения типа возвращаемого значения {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">Для изменения типа {0} требуется перезапустить приложение.</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Для изменения подписи {0} требуется перезапустить приложение, так как это не поддерживается средой выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -478,6 +498,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
         <source>Changing visibility of {0} requires restarting the application.</source>
         <target state="translated">Для изменения видимости {0} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Chosen_version_0">
+        <source>Chosen version: '{0}'</source>
+        <target state="translated">Выбранная версия: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -525,6 +550,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Содержащий тип</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_number">
+        <source>Convert number</source>
+        <target state="translated">Преобразовать число</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Преобразовать в LINQ</target>
@@ -570,6 +600,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удалось найти PDB-файл на диске, во внедренном источнике или на сервере символов.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_by_name_0">
+        <source>Could not find by name: '{0}'</source>
+        <target state="translated">Не удалось найти по имени: "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
         <source>Could not find implementation of symbol '{0}'</source>
         <target state="translated">Не найдена реализация символа "{0}"</target>
@@ -593,6 +628,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Создать и назначить оставшиеся как свойства</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_All_Tests">
+        <source>Debug All Tests</source>
+        <target state="new">Debug All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debug_Test">
+        <source>Debug Test</source>
+        <target state="new">Debug Test</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompilation_log">
+        <source>Decompilation log</source>
+        <target state="translated">Журнал декомпиляции</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -700,11 +750,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Примеры:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
-        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="translated">Явно реализованные методы записей должны иметь имена параметров, соответствующие компилятору, созданному эквивалентом '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">Извлечь базовый класс...</target>
@@ -740,6 +785,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Метод "Найти все ссылки" не вызван для применимого символа</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="new">Fix All: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Исправьте опечатку "{0}"</target>
@@ -753,6 +803,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Форматирование документа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_0_assemblies_for_1">
+        <source>Found '{0}' assemblies for '{1}':</source>
+        <target state="translated">Обнаружены сборки ("{0}") для "{1}":</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -773,6 +828,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Found_embedded_PDB_file">
         <source>Found embedded PDB file.</source>
         <target state="translated">Найден внедренный PDB-файл.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_exact_match_0">
+        <source>Found exact match: '{0}'</source>
+        <target state="translated">Обнаружено точное совпадение: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_higher_version_match_0">
+        <source>Found higher version match: '{0}'</source>
+        <target state="translated">Обнаружено более высокое совпадение версий: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_single_assembly_0">
+        <source>Found single assembly: '{0}'</source>
+        <target state="translated">Найдена одна сборка: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -920,16 +990,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Реализовать через "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
-        <target state="translated">Для реализации позиционного параметра записи "{0}" в режиме только для чтения требуется перезапустить приложение.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="translated">Для реализации позиционного параметра записи "{0}" с заданным методом доступа требуется перезапустить приложение.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Незавершенная escape-последовательность \p{X}</target>
@@ -1060,6 +1120,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Инвертировать условный оператор</target>
         <note />
       </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="translated">Загрузить из: "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Чтобы сделать метод итератором, требуется перезапустить приложение, так как это не поддерживается средой выполнения.</target>
@@ -1188,6 +1253,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
         <target state="translated">Для изменения исходного кода с включенными экспериментальными функциями языка требуется перезапустить приложение..</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module_not_found">
+        <source>Module not found!</source>
+        <target state="translated">Модуль не найден.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -2470,14 +2540,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Удаление документа не поддерживается</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Удалить ненужные операторы Imports или директивы using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Удалить ненужные приведения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="new">Remove unnecessary imports or usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2540,14 +2610,34 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">требуется</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
+      <trans-unit id="Resolve_0">
+        <source>Resolve: '{0}'</source>
+        <target state="translated">Разрешить: "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
         <target state="translated">Разрешение меток конфликтов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Resolve_module_0_of_1">
+        <source>Resolve module: '{0}' of '{1}'</source>
+        <target state="translated">Разрешить модуль: "{0}" из "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Грубая редакция</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_All_Tests">
+        <source>Run All Tests</source>
+        <target state="new">Run All Tests</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Test">
+        <source>Run Test</source>
+        <target state="new">Run Test</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2785,6 +2875,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Развернуть цепочку вызовов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="new">Unwrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Развернуть выражение</target>
@@ -2807,7 +2902,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Обновление {0} в универсальном типе или методе требует перезапуска приложения, поскольку это не поддерживается средой выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
@@ -2832,7 +2927,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Updating async or iterator requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Обновление асинхронного режима или итератора требует перезапуска приложения, так как это не поддерживается средой выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2920,6 +3015,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Требуется значение</target>
         <note />
       </trans-unit>
+      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
+        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
+        <target state="translated">Внимание! Несовпадение версий. Ожидалось: "{0}", получено: "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Предупреждение: изменение пространства имен может привести к появлению недопустимого кода и к изменению значения кода.</target>
@@ -2950,6 +3050,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Свернуть цепочку вызовов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="new">Wrap collection</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Свернуть каждый аргумент</target>
@@ -2978,6 +3083,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Свернуть длинную цепочку вызовов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="new">Wrap long collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3098,6 +3208,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">Здесь "{0}" имеет значение, отличное от NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_items_in_cache">
+        <source>'{0}' items in cache</source>
+        <target state="translated">Элементов в кэше: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3374,6 +3489,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">и обновлять сайты вызовов напрямую</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_with_explicit_or_sequential_layout">
+        <source>class with explicit or sequential layout</source>
+        <target state="new">class with explicit or sequential layout</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3713,11 +3833,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Не удалось извлечь интерфейс: тип не содержит никаких членов, которые можно извлечь в интерфейс.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">не удается создать итоговое дерево</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
@@ -4334,6 +4449,11 @@ When this standard format specifier is used, the formatting or parsing operation
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'"символ" не может быть пространством имен.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
+        <source>{0} '{1}' of {2} '{3}'</source>
+        <target state="translated">{0} ' {1} ' из {2} ' {3} '</target>
+        <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

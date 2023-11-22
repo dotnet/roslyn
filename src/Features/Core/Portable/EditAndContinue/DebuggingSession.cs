@@ -13,7 +13,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -307,9 +307,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
+        /// <param name="baselineProject">Project used to create the initial baseline, if the baseline does not exist yet.</param>
+        /// <param name="baselineCompilation">Compilation used to create the initial baseline, if the baseline does not exist yet.</param>
         /// <returns>True unless the project outputs can't be read.</returns>
         internal bool TryGetOrCreateEmitBaseline(
-            Project project,
+            Project baselineProject,
+            Compilation baselineCompilation,
             out ImmutableArray<Diagnostic> diagnostics,
             [NotNullWhen(true)] out ProjectBaseline? baseline,
             [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
@@ -318,15 +321,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
                 {
                     diagnostics = ImmutableArray<Diagnostic>.Empty;
                     return true;
                 }
             }
 
-            var outputs = GetCompilationOutputs(project);
-            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+            var outputs = GetCompilationOutputs(baselineProject);
+            if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
@@ -336,16 +339,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectBaselines.TryGetValue(baselineProject.Id, out baseline))
                 {
                     metadataReaderProvider.Dispose();
                     debugInfoReaderProvider.Dispose();
                     return true;
                 }
 
-                baseline = new ProjectBaseline(project.Id, initialBaseline, generation: 0);
+                baseline = new ProjectBaseline(baselineProject.Id, initialBaseline, generation: 0);
 
-                _projectBaselines.Add(project.Id, baseline);
+                _projectBaselines.Add(baselineProject.Id, baseline);
                 _initialBaselineModuleReaders.Add(metadataReaderProvider);
                 _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
@@ -354,6 +357,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static unsafe bool TryCreateInitialBaseline(
+            Compilation compilation,
             CompilationOutputs compilationOutputs,
             ProjectId projectId,
             out ImmutableArray<Diagnostic> diagnostics,
@@ -396,6 +400,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var moduleMetadata = ModuleMetadata.CreateFromMetadata((IntPtr)metadataReader.MetadataPointer, metadataReader.MetadataLength);
 
                 baseline = EmitBaseline.CreateInitialBaseline(
+                    compilation,
                     moduleMetadata,
                     debugInfoReader.GetDebugInfo,
                     debugInfoReader.GetLocalSignature,
@@ -814,241 +819,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(
-            Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            ThrowIfDisposed();
-
-            try
-            {
-                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
-                // We return null since there the concept of active statement only makes sense during break mode.
-                if (!EditSession.InBreakState)
-                {
-                    return null;
-                }
-
-                var baseActiveStatements = await EditSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
-                {
-                    return null;
-                }
-
-                var documentId = await FindChangedDocumentContainingUnmappedActiveStatementAsync(baseActiveStatements, instructionId.Method.Module, baseActiveStatement, solution, cancellationToken).ConfigureAwait(false);
-                if (documentId == null)
-                {
-                    // Active statement not found in any changed documents, return its last position:
-                    return baseActiveStatement.Span;
-                }
-
-                var newDocument = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                if (newDocument == null)
-                {
-                    // The document has been deleted.
-                    return null;
-                }
-
-                var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken).ConfigureAwait(false);
-                if (oldDocument == null)
-                {
-                    // document out-of-date
-                    return null;
-                }
-
-                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, newDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-                if (!analysis.HasChanges)
-                {
-                    // Document content did not change:
-                    return baseActiveStatement.Span;
-                }
-
-                if (analysis.HasSyntaxErrors)
-                {
-                    // Unable to determine active statement spans in a document with syntax errors:
-                    return null;
-                }
-
-                Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
-                return analysis.ActiveStatements.GetStatement(baseActiveStatement.Ordinal).Span;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Called by the debugger to determine whether a non-leaf active statement is in an exception region,
-        /// so it can determine whether the active statement can be remapped. This only happens when the EnC is about to apply changes.
-        /// If the debugger determines we can remap active statements, the application of changes proceeds.
-        /// 
-        /// TODO: remove (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1310859)
-        /// </summary>
-        /// <returns>
-        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement in a changed method 
-        /// or the exception regions can't be determined.
-        /// </returns>
-        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            ThrowIfDisposed();
-
-            try
-            {
-                if (!EditSession.InBreakState)
-                {
-                    return null;
-                }
-
-                // This method is only called when the EnC is about to apply changes, at which point all active statements and
-                // their exception regions will be needed. Hence it's not necessary to scope this query down to just the instruction
-                // the debugger is interested at this point while not calculating the others.
-
-                var baseActiveStatements = await EditSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
-                {
-                    return null;
-                }
-
-                var documentId = await FindChangedDocumentContainingUnmappedActiveStatementAsync(baseActiveStatements, instructionId.Method.Module, baseActiveStatement, solution, cancellationToken).ConfigureAwait(false);
-                if (documentId == null)
-                {
-                    // the active statement is contained in an unchanged document, thus it doesn't matter whether it's in an exception region or not
-                    return null;
-                }
-
-                var newDocument = solution.GetRequiredDocument(documentId);
-                var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken).ConfigureAwait(false);
-                if (oldDocument == null)
-                {
-                    // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
-                    return null;
-                }
-
-                var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-                var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return null;
-            }
-        }
-
-        private async Task<DocumentId?> FindChangedDocumentContainingUnmappedActiveStatementAsync(
-            ActiveStatementsMap activeStatementsMap,
-            Guid moduleId,
-            ActiveStatement baseActiveStatement,
-            Solution newSolution,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                DocumentId? documentId = null;
-                if (TryGetProjectId(moduleId, out var projectId))
-                {
-                    var oldProject = LastCommittedSolution.GetProject(projectId);
-                    if (oldProject == null)
-                    {
-                        // TODO: https://github.com/dotnet/roslyn/issues/1204
-                        // project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
-                        // correspond to the PDB.
-                        return null;
-                    }
-
-                    var newProject = newSolution.GetProject(projectId);
-                    if (newProject == null)
-                    {
-                        // project has been deleted
-                        return null;
-                    }
-
-                    // We only maintain module ids for projects that support EnC:
-                    Debug.Assert(oldProject.SupportsEditAndContinue());
-                    Debug.Assert(newProject.SupportsEditAndContinue());
-
-                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Search for the document in all changed projects in the solution.
-
-                    using var documentFoundCancellationSource = new CancellationTokenSource();
-                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(documentFoundCancellationSource.Token, cancellationToken);
-
-                    async Task GetTaskAsync(ProjectId projectId)
-                    {
-                        var newProject = newSolution.GetRequiredProject(projectId);
-                        var oldProject = LastCommittedSolution.GetProject(projectId);
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/1204
-                        // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
-                        // correspond to the PDB.
-                        var id = (oldProject?.SupportsEditAndContinue() == true)
-                            ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                                activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false)
-                            : null;
-
-                        Interlocked.CompareExchange(ref documentId, id, null);
-                        if (id != null)
-                        {
-                            documentFoundCancellationSource.Cancel();
-                        }
-                    }
-
-                    var tasks = newSolution.ProjectIds.Select(GetTaskAsync);
-
-                    try
-                    {
-                        await Task.WhenAll(tasks).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) when (documentFoundCancellationSource.IsCancellationRequested)
-                    {
-                        // nop: cancelled because we found the document
-                    }
-                }
-
-                return documentId;
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        // Enumerate all changed documents in the project whose module contains the active statement.
-        // For each such document enumerate all #line directives to find which maps code to the span that contains the active statement.
-        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(
-            ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
-        {
-            Debug.Assert(oldProject.Id == newProject.Id);
-            Debug.Assert(oldProject.SupportsEditAndContinue());
-            Debug.Assert(newProject.SupportsEditAndContinue());
-
-            var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-
-            await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var newDocument = newProject.GetRequiredDocument(documentId);
-                var (oldDocument, _) = await oldSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken).ConfigureAwait(false);
-                if (oldDocument == null)
-                {
-                    // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
-                    return null;
-                }
-
-                var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                if (oldActiveStatements.Any(static (s, activeStatement) => s.Statement == activeStatement, activeStatement))
-                {
-                    return documentId;
-                }
-            }
-
-            return null;
-        }
-
         private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
         {
             // report telemetry (fire and forget):
@@ -1058,12 +828,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(DebuggingSession instance)
         {
-            private readonly DebuggingSession _instance;
-
-            public TestAccessor(DebuggingSession instance)
-                => _instance = instance;
+            private readonly DebuggingSession _instance = instance;
 
             public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
             {

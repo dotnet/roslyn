@@ -82,6 +82,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides Function GetHashCode() As Integer
             Return m_Identity.GetHashCode()
         End Function
@@ -118,6 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
             Return SpecializedCollections.EmptyEnumerable(Of ImmutableArray(Of Byte))()
+        End Function
+
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return SpecializedCollections.EmptyEnumerable(Of String)()
         End Function
 
         Public Overrides ReadOnly Property TypeNames As ICollection(Of String)
@@ -160,6 +176,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
+        End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
         End Function
     End Class
 

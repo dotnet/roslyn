@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify registered configuration code actions do not have duplicates.
             var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
-            var codeActions = fixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).ToImmutableArray();
+            var codeActions = fixCollections.SelectManyAsArray(c => c.Fixes.Select(f => f.Action));
             Assert.Equal(7, codeActions.Length);
             var uniqueTitles = new HashSet<string>();
             foreach (var codeAction in codeActions)
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
             _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(analyzerWithFix.ReceivedCallback);
             Assert.False(analyzerWithoutFix.ReceivedCallback);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify both analyzers are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
             _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(documentDiagnosticAnalyzer.ReceivedCallback);
         }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             Assert.False(codeFix.Called);
             var fixCollectionSet = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Normal), CodeActionOptions.DefaultProvider,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
                 addOperationScope: _ => null, cancellationToken: CancellationToken.None);
             Assert.True(codeFix.Called);
             var fixCollection = Assert.Single(fixCollectionSet);
@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify code fix application
             var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
-            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution);
+            var solution = await codeAction.GetChangedSolutionInternalAsync(txtDocument.Project.Solution, CodeAnalysisProgress.None);
             var changedtxtDocument = solution!.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtDocument.Id);
             Assert.Equal("Additional Document", txtDocument.GetTextSynchronously(CancellationToken.None).ToString());
             Assert.Equal($"Additional Document{fixer1.Title}", changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -1107,7 +1107,7 @@ class C
             }
 
             var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-            var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Normal, lowPriorityAnalyzers);
+            var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers);
             var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
             priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers);
             var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, addOperationScope: _ => null, CancellationToken.None);
@@ -1171,7 +1171,7 @@ class C
             static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
             {
                 var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id,
-                    includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
                 if (!expectedCachedDiagnostic)
                 {
                     Assert.Empty(cachedDiagnostics);

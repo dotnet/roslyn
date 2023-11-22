@@ -113,9 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {

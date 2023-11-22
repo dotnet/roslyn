@@ -6,22 +6,15 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
-    internal sealed class ConflictingIdentifierTracker
+    internal sealed class ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed, IEqualityComparer<string> identifierComparer)
     {
         /// <summary>
         /// The core data structure of the tracker. This is a dictionary of variable name to the
         /// current identifier tokens that are declaring variables. This should only ever be updated
         /// via the AddIdentifier and RemoveIdentifier helpers.
         /// </summary>
-        private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope;
+        private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
         private readonly HashSet<SyntaxToken> _conflictingTokensToReport = new();
-        private readonly SyntaxToken _tokenBeingRenamed;
-
-        public ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed, IEqualityComparer<string> identifierComparer)
-        {
-            _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
-            _tokenBeingRenamed = tokenBeingRenamed;
-        }
 
         public IEnumerable<SyntaxToken> ConflictingTokens => _conflictingTokensToReport;
 
@@ -41,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // If at least one of the identifiers is the one we're renaming,
                 // track it. This means that conflicts unrelated to our rename (that
                 // were there when we started) we won't flag.
-                if (conflictingTokens.Contains(_tokenBeingRenamed))
+                if (conflictingTokens.Contains(tokenBeingRenamed))
                 {
                     foreach (var conflictingToken in conflictingTokens)
                     {
-                        if (conflictingToken != _tokenBeingRenamed)
+                        if (conflictingToken != tokenBeingRenamed)
                         {
                             // conflictingTokensToReport is a set, so we won't get duplicates
                             _conflictingTokensToReport.Add(conflictingToken);

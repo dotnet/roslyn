@@ -14,29 +14,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class BindingDiagnosticBag : BindingDiagnosticBag<AssemblySymbol>
     {
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithBoth = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithBoth!, new DiagnosticBag(), new HashSet<AssemblySymbol>()));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDiagnosticsOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDiagnosticsOnly!, new DiagnosticBag(), dependenciesBag: null));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithDependenciesOnly = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithDependenciesOnly!, diagnosticBag: null, new HashSet<AssemblySymbol>()));
+        private static readonly ObjectPool<BindingDiagnosticBag> s_poolWithConcurrent = new ObjectPool<BindingDiagnosticBag>(() => new BindingDiagnosticBag(s_poolWithConcurrent!, new DiagnosticBag(), new Roslyn.Utilities.ConcurrentSet<AssemblySymbol>()));
+
         public static readonly BindingDiagnosticBag Discarded = new BindingDiagnosticBag(null, null);
 
-        public BindingDiagnosticBag()
-            : this(usePool: false)
-        { }
+        private readonly ObjectPool<BindingDiagnosticBag>? _pool;
 
-        private BindingDiagnosticBag(bool usePool)
-            : base(usePool)
-        { }
-
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
-            : base(diagnosticBag, dependenciesBag: null)
-        {
-        }
-
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
+        private BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
             : base(diagnosticBag, dependenciesBag)
         {
         }
 
+        private BindingDiagnosticBag(ObjectPool<BindingDiagnosticBag> pool, DiagnosticBag? diagnosticBag, ICollection<AssemblySymbol>? dependenciesBag)
+            : base(diagnosticBag, dependenciesBag)
+        {
+            _pool = pool;
+        }
+
         internal static BindingDiagnosticBag GetInstance()
         {
-            return new BindingDiagnosticBag(usePool: true);
+            return s_poolWithBoth.Allocate();
         }
 
         internal static BindingDiagnosticBag GetInstance(bool withDiagnostics, bool withDependencies)
@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetInstance();
                 }
 
-                return new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                return s_poolWithDiagnosticsOnly.Allocate();
             }
             else if (withDependencies)
             {
-                return new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                return s_poolWithDependenciesOnly.Allocate();
             }
             else
             {
@@ -65,24 +65,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetInstance(template.AccumulatesDiagnostics, template.AccumulatesDependencies);
         }
 
-        internal static BindingDiagnosticBag Create(BindingDiagnosticBag template)
+        /// <summary>
+        /// Get an instance suitable for concurrent additions to both underlying bags.
+        /// </summary>
+        internal static BindingDiagnosticBag GetConcurrentInstance()
         {
-            if (template.AccumulatesDiagnostics)
-            {
-                if (template.AccumulatesDependencies)
-                {
-                    return new BindingDiagnosticBag();
-                }
+            return s_poolWithConcurrent.Allocate();
+        }
 
-                return new BindingDiagnosticBag(new DiagnosticBag());
-            }
-            else if (template.AccumulatesDependencies)
+        internal override void Free()
+        {
+            if (_pool is { } pool)
             {
-                return new BindingDiagnosticBag(diagnosticBag: null, new HashSet<AssemblySymbol>());
+                Clear();
+                pool.Free(this);
             }
             else
             {
-                return Discarded;
+                base.Free();
             }
         }
 

@@ -6,18 +6,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
     internal abstract partial class AbstractGenerateConstructorService<TService, TExpressionSyntax>
     {
-        protected readonly struct Argument
+        protected readonly struct Argument(RefKind refKind, string? name, TExpressionSyntax? expression)
         {
-            public readonly RefKind RefKind;
-            public readonly string Name;
-            public readonly TExpressionSyntax? Expression;
-
-            public Argument(RefKind refKind, string? name, TExpressionSyntax? expression)
-            {
-                RefKind = refKind;
-                Name = name ?? "";
-                Expression = expression;
-            }
+            public readonly RefKind RefKind = refKind;
+            public readonly string Name = name ?? "";
+            public readonly TExpressionSyntax? Expression = expression;
 
             public bool IsNamed => !string.IsNullOrEmpty(Name);
         }

@@ -44,6 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyDeclaredAccessibility As Integer = s_unsetAccessibility
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
+        Private _lazyIsRequired As ThreeState = ThreeState.Unknown
+
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
             containingType As PENamedTypeSymbol,
@@ -607,6 +609,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides ReadOnly Property DeclaringCompilation As VisualBasicCompilation
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                If Not _lazyIsRequired.HasValue() Then
+                    _lazyIsRequired = _containingType.ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute).ToThreeState()
+                End If
+
+                Return _lazyIsRequired.Value()
             End Get
         End Property
 

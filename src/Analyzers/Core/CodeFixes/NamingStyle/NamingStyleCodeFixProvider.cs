@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
 #endif
-    internal class NamingStyleCodeFixProvider : CodeFixProvider
+    internal sealed class NamingStyleCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -155,20 +156,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 return SpecializedCollections.SingletonEnumerable(
                     new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
             }
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
                 var codeAction = new ApplyChangesOperation(newSolution);
 
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-                return SpecializedCollections.SingletonEnumerable(codeAction);
+                return ImmutableArray.Create<CodeActionOperation>(codeAction);
 #else
-                var factory = _startingSolution.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-                return new CodeActionOperation[]
+
+                using var operations = TemporaryArray<CodeActionOperation>.Empty;
+
+                operations.Add(codeAction);
+                var factory = _startingSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                if (factory is not null)
                 {
-                    codeAction,
-                    factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                };
+                    operations.Add(factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution));
+                }
+
+                return operations.ToImmutableAndClear();
 #endif
             }
 

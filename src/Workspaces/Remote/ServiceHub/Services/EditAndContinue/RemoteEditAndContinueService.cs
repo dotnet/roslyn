@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -218,28 +218,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var document = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return await GetService().GetAdjustedActiveStatementSpansAsync(sessionId, document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().IsActiveStatementInExceptionRegionAsync(sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

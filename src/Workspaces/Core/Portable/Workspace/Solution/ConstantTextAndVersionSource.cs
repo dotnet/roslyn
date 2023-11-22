@@ -12,38 +12,24 @@ namespace Microsoft.CodeAnalysis;
 /// <summary>
 /// This value source keeps a strong reference to a value.
 /// </summary>
-internal sealed class ConstantTextAndVersionSource : ValueSource<TextAndVersion>, ITextAndVersionSource
+internal sealed class ConstantTextAndVersionSource(TextAndVersion value) : ITextAndVersionSource
 {
-    private readonly TextAndVersion _value;
-
-    public ConstantTextAndVersionSource(TextAndVersion value)
-    {
-        _value = value;
-    }
+    private readonly TextAndVersion _value = value;
 
     public bool CanReloadText
         => false;
 
-    public override TextAndVersion GetValue(CancellationToken cancellationToken)
+    public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
         => _value;
 
-    public override Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken)
+    public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
         => Task.FromResult(_value);
 
-    public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
+    public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
     {
         value = _value;
         return true;
     }
-
-    public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
-        => GetValue(cancellationToken);
-
-    public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => GetValueAsync(cancellationToken);
-
-    public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
-        => TryGetValue(out value);
 
     public bool TryGetVersion(LoadTextOptions options, out VersionStamp version)
     {

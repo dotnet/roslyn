@@ -13252,7 +13252,7 @@ expectedOutput: "-100");
 }";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithConcurrentBuild(false));
             var options = compilation.Options;
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
 
             var assembly = (SourceAssemblySymbol)compilation.Assembly;
             var module = new PEAssemblyBuilder(
@@ -13268,7 +13268,7 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 hasDeclarationErrors: false,
                 emitMethodBodies: true,
-                diagnostics: new BindingDiagnosticBag(diagnostics),
+                diagnostics: diagnostics,
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -13281,7 +13281,7 @@ expectedOutput: "-100");
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             methodBodyCompiler.Visit(type);
 
-            Assert.Equal(1, diagnostics.AsEnumerable().Count());
+            Assert.Equal(1, diagnostics.DiagnosticBag.AsEnumerable().Count());
             diagnostics.Free();
         }
 

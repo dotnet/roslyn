@@ -57,14 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                     if (namedTypeSymbol.TypeKind != TypeKind.Struct)
                         return;
 
-                    //We check if struct contains any 'readonly' fields
+                    // We check if struct contains any 'readonly' fields
                     if (!HasReadonlyField(namedTypeSymbol))
+                        return;
+
+                    // Check if diagnostic location is within the analysis span
+                    if (!context.ShouldAnalyzeLocation(GetDiagnosticLocation(namedTypeSymbol)))
                         return;
 
                     var symbolAnalyzer = new SymbolAnalyzer(namedTypeSymbol);
                     symbolAnalyzer.RegisterActions(context);
                 }, SymbolKind.NamedType);
             }
+
+            private static Location GetDiagnosticLocation(INamedTypeSymbol namedTypeSymbol)
+                => namedTypeSymbol.Locations[0];
 
             private static bool HasReadonlyField(INamedTypeSymbol namedTypeSymbol)
             {
@@ -105,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
                 {
                     var diagnostic = Diagnostic.Create(
                                     s_diagnosticDescriptor,
-                                    _namedTypeSymbol.Locations[0]);
+                                    GetDiagnosticLocation(_namedTypeSymbol));
                     context.ReportDiagnostic(diagnostic);
                 }
             }

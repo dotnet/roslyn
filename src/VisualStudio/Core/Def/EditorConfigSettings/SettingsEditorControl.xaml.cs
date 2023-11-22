@@ -58,13 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             NamingStyleControl = namingStyleView.SettingControl;
             AnalyzersControl = analyzerView.SettingControl;
 
-            _views = new[]
-            {
+            _views =
+            [
                 whitespaceView,
                 codeStyleView,
                 namingStyleView,
                 analyzerView
-            };
+            ];
 
             _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
 
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
+                var originalText = await analyzerConfigDocument.GetValueTextAsync(default).ConfigureAwait(false);
                 var updatedText = originalText;
                 foreach (var view in _views)
                 {

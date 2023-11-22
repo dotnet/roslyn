@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -81,16 +82,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor, cancellationToken);
+                    task = getSessionAnalysisScopeTaskSlowAsync(this, analyzerExecutor, cancellationToken);
                     _lazySessionScopeTask = task;
                     return task;
 
-                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor, CancellationToken cancellationToken)
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlowAsync(AnalyzerExecutionContext context, AnalyzerExecutor executor, CancellationToken cancellationToken)
                     {
                         return Task.Run(() =>
                         {
                             var sessionScope = new HostSessionStartAnalysisScope();
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, cancellationToken);
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
                     }
@@ -137,6 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
                 ISymbol symbol,
                 bool isGeneratedCodeSymbol,
+                SyntaxTree? filterTree,
+                TextSpan? filterSpan,
                 ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
                 AnalyzerExecutor analyzerExecutor,
                 CancellationToken cancellationToken)
@@ -155,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, cancellationToken);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
                         if (symbolEndActions.SymbolEndActionsCount > 0)
@@ -208,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 }
                             }
 
-                            if (member.Kind != symbol.Kind &&
-                                member is INamedTypeSymbol typeMember)
+                            if (member is INamedTypeSymbol typeMember)
                             {
                                 processMembers(typeMember.GetMembers());
                             }

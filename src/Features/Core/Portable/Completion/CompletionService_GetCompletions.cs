@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
             var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
-            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
@@ -145,18 +146,21 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
                 Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
             {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
                 var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
                 if (trigger.Kind == CompletionTriggerKind.Insertion)
                 {
                     foreach (var provider in triggeredProviders)
                     {
-                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
-                        {
+                        var isSyntacticTrigger = await extensionManager.PerformFunctionAsync(
+                            provider,
+                            () => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
+                            defaultValue: false).ConfigureAwait(false);
+                        if (!isSyntacticTrigger)
                             additionalAugmentingProviders.Add(provider);
-                        }
                     }
                 }
 
@@ -270,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return CompletionList.Create(
                 completionContexts[0].CompletionListSpan,   // All contexts have the same completion list span.
-                displayNameToItemsMap.SortToSegmentedList(),
+                displayNameToItemsMap.ToSegmentedList(options),
                 GetRules(options),
                 suggestionModeItem,
                 isExclusive);
@@ -318,12 +322,20 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
-            await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+            // Wrap with extension manager call.  This will ensure this provider is not disabled.  If not, it will ask
+            // it for completions.  If that throws, then the provider will be moved to the disabled state.
+            await extensionManager.PerformActionAsync(
+                provider,
+                () => provider.ProvideCompletionsAsync(context)).ConfigureAwait(false);
+
             return context;
         }
 
-        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
+        private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
@@ -331,19 +343,19 @@ namespace Microsoft.CodeAnalysis.Completion
             private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
             private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
-            private readonly Dictionary<string, object> _displayNameToItemsMap;
-            private readonly CompletionService _service;
+            private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            private readonly CompletionService _service = service;
 
             public int Count { get; private set; }
 
-            public DisplayNameToItemsMap(CompletionService service)
+            public SegmentedList<CompletionItem> ToSegmentedList(in CompletionOptions options)
             {
-                _service = service;
-                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-            }
+                if (!options.PerformSort)
+                {
+                    return new(this);
+                }
 
-            public SegmentedList<CompletionItem> SortToSegmentedList()
-            {
+                // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
                 var list = s_sortListPool.Allocate();
                 try
                 {

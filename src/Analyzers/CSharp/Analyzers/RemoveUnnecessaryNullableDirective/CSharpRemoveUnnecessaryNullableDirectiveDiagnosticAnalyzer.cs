@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             return simplifier.Spans;
         }
 
-        private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? possibleNullableImpactIntervalTree)
+        private ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, int positionOfFirstReducingNullableDirective, TextSpanIntervalTree? codeBlockIntervalTree, TextSpanIntervalTree? possibleNullableImpactIntervalTree)
         {
             var root = context.SemanticModel.SyntaxTree.GetCompilationUnitRoot(context.CancellationToken);
 
             using (var simplifier = new NullableImpactingSpanWalker(context.SemanticModel, positionOfFirstReducingNullableDirective, ignoredSpans: codeBlockIntervalTree, context.CancellationToken))
             {
                 simplifier.Visit(root);
-                possibleNullableImpactIntervalTree ??= new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values: null);
+                possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
                 foreach (var interval in simplifier.Spans)
                 {
                     possibleNullableImpactIntervalTree.AddIntervalInPlace(interval);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                     SyntaxKind.ElifDirectiveTrivia or
                     SyntaxKind.ElseDirectiveTrivia)
                 {
-                    possibleNullableImpactIntervalTree ??= new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values: null);
+                    possibleNullableImpactIntervalTree ??= new TextSpanIntervalTree();
                     possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);
                 }
             }
@@ -175,16 +175,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                 PositionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
                 if (!completed)
                 {
-                    IntervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>());
-                    PossibleNullableImpactIntervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>());
+                    IntervalTree = new TextSpanIntervalTree();
+                    PossibleNullableImpactIntervalTree = new TextSpanIntervalTree();
                 }
             }
 
             [MemberNotNullWhen(false, nameof(PositionOfFirstReducingNullableDirective), nameof(IntervalTree), nameof(PossibleNullableImpactIntervalTree))]
             public bool Completed { get; private set; }
             public int? PositionOfFirstReducingNullableDirective { get; }
-            public SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? IntervalTree { get; }
-            public SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? PossibleNullableImpactIntervalTree { get; }
+            public TextSpanIntervalTree? IntervalTree { get; }
+            public TextSpanIntervalTree? PossibleNullableImpactIntervalTree { get; }
 
             public static SyntaxTreeState Create(bool defaultCompleted, NullableContextOptions compilationOptions, SyntaxTree tree, CancellationToken cancellationToken)
             {
@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             }
         }
 
-        private class AnalyzerImpl
+        private class AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
         {
-            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer;
+            private readonly CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer _analyzer = analyzer;
 
             /// <summary>
             /// Tracks the analysis state of syntax trees in a compilation.
@@ -269,12 +269,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             private readonly ConcurrentDictionary<SyntaxTree, SyntaxTreeState> _codeBlockIntervals
                 = new();
 
-            public AnalyzerImpl(CSharpRemoveUnnecessaryNullableDirectiveDiagnosticAnalyzer analyzer)
-                => _analyzer = analyzer;
-
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {
                 if (IsIgnoredCodeBlock(context.CodeBlock))
+                    return;
+
+                var root = context.GetAnalysisRoot(findInTrivia: true);
+
+                // Bail out if the root contains no nullable directives.
+                if (!root.ContainsDirective(SyntaxKind.NullableDirectiveTrivia))
                     return;
 
                 var syntaxTreeState = GetOrCreateSyntaxTreeState(context.CodeBlock.SyntaxTree, defaultCompleted: false, context.SemanticModel, context.CancellationToken);

@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Return
                 End If
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim items = CreateCompletionItems(semanticModel, symbols, position)
                 context.AddItems(items)

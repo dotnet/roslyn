@@ -18,16 +18,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [ExportWorkspaceService(typeof(ILspHoverResultCreationService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorLspHoverResultCreationService : ILspHoverResultCreationService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class EditorLspHoverResultCreationService(IGlobalOptionService globalOptions) : ILspHoverResultCreationService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorLspHoverResultCreationService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public async Task<Hover> CreateHoverAsync(
             Document document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
@@ -37,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (!supportsVSExtensions)
                 return await DefaultLspHoverResultCreationService.CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var language = document.Project.Language;
 
             var classificationOptions = _globalOptions.GetClassificationOptions(language);

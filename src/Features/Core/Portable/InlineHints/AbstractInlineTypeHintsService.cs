@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             return result.ToImmutable();
         }
 
-        private void AddParts(
+        private static void AddParts(
             IStructuralTypeDisplayService anonymousTypeService,
             ArrayBuilder<SymbolDisplayPart> finalParts,
             ImmutableArray<SymbolDisplayPart> parts,

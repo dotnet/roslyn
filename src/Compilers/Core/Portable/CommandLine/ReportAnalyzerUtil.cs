@@ -39,9 +39,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string GetFormattedTime(double d, CultureInfo culture) => d < 0.001 ?
+        public static string GetFormattedAnalyzerExecutionTime(double executionTime, CultureInfo culture) =>
+            executionTime < 0.001 ?
                 string.Format(culture, "{0,8:<0.000}", 0.001) :
-                string.Format(culture, "{0,8:##0.000}", d);
+                string.Format(culture, "{0,8:##0.000}", executionTime);
+
+        public static string GetFormattedAnalyzerExecutionPercentage(int percentage, CultureInfo culture) =>
+            string.Format("{0,5}", percentage < 1 ? "<1" : percentage.ToString(culture));
 
         private static string GetColumnHeader(string kind)
         {
@@ -52,8 +56,8 @@ namespace Microsoft.CodeAnalysis
 
         private static string GetColumnEntry(double totalSeconds, int percentage, string? name, CultureInfo culture)
         {
-            var time = GetFormattedTime(totalSeconds, culture);
-            var percent = string.Format("{0,5}", percentage < 1 ? "<1" : percentage.ToString(culture));
+            var time = GetFormattedAnalyzerExecutionTime(totalSeconds, culture);
+            var percent = GetFormattedAnalyzerExecutionPercentage(percentage, culture);
 
             return time + percent + "   " + name;
         }

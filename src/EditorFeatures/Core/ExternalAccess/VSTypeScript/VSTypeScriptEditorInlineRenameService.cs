@@ -15,17 +15,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [Shared]
     [ExportLanguageService(typeof(IEditorInlineRenameService), InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptEditorInlineRenameService : IEditorInlineRenameService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class VSTypeScriptEditorInlineRenameService(
+        [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service) : IEditorInlineRenameService
     {
-        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptEditorInlineRenameService(
-            [Import(AllowDefault = true)] Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? service)
-        {
-            _service = service;
-        }
+        private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service = service;
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {

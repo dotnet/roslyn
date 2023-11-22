@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
     internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
     {
+        /// <summary>
+        /// See <see cref="Free()"/> for an explanation of this constant value.
+        /// </summary>
+        public const int PooledArrayLengthLimitExclusive = 128;
+
         #region DebuggerProxy
 
         private sealed class DebuggerProxy
@@ -105,6 +110,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set
             {
                 _builder.Count = value;
+            }
+        }
+
+        public int Capacity
+        {
+            get
+            {
+                return _builder.Capacity;
+            }
+
+            set
+            {
+                _builder.Capacity = value;
             }
         }
 
@@ -379,7 +397,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
-                if (_builder.Capacity < 128)
+                if (_builder.Capacity < PooledArrayLengthLimitExclusive)
                 {
                     if (this.Count != 0)
                     {
@@ -590,6 +608,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddMany(T item, int count)
         {
+            EnsureCapacity(Count + count);
+
             for (var i = 0; i < count; i++)
             {
                 Add(item);

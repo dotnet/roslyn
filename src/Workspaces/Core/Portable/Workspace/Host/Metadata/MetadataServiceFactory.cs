@@ -22,15 +22,10 @@ namespace Microsoft.CodeAnalysis.Host
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new Service(workspaceServices.GetService<IDocumentationProviderService>());
 
-        private sealed class Service : IMetadataService
+        private sealed class Service(IDocumentationProviderService documentationService) : IMetadataService
         {
-            private readonly MetadataReferenceCache _metadataCache;
-
-            public Service(IDocumentationProviderService documentationService)
-            {
-                _metadataCache = new MetadataReferenceCache((path, properties) =>
+            private readonly MetadataReferenceCache _metadataCache = new MetadataReferenceCache((path, properties) =>
                     MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
-            }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
                 => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
