@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -327,7 +328,7 @@ namespace System
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
@@ -357,8 +358,40 @@ namespace System
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
+
+        private const string Stubs = """
+            namespace System
+            {
+                public class Object { }
+                public class ValueType { }
+                public class String { }
+                public struct Void { }
+                public struct Boolean { }
+                public struct Int32 { }
+                public struct IntPtr { }
+                public class Exception { }
+                public class MulticastDelegate { }
+                public struct ValueTuple<T> { }
+                public class Enum { }
+                public class Attribute { }
+                public enum AttributeTargets { }
+                public class AttributeUsageAttribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public bool AllowMultiple { get; set; }
+                    public bool Inherited { get; set; }
+                }
+                namespace Reflection
+                {
+                    public class DefaultMemberAttribute
+                    {
+                        public DefaultMemberAttribute(string memberName) { }
+                    }
+                }
+            }
+            """;
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
         public void ExplicitInterfaceImplementation_Event()
@@ -394,16 +427,6 @@ namespace System
                         bool Equals(T other);
                     }
 
-                    public class Object { }
-                    public class ValueType { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                    public struct IntPtr { }
-                    public class Exception { }
-                    public class MulticastDelegate { }
-                    public struct ValueTuple<T> { }
-
                     namespace Runtime.CompilerServices
                     {
                         public interface ITuple
@@ -418,8 +441,8 @@ namespace System
                 }
                 """;
 
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(new[] { source, Stubs });
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
@@ -452,16 +475,6 @@ namespace System
                         bool Equals(T other);
                     }
 
-                    public class Object { }
-                    public class ValueType { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                    public struct IntPtr { }
-                    public class Exception { }
-                    public class String { }
-                    public struct ValueTuple<T> { }
-
                     namespace Runtime.CompilerServices
                     {
                         public interface ITuple
@@ -479,8 +492,8 @@ namespace System
                 }
                 """;
 
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(new[] { source, Stubs });
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
@@ -513,16 +526,6 @@ namespace System
                         bool Equals(T other);
                     }
 
-                    public class Object { }
-                    public class ValueType { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                    public struct IntPtr { }
-                    public class Exception { }
-                    public class String { }
-                    public struct ValueTuple<T> { }
-
                     namespace Runtime.CompilerServices
                     {
                         public interface ITuple<T> where T : ITuple<T>
@@ -540,8 +543,8 @@ namespace System
                 }
                 """;
 
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(new[] { source, Stubs });
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
@@ -575,16 +578,6 @@ namespace System
                         bool Equals(T other);
                     }
 
-                    public class Object { }
-                    public class ValueType { }
-                    public struct Void { }
-                    public struct Boolean { }
-                    public struct Int32 { }
-                    public struct IntPtr { }
-                    public class Exception { }
-                    public class String { }
-                    public struct ValueTuple<T> { }
-
                     namespace Runtime.CompilerServices
                     {
                         public interface ITuple<T> where T : ITuple<T>
@@ -598,8 +591,51 @@ namespace System
                 }
                 """;
 
-            var comp = CreateEmptyCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(new[] { source, Stubs });
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")]
+        public void ExplicitInterfaceImplementation_TupleInSignatureOnly()
+        {
+            var source = """
+                namespace System
+                {
+                    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> :
+                        System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+                        where TRest : struct
+                    {
+                        public T1 Item1;
+                        public T2 Item2;
+                        public T3 Item3;
+                        public T4 Item4;
+                        public T5 Item5;
+                        public T6 Item6;
+                        public T7 Item7;
+                        public TRest Rest;
+                        int System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Length => throw null;
+                        (T1, T2, T3, T4, T5, T6, T7, TRest) System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Self => throw null;
+                        object System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>.this[int index] => throw null;
+                        (T1, T2, T3, T4, T5, T6, T7, TRest) System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>.this[(T1, T2, T3, T4, T5, T6, T7, TRest) self, int index] => throw null;
+                        bool System.Runtime.CompilerServices.ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other) => false;
+                    }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface ITuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+                        {
+                            int Length { get; }
+                            (T1, T2, T3, T4, T5, T6, T7, TRest) Self { get; }
+                            object this[int index] { get; }
+                            (T1, T2, T3, T4, T5, T6, T7, TRest) this[(T1, T2, T3, T4, T5, T6, T7, TRest) self, int index] { get; }
+                            bool Equals((T1, T2, T3, T4, T5, T6, T7, TRest) other);
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateEmptyCompilation(new[] { source, Stubs });
+            comp.VerifyEmitDiagnostics(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
         }
     }
 }

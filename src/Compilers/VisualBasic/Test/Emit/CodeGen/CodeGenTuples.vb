@@ -23484,7 +23484,7 @@ Namespace System
     End Structure
 End Namespace"
             Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp)
-            comp.AssertTheseDiagnostics()
+            comp.AssertTheseEmitDiagnostics()
         End Sub
     End Class
 
