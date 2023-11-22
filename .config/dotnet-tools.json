@@ -8,12 +8,6 @@
         "pwsh"
       ]
     },
-    "dotnet-format": {
-      "version": "5.1.250801",
-      "commands": [
-        "dotnet-format"
-      ]
-    },
     "dotnet-coverage": {
       "version": "17.9.3",
       "commands": [
