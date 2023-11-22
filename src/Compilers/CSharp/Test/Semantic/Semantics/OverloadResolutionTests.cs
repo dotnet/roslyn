@@ -6864,6 +6864,30 @@ class C
 }", expectedOutput: "2").VerifyDiagnostics();
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70923")]
+        [Fact]
+        public void TestNamedParamsParam_Error()
+        {
+            var comp = CreateCompilation(@"
+class Program
+{
+    static void Main()
+    {
+        Test(a: 1, 2);
+    }
+
+    static void Test(params int[] a)
+    {
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1501: No overload for method 'Test' takes 2 arguments
+                //         Test(a: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(6, 9)
+            );
+        }
+
         [WorkItem(531173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531173")]
         [Fact]
         public void InvokeMethodOverridingNothing()
