@@ -174,12 +174,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
         /// we get into this transient state.
         /// </summary>
-        private async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
+            if (!document.SupportsSemanticModel)
+                return (document, semanticModel: null);
+
             if (_suppressPartialSemantics)
-            {
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
-            }
 
             var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
             var semanticMode = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

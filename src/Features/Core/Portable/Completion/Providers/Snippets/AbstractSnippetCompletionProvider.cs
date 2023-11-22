@@ -130,10 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
             var newDocument = document.WithText(originalText);
-
-            // It's possible that a full semantic model is passed in. Since we made change to the document,
-            // we need to make sure it's frozen to avoid triggering source generators later on.
-            return (newDocument.WithFrozenPartialSemantics(cancellationToken), span.Start);
+            return (newDocument, span.Start);
         }
     }
 }
