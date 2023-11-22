@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: AnalyzerResult.ReturnType,
-                    refKind: RefKind.None,
+                    refKind: AnalyzerResult.ReturnsByRef ? RefKind.Ref : RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(),
