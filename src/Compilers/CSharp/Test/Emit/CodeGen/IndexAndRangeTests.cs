@@ -5289,6 +5289,46 @@ Block[B6] - Exit
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_WithEmptyNesting(bool useCsharp13)
+        {
+            string source = """
+M(^1);
+
+partial class Program
+{
+    public static Buffer10Container M(System.Index i1)
+    {
+        return new Buffer10Container() { [Id(i1)] = { } };
+    }
+
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+class Buffer10Container
+{
+    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
+    public Buffer10 this[int x]
+    {
+        get { System.Console.Write($"ContainerIndex={x} "); return new Buffer10(); }
+    }
+}
+
+class Buffer10 { }
+""";
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            // TODO2 skip ContainerLength
+            CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength");
+
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (7,42): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return new Buffer10Container() { [Id(i1)] = { } };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(i1)]").WithArguments("implicit indexer initializer").WithLocation(7, 42)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
         public void InObjectInitializer_Array_WithNesting(bool useCsharp13)
         {
             string source = """
