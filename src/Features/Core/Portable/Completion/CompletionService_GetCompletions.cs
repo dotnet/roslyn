@@ -169,19 +169,21 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+        /// Always returns a document with frozen partial semantic.
         /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
         /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
         /// we get into this transient state.
         /// </summary>
-        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
             if (_suppressPartialSemantics)
             {
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
+            var semanticMode = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return (frozenDocument, semanticMode);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,

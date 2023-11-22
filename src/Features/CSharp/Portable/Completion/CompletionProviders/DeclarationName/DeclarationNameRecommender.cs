@@ -47,9 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName
             // Suggest names from existing overloads.
             if (nameInfo.PossibleSymbolKinds.Any(static k => k.SymbolKind == SymbolKind.Parameter))
             {
-                var (_, partialSemanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (partialSemanticModel is not null)
-                    AddNamesFromExistingOverloads(context, partialSemanticModel, nameInfo, result, cancellationToken);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                AddNamesFromExistingOverloads(context, semanticModel, nameInfo, result, cancellationToken);
             }
 
             var names = GetBaseNames(context.SemanticModel, nameInfo).NullToEmpty();
