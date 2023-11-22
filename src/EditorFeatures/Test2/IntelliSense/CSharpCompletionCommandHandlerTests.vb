@@ -12323,5 +12323,53 @@ public static class Ext
                 Assert.NotEmpty(state.GetCompletionItems())
             End Using
         End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+}
+
+class Ddd { }
+class Ddd<T1> { }
+class Ddd<T1, T2> { }
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd", "Ddd{T1}", "Ddd{T1, T2}"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+
+    void Ddd() { }
+    void Ddd<T1>() { }
+    void Ddd<T1, T2>() { }
+}
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd()", "Ddd{T1}()", "Ddd{T1, T2}()"})
+            End Using
+        End Function
     End Class
 End Namespace
