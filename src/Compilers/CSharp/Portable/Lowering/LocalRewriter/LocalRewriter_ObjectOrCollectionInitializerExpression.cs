@@ -446,10 +446,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         temps = ArrayBuilder<LocalSymbol>.GetInstance();
                     }
 
-                    // In top-level initialization scenarios, the receiver is a temp so doesn't need caching.
-                    // In nested scenarios, we intend to evaluate the receiver for each of the initializers,
-                    // but that receiver would have cached all its arguments already.
                     var implicitIndexer = (BoundImplicitIndexerAccess)left;
+
+                    if (isRhsNestedInitializer && right is BoundObjectInitializerExpression { Initializers: [] })
+                    {
+                        // If the nested initializer is empty, we evaluated the argument specified by the user but
+                        // not the Length, indexer or Slice
+                        result.Add(VisitExpression(implicitIndexer.Argument));
+                        return;
+                    }
+
                     BoundExpression transformedImplicitIndexer;
                     var argumentType = implicitIndexer.Argument.Type;
                     if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))

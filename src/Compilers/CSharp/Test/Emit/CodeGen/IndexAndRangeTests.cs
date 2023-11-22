@@ -4452,16 +4452,13 @@ struct Buffer10
 {
     public Buffer10() { }
 
-    public int Length { get { System.Console.Write("Length "); return 10; } }
-    public object this[int x]
-    {
-        get => throw null;
-    }
+    public int Length => throw null;
+    public object this[int x] => throw null;
 }
 """;
             var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Index(^1) Length");
+            CompileAndVerify(comp, expectedOutput: "Index(^1)");
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -5306,19 +5303,15 @@ partial class Program
 
 class Buffer10Container
 {
-    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
-    public Buffer10 this[int x]
-    {
-        get { System.Console.Write($"ContainerIndex={x} "); return new Buffer10(); }
-    }
+    public int Length => throw null;
+    public Buffer10 this[int x] => throw null;
 }
 
 class Buffer10 { }
 """;
             var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            // TODO2 skip ContainerLength
-            CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength");
+            CompileAndVerify(comp, expectedOutput: "Index(^1)");
 
             comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
@@ -6019,14 +6012,13 @@ class Container
 {
     public Buffer10 _array = new Buffer10();
     public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
-    public Buffer10 Slice(int start, int length) { System.Console.Write($"ContainerSlice({start}, {length}) "); return _array; }
+    public Buffer10 Slice(int start, int length) => throw null;
 }
 
 class Buffer10
 {
-    public int[] _array = new int[10];
-    public int Length { get { System.Console.Write("Length "); return 10; } }
-    public int[] Slice(int start, int length) { System.Console.Write($"Slice({start}, {length}) "); return _array; }
+    public int Length => throw null;
+    public int[] Slice(int start, int length) => throw null;
 }
 
 class C
@@ -6042,67 +6034,42 @@ class C
 """;
             var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength ContainerSlice(1, 8) Range(2..^2) Length");
+            // Note: we compute the ContainerLength even though we won't need it
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength Range(2..^2)");
             verifier.VerifyIL("C.M", """
 {
-  // Code size      125 (0x7d)
-  .maxstack  4
+  // Code size       66 (0x42)
+  .maxstack  3
   .locals init (System.Range V_0,
                 int V_1,
                 int V_2,
-                int V_3,
-                System.Range V_4,
-                int V_5,
-                int V_6,
-                System.Index V_7)
+                System.Index V_3)
   IL_0000:  newobj     "C..ctor()"
   IL_0005:  dup
   IL_0006:  ldfld      "Container C.F"
   IL_000b:  ldarg.0
   IL_000c:  call       "System.Range C.Id(System.Range)"
   IL_0011:  stloc.0
-  IL_0012:  dup
-  IL_0013:  callvirt   "int Container.Length.get"
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  call       "System.Index System.Range.Start.get"
-  IL_0020:  stloc.s    V_7
-  IL_0022:  ldloca.s   V_7
-  IL_0024:  ldloc.1
-  IL_0025:  call       "int System.Index.GetOffset(int)"
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_0
-  IL_002d:  call       "System.Index System.Range.End.get"
-  IL_0032:  stloc.s    V_7
-  IL_0034:  ldloca.s   V_7
-  IL_0036:  ldloc.1
-  IL_0037:  call       "int System.Index.GetOffset(int)"
-  IL_003c:  ldloc.2
-  IL_003d:  sub
-  IL_003e:  stloc.3
-  IL_003f:  ldloc.2
-  IL_0040:  ldloc.3
-  IL_0041:  callvirt   "Buffer10 Container.Slice(int, int)"
-  IL_0046:  ldarg.1
-  IL_0047:  call       "System.Range C.Id(System.Range)"
-  IL_004c:  stloc.s    V_4
-  IL_004e:  callvirt   "int Buffer10.Length.get"
-  IL_0053:  stloc.s    V_5
-  IL_0055:  ldloca.s   V_4
-  IL_0057:  call       "System.Index System.Range.Start.get"
-  IL_005c:  stloc.s    V_7
-  IL_005e:  ldloca.s   V_7
-  IL_0060:  ldloc.s    V_5
-  IL_0062:  call       "int System.Index.GetOffset(int)"
-  IL_0067:  stloc.s    V_6
-  IL_0069:  ldloca.s   V_4
-  IL_006b:  call       "System.Index System.Range.End.get"
-  IL_0070:  stloc.s    V_7
-  IL_0072:  ldloca.s   V_7
-  IL_0074:  ldloc.s    V_5
-  IL_0076:  call       "int System.Index.GetOffset(int)"
-  IL_007b:  pop
-  IL_007c:  ret
+  IL_0012:  callvirt   "int Container.Length.get"
+  IL_0017:  stloc.1
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       "System.Index System.Range.Start.get"
+  IL_001f:  stloc.3
+  IL_0020:  ldloca.s   V_3
+  IL_0022:  ldloc.1
+  IL_0023:  call       "int System.Index.GetOffset(int)"
+  IL_0028:  stloc.2
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  call       "System.Index System.Range.End.get"
+  IL_0030:  stloc.3
+  IL_0031:  ldloca.s   V_3
+  IL_0033:  ldloc.1
+  IL_0034:  call       "int System.Index.GetOffset(int)"
+  IL_0039:  pop
+  IL_003a:  ldarg.1
+  IL_003b:  call       "System.Range C.Id(System.Range)"
+  IL_0040:  pop
+  IL_0041:  ret
 }
 """);
         }
@@ -6116,8 +6083,8 @@ C.M(3..^6);
 class Buffer10
 {
     public int[] _array = new int[10];
-    public int Length { get { System.Console.Write("Length "); return 10; } }
-    public int[] Slice(int start, int length) { System.Console.Write($"Slice({start}, {length}) "); return _array; }
+    public int Length => throw null;
+    public int[] Slice(int start, int length) => throw null;
 }
 
 class C
@@ -6132,7 +6099,7 @@ class C
 """;
             var comp = CreateCompilationWithIndexAndRange(source);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Range(3..^6) Length");
+            CompileAndVerify(comp, expectedOutput: "Range(3..^6)");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
@@ -6143,9 +6110,8 @@ C.M(3, 6);
 
 class Buffer10
 {
-    public int[] _array = new int[10];
-    public int Length { get { System.Console.Write("Length "); return 10; } }
-    public int[] Slice(int start, int length) { System.Console.Write($"Slice({start}, {length}) "); return _array; }
+    public int Length => throw null;
+    public int[] Slice(int start, int length) => throw null;
 }
 
 class C
@@ -6160,28 +6126,21 @@ class C
 """;
             var comp = CreateCompilationWithIndexAndRange(source);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "3 6 Length");
+            var verifier = CompileAndVerify(comp, expectedOutput: "3 6");
             verifier.VerifyIL("C.M", """
 {
   // Code size       36 (0x24)
   .maxstack  4
-  .locals init (int V_0,
-                int V_1,
-                int V_2)
   IL_0000:  newobj     "C..ctor()"
-  IL_0005:  dup
-  IL_0006:  ldfld      "Buffer10 C.F"
-  IL_000b:  ldarg.0
-  IL_000c:  call       "int C.Id(int)"
-  IL_0011:  stloc.0
-  IL_0012:  ldarg.1
-  IL_0013:  call       "int C.Id(int)"
-  IL_0018:  stloc.1
-  IL_0019:  callvirt   "int Buffer10.Length.get"
-  IL_001e:  dup
-  IL_001f:  ldloc.0
-  IL_0020:  sub
-  IL_0021:  stloc.2
+  IL_0005:  ldarg.0
+  IL_0006:  call       "int C.Id(int)"
+  IL_000b:  ldc.i4.1
+  IL_000c:  newobj     "System.Index..ctor(int, bool)"
+  IL_0011:  ldarg.1
+  IL_0012:  call       "int C.Id(int)"
+  IL_0017:  ldc.i4.1
+  IL_0018:  newobj     "System.Index..ctor(int, bool)"
+  IL_001d:  newobj     "System.Range..ctor(System.Index, System.Index)"
   IL_0022:  pop
   IL_0023:  ret
 }
