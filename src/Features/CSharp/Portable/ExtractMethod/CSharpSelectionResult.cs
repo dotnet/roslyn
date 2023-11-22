@@ -90,27 +90,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
         {
-            var current = token.Parent;
-            for (; current != null; current = current.Parent)
+            for (var current = token.Parent; current != null; current = current.Parent)
             {
-                if (current is MemberDeclarationSyntax or
-                    SimpleLambdaExpressionSyntax or
-                    ParenthesizedLambdaExpressionSyntax or
-                    AnonymousMethodExpressionSyntax or
-                    LocalFunctionStatementSyntax)
+                if (current is MemberDeclarationSyntax)
+                    return false;
+
+                if (current is
+                        SimpleLambdaExpressionSyntax or
+                        ParenthesizedLambdaExpressionSyntax or
+                        AnonymousMethodExpressionSyntax or
+                        LocalFunctionStatementSyntax)
                 {
-                    break;
+                    // make sure the selection contains the lambda
+                    return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
+                        current.GetLastToken().Span.End <= lastToken.Span.End;
                 }
             }
 
-            if (current is null or MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            // make sure the selection contains the lambda
-            return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
-                   current.GetLastToken().Span.End <= lastToken.Span.End;
+            return false;
         }
 
         public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
