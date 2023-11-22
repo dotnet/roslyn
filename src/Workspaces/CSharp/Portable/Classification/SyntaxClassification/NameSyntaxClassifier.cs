@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
 
             var _ =
-                TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
+                TryClassifySymbol(name, symbolInfo, result) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
                 TryClassifySomeContextualKeywordIdentifiersAsKeywords(name, symbolInfo, result);
@@ -68,21 +68,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifySymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            SemanticModel semanticModel,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            SegmentedList<ClassifiedSpan> result)
         {
             if (symbolInfo.CandidateReason is
                 CandidateReason.Ambiguous or
                 CandidateReason.MemberGroup)
             {
-                return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
+                return TryClassifyAmbiguousSymbol(name, symbolInfo, result);
             }
 
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
             // overload resolution/accessibility errors, or bound to type/constructor and type wasn't creatable.
             var symbol = TryGetSymbol(name, symbolInfo);
-            if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
+            if (TryClassifySymbol(name, symbol, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);
 
@@ -101,9 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifyAmbiguousSymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            SemanticModel semanticModel,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            SegmentedList<ClassifiedSpan> result)
         {
             // If everything classifies the same way, then just pick that classification.
             using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
@@ -111,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
+                if (TryClassifySymbol(name, symbol, out var classifiedSpan))
                 {
                     // If one symbol resolves to static, then just make it bold
                     isStatic = isStatic || IsStaticSymbol(symbol);
@@ -137,8 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static bool TryClassifySymbol(
             NameSyntax name,
             [NotNullWhen(returnValue: true)] ISymbol? symbol,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
         {
             // For Namespace parts, we want don't want to classify the QualifiedNameSyntax
@@ -161,21 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return true;
             }
 
-            if (name.IsVar &&
-                IsInVarContext(name))
+            if (name.IsVar && IsInVarContext(name))
             {
-                var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != "var")
-                {
-                    if (!IsSymbolWithName(symbol, "var"))
-                    {
-                        // We bound to a symbol.  If we bound to a symbol called "var" then we want to
-                        // classify this appropriately as a type.  Otherwise, we want to classify this as
-                        // a keyword.
-                        classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
-                        return true;
-                    }
-                }
+                // Don't do anything further to check if `var` is the contextual keyword here. We do not support code
+                // squatting on typenames that are all lowercase.
+                classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                return true;
             }
 
             if (name is IdentifierNameSyntax { Identifier.Text: "args" } &&
@@ -196,19 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
-                var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
-                var alias = semanticModel.GetAliasInfo(name, cancellationToken);
-                if (alias == null || alias.Name != nameToCheck)
-                {
-                    if (!IsSymbolWithName(symbol, nameToCheck))
-                    {
-                        // We bound to a symbol.  If we bound to a symbol called "unmanaged"/"notnull" then we want to
-                        // classify this appropriately as a type.  Otherwise, we want to classify this as
-                        // a keyword.
-                        classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
-                        return true;
-                    }
-                }
+                classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                return true;
             }
 
             // Use .Equals since we can't rely on object identity for constructed types.
@@ -362,21 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             return false;
-        }
-
-        private static bool IsSymbolWithName([NotNullWhen(true)] ISymbol? symbol, string name)
-        {
-            if (symbol is null || symbol.Name != name)
-            {
-                return false;
-            }
-
-            if (symbol is INamedTypeSymbol namedType)
-            {
-                return namedType.Arity == 0;
-            }
-
-            return true;
         }
     }
 }
