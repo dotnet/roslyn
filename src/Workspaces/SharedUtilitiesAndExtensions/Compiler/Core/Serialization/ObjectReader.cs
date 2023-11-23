@@ -253,7 +253,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public (char[], int) ReadCharArray(Func<int, char[]> getArray)
+    public (char[] Array, int Length) ReadCharArray(Func<int, char[]> getArray)
     {
         var kind = (TypeCode)_reader.ReadByte();
 
@@ -376,7 +376,7 @@ internal sealed partial class ObjectReader : IDisposable
 
     private Array ReadArray(TypeCode kind)
     {
-        (var length, var elementKind) = ReadArrayLengthAndElementKind(kind);
+        var (length, elementKind) = ReadArrayLengthAndElementKind(kind);
 
         var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
         if (elementType != null)
@@ -389,7 +389,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private (int, TypeCode) ReadArrayLengthAndElementKind(TypeCode kind)
+    private (int Length, TypeCode ElementKind) ReadArrayLengthAndElementKind(TypeCode kind)
     {
         var length = kind switch
         {

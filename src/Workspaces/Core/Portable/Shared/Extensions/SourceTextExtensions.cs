@@ -257,7 +257,7 @@ internal static partial class SourceTextExtensions
             var offset = 0;
             for (var i = 0; i < numberOfChunks; i++)
             {
-                (var currentChunk, var currentChunkLength) = reader.ReadCharArray(static length =>
+                var (currentChunk, currentChunkLength) = reader.ReadCharArray(static length =>
                 {
                     if (length <= SharedPools.CharBufferSize)
                         return SharedPools.CharArray.Allocate();
