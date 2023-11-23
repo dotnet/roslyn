@@ -286,6 +286,10 @@ namespace Microsoft.CodeAnalysis
                 // For all added documents, see if they link to an existing document.  If so, use that existing documents text/tree.
                 foreach (var addedProject in changes.GetAddedProjects())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!addedProject.SupportsCompilation)
+                        continue;
+
                     foreach (var addedDocument in addedProject.Documents)
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
                 }
@@ -294,6 +298,10 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var projectChanges in changes.GetProjectChanges())
                 {
+                    // Ignore projects that don't even have syntax trees to share.
+                    if (!projectChanges.NewProject.SupportsCompilation)
+                        continue;
+
                     // Now do the same for all added documents in a project.
                     foreach (var addedDocument in projectChanges.GetAddedDocuments())
                         newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
