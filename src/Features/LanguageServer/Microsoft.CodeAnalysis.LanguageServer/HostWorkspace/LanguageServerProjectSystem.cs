@@ -245,7 +245,7 @@ internal sealed class LanguageServerProjectSystem
                         {
                             AssemblyName = projectSystemName,
                             FilePath = projectPath,
-                            IntermediateOutputPath = loadedProjectInfo.IntermediateOutputFilePath
+                            CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath
                         };
 
                         var projectSystemProject = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
