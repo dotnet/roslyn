@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     name: AssemblyIdentity.Name,
                     assemblyName: AssemblyIdentity.Name,
                     language: LanguageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: ChecksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: _parseOptions,

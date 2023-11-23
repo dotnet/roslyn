@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     name: $"{assemblyName} ({assemblyVersion})",
                     assemblyName: assemblyName,
                     language: languageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: checksumAlgorithm),
                 compilationOptions: compilationOptions,
                 parseOptions: parseOptions,

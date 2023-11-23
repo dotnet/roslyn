@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                     name: projectSystemName,
                     assemblyName,
                     language,
-                    compilationOutputFilePaths: new(creationInfo.IntermediateOutputPath),
+                    compilationOutputInfo: new(creationInfo.IntermediateOutputPath),
                     SourceHashAlgorithms.Default, // will be updated when command line is set
                     filePath: creationInfo.FilePath,
                     telemetryId: creationInfo.TelemetryId),

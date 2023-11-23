@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     name: Name,
                     assemblyName: AssemblyName,
                     language: Language,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: Text.SourceHashAlgorithms.Default,
                     defaultNamespace: DefaultNamespace,
                     filePath: FilePath,
