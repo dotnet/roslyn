@@ -9553,14 +9553,13 @@ class Program
     static int GetArrayIndex() => 0;
 }
 ";
-            // Execution fails due to https://github.com/dotnet/roslyn/issues/70267
-            string expectedOutput = null /*@"
+            string expectedOutput = @"
 Position get for item '1'
 Position set for item '1'
 Position get for item '2'
 Position set for item '2'
-"*/;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Shift1<T>",
 @"
@@ -9596,7 +9595,7 @@ Position set for item '2'
             verifier.VerifyIL("Program.Shift2<T>",
 @"
 {
-  // Code size       79 (0x4f)
+  // Code size       81 (0x51)
   .maxstack  4
   .locals init (T& V_0,
                 T V_1,
@@ -9605,38 +9604,39 @@ Position set for item '2'
                 T V_4)
   IL_0000:  ldarg.0
   IL_0001:  call       ""int Program.GetArrayIndex()""
-  IL_0006:  ldelema    ""T""
-  IL_000b:  stloc.2
-  IL_000c:  ldloca.s   V_4
-  IL_000e:  initobj    ""T""
-  IL_0014:  ldloc.s    V_4
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.2
-  IL_001e:  ldobj      ""T""
-  IL_0023:  stloc.1
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.2
-  IL_0029:  stloc.0
-  IL_002a:  ldarga.s   V_0
-  IL_002c:  call       ""int Program.GetOffset<T>(ref T[])""
-  IL_0031:  stloc.3
-  IL_0032:  ldloc.0
-  IL_0033:  ldloc.3
+  IL_0006:  readonly.
+  IL_0008:  ldelema    ""T""
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_4
+  IL_0010:  initobj    ""T""
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  box        ""T""
+  IL_001d:  brtrue.s   IL_002a
+  IL_001f:  ldloc.2
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldloc.2
+  IL_002b:  stloc.0
+  IL_002c:  ldarga.s   V_0
+  IL_002e:  call       ""int Program.GetOffset<T>(ref T[])""
+  IL_0033:  stloc.3
   IL_0034:  ldloc.0
   IL_0035:  ldloc.3
-  IL_0036:  constrained. ""T""
-  IL_003c:  callvirt   ""int IMoveable.this[int].get""
-  IL_0041:  ldc.i4.1
-  IL_0042:  add
-  IL_0043:  constrained. ""T""
-  IL_0049:  callvirt   ""void IMoveable.this[int].set""
-  IL_004e:  ret
+  IL_0036:  ldloc.0
+  IL_0037:  ldloc.3
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""int IMoveable.this[int].get""
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  constrained. ""T""
+  IL_004b:  callvirt   ""void IMoveable.this[int].set""
+  IL_0050:  ret
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -9707,7 +9707,7 @@ Position set for item '-1'
 Position get for item '-2'
 Position set for item '-2'
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Shift1<T>",
 @"
@@ -9737,7 +9737,7 @@ Position set for item '-2'
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -10332,14 +10332,13 @@ class Program
     static int GetArrayIndex() => 0;
 }
 ";
-            // Execution fails due to https://github.com/dotnet/roslyn/issues/70267
-            string expectedOutput = null /*@"
+            string expectedOutput = @"
 Position get for item '1'
 Position set for item '1'
 Position get for item '2'
 Position set for item '2'
-"*/;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Shift1<T>",
 @"
@@ -10375,7 +10374,7 @@ Position set for item '2'
             verifier.VerifyIL("Program.Shift2<T>",
 @"
 {
-  // Code size       79 (0x4f)
+  // Code size       81 (0x51)
   .maxstack  4
   .locals init (T V_0,
                 T& V_1,
@@ -10384,38 +10383,201 @@ Position set for item '2'
                 T V_4)
   IL_0000:  ldarg.0
   IL_0001:  call       ""int Program.GetArrayIndex()""
-  IL_0006:  ldelema    ""T""
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_4
-  IL_000e:  initobj    ""T""
-  IL_0014:  ldloc.s    V_4
-  IL_0016:  box        ""T""
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.1
-  IL_001e:  ldobj      ""T""
-  IL_0023:  stloc.0
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.1
-  IL_0029:  ldarga.s   V_0
-  IL_002b:  call       ""int Program.GetOffset<T>(ref T[])""
-  IL_0030:  stloc.2
-  IL_0031:  dup
-  IL_0032:  ldloc.2
-  IL_0033:  constrained. ""T""
-  IL_0039:  callvirt   ""int IMoveable.this[int].get""
-  IL_003e:  stloc.3
-  IL_003f:  ldloc.2
-  IL_0040:  ldloc.3
-  IL_0041:  ldc.i4.1
-  IL_0042:  add
-  IL_0043:  constrained. ""T""
-  IL_0049:  callvirt   ""void IMoveable.this[int].set""
-  IL_004e:  ret
+  IL_0006:  readonly.
+  IL_0008:  ldelema    ""T""
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_4
+  IL_0010:  initobj    ""T""
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  box        ""T""
+  IL_001d:  brtrue.s   IL_002a
+  IL_001f:  ldloc.1
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.0
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  br.s       IL_002b
+  IL_002a:  ldloc.1
+  IL_002b:  ldarga.s   V_0
+  IL_002d:  call       ""int Program.GetOffset<T>(ref T[])""
+  IL_0032:  stloc.2
+  IL_0033:  dup
+  IL_0034:  ldloc.2
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""int IMoveable.this[int].get""
+  IL_0040:  stloc.3
+  IL_0041:  ldloc.2
+  IL_0042:  ldloc.3
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  constrained. ""T""
+  IL_004b:  callvirt   ""void IMoveable.this[int].set""
+  IL_0050:  ret
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70267")]
+        public void GenericTypeParameterElementReference_BaseClassConstraint()
+        {
+            var source = """
+                class Base
+                {
+                    public int Prop { get; set; }
+                }
+
+                class Derived : Base { }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = new[] { new Derived() };
+                        F<Base>(a);
+                        System.Console.Write(a[0].Prop);
+                    }
+
+                    static void F<T>(T[] a) where T : Base
+                    {
+                        a[0].Prop++;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+            verifier.VerifyIL("Program.F<T>", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  readonly.
+                  IL_0004:  ldelema    "T"
+                  IL_0009:  dup
+                  IL_000a:  constrained. "T"
+                  IL_0010:  callvirt   "int Base.Prop.get"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  constrained. "T"
+                  IL_001f:  callvirt   "void Base.Prop.set"
+                  IL_0024:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70267")]
+        public void GenericTypeParameterElementReference_Struct()
+        {
+            var source = """
+                interface IBase
+                {
+                    int Prop { get; set; }
+                }
+
+                struct Derived : IBase
+                {
+                    public int Prop { get; set; }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = new[] { new Derived() };
+                        F(a);
+                        System.Console.WriteLine(a[0].Prop);
+                    }
+
+                    static void F<T>(T[] a) where T : IBase
+                    {
+                        a[0].Prop++;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+            verifier.VerifyIL("Program.F<T>", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  readonly.
+                  IL_0004:  ldelema    "T"
+                  IL_0009:  dup
+                  IL_000a:  constrained. "T"
+                  IL_0010:  callvirt   "int IBase.Prop.get"
+                  IL_0015:  stloc.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  constrained. "T"
+                  IL_001f:  callvirt   "void IBase.Prop.set"
+                  IL_0024:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70267")]
+        public void GenericTypeParameterElementReference_ArrayTypeMismatchException()
+        {
+            var source = """
+                using System;
+
+                class Base
+                {
+                    public Base() { Console.WriteLine("Base ctor"); }
+                }
+
+                class Derived : Base
+                {
+                    public Derived() { Console.WriteLine("Derived ctor"); }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var a = new[] { new Derived() };
+                        try
+                        {
+                            F<Base>(a);
+                        }
+                        catch (ArrayTypeMismatchException)
+                        {
+                            Console.WriteLine("exception");
+                        }
+                        Console.Write(a[0].GetType());
+                    }
+
+                    static void F<T>(T[] a) where T : Base, new()
+                    {
+                        ref T x = ref a[0];
+                        x = new T();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                Base ctor
+                Derived ctor
+                exception
+                Derived
+                """).VerifyDiagnostics();
+            verifier.VerifyIL("Program.F<T>", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldelema    "T"
+                  IL_0007:  call       "T System.Activator.CreateInstance<T>()"
+                  IL_000c:  stobj      "T"
+                  IL_0011:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -10486,7 +10648,7 @@ Position set for item '-1'
 Position get for item '-2'
 Position set for item '-2'
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Shift1<T>",
 @"
@@ -10516,7 +10678,7 @@ Position set for item '-2'
 }
 ");
 
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]

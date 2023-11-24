@@ -417,7 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool ShouldEmitReadOnlyPrefix(BoundArrayAccess arrayAccess, AddressKind addressKind)
         {
-            if (addressKind == AddressKind.Constrained)
+            if (addressKind == AddressKind.Constrained ||
+                arrayAccess.InCompoundAssignmentReceiver)
             {
                 Debug.Assert(arrayAccess.Type.TypeKind == TypeKind.TypeParameter, "constrained call should only be used with type parameter types");
                 return true;

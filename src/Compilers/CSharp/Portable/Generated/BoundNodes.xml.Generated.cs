@@ -2041,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayAccess : BoundExpression
     {
-        public BoundArrayAccess(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type, bool hasErrors = false)
+        public BoundArrayAccess(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundExpression> indices, bool inCompoundAssignmentReceiver, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ArrayAccess, syntax, type, hasErrors || expression.HasErrors() || indices.HasErrors())
         {
 
@@ -2051,20 +2051,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Expression = expression;
             this.Indices = indices;
+            this.InCompoundAssignmentReceiver = inCompoundAssignmentReceiver;
         }
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Expression { get; }
         public ImmutableArray<BoundExpression> Indices { get; }
+        public bool InCompoundAssignmentReceiver { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitArrayAccess(this);
 
-        public BoundArrayAccess Update(BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type)
+        public BoundArrayAccess Update(BoundExpression expression, ImmutableArray<BoundExpression> indices, bool inCompoundAssignmentReceiver, TypeSymbol type)
         {
-            if (expression != this.Expression || indices != this.Indices || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || indices != this.Indices || inCompoundAssignmentReceiver != this.InCompoundAssignmentReceiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArrayAccess(this.Syntax, expression, indices, type, this.HasErrors);
+                var result = new BoundArrayAccess(this.Syntax, expression, indices, inCompoundAssignmentReceiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10967,7 +10969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundExpression> indices = this.VisitList(node.Indices);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, indices, type);
+            return node.Update(expression, indices, node.InCompoundAssignmentReceiver, type);
         }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
         {
@@ -12756,12 +12758,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, indices, infoAndType.Type!);
+                updatedNode = node.Update(expression, indices, node.InCompoundAssignmentReceiver, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, indices, node.Type);
+                updatedNode = node.Update(expression, indices, node.InCompoundAssignmentReceiver, node.Type);
             }
             return updatedNode;
         }
@@ -15232,6 +15234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("indices", null, from x in node.Indices select Visit(x, null)),
+            new TreeDumperNode("inCompoundAssignmentReceiver", node.InCompoundAssignmentReceiver, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

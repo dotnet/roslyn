@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(receiverOpt.Kind != BoundKind.TypeExpression);
 
-            BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
+            BoundExpression rewrittenReceiver = VisitCompoundAssignmentReceiver(receiverOpt, isRegularCompoundAssignment);
 
             BoundAssignmentOperator assignmentToTemp;
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiverTemp;
         }
 
-        private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             if (!CanChangeValueBetweenReads(memberAccess.Receiver))
             {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // store receiver to temp:
-            var rewrittenReceiver = VisitExpression(memberAccess.Receiver);
+            var rewrittenReceiver = VisitCompoundAssignmentReceiver(memberAccess.Receiver, isRegularCompoundAssignment);
             BoundAssignmentOperator assignmentToTemp;
             var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
             stores.Add(assignmentToTemp);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = indexerAccess.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
 
-            BoundExpression transformedReceiver = VisitExpression(receiverOpt);
+            BoundExpression transformedReceiver = VisitCompoundAssignmentReceiver(receiverOpt, isRegularCompoundAssignment);
 
             // Dealing with the arguments is a bit tricky because they can be named out-of-order arguments;
             // we have to preserve both the source-code order of the side effects and the side effects
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the <paramref name="receiver"/> was lowered and transformed.
         /// The <paramref name="receiver"/> is not changed if this function returns false. 
         /// </summary>
-        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression? receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, bool isRegularCompoundAssignment, ref BoundExpression? receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
 
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(receiver.Type.IsReferenceType);
             Debug.Assert(receiver.Kind != BoundKind.TypeExpression);
-            BoundExpression rewrittenReceiver = VisitExpression(receiver);
+            BoundExpression rewrittenReceiver = VisitCompoundAssignmentReceiver(receiver, isRegularCompoundAssignment);
 
             Debug.Assert(rewrittenReceiver.Type is { });
             if (rewrittenReceiver.Type.IsTypeParameter())
@@ -497,13 +497,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundDynamicIndexerAccess TransformDynamicIndexerAccess(BoundDynamicIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundDynamicIndexerAccess TransformDynamicIndexerAccess(BoundDynamicIndexerAccess indexerAccess, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             BoundExpression loweredReceiver;
             if (CanChangeValueBetweenReads(indexerAccess.Receiver))
             {
                 BoundAssignmentOperator assignmentToTemp;
-                var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.Receiver), out assignmentToTemp);
+                var temp = _factory.StoreToTemp(VisitCompoundAssignmentReceiver(indexerAccess.Receiver, isRegularCompoundAssignment), out assignmentToTemp);
                 stores.Add(assignmentToTemp);
                 temps.Add(temp.LocalSymbol);
                 loweredReceiver = temp;
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var fieldAccess = (BoundFieldAccess)originalLHS;
                         BoundExpression? receiverOpt = fieldAccess.ReceiverOpt;
 
-                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(fieldAccess.FieldSymbol, ref receiverOpt, stores, temps))
+                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(fieldAccess.FieldSymbol, isRegularCompoundAssignment, ref receiverOpt, stores, temps))
                         {
                             return MakeFieldAccess(fieldAccess.Syntax, receiverOpt, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type, fieldAccess);
                         }
@@ -664,7 +664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //   I t_index = index; (possibly more indices)
                             //   T value = t_array[t_index];
                             //   t_array[t_index] = value op R;
-                            var loweredArray = VisitExpression(arrayAccess.Expression);
+
+                            var loweredArray = VisitCompoundAssignmentReceiver(arrayAccess.Expression, isRegularCompoundAssignment);
+
                             var loweredIndices = VisitList(arrayAccess.Indices);
 
                             return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
@@ -677,10 +679,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.DynamicMemberAccess:
-                    return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, stores, temps);
+                    return TransformDynamicMemberAccess((BoundDynamicMemberAccess)originalLHS, isRegularCompoundAssignment, stores, temps);
 
                 case BoundKind.DynamicIndexerAccess:
-                    return TransformDynamicIndexerAccess((BoundDynamicIndexerAccess)originalLHS, stores, temps);
+                    return TransformDynamicIndexerAccess((BoundDynamicIndexerAccess)originalLHS, isRegularCompoundAssignment, stores, temps);
 
                 case BoundKind.Local:
                 case BoundKind.Parameter:
@@ -728,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                       eventAccess.EventSymbol, eventAccess.IsUsableAsField, eventAccess.ResultKind, eventAccess.Type);
                         }
 
-                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, ref receiverOpt, stores, temps))
+                        if (TransformCompoundAssignmentFieldOrEventAccessReceiver(eventAccess.EventSymbol, isRegularCompoundAssignment, ref receiverOpt, stores, temps))
                         {
                             return MakeEventAccess(eventAccess.Syntax, receiverOpt, eventAccess.EventSymbol, eventAccess.ConstantValueOpt, eventAccess.ResultKind, eventAccess.Type);
                         }
@@ -753,6 +755,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp2);
             temps.Add(variableTemp.LocalSymbol);
             return variableTemp;
+        }
+
+        private BoundExpression VisitCompoundAssignmentReceiver(BoundExpression receiver, bool isRegularCompoundAssignment)
+        {
+            var previousInCompoundAssignmentReceiver = _inCompoundAssignmentReceiver;
+            _inCompoundAssignmentReceiver |= isRegularCompoundAssignment;
+            var loweredReceiver = VisitExpression(receiver);
+            _inCompoundAssignmentReceiver = previousInCompoundAssignmentReceiver;
+            return loweredReceiver;
         }
 
         private static bool IsInvariantArray(TypeSymbol? type)

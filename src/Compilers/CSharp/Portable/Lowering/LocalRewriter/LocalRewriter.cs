@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
+        private bool _inCompoundAssignmentReceiver;
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly BoundStatement _rootStatement;
 
@@ -773,38 +774,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The last two are only supported on SZArrays. For those cases we need to
             // lower into the appropriate helper methods.
 
-            if (node.Indices.Length != 1)
-            {
-                return base.VisitArrayAccess(node)!;
-            }
-
-            var indexType = VisitType(node.Indices[0].Type);
-            var F = _factory;
-
             BoundNode resultExpr;
-            if (TypeSymbol.Equals(
-                indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
-                TypeCompareKind.ConsiderEverything))
-            {
-                // array[Range] is compiled to:
-                // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
-
-                Debug.Assert(node.Expression.Type is { TypeKind: TypeKind.Array });
-                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
-
-                resultExpr = F.Call(
-                    receiver: null,
-                    F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
-                        .Construct(ImmutableArray.Create(elementType)),
-                    ImmutableArray.Create(
-                        VisitExpression(node.Expression),
-                        VisitExpression(node.Indices[0])));
-            }
-            else
+            if (node.Indices.Length != 1)
             {
                 resultExpr = base.VisitArrayAccess(node)!;
             }
+            else
+            {
+                var indexType = VisitType(node.Indices[0].Type);
+                var F = _factory;
+
+                if (TypeSymbol.Equals(
+                    indexType,
+                    _compilation.GetWellKnownType(WellKnownType.System_Range),
+                    TypeCompareKind.ConsiderEverything))
+                {
+                    // array[Range] is compiled to:
+                    // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
+
+                    Debug.Assert(node.Expression.Type is { TypeKind: TypeKind.Array });
+                    var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
+
+                    resultExpr = F.Call(
+                        receiver: null,
+                        F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                            .Construct(ImmutableArray.Create(elementType)),
+                        ImmutableArray.Create(
+                            VisitExpression(node.Expression),
+                            VisitExpression(node.Indices[0])));
+                }
+                else
+                {
+                    resultExpr = base.VisitArrayAccess(node)!;
+                }
+            }
+
+            if (_inCompoundAssignmentReceiver &&
+                node.Expression.Type is ArrayTypeSymbol { ElementType: { TypeKind: TypeKind.TypeParameter, IsValueType: false } } &&
+                resultExpr is BoundArrayAccess arr)
+            {
+                resultExpr = arr.Update(arr.Expression, arr.Indices, inCompoundAssignmentReceiver: true, arr.Type);
+            }
+
             return resultExpr;
         }
 

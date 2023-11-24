@@ -658,6 +658,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="InCompoundAssignmentReceiver" Type="bool" />
   </Node>
 
   <!--
