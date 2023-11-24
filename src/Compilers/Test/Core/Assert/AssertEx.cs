@@ -551,7 +551,7 @@ namespace Roslyn.Test.Utilities
             throw new Xunit.Sdk.XunitException(string.Format(format, args));
         }
 
-        public static void NotNull<T>(T @object, string message = null)
+        public static void NotNull<T>([NotNull] T @object, string message = null)
         {
             Assert.False(AssertEqualityComparer<T>.IsNull(@object), message);
         }

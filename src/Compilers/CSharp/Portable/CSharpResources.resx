@@ -7814,4 +7814,7 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</value>
   <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
     <value>Expected interpolated string</value>
   </data>
+  <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
+    <value>This version of '{0}' cannot be used with collection expressions.</value>
+  </data>
 </root>

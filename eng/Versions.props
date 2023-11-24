@@ -24,7 +24,7 @@
 --> 
   <PropertyGroup>
     <!-- <Metalama> -->
-    <RoslynVersion>4.8.0-3.final</RoslynVersion>
+    <RoslynVersion>4.8.0</RoslynVersion>
     <!-- The Roslyn version must be changed above.
 
     <MajorVersion>4</MajorVersion>
@@ -47,7 +47,7 @@
     <!--
     <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
     -->
-    <MicrosoftNetCompilersToolsetVersion>4.8.0-3.final</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>4.8.0</MicrosoftNetCompilersToolsetVersion>
     <AssemblyVersion>$(MetalamaCompilerAssemblyVersion)</AssemblyVersion>
     <Version>$(MetalamaCompilerVersionWithoutSuffix)</Version>
     <!-- </Metalama> -->
