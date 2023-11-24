@@ -250,10 +250,6 @@ namespace Microsoft.CodeAnalysis
                     var newSolution = data.transformation(oldSolution);
 
                     // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
-                    var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                    if (options.DisableSharedSyntaxTrees)
-                        return newSolution;
-
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
                 mayRaiseEvents: true,
@@ -1162,15 +1158,12 @@ namespace Microsoft.CodeAnalysis
                             // shared across docs.
 
                             var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-                            var shareSyntaxTrees = !options.DisableSharedSyntaxTrees;
 
                             var newDocument = newSolution.GetRequiredDocument(documentId);
                             foreach (var linkedDocumentId in linkedDocumentIds)
                             {
                                 previousSolution = newSolution;
-                                newSolution = shareSyntaxTrees
-                                    ? newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState)
-                                    : data.updateSolutionWithText(newSolution, linkedDocumentId, data.arg);
+                                newSolution = newSolution.WithDocumentContentsFrom(linkedDocumentId, newDocument.DocumentState);
 
                                 if (previousSolution != newSolution)
                                     updatedDocumentIds.Add(linkedDocumentId);
