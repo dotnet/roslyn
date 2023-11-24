@@ -1148,14 +1148,8 @@ namespace Microsoft.CodeAnalysis
                         var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
                         if (linkedDocumentIds.Length > 0)
                         {
-                            // Two options for updating linked docs (legacy and new).
-                            //
-                            // Legacy behavior: update each linked doc to point at the same SourceText instance.  Each
-                            // doc will reparse itself however it wants (and thus not share any tree contents).
-                            //
-                            // Modern behavior: attempt to actually have the linked documents point *into* the same
-                            // instance data that the initial document points at.  This way things like tree data can be
-                            // shared across docs.
+                            // Have the linked documents point *into* the same instance data that the initial document
+                            // points at.  This way things like tree data can be shared across docs.
 
                             var options = oldSolution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
 
