@@ -17,8 +17,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorStatelessLspServic
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.ExportRazorStatelessLspServiceAttribute.ExportRazorStatelessLspServiceAttribute(System.Type! handlerType) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider.GetCapabilities(string! clientCapabilities) -> string!
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService.ShouldActivateCohostServer() -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCustomMessageTarget
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient
 Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.RazorCohostLanguageClient(Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorLspServiceProvider! lspServiceProvider, Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions, Microsoft.CodeAnalysis.Editor.Shared.Utilities.IThreadingContext! threadingContext, Microsoft.CodeAnalysis.LanguageServer.ILspServiceLoggerFactory! lspLoggerFactory, Microsoft.VisualStudio.Composition.ExportProvider! exportProvider, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostCapabilitiesProvider? razorCapabilitiesProvider = null, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCustomMessageTarget? razorCustomMessageTarget = null, Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService = null) -> void

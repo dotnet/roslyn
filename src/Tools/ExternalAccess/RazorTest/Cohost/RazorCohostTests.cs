@@ -30,7 +30,6 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         .AddParts(
             typeof(RazorHandler),
             typeof(RazorCohostCapabilitiesProvider),
-            typeof(RazorCohostLanguageClientActivationService),
             typeof(NoOpLspLoggerFactory));
 
     [WpfFact]
@@ -178,6 +177,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         public Guid ProjectId => projectId;
     }
 
+    [PartNotDiscoverable]
     [LanguageServerEndpoint(MethodName)]
     [ExportRazorStatelessLspService(typeof(RazorHandler)), Shared]
     [method: ImportingConstructor]
@@ -203,6 +203,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         }
     }
 
+    [PartNotDiscoverable]
     [Export(typeof(ILspServiceLoggerFactory)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
@@ -212,6 +213,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
             => Task.FromResult(NoOpLspLogger.Instance);
     }
 
+    [PartNotDiscoverable]
     [Export(typeof(IRazorCohostCapabilitiesProvider)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
@@ -221,13 +223,5 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         {
             return "{ }";
         }
-    }
-
-    [Export(typeof(IRazorCohostLanguageClientActivationService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-    private class RazorCohostLanguageClientActivationService() : IRazorCohostLanguageClientActivationService
-    {
-        public bool ShouldActivateCohostServer() => true;
     }
 }

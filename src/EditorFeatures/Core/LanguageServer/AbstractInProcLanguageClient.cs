@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public virtual async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
+        public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1261421
