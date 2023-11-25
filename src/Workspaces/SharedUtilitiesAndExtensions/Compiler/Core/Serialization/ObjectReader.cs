@@ -253,7 +253,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    public (char[] Array, int Length) ReadCharArray(Func<int, char[]> getArray)
+    public (char[] array, int length) ReadCharArray(Func<int, char[]> getArray)
     {
         var kind = (TypeCode)_reader.ReadByte();
 
@@ -389,7 +389,7 @@ internal sealed partial class ObjectReader : IDisposable
         }
     }
 
-    private (int Length, TypeCode ElementKind) ReadArrayLengthAndElementKind(TypeCode kind)
+    private (int length, TypeCode elementKind) ReadArrayLengthAndElementKind(TypeCode kind)
     {
         var length = kind switch
         {
