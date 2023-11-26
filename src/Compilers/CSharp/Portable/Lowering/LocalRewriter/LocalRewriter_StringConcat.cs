@@ -4,10 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -49,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
             loweredRight = ConvertConcatExprToString(syntax, loweredRight);
 
-            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
-            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
+            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsCharType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
+            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true); ;
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(loweredLeft, loweredRight);
@@ -250,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullOrEmptyStringConstant(BoundExpression operand)
         {
-            return (operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
+            return (operand.Type.IsStringType() && operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
                     operand.IsDefaultValue();
         }
 
@@ -299,8 +297,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
-            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && loweredLeft.Type.IsStringType());
-            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && loweredRight.Type.IsStringType());
+            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsCharType()));
+            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType()));
+
+            if (loweredLeft.Type.IsCharType())
+            {
+                loweredLeft = WrapCharExprIntoToStringCall(loweredLeft);
+            }
+
+            if (loweredRight.Type.IsCharType())
+            {
+                loweredRight = WrapCharExprIntoToStringCall(loweredRight);
+            }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
@@ -310,9 +318,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && (loweredFirst.Type.IsStringType() || loweredFirst.Type.IsCharType()));
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && (loweredSecond.Type.IsStringType() || loweredSecond.Type.IsCharType()));
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && (loweredThird.Type.IsStringType() || loweredThird.Type.IsCharType()));
+
+            if (loweredFirst.Type.IsCharType())
+            {
+                loweredFirst = WrapCharExprIntoToStringCall(loweredFirst);
+            }
+
+            if (loweredSecond.Type.IsCharType())
+            {
+                loweredSecond = WrapCharExprIntoToStringCall(loweredSecond);
+            }
+
+            if (loweredThird.Type.IsCharType())
+            {
+                loweredThird = WrapCharExprIntoToStringCall(loweredThird);
+            }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
@@ -322,10 +345,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
-            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && loweredFourth.Type.IsStringType());
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && (loweredFirst.Type.IsStringType() || loweredFirst.Type.IsCharType()));
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && (loweredSecond.Type.IsStringType() || loweredSecond.Type.IsCharType()));
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && (loweredThird.Type.IsStringType() || loweredThird.Type.IsCharType()));
+            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && (loweredFourth.Type.IsStringType() || loweredFourth.Type.IsCharType()));
+
+            if (loweredFirst.Type.IsCharType())
+            {
+                loweredFirst = WrapCharExprIntoToStringCall(loweredFirst);
+            }
+
+            if (loweredSecond.Type.IsCharType())
+            {
+                loweredSecond = WrapCharExprIntoToStringCall(loweredSecond);
+            }
+
+            if (loweredThird.Type.IsCharType())
+            {
+                loweredThird = WrapCharExprIntoToStringCall(loweredThird);
+            }
+
+            if (loweredFourth.Type.IsCharType())
+            {
+                loweredFourth = WrapCharExprIntoToStringCall(loweredFourth);
+            }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
@@ -336,14 +379,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
         {
             Debug.Assert(loweredArgs.Length > 4);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type is { } && a.Type.IsStringType()));
+
+            var stringifiedArgs = ArrayBuilder<BoundExpression>.GetInstance(loweredArgs.Length);
+
+            foreach (var loweredArg in loweredArgs)
+            {
+                Debug.Assert(loweredArg.HasErrors || loweredArg.Type is { } argType && (argType.IsStringType() || argType.IsCharType()));
+
+                if (loweredArg.Type.IsCharType())
+                {
+                    stringifiedArgs.Add(WrapCharExprIntoToStringCall(loweredArg));
+                }
+                else
+                {
+                    stringifiedArgs.Add(loweredArg);
+                }
+            }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringArray);
             Debug.Assert((object)method != null);
 
-            var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
+            var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), stringifiedArgs.ToImmutableAndFree());
 
             return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
+        }
+
+        private BoundExpression WrapCharExprIntoToStringCall(BoundExpression expr)
+        {
+            Debug.Assert(expr.Type.IsCharType());
+
+            var objectToString = UnsafeGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString);
+            var charToString = FindSpecificToStringOfStructType(expr.Type, objectToString);
+
+            if (charToString is not null && !IsFieldOfMarshalByRef(expr))
+            {
+                return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, charToString);
+            }
+
+            return expr;
         }
 
         /// <summary>
@@ -398,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If it's a string already, just return it
-            if (expr.Type.IsStringType())
+            if (expr.Type.IsStringType() || expr.Type.IsCharType())
             {
                 return expr;
             }
@@ -409,27 +482,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If it's a struct which has overridden ToString, find that method. Note that we might fail to
             // find it, e.g. if object.ToString is missing
-            MethodSymbol? structToStringMethod = null;
-            if (expr.Type.IsValueType && !expr.Type.IsTypeParameter())
-            {
-                var type = (NamedTypeSymbol)expr.Type;
-                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
-                foreach (var member in typeToStringMembers)
-                {
-                    if (member is MethodSymbol toStringMethod &&
-                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
-                    {
-                        structToStringMethod = toStringMethod;
-                        break;
-                    }
-                }
-            }
+            MethodSymbol? structToStringMethod = FindSpecificToStringOfStructType(expr.Type, objectToStringMethod);
 
             // If it's a special value type (and not a field of a MarshalByRef object), it should have its own ToString method (but we might fail to find
             // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
             // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
             // types to all special value types.
-            if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
+            if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !IsFieldOfMarshalByRef(expr)))
             {
                 return BoundCall.Synthesized(expr.Syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
@@ -494,17 +553,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     forceCopyOfNullableValueType: false,
                     type: _compilation.GetSpecialType(SpecialType.System_String));
             }
+        }
 
-            static bool isFieldOfMarshalByRef(BoundExpression expr, CSharpCompilation compilation)
+        private static MethodSymbol? FindSpecificToStringOfStructType(TypeSymbol exprType, MethodSymbol objectToStringMethod)
+        {
+            MethodSymbol? structToStringMethod = null;
+            if (exprType.IsValueType && !exprType.IsTypeParameter())
             {
-                Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
-
-                if (expr is BoundFieldAccess fieldAccess)
+                var type = (NamedTypeSymbol)exprType;
+                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
+                foreach (var member in typeToStringMembers)
                 {
-                    return DiagnosticsPass.IsNonAgileFieldAccess(fieldAccess, compilation);
+                    if (member is MethodSymbol toStringMethod &&
+                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
+                    {
+                        structToStringMethod = toStringMethod;
+                        break;
+                    }
                 }
-                return false;
             }
+
+            return structToStringMethod;
+        }
+
+        private bool IsFieldOfMarshalByRef(BoundExpression expr)
+        {
+            Debug.Assert(!IsCapturedPrimaryConstructorParameter(expr));
+
+            if (expr is BoundFieldAccess fieldAccess)
+            {
+                return DiagnosticsPass.IsNonAgileFieldAccess(fieldAccess, _compilation);
+            }
+
+            return false;
         }
     }
 }
