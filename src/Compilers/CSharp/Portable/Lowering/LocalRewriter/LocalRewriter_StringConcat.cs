@@ -297,15 +297,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
-            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsCharType()));
-            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType()));
+            var leftType = loweredLeft.Type;
+            var rightType = loweredRight.Type;
 
-            if (loweredLeft.Type.IsCharType())
+            Debug.Assert(loweredLeft.HasAnyErrors || leftType is not null && (leftType.IsStringType() || leftType.IsCharType()));
+            Debug.Assert(loweredRight.HasAnyErrors || rightType is not null && (rightType.IsStringType() || rightType.IsCharType()));
+
+            var leftIsChar = leftType.IsCharType();
+            var rightIsChar = rightType.IsCharType();
+
+            // One of args is a char. We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call.
+            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
+            if ((leftIsChar || rightIsChar) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
+            {
+                var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
+                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+
+                var wrappedLeft = WrapCharOrStringIntoReadOnlySpanOfChar(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedRight = WrapCharOrStringIntoReadOnlySpanOfChar(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+
+                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
+            }
+
+            if (leftIsChar)
             {
                 loweredLeft = WrapCharExprIntoToStringCall(loweredLeft);
             }
 
-            if (loweredRight.Type.IsCharType())
+            if (rightIsChar)
             {
                 loweredRight = WrapCharExprIntoToStringCall(loweredRight);
             }
@@ -419,6 +441,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
+        private BoundExpression WrapCharOrStringIntoReadOnlySpanOfChar(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanWrappingCtorChar)
+        {
+            Debug.Assert(expr.Type.IsStringType() || expr.Type.IsCharType());
+
+            if (expr.Type.IsStringType())
+            {
+                return BoundCall.Synthesized(expr.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, expr);
+            }
+            else
+            {
+                // new ReadOnlySpan<char>(in <expr>)
+                return new BoundObjectCreationExpression(
+                    expr.Syntax,
+                    readOnlySpanWrappingCtorChar,
+                    ImmutableArray.Create(expr),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    constantValueOpt: null,
+                    initializerExpressionOpt: null,
+                    type: readOnlySpanWrappingCtorChar.ContainingType);
+            }
+        }
+
         /// <summary>
         /// Most of the above optimizations are not applicable in expression trees as the operator
         /// must stay a binary operator. We cannot do much beyond constant folding which is done in binder.
@@ -471,6 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If it's a string already, just return it
+            // If it's a char, return it here, so we can apply span-based optimization later
             if (expr.Type.IsStringType() || expr.Type.IsCharType())
             {
                 return expr;

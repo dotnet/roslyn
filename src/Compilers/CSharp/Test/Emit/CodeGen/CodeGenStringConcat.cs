@@ -2104,5 +2104,109 @@ class Test
   IL_0084:  ret
 }");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatTwo_ReadOnlySpan()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        var s = "s";
+                        var c = 'c';
+                        Console.Write(M1(s, c));
+                        Console.Write(M2(s, c));
+                    }
+
+                    static string M1(string s, char c) => s + c;
+                    static string M2(string s, char c) => c + s;
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: "sccs", targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.M1", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0006:  ldarga.s   V_1
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0012:  ret
+                }
+                """);
+            comp.VerifyIL("Test.M2", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_1
+                  IL_0002:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_000d:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        [InlineData((int)WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan)]
+        [InlineData((int)WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar)]
+        [InlineData((int)WellKnownMember.System_ReadOnlySpan_T__ctor_Reference)]
+        public void ConcatTwo_ReadOnlySpan_MissingMemberForOptimization(int member)
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        var s = "s";
+                        var c = 'c';
+                        Console.Write(M1(s, c));
+                        Console.Write(M2(s, c));
+                    }
+
+                    static string M1(string s, char c) => s + c;
+                    static string M2(string s, char c) => c + s;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing((WellKnownMember)member);
+
+            var verifier = CompileAndVerify(compilation: comp, expectedOutput: "sccs");
+
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Test.M1", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarga.s   V_1
+                  IL_0003:  call       "string char.ToString()"
+                  IL_0008:  call       "string string.Concat(string, string)"
+                  IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("Test.M2", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_1
+                  IL_0002:  call       "string char.ToString()"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "string string.Concat(string, string)"
+                  IL_000d:  ret
+                }
+                """);
+        }
     }
 }
