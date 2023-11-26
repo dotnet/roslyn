@@ -215,17 +215,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in elements)
             {
-                var rewrittenElement = element switch
-                {
-                    BoundCollectionElementInitializer collectionInitializer => MakeCollectionInitializer(temp, collectionInitializer),
-                    BoundDynamicCollectionElementInitializer dynamicInitializer => MakeDynamicCollectionInitializer(temp, dynamicInitializer),
-                    BoundCollectionExpressionSpreadElement spreadElement =>
-                        MakeCollectionExpressionSpreadElement(
-                            spreadElement,
-                            VisitExpression(spreadElement.Expression),
-                            static (rewriter, iteratorBody) => rewriter.VisitStatement(iteratorBody)!),
-                    _ => throw ExceptionUtilities.UnexpectedValue(element)
-                };
+                var rewrittenElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
+                    MakeCollectionExpressionSpreadElement(
+                        spreadElement,
+                        VisitExpression(spreadElement.Expression),
+                        iteratorBody =>
+                        {
+                            var syntax = iteratorBody.Syntax;
+                            var rewrittenValue = rewriteCollectionInitializer(temp, ((BoundExpressionStatement)iteratorBody).Expression);
+                            // MakeCollectionInitializer() may return null if Add() is marked [Conditional].
+                            return rewrittenValue is { } ?
+                                new BoundExpressionStatement(syntax, rewrittenValue) :
+                                new BoundNoOpStatement(syntax, NoOpStatementFlavor.Default);
+                        }) :
+                    rewriteCollectionInitializer(temp, (BoundExpression)element);
                 if (rewrittenElement != null)
                 {
                     sideEffects.Add(rewrittenElement);
@@ -240,6 +243,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 temp,
                 collectionType);
+
+            BoundExpression? rewriteCollectionInitializer(BoundLocal rewrittenReceiver, BoundExpression expressionElement)
+            {
+                return expressionElement switch
+                {
+                    BoundCollectionElementInitializer collectionInitializer => MakeCollectionInitializer(rewrittenReceiver, collectionInitializer),
+                    BoundDynamicCollectionElementInitializer dynamicInitializer => MakeDynamicCollectionInitializer(rewrittenReceiver, dynamicInitializer),
+                    var e => throw ExceptionUtilities.UnexpectedValue(e)
+                };
+            }
         }
 
         private BoundExpression VisitListInterfaceCollectionExpression(BoundCollectionExpression node)
@@ -754,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rewrittenElement = MakeCollectionExpressionSpreadElement(
                         spreadElement,
                         rewrittenExpression,
-                        (_, iteratorBody) =>
+                        iteratorBody =>
                         {
                             var rewrittenValue = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
@@ -828,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeCollectionExpressionSpreadElement(
             BoundCollectionExpressionSpreadElement node,
             BoundExpression rewrittenExpression,
-            Func<LocalRewriter, BoundStatement, BoundStatement> getRewrittenBody)
+            Func<BoundStatement, BoundStatement> rewriteBody)
         {
             var enumeratorInfo = node.EnumeratorInfoOpt;
             var convertedExpression = (BoundConversion?)node.Conversion;
@@ -848,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var iterationLocal = _factory.Local(iterationVariable);
 
             AddPlaceholderReplacement(elementPlaceholder, iterationLocal);
-            var rewrittenBody = getRewrittenBody(this, iteratorBody);
+            var rewrittenBody = rewriteBody(iteratorBody);
             RemovePlaceholderReplacement(elementPlaceholder);
 
             var iterationVariables = ImmutableArray.Create(iterationVariable);
