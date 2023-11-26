@@ -674,8 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE: Move these checks to lowering?
-                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface/* or CollectionExpressionTypeKind.List*/) ||
+                if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                     node.HasSpreadElements(out _, out _))
                 {
                     // Verify the existence of the List<T> members that may be used in lowering, even
@@ -684,11 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
-
-                    //if (collectionTypeKind != CollectionExpressionTypeKind.List)
-                    {
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-                    }
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
                 }
 
                 var elementConversions = conversion.UnderlyingConversions;
@@ -756,6 +751,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
             }
+        }
+
+        internal static BoundExpression GetUnderlyingCollectionExpressionElement(BoundExpression element)
+        {
+            return element switch
+            {
+                BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                _ => element,
+            };
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)

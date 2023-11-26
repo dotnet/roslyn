@@ -1250,12 +1250,6 @@ namespace Microsoft.CodeAnalysis.Operations
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
-                    case CollectionExpressionTypeKind.ImmutableArray:
-                        // https://github.com/dotnet/roslyn/issues/70880: Return the [CollectionBuilder] method.
-                        return null;
-                    case CollectionExpressionTypeKind.List:
-                        Debug.Assert(expr.Type is { });
-                        return ((MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))?.AsMember((NamedTypeSymbol)expr.Type);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
@@ -1267,19 +1261,11 @@ namespace Microsoft.CodeAnalysis.Operations
             if (element is BoundCollectionExpressionSpreadElement spreadElement)
             {
                 var iteratorBody = ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
-                return CreateBoundCollectionExpressionSpreadElement(spreadElement, getUnderlyingExpression(iteratorBody));
+                return CreateBoundCollectionExpressionSpreadElement(
+                    spreadElement,
+                    iteratorBody is null ? null : Binder.GetUnderlyingCollectionExpressionElement(iteratorBody));
             }
-            return Create(getUnderlyingExpression((BoundExpression)element));
-
-            [return: NotNullIfNotNull("element")] static BoundExpression? getUnderlyingExpression(BoundExpression? element)
-            {
-                return element switch
-                {
-                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
-                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
-                    _ => element,
-                };
-            }
+            return Create(Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element));
         }
 
         private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, BoundExpression? iteratorItem)

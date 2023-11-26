@@ -8,10 +8,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         Array,
-        //ImmutableArray, // PROTOTYPE: Remove.
         Span,
         ReadOnlySpan,
-        //List, // PROTOTYPE: Remove.
         CollectionBuilder,
         ImplementsIEnumerableT,
         ImplementsIEnumerable,
