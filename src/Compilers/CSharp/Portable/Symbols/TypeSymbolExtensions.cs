@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1351,9 +1350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
                 MetadataName: "ReadOnlySpan`1",
-                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
-            }
-            && arguments[0].SpecialType == SpecialType.System_Char;
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: [{ SpecialType: SpecialType.System_Char }],
+            };
         }
 
         internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)

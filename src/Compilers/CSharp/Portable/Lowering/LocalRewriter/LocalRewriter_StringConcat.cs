@@ -166,6 +166,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
+                        // Faced `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>) + string` (e.g. as a result of a previous rewrite).
+                        // We can only unwrap this if we can later rewrite it to `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>)`
+                        if ((object)method == (object)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) &&
+                            TryGetWellKnownTypeMember<MethodSymbol>(lowered.Syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan, out _, isOptional: true))
+                        {
+                            arguments = boundCall.Arguments;
+                            return true;
+                        }
+
                         if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
@@ -316,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedLeft = WrapCharOrStringIntoReadOnlySpanOfChar(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedRight = WrapCharOrStringIntoReadOnlySpanOfChar(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
 
                 return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
             }
@@ -340,21 +349,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && (loweredFirst.Type.IsStringType() || loweredFirst.Type.IsCharType()));
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && (loweredSecond.Type.IsStringType() || loweredSecond.Type.IsCharType()));
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && (loweredThird.Type.IsStringType() || loweredThird.Type.IsCharType()));
+            var firstType = loweredFirst.Type;
+            var secondType = loweredSecond.Type;
+            var thirdType = loweredThird.Type;
 
-            if (loweredFirst.Type.IsCharType())
+            Debug.Assert(loweredFirst.HasAnyErrors || firstType is not null && (firstType.IsStringType() || firstType.IsCharType() || firstType.IsReadOnlySpanChar()));
+            Debug.Assert(loweredSecond.HasAnyErrors || secondType is not null && (secondType.IsStringType() || secondType.IsCharType() || secondType.IsReadOnlySpanChar()));
+            Debug.Assert(loweredThird.HasAnyErrors || thirdType is not null && (thirdType.IsStringType() || thirdType.IsCharType() || thirdType.IsReadOnlySpanChar()));
+
+            var firstIsChar = firstType.IsCharType();
+            var secondIsChar = secondType.IsCharType();
+            var thirdIsChar = thirdType.IsCharType();
+
+            // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
+            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
+            if ((firstIsChar || secondIsChar || thirdIsChar || firstType.IsReadOnlySpanChar() || secondType.IsReadOnlySpanChar() || thirdType.IsReadOnlySpanChar()) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
+            {
+                var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
+                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+
+                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
+            }
+
+            if (firstIsChar)
             {
                 loweredFirst = WrapCharExprIntoToStringCall(loweredFirst);
             }
 
-            if (loweredSecond.Type.IsCharType())
+            if (secondIsChar)
             {
                 loweredSecond = WrapCharExprIntoToStringCall(loweredSecond);
             }
 
-            if (loweredThird.Type.IsCharType())
+            if (thirdIsChar)
             {
                 loweredThird = WrapCharExprIntoToStringCall(loweredThird);
             }
@@ -441,11 +475,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
-        private BoundExpression WrapCharOrStringIntoReadOnlySpanOfChar(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanWrappingCtorChar)
+        private BoundExpression WrapIntoReadOnlySpanOfCharIfNecessary(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanWrappingCtorChar)
         {
-            Debug.Assert(expr.Type.IsStringType() || expr.Type.IsCharType());
+            var exprType = expr.Type;
 
-            if (expr.Type.IsStringType())
+            Debug.Assert(exprType.IsStringType() || exprType.IsCharType() || exprType.IsReadOnlySpanChar());
+
+            if (expr.Type.IsReadOnlySpanChar())
+            {
+                return expr;
+            }
+            else if (expr.Type.IsStringType())
             {
                 return BoundCall.Synthesized(expr.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, expr);
             }
