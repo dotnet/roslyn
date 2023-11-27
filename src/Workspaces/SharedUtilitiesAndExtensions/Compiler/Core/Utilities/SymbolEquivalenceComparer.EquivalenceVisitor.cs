@@ -322,14 +322,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
+                // If one is a tuple, both must be tuples.
                 if (x.IsTupleType != y.IsTupleType)
                     return false;
 
+                // If one is nint/nuint, the other must be as well.
                 if (x.IsNativeIntegerType != y.IsNativeIntegerType)
                     return false;
 
+                // If one is void, the other must be as well
+                if (x.IsSystemVoid() != y.IsSystemVoid())
+                    return false;
+
+                // If a tuple, make sure the members are equivalent.
                 if (x.IsTupleType)
                     return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
+
+                // If a native int, make sure the sign matches.
+                if (x.IsNativeIntegerType)
+                    return x.SpecialType == y.SpecialType;
+
+                // If both are void, they're equivalent.
+                if (x.IsSystemVoid())
+                    return true;
 
                 if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
