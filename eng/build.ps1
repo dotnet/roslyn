@@ -258,8 +258,6 @@ function BuildSolution() {
 
   $restoreUseStaticGraphEvaluation = $true
   
-  $isNpmAvailable = IsNpmAvailable
-
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -282,7 +280,6 @@ function BuildSolution() {
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
       /p:VisualStudioDropAccessToken=$officialVisualStudioDropAccessToken `
-      /p:IsNpmPackable=$isNpmAvailable `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -428,7 +425,7 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
-    $args += " --retry"
+    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -606,6 +603,9 @@ function Deploy-VsixViaTool() {
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
@@ -708,14 +708,6 @@ function List-Processes() {
   Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
   Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Out-Host
   Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
-}
-
-function IsNpmAvailable() {
-  if (Get-Command "npm" -ErrorAction SilentlyContinue) {
-    return $true
-  }
-
-  return $false;
 }
 
 try {

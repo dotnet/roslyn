@@ -562,11 +562,6 @@
         <target state="translated">"else" 不能用在语句的开头。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">无法更新，因为推断的委托类型已更改。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">无法使用 "UnmanagedCallersOnly" 对应用程序入口点进行特性化。</target>
@@ -1860,6 +1855,11 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">

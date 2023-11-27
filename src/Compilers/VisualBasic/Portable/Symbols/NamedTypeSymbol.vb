@@ -1227,6 +1227,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private Function INamedTypeSymbolInternal_GetMembers() As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers().CastArray(Of ISymbolInternal)
+        End Function
+
+        Private Function INamedTypeSymbolInternal_GetMembers(name As String) As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers(name).CastArray(Of ISymbolInternal)
+        End Function
+
         Private ReadOnly Property INamedTypeSymbol_MemberNames As IEnumerable(Of String) Implements INamedTypeSymbol.MemberNames
             Get
                 Return Me.MemberNames

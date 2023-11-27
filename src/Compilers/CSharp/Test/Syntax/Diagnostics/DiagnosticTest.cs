@@ -2956,7 +2956,6 @@ class Program
                     case ErrorCode.ERR_RefReturningCallAndAwait:
                     case ErrorCode.ERR_SpecialByRefInLambda:
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                    case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
                     case ErrorCode.ERR_InterceptorSignatureMismatch:

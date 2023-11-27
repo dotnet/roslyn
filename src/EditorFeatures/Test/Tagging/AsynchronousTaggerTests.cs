@@ -73,10 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
-            var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+            using var tagger = taggerProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
             var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
 
@@ -99,10 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
-            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            using var tagger = tagProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             // The very first all to get tags will not be synchronous as this contains no #region tag
             var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
             Assert.Equal(0, tags.Count());
@@ -125,10 +123,9 @@ class Program
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
-            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            using var tagger = tagProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             // The very first all to get tags will be synchronous because of the #region
             var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
             Assert.Equal(2, tags.Count());

@@ -33,7 +33,7 @@ internal sealed class CSharpLambdaBody(SyntaxNode node) : LambdaBody
             HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(node).Any());
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(node).Captured;
+        => model.AnalyzeDataFlow(node).CapturedInside;
 
     public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(node, ((CSharpLambdaBody)newBody).Node, knownMatches);

@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var convertedValue = value ? 1 : 0;
             var project = await GetProjectAsync(projectName, cancellationToken);
             project.Properties.Item("OptionInfer").Value = convertedValue;
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], cancellationToken);
         }
 
         public async Task AddProjectReferenceAsync(string projectName, string projectToReferenceName, CancellationToken cancellationToken)
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
 
             // Wait for async save operations to complete before proceeding
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], cancellationToken);
 
             // Verify documents are truly saved after a Save Solution operation
             await TestServices.SolutionExplorerVerifier.AllDocumentsAreSavedAsync(cancellationToken);

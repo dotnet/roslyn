@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(
                 constructor: Constructor,
                 arguments: newArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),

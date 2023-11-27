@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingSearchHelpers
     {
-        private static readonly char[] s_splitCharacters = { '.', '+' };
+        private static readonly char[] s_splitCharacters = ['.', '+'];
 
         public static async Task<UnitTestingDocumentSpan?> GetSourceLocationAsync(
             Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)

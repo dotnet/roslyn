@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
-            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
+            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1);
 
             _threadingContext = threadingContext;
             ContentType = contentType;

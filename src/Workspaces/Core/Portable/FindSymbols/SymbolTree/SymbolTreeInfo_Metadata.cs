@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return await GetInfoForMetadataReferenceSlowAsync(
-                solutionServices, solutionKey, reference, checksum, cancellationToken).ConfigureAwait(false);
+                solutionServices, solutionKey, reference, checksum.Value, cancellationToken).ConfigureAwait(false);
 
             static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
                 SolutionServices services,
