@@ -435,6 +435,7 @@ namespace Microsoft.CodeAnalysis
 
         System_String__Concat_ReadOnlySpanReadOnlySpan,
         System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
+        System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,

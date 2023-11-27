@@ -175,6 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
+                        // Faced `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>) + string` (e.g. as a result of a previous rewrite).
+                        // We can only unwrap this if we can later rewrite it to `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>)`
+                        if ((object)method == (object?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan) &&
+                            TryGetWellKnownTypeMember<MethodSymbol>(lowered.Syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan, out _, isOptional: true))
+                        {
+                            arguments = boundCall.Arguments;
+                            return true;
+                        }
+
                         if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
@@ -408,15 +417,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             var thirdType = loweredThird.Type;
             var fourthType = loweredFourth.Type;
 
-            Debug.Assert(loweredFirst.HasAnyErrors || firstType is not null && (firstType.IsStringType() || firstType.IsCharType()));
-            Debug.Assert(loweredSecond.HasAnyErrors || secondType is not null && (secondType.IsStringType() || secondType.IsCharType()));
-            Debug.Assert(loweredThird.HasAnyErrors || thirdType is not null && (thirdType.IsStringType() || thirdType.IsCharType()));
-            Debug.Assert(loweredFourth.HasAnyErrors || fourthType is not null && (fourthType.IsStringType() || fourthType.IsCharType()));
+            Debug.Assert(loweredFirst.HasAnyErrors || firstType is not null && (firstType.IsStringType() || firstType.IsCharType() || firstType.IsReadOnlySpanChar()));
+            Debug.Assert(loweredSecond.HasAnyErrors || secondType is not null && (secondType.IsStringType() || secondType.IsCharType() || secondType.IsReadOnlySpanChar()));
+            Debug.Assert(loweredThird.HasAnyErrors || thirdType is not null && (thirdType.IsStringType() || thirdType.IsCharType() || thirdType.IsReadOnlySpanChar()));
+            Debug.Assert(loweredFourth.HasAnyErrors || fourthType is not null && (fourthType.IsStringType() || fourthType.IsCharType() || fourthType.IsReadOnlySpanChar()));
 
             var firstIsChar = firstType?.IsCharType() == true;
             var secondIsChar = secondType?.IsCharType() == true;
             var thirdIsChar = thirdType?.IsCharType() == true;
             var fourthIsChar = fourthType?.IsCharType() == true;
+
+            // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
+            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
+            if ((firstIsChar || secondIsChar || thirdIsChar || fourthIsChar || firstType.IsReadOnlySpanChar() || secondType.IsReadOnlySpanChar() || thirdType.IsReadOnlySpanChar() || fourthType.IsReadOnlySpanChar()) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
+            {
+                var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
+                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+
+                var wrappedFirst = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFirst, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedSecond = WrapIntoReadOnlySpanOfCharIfNecessary(loweredSecond, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedThird = WrapIntoReadOnlySpanOfCharIfNecessary(loweredThird, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedFourth = WrapIntoReadOnlySpanOfCharIfNecessary(loweredFourth, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+
+                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird, wrappedFourth));
+            }
+
+            Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar() && !fourthType.IsReadOnlySpanChar());
 
             if (firstIsChar)
             {
