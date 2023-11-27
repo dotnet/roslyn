@@ -2742,5 +2742,86 @@ class Test
             // This is not something that can be seen in real-life scenarios, so don't care about precise IL we generate
             CompileAndVerify(compilation: comp, expectedOutput: "csssscsssscssssccscsscsccssc").VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
+        public void ConcatFive_Char()
+        {
+            var source = """
+                using System;
+
+                public class Test
+                {
+                    static void Main()
+                    {
+                        var s = "s";
+                        var c = 'c';
+                        Console.Write(CharInFirstFourArgs(s, c));
+                        Console.Write(CharAfterFirstFourArgs(s, c));
+                    }
+
+                    static string CharInFirstFourArgs(string s, char c) => s + c + s + s + s;
+                    static string CharAfterFirstFourArgs(string s, char c) => s + s + s + s + c;
+                }
+                """;
+
+            var comp = CompileAndVerify(source, expectedOutput: "scsssssssc", targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics();
+
+            // This is actually more optimal then using string.Concat(string[]) overload
+            comp.VerifyIL("Test.CharInFirstFourArgs", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0006:  ldarga.s   V_1
+                  IL_0008:  newobj     "System.ReadOnlySpan<char>..ctor(in char)"
+                  IL_000d:  ldarg.0
+                  IL_000e:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0013:  ldarg.0
+                  IL_0014:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+                  IL_0019:  call       "string string.Concat(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_001e:  ldarg.0
+                  IL_001f:  call       "string string.Concat(string, string)"
+                  IL_0024:  ret
+                }
+                """);
+
+            // Ideally this should use span overload and then concat the remaining string as well,
+            // but due to the order of evaluation of expressions during lowering we end up falling back to concat array overload.
+            // This is not a typical real-life scenario (although still possible one), so analysis complications in the compiler are not worth the result
+            comp.VerifyIL("Test.CharAfterFirstFourArgs", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.5
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem.ref
+                  IL_000a:  dup
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ldarg.0
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.2
+                  IL_0010:  ldarg.0
+                  IL_0011:  stelem.ref
+                  IL_0012:  dup
+                  IL_0013:  ldc.i4.3
+                  IL_0014:  ldarg.0
+                  IL_0015:  stelem.ref
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.4
+                  IL_0018:  ldarga.s   V_1
+                  IL_001a:  call       "string char.ToString()"
+                  IL_001f:  stelem.ref
+                  IL_0020:  call       "string string.Concat(params string[])"
+                  IL_0025:  ret
+                }
+                """);
+        }
     }
 }
