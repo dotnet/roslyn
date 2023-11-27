@@ -12300,8 +12300,7 @@ public static class Ext
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        <WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
         Public Sub TestArgumentCompletionTriggerForExtensionMethod_DirectInvoke()
             Using state = TestStateFactory.CreateCSharpTestState(
                     <Document>
@@ -12370,6 +12369,70 @@ class C
 
                 Await state.AssertCompletionSession()
                 state.AssertItemsInOrder({"Ddd()", "Ddd{T1}()", "Ddd{T1, T2}()"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+   override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Moo()", "")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+    public override void Moo() { }
+    override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
     End Class
