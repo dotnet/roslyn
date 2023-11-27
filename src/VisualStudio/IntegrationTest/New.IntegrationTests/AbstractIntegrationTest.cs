@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -85,9 +87,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         public override async Task DisposeAsync()
         {
-            await TestServices.StateReset.CloseActiveWindowsAsync(HangMitigatingCancellationToken);
+            using var cleanupCancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var cleanupCancellationToken = cleanupCancellationTokenSource.Token;
 
-            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(HangMitigatingCancellationToken);
+            await TestServices.StateReset.CloseActiveWindowsAsync(cleanupCancellationToken);
+
+            var dte = await TestServices.Shell.GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cleanupCancellationToken);
             if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
             {
                 dte.Debugger.TerminateAll();
@@ -96,7 +101,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                         FeatureAttribute.Workspace,
                         FeatureAttribute.EditAndContinue,
                     ],
-                    HangMitigatingCancellationToken);
+                    cleanupCancellationToken);
             }
 
             await base.DisposeAsync();
