@@ -4862,6 +4862,33 @@ class Program
             Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
+        public void LambdaParameterAttributes_OverloadResolution()
+        {
+            var source = """
+                using System.Runtime.InteropServices;
+
+                new C().M(([Optional] int x = 1) => x);
+                new C().M((int x = 1) => x);
+
+                class C
+                {
+                    public void M(D1 d) { }
+                    public void M(D2 d) { }
+                }
+
+                delegate int D1(int x = 1);
+                delegate int D2([Optional, DefaultParameterValue(1)] int x);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                // new C().M(([Optional] int x = 1) => x);
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(3, 13),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D1)' and 'C.M(D2)'
+                // new C().M((int x = 1) => x);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D1)", "C.M(D2)").WithLocation(4, 9));
+        }
+
         [Fact]
         public void LambdaParameterAttributes_OptionalAndDateTimeConstantAttributes()
         {
@@ -8281,6 +8308,32 @@ class Program
                 // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
                 // var lam = ([System.ParamArray] int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
+        public void ParamsArray_ParamArrayAttribute_OverloadResolution()
+        {
+            var source = """
+                using System;
+
+                new C().M(([ParamArray] int[] xs) => xs.Length);
+                new C().M((params int[] xs) => xs.Length);
+
+                class C
+                {
+                    public void M(D d) { }
+                    public void M(Func<int[], int> f) { }
+                }
+
+                delegate int D(params int[] xs);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // new C().M(([ParamArray] int[] xs) => xs.Length);
+                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "ParamArray").WithLocation(3, 13),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(D)' and 'C.M(Func<int[], int>)'
+                // new C().M((params int[] xs) => xs.Length);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(D)", "C.M(System.Func<int[], int>)").WithLocation(4, 9));
         }
 
         [Fact]
