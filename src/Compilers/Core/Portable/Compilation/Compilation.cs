@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility) // binary compat
-            => GetSemanticModel(syntaxTree, ignoreAccessibility);
+            => GetSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis: false);
 
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility = false, bool disableNullableAnalysis = false)
             => CommonGetSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis);
