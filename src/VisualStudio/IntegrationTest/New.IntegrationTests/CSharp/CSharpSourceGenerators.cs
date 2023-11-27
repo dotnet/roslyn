@@ -25,12 +25,28 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
     [Trait(Traits.Feature, Traits.Features.SourceGenerators)]
-    public class CSharpSourceGenerators : AbstractEditorTest
+    public abstract class CSharpSourceGenerators : AbstractEditorTest
     {
+        public class LegacyProject : CSharpSourceGenerators
+        {
+            public LegacyProject(ITestOutputHelper testOutputHelper)
+                : base(testOutputHelper, WellKnownProjectTemplates.ConsoleApplication)
+            {
+            }
+        }
+
+        public class CommonProjectSystem : CSharpSourceGenerators
+        {
+            public CommonProjectSystem(ITestOutputHelper testOutputHelper)
+                : base(testOutputHelper, WellKnownProjectTemplates.CSharpNetCoreConsoleApplication)
+            {
+            }
+        }
+
         private readonly ITestOutputHelper _testOutputHelper;
 
-        public CSharpSourceGenerators(ITestOutputHelper testOutputHelper)
-            : base(nameof(CSharpSourceGenerators), WellKnownProjectTemplates.ConsoleApplication)
+        protected CSharpSourceGenerators(ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(nameof(CSharpSourceGenerators), projectTemplate)
         {
             _testOutputHelper = testOutputHelper;
         }
