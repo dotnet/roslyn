@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var newSolution = data.transformation(oldSolution);
 
-                    // Attempt to unify the syntax trees in the new solution (unless the option is set disabling that).
+                    // Attempt to unify the syntax trees in the new solution.
                     return UnifyLinkedDocumentContents(oldSolution, newSolution);
                 },
                 mayRaiseEvents: true,
