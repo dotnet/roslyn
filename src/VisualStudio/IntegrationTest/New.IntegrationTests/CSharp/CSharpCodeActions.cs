@@ -698,16 +698,14 @@ public class Program
     }
 }", HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            var expectedItems = new[]
-            {
+
+            await TestServices.EditorVerifier.CodeActionsAsync([
+                "Use discard '__'",
                 "Use explicit type instead of 'var'",
                 "Introduce local",
                 "Introduce parameter for 'new Program()'",
-                "Use discard '__'",
                 "Suppress or configure issues",
-            };
-
-            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
+            ], cancellationToken: HangMitigatingCancellationToken);
         }
 
         [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
