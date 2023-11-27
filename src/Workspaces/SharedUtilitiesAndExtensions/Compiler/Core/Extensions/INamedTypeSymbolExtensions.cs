@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                           .ToImmutableArray()
                           .Do(kvp => result.Remove(kvp.Key);
                 }
-            }KeyValuePair => 
+            }
         }
 
         private static void AddOverridableMembers(
