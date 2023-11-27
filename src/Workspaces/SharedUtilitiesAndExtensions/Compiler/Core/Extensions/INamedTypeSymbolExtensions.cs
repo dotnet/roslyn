@@ -594,9 +594,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (member.IsImplicitlyDeclared)
                         continue;
 
-                    result.Where(kvp => comparer.Equals(member.Name, kvp.Key.Name) && SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive))
-                          .ToImmutableArray()
-                          .Do(kvp => result.Remove(kvp.Key));
+                    var matches = result.Where(kvp =>
+                        comparer.Equals(member.Name, kvp.Key.Name) &&
+                        SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive));
+
+                    // realize the matches since we're mutating the collection we're querying.
+                    foreach (var match in matches.ToImmutableArray())
+                        result.Remove(match.Key);
                 }
             }
         }
