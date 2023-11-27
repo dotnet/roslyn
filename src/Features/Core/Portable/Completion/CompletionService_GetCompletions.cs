@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
             // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
             var sharedContext = new SharedSyntaxContextsWithSpeculativeModel(document, caretPosition);
+            _ = sharedContext.GetSyntaxContextAsync(document, cancellationToken);
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
