@@ -958,9 +958,14 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Reference:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
+                    case WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar:
+                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan:
+                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan:
+                    case WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:
@@ -2398,7 +2403,7 @@ public class Test
             compilation.VerifyEmitDiagnostics(
                 // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
                 //         Console.WriteLine(c + "3");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"c + ""3""").WithArguments("System.Object", "ToString").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Object", "ToString").WithLocation(9, 27)
                 );
         }
 

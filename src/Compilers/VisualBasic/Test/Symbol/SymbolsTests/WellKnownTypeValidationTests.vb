@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -703,9 +702,14 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_Reference,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
+                         WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -903,9 +907,14 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_Reference,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
+                         WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan,
+                         WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
