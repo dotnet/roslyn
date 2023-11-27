@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertCollectionExpression(
+        private BoundCollectionExpression ConvertCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             Conversion conversion,

@@ -587,13 +587,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)
             {
                 var caseSensitive = containingType.Language != LanguageNames.VisualBasic;
+                var comparer = caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
                 foreach (var member in containingType.GetMembers())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    result.Where(kvp => SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive))
+                    result.Where(kvp => comparer.Equals(member.Name, kvp.Key.Name) && SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive))
                           .ToImmutableArray()
-                          .Do(kvp => result.Remove(kvp.Key);
+                          .Do(kvp => result.Remove(kvp.Key));
                 }
             }
         }
