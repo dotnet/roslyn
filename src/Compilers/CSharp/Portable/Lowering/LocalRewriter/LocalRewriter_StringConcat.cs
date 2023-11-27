@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Faced `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>) + string` (e.g. as a result of a previous rewrite).
                         // We can only unwrap this if we can later rewrite it to `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>)`
-                        if ((object)method == (object)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) &&
+                        if ((object)method == (object?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) &&
                             TryGetWellKnownTypeMember<MethodSymbol>(lowered.Syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan, out _, isOptional: true))
                         {
                             arguments = boundCall.Arguments;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullOrEmptyStringConstant(BoundExpression operand)
         {
-            return (operand.Type.IsStringType() && operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
+            return (operand.Type?.IsStringType() == true && operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
                     operand.IsDefaultValue();
         }
 
@@ -312,8 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(loweredLeft.HasAnyErrors || leftType is not null && (leftType.IsStringType() || leftType.IsCharType()));
             Debug.Assert(loweredRight.HasAnyErrors || rightType is not null && (rightType.IsStringType() || rightType.IsCharType()));
 
-            var leftIsChar = leftType.IsCharType();
-            var rightIsChar = rightType.IsCharType();
+            var leftIsChar = leftType?.IsCharType() == true;
+            var rightIsChar = rightType?.IsCharType() == true;
 
             // One of args is a char. We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call.
             // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
@@ -357,9 +357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(loweredSecond.HasAnyErrors || secondType is not null && (secondType.IsStringType() || secondType.IsCharType() || secondType.IsReadOnlySpanChar()));
             Debug.Assert(loweredThird.HasAnyErrors || thirdType is not null && (thirdType.IsStringType() || thirdType.IsCharType() || thirdType.IsReadOnlySpanChar()));
 
-            var firstIsChar = firstType.IsCharType();
-            var secondIsChar = secondType.IsCharType();
-            var thirdIsChar = thirdType.IsCharType();
+            var firstIsChar = firstType?.IsCharType() == true;
+            var secondIsChar = secondType?.IsCharType() == true;
+            var thirdIsChar = thirdType?.IsCharType() == true;
 
             // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
             // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
@@ -401,27 +401,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
         {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && (loweredFirst.Type.IsStringType() || loweredFirst.Type.IsCharType()));
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && (loweredSecond.Type.IsStringType() || loweredSecond.Type.IsCharType()));
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && (loweredThird.Type.IsStringType() || loweredThird.Type.IsCharType()));
-            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && (loweredFourth.Type.IsStringType() || loweredFourth.Type.IsCharType()));
+            var firstType = loweredFirst.Type;
+            var secondType = loweredSecond.Type;
+            var thirdType = loweredThird.Type;
+            var fourthType = loweredFourth.Type;
 
-            if (loweredFirst.Type.IsCharType())
+            Debug.Assert(loweredFirst.HasAnyErrors || firstType is not null && (firstType.IsStringType() || firstType.IsCharType()));
+            Debug.Assert(loweredSecond.HasAnyErrors || secondType is not null && (secondType.IsStringType() || secondType.IsCharType()));
+            Debug.Assert(loweredThird.HasAnyErrors || thirdType is not null && (thirdType.IsStringType() || thirdType.IsCharType()));
+            Debug.Assert(loweredFourth.HasAnyErrors || fourthType is not null && (fourthType.IsStringType() || fourthType.IsCharType()));
+
+            var firstIsChar = firstType?.IsCharType() == true;
+            var secondIsChar = secondType?.IsCharType() == true;
+            var thirdIsChar = thirdType?.IsCharType() == true;
+            var fourthIsChar = fourthType?.IsCharType() == true;
+
+            if (firstIsChar)
             {
                 loweredFirst = WrapCharExprIntoToStringCall(loweredFirst);
             }
 
-            if (loweredSecond.Type.IsCharType())
+            if (secondIsChar)
             {
                 loweredSecond = WrapCharExprIntoToStringCall(loweredSecond);
             }
 
-            if (loweredThird.Type.IsCharType())
+            if (thirdIsChar)
             {
                 loweredThird = WrapCharExprIntoToStringCall(loweredThird);
             }
 
-            if (loweredFourth.Type.IsCharType())
+            if (fourthIsChar)
             {
                 loweredFourth = WrapCharExprIntoToStringCall(loweredFourth);
             }
@@ -442,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(loweredArg.HasErrors || loweredArg.Type is { } argType && (argType.IsStringType() || argType.IsCharType()));
 
-                if (loweredArg.Type.IsCharType())
+                if (loweredArg.Type?.IsCharType() == true)
                 {
                     stringifiedArgs.Add(WrapCharExprIntoToStringCall(loweredArg));
                 }
@@ -462,10 +472,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression WrapCharExprIntoToStringCall(BoundExpression expr)
         {
-            Debug.Assert(expr.Type.IsCharType());
+            var exprType = expr.Type;
+            Debug.Assert(exprType is not null && exprType.IsCharType());
 
             var objectToString = UnsafeGetSpecialTypeMethod(expr.Syntax, SpecialMember.System_Object__ToString);
-            var charToString = FindSpecificToStringOfStructType(expr.Type, objectToString);
+            var charToString = FindSpecificToStringOfStructType(exprType, objectToString);
 
             if (charToString is not null && !IsFieldOfMarshalByRef(expr))
             {
@@ -479,13 +490,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var exprType = expr.Type;
 
-            Debug.Assert(exprType.IsStringType() || exprType.IsCharType() || exprType.IsReadOnlySpanChar());
+            Debug.Assert(exprType is not null && (exprType.IsStringType() || exprType.IsCharType() || exprType.IsReadOnlySpanChar()));
 
             if (expr.Type.IsReadOnlySpanChar())
             {
                 return expr;
             }
-            else if (expr.Type.IsStringType())
+            else if (exprType.IsStringType())
             {
                 return BoundCall.Synthesized(expr.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, expr);
             }
