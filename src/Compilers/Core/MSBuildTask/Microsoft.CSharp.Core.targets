@@ -30,8 +30,31 @@
                                          '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
 
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
-    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
+
+    <!-- <Metalama> -->
+    <MetalamaMinSupportedLangVersion>10.0</MetalamaMinSupportedLangVersion>
+    <!-- </Metalama> -->
   </PropertyGroup>
+  
+  <!-- <Metalama> -->
+  <!-- Original Roslyn code was just: -->
+  <!--<LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>-->
+
+  <Choose>
+    <When Condition="'$(_MaxSupportedLangVersion)' &lt; '$(MetalamaMinSupportedLangVersion)'">
+      <PropertyGroup>
+        <MetalamaLangVersionBeforeOverride Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</MetalamaLangVersionBeforeOverride>
+        <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(MetalamaMinSupportedLangVersion)</LangVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- </Metalama> -->
 
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);

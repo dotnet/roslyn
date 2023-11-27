@@ -23,7 +23,8 @@ namespace Metalama.Compiler
         ERR_TransformerNotUnique = 616,
         WRN_AnalyzerAssembliesRedirected = 617,
         WRN_AnalyzerAssemblyCantRedirect = 618,
-        ERR_InterceptorsNotSupported = 619
+        ERR_InterceptorsNotSupported = 619,
+        WRN_LanguageVersionUpdated = 620
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -221,7 +222,8 @@ namespace Metalama.Compiler
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_TransformersNotOrdered or
             WRN_AnalyzerAssembliesRedirected or
-            WRN_AnalyzerAssemblyCantRedirect => DiagnosticSeverity.Warning,
+            WRN_AnalyzerAssemblyCantRedirect or
+            WRN_LanguageVersionUpdated => DiagnosticSeverity.Warning,
 
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
@@ -243,6 +245,7 @@ namespace Metalama.Compiler
                 WRN_AnalyzerAssembliesRedirected => "Some analyzer assemblies were downgraded because of Metalama/Roslyn version mismatch.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly was disabled because of Metalama/Roslyn version mismatch.",
                 ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.",
+                WRN_LanguageVersionUpdated => "Metalama updated the language version.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -271,6 +274,7 @@ namespace Metalama.Compiler
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly '{0}' was disabled, because it references Roslyn version {1}, which is newer than what is supported by the current version of Metalama ({2}).",
                 ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.{0}",
+                WRN_LanguageVersionUpdated => "The C# language version of the current project was updated from {0} to {1}, because that is the lowest version supported by Metalama. To hide this warning, set <LangVersion> to at least {1} in your project file.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

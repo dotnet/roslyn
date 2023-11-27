@@ -13,7 +13,7 @@
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcore</_RoslynTargetDirectoryName>
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
-    <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
+    <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly>
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
@@ -32,11 +32,12 @@
     <CompilerVisibleProperty Include="MetalamaTransformedCodeAnalyzers" />
     <CompilerVisibleProperty Include="MetalamaLicense" />
     <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
-    <CompilerVisibleProperty Include="MSBuildProjectFullPath"/>
+    <CompilerVisibleProperty Include="MSBuildProjectFullPath "/>
+    <CompilerVisibleProperty Include="MetalamaLangVersionBeforeOverride "/>
 
-    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers"/>
-    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues"/>
-    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeQuality.Analyzers.Maintainability.AvoidUnusedPrivateFieldsAnalyzer"/>
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers" />
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues" />
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeQuality.Analyzers.Maintainability.AvoidUnusedPrivateFieldsAnalyzer" />
     
   </ItemGroup>
   <!-- </Metalama> -->
