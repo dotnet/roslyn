@@ -591,6 +591,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var member in containingType.GetMembers())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (member.IsImplicitlyDeclared)
+                        continue;
 
                     result.Where(kvp => comparer.Equals(member.Name, kvp.Key.Name) && SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive))
                           .ToImmutableArray()
