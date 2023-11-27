@@ -1032,15 +1032,45 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net8.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "8.0.0-preview.7.23375.6"),
+                            "8.0.0"),
                         Path.Combine("ref", "net8.0"));
                 });
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet80Windows =
                 new Lazy<ReferenceAssemblies>(() =>
-                    Net70.AddPackages(
+                    Net80.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "8.0.0-preview.7.23376.1"))));
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "8.0.0"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net80.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref", "14.0.8478"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net80.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref.34", "34.0.43"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net80.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref", "17.0.8478"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net80.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "17.0.8478"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet80TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net80.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref", "17.0.8478"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
@@ -1075,6 +1105,16 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies Net80 => _lazyNet80.Value;
 
             public static ReferenceAssemblies Net80Windows => _lazyNet80Windows.Value;
+
+            public static ReferenceAssemblies Net80Android => _lazyNet80Android.Value;
+
+            public static ReferenceAssemblies Net80iOS => _lazyNet80iOS.Value;
+
+            public static ReferenceAssemblies Net80MacOS => _lazyNet80MacOS.Value;
+
+            public static ReferenceAssemblies Net80MacCatalyst => _lazyNet80MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net80TvOS => _lazyNet80TvOS.Value;
         }
 
         public static class NetStandard
