@@ -12,7 +12,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         private class DelayService : IDelayService
         {
+#if NETFRAMEWORK
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
+#else
+            public TimeSpan CachePollDelay { get; } = TimeSpan.FromDays(6).TotalMinutes; // Max is too big for an int. 6 days ends up being almost infinite in the world of sessions.
+#endif
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
             public TimeSpan ExpectedFailureDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan CatastrophicFailureDelay { get; } = TimeSpan.FromDays(1);
