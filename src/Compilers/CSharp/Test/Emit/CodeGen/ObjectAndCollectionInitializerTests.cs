@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -950,7 +951,7 @@ class A
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
-  // Code size       86 (0x56)
+  // Code size       84 (0x54)
   .maxstack  3
   .locals init (int V_0, //x
                 A V_1,
@@ -985,16 +986,14 @@ class A
   IL_003c:  newobj     ""A..ctor()""
   IL_0041:  pop
   IL_0042:  ldloc.0
-  IL_0043:  dup
-  IL_0044:  ldc.i4.1
-  IL_0045:  add
-  IL_0046:  stloc.0
-  IL_0047:  pop
-  IL_0048:  ldc.i4.s   45
-  IL_004a:  call       ""void System.Console.WriteLine(char)""
-  IL_004f:  ldloc.0
-  IL_0050:  call       ""void System.Console.WriteLine(int)""
-  IL_0055:  ret
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  stloc.0
+  IL_0046:  ldc.i4.s   45
+  IL_0048:  call       ""void System.Console.WriteLine(char)""
+  IL_004d:  ldloc.0
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  ret
 }
 ");
         }
@@ -1042,8 +1041,8 @@ class A
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
-  // Code size      113 (0x71)
-  .maxstack  5
+  // Code size      122 (0x7a)
+  .maxstack  6
   .locals init (int V_0, //x
                 A V_1,
                 int V_2)
@@ -1091,17 +1090,22 @@ class A
   IL_0052:  call       ""void System.Console.WriteLine(char)""
   IL_0057:  newobj     ""A..ctor()""
   IL_005c:  pop
-  IL_005d:  ldloc.0
-  IL_005e:  dup
-  IL_005f:  ldc.i4.1
-  IL_0060:  add
-  IL_0061:  stloc.0
-  IL_0062:  pop
-  IL_0063:  ldc.i4.s   45
-  IL_0065:  call       ""void System.Console.WriteLine(char)""
-  IL_006a:  ldloc.0
-  IL_006b:  call       ""void System.Console.WriteLine(int)""
-  IL_0070:  ret
+  IL_005d:  ldc.i4.1
+  IL_005e:  newarr     ""int""
+  IL_0063:  dup
+  IL_0064:  ldc.i4.0
+  IL_0065:  ldloc.0
+  IL_0066:  dup
+  IL_0067:  ldc.i4.1
+  IL_0068:  add
+  IL_0069:  stloc.0
+  IL_006a:  stelem.i4
+  IL_006b:  pop
+  IL_006c:  ldc.i4.s   45
+  IL_006e:  call       ""void System.Console.WriteLine(char)""
+  IL_0073:  ldloc.0
+  IL_0074:  call       ""void System.Console.WriteLine(int)""
+  IL_0079:  ret
 }
 ");
         }
@@ -1252,7 +1256,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3377,12 +3381,17 @@ unsafe class C
 
             fixed (int** pp = array2 )
             {
-                new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } };
+                M(pp);
             }
         }
 
         System.Console.WriteLine(array[0]); 
         System.Console.WriteLine(array[1]); 
+    }
+
+    static C M(int** pp)
+    {
+        return new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } };
     }
 
     static int Index
@@ -3399,10 +3408,78 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");
+
+            var comp = verifier.Compilation;
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } }", node.ToString());
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor(System.Int32** x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'pp')
+                        IParameterReferenceOperation: pp (OperationKind.ParameterReference, Type: System.Int32**) (Syntax: 'pp')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer:
+                    null
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[0] = 2')
+              Left:
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '[0]')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: '[Index]')
+                        Children(2):
+                            IFieldReferenceOperation: System.Int32** C.X (OperationKind.FieldReference, Type: System.Int32**) (Syntax: 'X')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                            IPropertyReferenceOperation: System.Int32 C.Index { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Index')
+                              Instance Receiver:
+                                null
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[1] = 3')
+              Left:
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '[1]')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: '[Index]')
+                        Children(2):
+                            IFieldReferenceOperation: System.Int32** C.X (OperationKind.FieldReference, Type: System.Int32**) (Syntax: 'X')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                            IPropertyReferenceOperation: System.Int32 C.Index { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Index')
+                              Instance Receiver:
+                                null
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        Next (Return) Block[B2]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""",
+                graph, symbol);
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -276,6 +277,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right = assignment.Right;
             bool isRhsNestedInitializer = right.Kind is BoundKind.ObjectInitializerExpression or BoundKind.CollectionInitializerExpression;
 
+            if (isRhsNestedInitializer && onlyContainsEmptyLeafNestedInitializers(right))
+            {
+                // If we only have nested object initializers and the leaves are empty initializers,
+                // then we optimize, skip calling the indexers and properties in the chain, and only evaluate the indexes
+                addIndexes(result, assignment);
+                return;
+            }
+
             BoundExpression rewrittenAccess;
             switch (left.Kind)
             {
@@ -448,14 +457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var implicitIndexer = (BoundImplicitIndexerAccess)left;
 
-                    if (isRhsNestedInitializer && right is BoundObjectInitializerExpression { Initializers: [] })
-                    {
-                        // If the nested initializer is empty, we evaluated the argument specified by the user but
-                        // not the Length, indexer or Slice
-                        result.Add(VisitExpression(implicitIndexer.Argument));
-                        return;
-                    }
-
                     BoundExpression transformedImplicitIndexer;
                     var argumentType = implicitIndexer.Argument.Type;
                     if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
@@ -501,7 +502,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenAccess, right);
+            return;
+
+            static bool onlyContainsEmptyLeafNestedInitializers(BoundExpression expression)
+            {
+                if (expression is not BoundObjectInitializerExpression initializer)
+                {
+                    return false;
+                }
+
+                return initializer.Initializers.All(e => e is BoundAssignmentOperator assignment && onlyContainsEmptyLeafNestedInitializers(assignment.Right));
+            }
+
+            void addIndexes(ArrayBuilder<BoundExpression> result, BoundAssignmentOperator assignment)
+            {
+                // If we have `[argument] = { ... }`, we'll evaluate `argument` only
+                var lhs = assignment.Left;
+                if (lhs is BoundObjectInitializerMember initializerMember)
+                {
+                    foreach (var argument in initializerMember.Arguments)
+                    {
+                        result.Add(VisitExpression(argument));
+                    }
+                }
+                else if (lhs is BoundImplicitIndexerAccess implicitIndexerAccess)
+                {
+                    result.Add(VisitExpression(implicitIndexerAccess.Argument));
+                }
+                else if (lhs is BoundArrayAccess arrayAccess)
+                {
+                    foreach (var index in arrayAccess.Indices)
+                    {
+                        result.Add(VisitExpression(index));
+                    }
+                }
+                else if (lhs is BoundPointerElementAccess pointerElementAccess)
+                {
+                    result.Add(VisitExpression(pointerElementAccess.Index));
+                }
+                else if (lhs is BoundDynamicCollectionElementInitializer)
+                {
+                    // We only bind to a BoundDynamicCollectionElementInitializer in a situation like:
+                    // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                // And any nested indexes
+                foreach (var initializer in ((BoundObjectInitializerExpression)assignment.Right).Initializers)
+                {
+                    addIndexes(result, (BoundAssignmentOperator)initializer);
+                }
+            }
         }
+
 
         private ImmutableArray<BoundExpression> EvaluateSideEffectingArgumentsToTemps(
                                                  ImmutableArray<BoundExpression> args,

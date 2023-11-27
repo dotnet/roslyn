@@ -6070,6 +6070,14 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
+                if (onlyContainsEmptyLeafNestedInitializers(memberInitializer))
+                {
+                    // However, when the leave nested initializers are empty, we won't access the chain of initialized members
+                    // and we only evaluate the arguments/indexes they contain.
+                    addIndexes(memberInitializer);
+                    return;
+                }
+
                 EvalStackFrame frame = PushStackFrame();
                 bool pushSuccess = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember) : VisitRequired(memberInitializer.InitializedMember);
@@ -6194,6 +6202,59 @@ oneMoreTime:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
+                }
+            }
+
+            static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
+            {
+                if (memberInitializer.Initializer is not IObjectOrCollectionInitializerOperation nestedInitializer)
+                {
+                    return false;
+                }
+
+                return nestedInitializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+            }
+
+            void addIndexes(IMemberInitializerOperation memberInitializer)
+            {
+                var lhs = memberInitializer.InitializedMember;
+                // If we have `[argument] = { ... }`, we'll evaluate `argument` only
+                if (lhs is IPropertyReferenceOperation propertyReference)
+                {
+                    foreach (var argument in propertyReference.Arguments)
+                    {
+                        AddStatement(Visit(argument.Value));
+                    }
+                }
+                else if (lhs is IImplicitIndexerReferenceOperation implicitIndexer)
+                {
+                    AddStatement(Visit(implicitIndexer.Argument));
+                }
+                else if (lhs is IArrayElementReferenceOperation arrayAccess)
+                {
+                    foreach (var index in arrayAccess.Indices)
+                    {
+                        AddStatement(Visit(index));
+                    }
+                }
+                else if (lhs is IDynamicIndexerAccessOperation dynamicIndexerAccess)
+                {
+                    foreach (var argument in dynamicIndexerAccess.Arguments)
+                    {
+                        AddStatement(Visit(argument));
+                    }
+                }
+                else if (lhs is NoneOperation { ChildOperations: var children } &&
+                    children.ToImmutableArray() is [IInstanceReferenceOperation, var index])
+                {
+                    // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
+                    AddStatement(Visit(index));
+                }
+
+                // And any nested indexes
+                foreach (var initializer in memberInitializer.Initializer.Initializers)
+                {
+                    addIndexes((IMemberInitializerOperation)initializer);
                 }
             }
         }
