@@ -378,6 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, ImmutableArray.Create(wrappedFirst, wrappedSecond, wrappedThird));
             }
 
+            Debug.Assert(!firstType.IsReadOnlySpanChar() && !secondType.IsReadOnlySpanChar() && !thirdType.IsReadOnlySpanChar());
+
             if (firstIsChar)
             {
                 loweredFirst = WrapCharExprIntoToStringCall(loweredFirst);
