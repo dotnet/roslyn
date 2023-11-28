@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
