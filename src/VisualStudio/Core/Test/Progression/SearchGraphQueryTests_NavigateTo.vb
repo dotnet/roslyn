@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/70994")>
         Public Async Function SearchForMember() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
