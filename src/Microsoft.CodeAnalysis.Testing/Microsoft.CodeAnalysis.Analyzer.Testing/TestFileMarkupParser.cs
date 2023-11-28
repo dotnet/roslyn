@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Testing
             @"\| (\#\d+) \}",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
-        private static void Parse(string input, out string output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
+        private static void Parse(string input, bool treatPositionIndicatorsAsCode, out string output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            Parse(input, out output, out positions, out var startPositions, out var endPositions);
+            Parse(input, treatPositionIndicatorsAsCode, out output, out positions, out var startPositions, out var endPositions);
             if (startPositions.Length != endPositions.Length)
             {
                 throw new ArgumentException($"The input contained '{startPositions.Length}' starting spans and '{endPositions.Length}' ending spans.");
@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Parses the input markup to find standalone positions and the start and end positions of text spans.
         /// </summary>
         /// <param name="input">The input markup.</param>
+        /// <param name="treatPositionIndicatorsAsCode"><see langword="true"/> to treat <c>$$</c> as literal code;
+        /// otherwise, <see langword="false"/> to treat <c>$$</c> as a position in markup.</param>
         /// <param name="output">The output content with markup syntax removed from <paramref name="input"/>.</param>
         /// <param name="positions">A list of positions defined in markup (<c>$$</c>).</param>
         /// <param name="startPositions">A list of starting positions of spans in markup. The key of the element is a
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// position (the location of the <c>|]</c> or <c>|}</c>). The value of the element is the <c>#id</c> content of
         /// a <c>|#id}</c> ending syntax, or <see langword="null"/> if the <c>|]</c> or <c>|}</c> syntax was used. This
         /// list preserves the original order of the ending markup tags in the input.</param>
-        private static void Parse(string input, out string output, out ImmutableArray<int> positions, out ImmutableArray<(int inputPosition, int outputPosition, string key)> startPositions, out ImmutableArray<(int inputPosition, int outputPosition, string key)> endPositions)
+        private static void Parse(string input, bool treatPositionIndicatorsAsCode, out string output, out ImmutableArray<int> positions, out ImmutableArray<(int inputPosition, int outputPosition, string key)> startPositions, out ImmutableArray<(int inputPosition, int outputPosition, string key)> endPositions)
         {
             var positionsBuilder = ImmutableArray.CreateBuilder<int>();
             var startPositionsBuilder = ImmutableArray.CreateBuilder<(int inputPosition, int outputPosition, string key)>();
@@ -188,7 +190,11 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 matches.Clear();
 
-                AddMatch(input, PositionString, currentIndexInInput, matches);
+                if (!treatPositionIndicatorsAsCode)
+                {
+                    AddMatch(input, PositionString, currentIndexInInput, matches);
+                }
+
                 AddMatch(input, SpanStartString, currentIndexInInput, matches);
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
                 AddMatch(input, NamedSpanEndString, currentIndexInInput, matches);
@@ -245,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 switch (matchString.Substring(0, 2))
                 {
-                    case PositionString:
+                    case PositionString when !treatPositionIndicatorsAsCode:
                         positionsBuilder.Add(matchIndexInOutput);
                         break;
 
@@ -335,12 +341,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public static void GetPositionsAndSpans(string input, out string output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            Parse(input, out output, out positions, out spans);
+            Parse(input, treatPositionIndicatorsAsCode: false, out output, out positions, out spans);
         }
 
         public static void GetPositionAndSpans(string input, out string output, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            Parse(input, out output, out var positions, out spans);
+            Parse(input, treatPositionIndicatorsAsCode: false, out output, out var positions, out spans);
             cursorPosition = positions.SingleOrNull();
         }
 
@@ -357,12 +363,17 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public static void GetSpans(string input, out string output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            GetPositionAndSpans(input, out output, out int? _, out spans);
+            GetSpans(input, treatPositionIndicatorsAsCode: false, out output, out spans);
+        }
+
+        public static void GetSpans(string input, bool treatPositionIndicatorsAsCode, out string output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
+        {
+            Parse(input, treatPositionIndicatorsAsCode, out output, out _, out spans);
         }
 
         public static void GetPositionAndSpans(string input, out string output, out int? cursorPosition, out ImmutableArray<TextSpan> spans)
         {
-            Parse(input, out output, out var positions, out var dictionary);
+            Parse(input, treatPositionIndicatorsAsCode: false, out output, out var positions, out var dictionary);
             cursorPosition = positions.SingleOrNull();
 
             spans = dictionary.GetValueOrDefault(string.Empty, ImmutableArray<TextSpan>.Empty);

@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Testing
 
-Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As {ISourceGenerator, New}, TVerifier As {IVerifier, New})
+Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As New, TVerifier As {IVerifier, New})
     Inherits SourceGeneratorTest(Of TVerifier)
 
     Private Shared ReadOnly DefaultLanguageVersion As LanguageVersion =

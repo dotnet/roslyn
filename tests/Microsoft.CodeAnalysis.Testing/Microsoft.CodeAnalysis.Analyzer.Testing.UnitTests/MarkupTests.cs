@@ -49,6 +49,24 @@ namespace Microsoft.CodeAnalysis.Testing
             await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
+        [Theory(Skip = "Raw strings are not supported for the version of Roslyn currently used in tests.")]
+        [CombinatorialData]
+        [WorkItem(1067, "https://github.com/dotnet/roslyn-sdk/issues/1067")]
+        public async Task TestCSharpMarkupBraceSpansWithRawInterpolatedString(bool reportAdditionalLocations)
+        {
+            var testCode = @"
+class TestClass [|{|]
+    string value = $$"""""" [|{{|]0}} """""";
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations)
+            {
+                TestCode = testCode,
+                MarkupOptions = MarkupOptions.TreatPositionIndicatorsAsCode,
+            }.RunAsync();
+        }
+
         [Theory]
         [CombinatorialData]
         [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -94,6 +93,45 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Test round-trip
             Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
+        }
+
+        [Fact]
+        public void SinglePosition7()
+        {
+            var markup = "first$$second";
+            var expected = "firstsecond";
+
+            TestFileMarkupParser.GetSpans(markup, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, output);
+
+            // Test round-trip
+            Assert.Equal(expected, TestFileMarkupParser.CreateTestFile(output, ImmutableArray<int>.Empty, spans));
+        }
+
+        [Fact]
+        public void SinglePosition8()
+        {
+            var markup = "first$$second";
+            var expected = "firstsecond";
+
+            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: false, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, output);
+
+            // Test round-trip
+            Assert.Equal(expected, TestFileMarkupParser.CreateTestFile(output, ImmutableArray<int>.Empty, spans));
+        }
+
+        [Fact]
+        public void SinglePosition9()
+        {
+            var markup = "first$$second";
+            var expected = "first$$second";
+
+            TestFileMarkupParser.GetSpans(markup, treatPositionIndicatorsAsCode: true, out var output, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, output);
+
+            // Test round-trip
+            Assert.Equal(expected, TestFileMarkupParser.CreateTestFile(output, ImmutableArray<int>.Empty, spans));
         }
 
         [Fact]

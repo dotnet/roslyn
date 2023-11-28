@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 using Roslyn.SyntaxVisualizer.DgmlHelper;
+using Roslyn.Utilities;
 
 namespace Roslyn.SyntaxVisualizer.Extension
 {
@@ -27,6 +28,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
     internal partial class SyntaxVisualizerContainer : UserControl, IVsRunningDocTableEvents, IVsSolutionEvents, IDisposable
     {
         private readonly SyntaxVisualizerToolWindow parent;
+        private readonly CancellationSeries cancellationSeries = new();
         private IWpfTextView? activeWpfTextView;
         private IClassificationFormatMap? activeClassificationFormatMap;
         private IEditorFormatMap? activeEditorFormatMap;
@@ -242,6 +244,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 runningDocumentTableCookie = 0;
             }
+
+            cancellationSeries.Dispose();
         }
         #endregion
 
@@ -251,32 +255,44 @@ namespace Roslyn.SyntaxVisualizer.Extension
         // that is currently active in the editor.
         private void RefreshSyntaxVisualizer()
         {
-            if (IsVisible && activeWpfTextView != null)
+            var cancellationToken = cancellationSeries.CreateNext();
+
+            if (!IsVisible || activeWpfTextView == null)
             {
-                var snapshot = activeWpfTextView.TextBuffer.CurrentSnapshot;
-                var contentType = snapshot.ContentType;
-
-                if (contentType.IsOfType(VisualBasicContentType) ||
-                    contentType.IsOfType(CSharpContentType))
-                {
-                    // Get the Document corresponding to the currently active text snapshot.
-                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document != null)
-                    {
-                        // Get the SyntaxTree and SemanticModel corresponding to the Document.
-                        activeSyntaxTree = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSyntaxTreeAsync());
-                        var activeSemanticModel = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync());
-
-                        // Display the SyntaxTree.
-                        if ((contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType)) && activeSyntaxTree is not null)
-                        {
-                            syntaxVisualizer.DisplaySyntaxTree(document, activeSyntaxTree, activeSemanticModel, workspace: document.Project.Solution.Workspace);
-                        }
-
-                        NavigateFromSource();
-                    }
-                }
+                return;
             }
+
+            var snapshot = activeWpfTextView.TextBuffer.CurrentSnapshot;
+            var contentType = snapshot.ContentType;
+
+            if (!contentType.IsOfType(VisualBasicContentType)
+                && !contentType.IsOfType(CSharpContentType))
+            {
+                return;
+            }
+
+            // Get the Document corresponding to the currently active text snapshot.
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(
+                async () =>
+                {
+                    // Get the SyntaxTree and SemanticModel corresponding to the Document.
+                    activeSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
+                    var activeSemanticModel = await document.GetSemanticModelAsync(cancellationToken);
+
+                    // Display the SyntaxTree.
+                    if (activeSyntaxTree is not null)
+                    {
+                        await syntaxVisualizer.DisplaySyntaxTreeAsync(document, activeSyntaxTree, activeSemanticModel, lazy: true, document.Project.Solution.Workspace, cancellationToken);
+                    }
+
+                    NavigateFromSource();
+                });
         }
 
         // When user clicks / selects text in the editor select the corresponding item in the treeview.

@@ -603,6 +603,13 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("net6.0-tvos")]
         [InlineData("net7.0")]
         [InlineData("net7.0-windows")]
+        [InlineData("net7.0-android")]
+        [InlineData("net7.0-ios")]
+        [InlineData("net7.0-macos")]
+        [InlineData("net7.0-maccatalyst")]
+        [InlineData("net7.0-tvos")]
+        [InlineData("net8.0")]
+        [InlineData("net8.0-windows")]
 #endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
@@ -663,6 +670,13 @@ class TestClass {
                 "net6.0-tvos" => ReferenceAssemblies.Net.Net60TvOS,
                 "net7.0" => ReferenceAssemblies.Net.Net70,
                 "net7.0-windows" => ReferenceAssemblies.Net.Net70Windows,
+                "net7.0-android" => ReferenceAssemblies.Net.Net70Android,
+                "net7.0-ios" => ReferenceAssemblies.Net.Net70iOS,
+                "net7.0-macos" => ReferenceAssemblies.Net.Net70MacOS,
+                "net7.0-maccatalyst" => ReferenceAssemblies.Net.Net70MacCatalyst,
+                "net7.0-tvos" => ReferenceAssemblies.Net.Net70TvOS,
+                "net8.0" => ReferenceAssemblies.Net.Net80,
+                "net8.0-windows" => ReferenceAssemblies.Net.Net80Windows,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
