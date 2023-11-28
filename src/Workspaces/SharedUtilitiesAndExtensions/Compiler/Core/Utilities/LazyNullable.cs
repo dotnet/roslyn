@@ -49,7 +49,7 @@ internal struct LazyNullable<T>
             switch (Interlocked.CompareExchange(ref _initialized, 1, 0))
             {
                 case 0:
-                    // This thread is responsible for assigning the value to target
+                    // This thread is responsible for assigning the value to _value.
                     _value = value;
                     Volatile.Write(ref _initialized, 2);
                     return value;
@@ -61,8 +61,8 @@ internal struct LazyNullable<T>
                     continue;
 
                 case 2:
-                    // Another thread has already completed writing to 'target'.  Because we use a CompareExchange, we
-                    // can only get here once the VolatileWrite to _initialized has happened.  Which means the write to
+                    // Another thread has already completed writing to _value.  Because we use a CompareExchange, we can
+                    // only get here once the VolatileWrite to _initialized has happened.  Which means the write to
                     // _value must be seen (as writes can't be reordered across these calls).
                     return ReadIfInitialized() ?? throw ExceptionUtilities.Unreachable();
 
