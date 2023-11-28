@@ -7,11 +7,10 @@ using System.Threading;
 using Roslyn.Utilities;
 
 /// <summary>
-/// A lazy version of <see cref="Nullable{T}"/> which uses the same space as a <see cref="Nullable{T}"/>.
+/// A lazily initialized version of <see cref="Nullable{T}"/> which uses the same space as a <see cref="Nullable{T}"/>.
 /// </summary>
-/// <typeparam name="T"></typeparam>
 [NonCopyable]
-internal struct LazyNullable<T>
+internal struct SingleInitNullable<T>
     where T : struct
 {
     /// <summary>

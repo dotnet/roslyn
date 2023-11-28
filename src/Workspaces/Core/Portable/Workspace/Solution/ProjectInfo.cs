@@ -497,10 +497,7 @@ namespace Microsoft.CodeAnalysis
 
             private StrongBox<(string?, string?)>? _lazyNameAndFlavor;
 
-            /// <summary>
-            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
-            /// </summary>
-            private LazyNullable<Checksum> _lazyChecksum;
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The name and flavor portions of the project broken out.  For example, the project
