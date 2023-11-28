@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>New <see cref="CodeRefactoringContext"/>.</returns>
         protected virtual CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
-            => new CodeRefactoringContext(document, span, registerRefactoring, cancellationToken);
+            => new(document, span, registerRefactoring, cancellationToken);
 
         protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {

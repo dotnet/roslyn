@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class IEnumerableExtensions
     {
-        private static readonly Func<object?, bool> s_notNullTest = x => x is object;
+        private static readonly Func<object?, bool> s_notNullTest = x => x is not null;
 
         public static DiagnosticResult[] ToOrderedArray(this IEnumerable<DiagnosticResult> diagnosticResults)
         {

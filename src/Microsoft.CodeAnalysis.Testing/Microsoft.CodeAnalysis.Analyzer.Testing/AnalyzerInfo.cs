@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         private static readonly PropertyInfo AttributeUsageAllowMultipleProperty = typeof(AttributeUsageAttribute).GetProperty(nameof(AttributeUsageAttribute.AllowMultiple))!;
 
-        private static readonly object s_codeGenerationLock = new object();
+        private static readonly object s_codeGenerationLock = new();
         private static Type? s_generatedAnalysisContextType;
 
         public static bool HasConfiguredGeneratedCodeAnalysis(DiagnosticAnalyzer analyzer)
@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 lock (s_codeGenerationLock)
                 {
-                    if (s_generatedAnalysisContextType is null)
-                    {
-                        s_generatedAnalysisContextType = GenerateAnalysisContextType();
-                    }
+                    s_generatedAnalysisContextType ??= GenerateAnalysisContextType();
                 }
             }
 

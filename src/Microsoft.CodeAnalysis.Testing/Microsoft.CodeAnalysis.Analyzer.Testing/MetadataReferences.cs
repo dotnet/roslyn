@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Testing
             Func<string, DocumentationProvider?> createDocumentationProvider = _ => null;
 
             var xmlDocumentationProvider = typeof(Workspace).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.XmlDocumentationProvider");
-            if (xmlDocumentationProvider is object)
+            if (xmlDocumentationProvider is not null)
             {
                 var createFromFile = xmlDocumentationProvider.GetTypeInfo().GetMethod("CreateFromFile", new[] { typeof(string) });
-                if (createFromFile is object)
+                if (createFromFile is not null)
                 {
                     var xmlDocCommentFilePath = Expression.Parameter(typeof(string), "xmlDocCommentFilePath");
                     var body = Expression.Convert(
