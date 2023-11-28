@@ -62,11 +62,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         /// <returns><see langword="true"/> if the command line was updated.</returns>
         private bool ReparseCommandLineIfChanged_NoLock(ImmutableArray<string> arguments)
         {
-            var checksum = Checksum.Create(arguments);
-            if (_commandLineChecksum == checksum)
-                return false;
+            // Ensure reading/writing from the nullable checksum is atomic.
+            lock (this)
+            {
+                var checksum = Checksum.Create(arguments);
+                if (_commandLineChecksum == checksum)
+                    return false;
 
-            _commandLineChecksum = checksum;
+                _commandLineChecksum = checksum;
+            }
 
             // Dispose the existing stored command-line and then persist the new one so we can
             // recover it later.  Only bother persisting things if we have a non-empty string.
