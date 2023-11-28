@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
         {
+            /// <summary>
+            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
+            /// </summary>
             private Checksum? _lazyChecksum;
 
             /// <summary>

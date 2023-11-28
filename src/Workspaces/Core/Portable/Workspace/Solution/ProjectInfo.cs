@@ -496,6 +496,10 @@ namespace Microsoft.CodeAnalysis
             public Guid TelemetryId { get; } = telemetryId;
 
             private StrongBox<(string?, string?)>? _lazyNameAndFlavor;
+
+            /// <summary>
+            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
+            /// </summary>
             private Checksum? _lazyChecksum;
 
             /// <summary>
