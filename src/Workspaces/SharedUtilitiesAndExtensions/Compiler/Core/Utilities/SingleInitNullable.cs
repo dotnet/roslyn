@@ -46,7 +46,7 @@ internal struct SingleInitNullable<T>
         SpinWait spinWait = default;
         while (true)
         {
-            switch (Interlocked.CompareExchange(ref _initialized, 1, 0))
+            switch (Interlocked.CompareExchange(ref _initialized, value: 1, comparand: 0))
             {
                 case 0:
                     // This thread is responsible for assigning the value to _value.
