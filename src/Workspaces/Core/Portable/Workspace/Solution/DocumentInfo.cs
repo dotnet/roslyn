@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -258,7 +255,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
+            {
+                get
+                {
+                    // Ensure reading/writing from the nullable checksum is atomic.
+                    lock (this)
+                    {
+                        return _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
+                    }
+                }
+            }
         }
     }
 }
