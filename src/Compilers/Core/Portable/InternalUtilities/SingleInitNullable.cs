@@ -4,7 +4,8 @@
 
 using System;
 using System.Threading;
-using Roslyn.Utilities;
+
+namespace Roslyn.Utilities;
 
 /// <summary>
 /// A lazily initialized version of <see cref="Nullable{T}"/> which uses the same space as a <see cref="Nullable{T}"/>.
@@ -46,7 +47,7 @@ internal struct SingleInitNullable<T>
         SpinWait spinWait = default;
         while (true)
         {
-            switch (Interlocked.CompareExchange(ref _initialized, 1, 0))
+            switch (Interlocked.CompareExchange(ref _initialized, value: 1, comparand: 0))
             {
                 case 0:
                     // This thread is responsible for assigning the value to _value.
