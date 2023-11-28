@@ -153,6 +153,9 @@ namespace Microsoft.CodeAnalysis
             bool isGenerated,
             bool designTimeOnly)
         {
+            /// <summary>
+            /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
+            /// </summary>
             private Checksum? _lazyChecksum;
 
             /// <summary>
