@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 /// A lazy version of <see cref="Nullable{T}"/> which uses the same space as a <see cref="Nullable{T}"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
+[NonCopyable]
 internal struct LazyNullable<T>
     where T : struct
 {
