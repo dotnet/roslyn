@@ -30,8 +30,37 @@
                                          '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
 
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
-    <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
+
+    <!-- <Metalama> -->
+    <MetalamaMinSupportedLangVersion>10.0</MetalamaMinSupportedLangVersion>
+    <!-- </Metalama> -->
   </PropertyGroup>
+  
+  <!-- <Metalama> -->
+  <!-- Original Roslyn code was just: -->
+  <!--<LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>-->
+
+  <Choose>
+    <When Condition="'$(_MaxSupportedLangVersion)' &lt; '$(MetalamaMinSupportedLangVersion)'">
+      <PropertyGroup>
+        <MetalamaLangVersionOverridden Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">true</MetalamaLangVersionOverridden>
+        <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(MetalamaMinSupportedLangVersion)</LangVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <Target Name="MetalamaLangVersionOverrideWarning" BeforeTargets="CoreCompile" Condition="'$(MetalamaLangVersionOverridden)' != ''">
+    <Warning
+      Code="LAMA0620"
+      Text="The C# language version of the current project was updated from $(_MaxSupportedLangVersion) to $(MetalamaMinSupportedLangVersion), because that is the lowest version supported by Metalama. To hide this warning, set &lt;LangVersion&gt; to at least $(MetalamaMinSupportedLangVersion) in your project file." />
+  </Target>
+
+  <!-- </Metalama> -->
 
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);

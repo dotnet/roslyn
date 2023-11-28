@@ -23,7 +23,8 @@ namespace Metalama.Compiler
         ERR_TransformerNotUnique = 616,
         WRN_AnalyzerAssembliesRedirected = 617,
         WRN_AnalyzerAssemblyCantRedirect = 618,
-        ERR_InterceptorsNotSupported = 619
+        ERR_InterceptorsNotSupported = 619,
+        WRN_LanguageVersionUpdated = 620 // Emitted by Microsoft.CSharp.Core.targets.
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider

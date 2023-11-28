@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
                 {
-                     // Semicolons mark the beginning of a comment!
+                    // Semicolons mark the beginning of a comment!
                     transformerOrder = transformerOrderString.Split(',').Select(t => t.Trim()).ToImmutableArray<string?>();
                 }
                 // </Metalama>
