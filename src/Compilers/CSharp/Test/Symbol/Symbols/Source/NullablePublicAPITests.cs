@@ -5190,7 +5190,7 @@ class C
             void test(bool disableNullableAnalysis, PublicNullableAnnotation expectedAnnotation)
             {
                 var tree = comp.SyntaxTrees.Single();
-                var model = comp.GetSemanticModel(tree, disableNullableAnalysis);
+                var model = comp.GetSemanticModel(tree, disableNullableAnalysis: disableNullableAnalysis);
                 var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
                 var typeInfo = model.GetTypeInfo(xUsage);
                 Assert.NotNull(typeInfo.Type);
