@@ -38,6 +38,7 @@ internal sealed class FileDownloader : IFileDownloader
     public Task<Stream> ReadFileAsync()
         => _client.ReadFileAsync(BehaviorOnStale.ForceDownload);
 #endif 
+
     public void Dispose()
         => _client.Dispose();
 }
