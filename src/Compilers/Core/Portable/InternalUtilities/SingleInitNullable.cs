@@ -4,7 +4,8 @@
 
 using System;
 using System.Threading;
-using Roslyn.Utilities;
+
+namespace Roslyn.Utilities;
 
 /// <summary>
 /// A lazily initialized version of <see cref="Nullable{T}"/> which uses the same space as a <see cref="Nullable{T}"/>.
