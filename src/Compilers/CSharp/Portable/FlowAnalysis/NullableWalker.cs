@@ -3178,6 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the starting state of the local function has changed and we've already visited
                 // the local function, we need another pass
                 stateChangedAfterUse = true;
+                CleanupAfterLocalFunctionStartingStateChange();
             }
         }
 
