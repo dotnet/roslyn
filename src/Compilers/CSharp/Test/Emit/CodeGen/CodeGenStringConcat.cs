@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2126,7 +2127,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "sccs", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2176,7 +2177,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "sccs", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2240,7 +2241,7 @@ class Test
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.MakeMemberMissing((WellKnownMember)member);
 
-            var verifier = CompileAndVerify(compilation: comp, expectedOutput: "sccs");
+            var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "sccs" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.M1", """
@@ -2292,7 +2293,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "cssscsssccsc", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2378,7 +2379,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "cssscsssccsc", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2485,12 +2486,12 @@ class Test
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
             comp.MakeMemberMissing((WellKnownMember)member);
 
             // We are missing a key member to perform span-based optimization. This is a real-life scenario e.g. when compiling against .NET Framework,
             // so verify both expected output and generated IL to ensure we don't regress codegen and still pick up correct overload of string.Concat
-            var verifier = CompileAndVerify(compilation: comp, expectedOutput: "cssscsssccsc");
+            var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.M1", """
@@ -2576,7 +2577,7 @@ class Test
 
             // Just verify that we can still run this and get expected output.
             // This is not something that can be seen in real-life scenarios, so don't care about precise IL we generate
-            CompileAndVerify(compilation: comp, expectedOutput: "cssscsssccsc").VerifyDiagnostics();
+            CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "cssscsssccsc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -2610,7 +2611,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "csssscsssscssssccscsscsccssc", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2758,7 +2759,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "csssscsssscssssccscsscsccssc", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, targetFramework: TargetFramework.Net80, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.M1", """
@@ -2950,7 +2951,7 @@ class Test
 
             // We are missing a key member to perform span-based optimization. This is a real-life scenario e.g. when compiling against .NET Framework,
             // so verify both expected output and generated IL to ensure we don't regress codegen and still pick up correct overload of string.Concat
-            var verifier = CompileAndVerify(compilation: comp, expectedOutput: "csssscsssscssssccscsscsccssc");
+            var verifier = CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? default : Verification.Skipped);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.M1", """
@@ -3088,7 +3089,7 @@ class Test
 
             // Just verify that we can still run this and get expected output.
             // This is not something that can be seen in real-life scenarios, so don't care about precise IL we generate
-            CompileAndVerify(compilation: comp, expectedOutput: "csssscsssscssssccscsscsccssc").VerifyDiagnostics();
+            CompileAndVerify(compilation: comp, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "csssscsssscssssccscsscsccssc" : null, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
@@ -3112,7 +3113,7 @@ class Test
                 }
                 """;
 
-            var comp = CompileAndVerify(source, expectedOutput: "scsssssssc", targetFramework: TargetFramework.Net80);
+            var comp = CompileAndVerify(source, expectedOutput: RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "scsssssssc" : null, targetFramework: TargetFramework.Net80, verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.Skipped);
 
             comp.VerifyDiagnostics();
 
