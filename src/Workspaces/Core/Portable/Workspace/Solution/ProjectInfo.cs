@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -497,7 +496,8 @@ namespace Microsoft.CodeAnalysis
             public Guid TelemetryId { get; } = telemetryId;
 
             private StrongBox<(string?, string?)>? _lazyNameAndFlavor;
-            private Checksum? _lazyChecksum;
+
+            private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The name and flavor portions of the project broken out.  For example, the project
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-                => _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }
