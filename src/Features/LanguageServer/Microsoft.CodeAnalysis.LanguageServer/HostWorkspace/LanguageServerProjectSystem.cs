@@ -149,7 +149,7 @@ internal sealed class LanguageServerProjectSystem
         {
             var tasks = new List<Task>();
 
-            using var _ = PooledHashSet<string>.GetInstance(out var projectsWithUnresolvedDependencies);
+            var projectsWithUnresolvedDependencies = new ConcurrentSet<string>();
             foreach (var projectToLoad in projectPathsToLoadOrReload)
             {
                 tasks.Add(Task.Run(async () =>
@@ -245,8 +245,7 @@ internal sealed class LanguageServerProjectSystem
 
                 var existingProjects = _loadedProjects.GetOrAdd(projectPath, static _ => new List<LoadedProject>());
 
-                var hasUnresolvedDependencies = false;
-                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos = new();
+                Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind, bool NeedsRestore)> projectFileInfos = new();
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
                     // If we already have the project, just update it
@@ -273,8 +272,6 @@ internal sealed class LanguageServerProjectSystem
 
                         projectFileInfos[loadedProjectInfo] = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, _logger);
                     }
-
-                    hasUnresolvedDependencies = ProjectDependencyHelper.HasUnresolvedDependencies(loadedProjectInfo, _logger);
                 }
 
                 await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(projectFileInfos, projectToLoad, cancellationToken);
@@ -285,7 +282,7 @@ internal sealed class LanguageServerProjectSystem
                     _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
                 }
 
-                return (errorLevel, preferredBuildHostKind, hasUnresolvedDependencies);
+                return (errorLevel, preferredBuildHostKind, projectFileInfos.Values.Any(info => info.NeedsRestore));
             }
 
             return (null, null, false);

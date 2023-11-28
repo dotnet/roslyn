@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [DataContract]
 internal sealed record RestoreParams(
+    // An empty set of project file paths means restore all projects in the workspace.
     [property: DataMember(Name = "projectFilePaths")] string[] ProjectFilePaths
 ) : IPartialResultParams<RestorePartialResult>
 {

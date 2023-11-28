@@ -15,9 +15,45 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal static class ProjectDependencyHelper
 {
-    private const string UnresolvedProjectDependenciesName = "workspace/_roslyn_unresolvedProjectDependencies";
+    private const string UnresolvedProjectDependenciesName = "workspace/_roslyn_projectHasUnresolvedDependencies";
 
-    internal static bool HasUnresolvedDependencies(ProjectFileInfo projectFileInfo, ILogger logger)
+    internal static bool HasUnresolvedDependencies(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
+    {
+        if (previousProjectFileInfo is null)
+        {
+            // This means we're likely opening the project for the first time.
+            // We need to check the assets on disk to see if we need to restore.
+            return CheckProjectAssetsForUnresolvedDependencies(newProjectFileInfo, logger);
+        }
+
+        if (newProjectFileInfo.TargetFramework != previousProjectFileInfo.TargetFramework)
+        {
+            // If the target framework has changed then we need to run a restore.
+            return true;
+        }
+
+        var newPackageReferences = newProjectFileInfo.PackageReferences;
+        var previousPackageReferences = previousProjectFileInfo.PackageReferences;
+
+        if (newPackageReferences.Length != previousPackageReferences.Length)
+        {
+            // If the number of package references has changed then we need to run a restore.
+            // We need to run a restore even in the removal case to ensure the items get removed from the compilation.
+            return true;
+        }
+
+        if (!newPackageReferences.SetEquals(previousPackageReferences))
+        {
+            // The set of package references have different values.  We need to run a restore.
+            return true;
+        }
+
+        // We have the same set of package references.  We still need to verify that the assets
+        // exist on disk (they could have been deleted by a git clean for example).
+        return CheckProjectAssetsForUnresolvedDependencies(newProjectFileInfo, logger);
+    }
+
+    private static bool CheckProjectAssetsForUnresolvedDependencies(ProjectFileInfo projectFileInfo, ILogger logger)
     {
         var projectAssetsPath = projectFileInfo.ProjectAssetsFilePath;
         if (!File.Exists(projectAssetsPath))
@@ -67,7 +103,7 @@ internal static class ProjectDependencyHelper
         {
             var message = string.Format(LanguageServerResources.Project_0_has_unresolved_dependencies, projectFileInfo.FilePath)
                 + Environment.NewLine
-                + string.Join(Environment.NewLine, unresolved.Select(r => $"{r.Name}-{r.VersionRange}"));
+                + string.Join(Environment.NewLine, unresolved.Select(r => $"    {r.Name}-{r.VersionRange}"));
             logger.LogWarning(message);
             return true;
         }
