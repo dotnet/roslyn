@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -25,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
+        private readonly IEditorFormatMap _editorFormatMap;
         private readonly IWpfTextView _textView;
+        private readonly IWpfThemeService? _wpfThemeService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IThreadingContext _threadingContext;
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWpfTextView textView,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IEditorFormatMapService editorFormatMapService,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -46,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
             _threadingContext = threadingContext;
+            _wpfThemeService = themeService;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -68,11 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
 
-            if (themeService is not null)
-            {
-                Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
-                Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
-            }
+            RefreshColors();
+
+            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
             // from showing up again, so if a user has the mouse unmoved another
@@ -80,6 +84,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // tracks when we can handle this with IFeaturesService in VS
             var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
             _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+        }
+
+        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
+        {
+            RefreshColors();
+        }
+
+        private void RefreshColors()
+        {
+            if (_wpfThemeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                Background = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
         }
 
         private async Task DismissToolTipsAsync()
@@ -148,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
 
             // Restore focus back to the textview
             _textView.VisualElement.Focus();

@@ -562,11 +562,6 @@
         <target state="translated">'else'로 문을 시작할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">유추된 대리자 형식이 변경되었으므로 업데이트할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">애플리케이션 진입점에는 'UnmanagedCallersOnly' 특성을 지정할 수 없습니다.</target>
@@ -1860,6 +1855,11 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">

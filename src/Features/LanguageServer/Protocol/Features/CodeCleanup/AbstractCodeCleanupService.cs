@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 progressTracker.Report(CodeAnalysisProgress.Description(diagnosticSet.Description));
                 document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-                    document, diagnosticSet.DiagnosticIds, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    document, diagnosticSet.DiagnosticIds, diagnosticSet.IsAnyDiagnosticIdExplicitlyEnabled, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
@@ -156,14 +156,18 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, bool isAnyDiagnosticIdExplicitlyEnabled, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
+            // Enable fixes for all diagnostic severities if any of the diagnostic IDs has been explicitly enabled in Code Cleanup.
+            // Otherwise, only enable fixes for Warning and Error severity diagnostics.
+            var minimumSeverity = isAnyDiagnosticIdExplicitlyEnabled ? DiagnosticSeverity.Hidden : DiagnosticSeverity.Warning;
+
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
                     document = await ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                        document, diagnosticId, minimumSeverity, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -171,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
-            Document document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = new TextSpan(0, tree.Length);
 
             var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-                document, textSpan, diagnosticId, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                document, textSpan, diagnosticId, minimumSeverity, fallbackOptions, cancellationToken).ConfigureAwait(false);
             if (fixCollection == null)
             {
                 return document;

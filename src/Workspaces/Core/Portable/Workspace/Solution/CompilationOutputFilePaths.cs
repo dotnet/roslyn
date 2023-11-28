@@ -10,14 +10,12 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Paths of files produced by the compilation.
     /// </summary>
-    public readonly struct CompilationOutputInfo : IEquatable<CompilationOutputInfo>, IObjectWritable
+    public readonly struct CompilationOutputInfo : IEquatable<CompilationOutputInfo>
     {
         /// <summary>
         /// Full path to the assembly or module produced by the compilation, or <see langword="null"/> if unknown.
         /// </summary>
         public readonly string? AssemblyPath { get; }
-
-        bool IObjectWritable.ShouldReuseInSerialization => throw new NotImplementedException();
 
         // TODO: https://github.com/dotnet/roslyn/issues/35065
         // The project system doesn't currently provide paths to the PDB or XML files that the compiler produces.
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(in CompilationOutputInfo left, in CompilationOutputInfo right)
             => !left.Equals(right);
 
-        void IObjectWritable.WriteTo(ObjectWriter writer)
+        internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(AssemblyPath);
         }

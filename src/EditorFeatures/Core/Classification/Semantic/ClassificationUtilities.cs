@@ -36,15 +36,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType)));
         }
 
-        public static SegmentedList<ITagSpan<IClassificationTag>> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, SegmentedList<ClassifiedSpan> classifiedSpans)
-        {
-            var result = new SegmentedList<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
-            foreach (var span in classifiedSpans)
-                result.Add(Convert(typeMap, snapshot, span));
-
-            return result;
-        }
-
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,

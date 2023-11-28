@@ -1717,7 +1717,7 @@
   
   <Node Name="BoundDynamicInvocation" Base="BoundDynamicInvocableBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     
     <!-- If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise. -->
@@ -1792,7 +1792,7 @@
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="IsDelegateCall" Type="bool"/>
     <Field Name="Expanded" Type="bool"/>
@@ -1862,7 +1862,7 @@
     <Field Name="ConstructorsGroup" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="Expanded" Type="bool" PropertyOverrides="true"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true"/>
@@ -1964,7 +1964,7 @@
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
     <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
@@ -1994,7 +1994,7 @@
 
     <Field Name="MemberSymbol" Type="Symbol?"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
@@ -2185,7 +2185,7 @@
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
@@ -2240,7 +2240,7 @@
 
     <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
 
     <!-- If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise. -->

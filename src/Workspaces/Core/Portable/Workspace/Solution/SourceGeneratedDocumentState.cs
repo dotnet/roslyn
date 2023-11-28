@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis;
 internal sealed class SourceGeneratedDocumentState : DocumentState
 {
     /// <summary>
-    /// Backing store for <see cref="GetOriginalSourceTextChecksum"/>.
+    /// Backing store for <see cref="GetOriginalSourceTextContentHash"/>.
     /// </summary>
-    private readonly Lazy<Checksum> _lazyTextChecksum;
+    private readonly Lazy<Checksum> _lazyContentHash;
 
     public SourceGeneratedDocumentIdentity Identity { get; }
 
@@ -35,8 +35,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     /// actual text and hash algorithm that were used to create the SourceText on the host side.  To ensure both the
     /// host and OOP are in agreement about the true content checksum, we store this separately.
     /// </summary>
-    public Checksum GetOriginalSourceTextChecksum()
-        => _lazyTextChecksum.Value;
+    public Checksum GetOriginalSourceTextContentHash()
+        => _lazyContentHash.Value;
 
     public static SourceGeneratedDocumentState Create(
         SourceGeneratedDocumentIdentity documentIdentity,
@@ -46,11 +46,11 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         Checksum? originalSourceTextChecksum)
     {
         // If the caller explicitly provided us with the checksum for the source text, then we always defer to that.
-        // This happens on the host side, when we are give the data computed by the OOP side.
+        // This happens on the host side, when we are given the data computed by the OOP side.
         //
         // If the caller didn't provide us with the checksum, then we'll compute it on demand.  This happens on the OOP
         // side when we're actually producing the SG doc in the first place.
-        var lazyTextChecksum = new Lazy<Checksum>(() => originalSourceTextChecksum ?? ComputeChecksum(generatedSourceText));
+        var lazyTextChecksum = new Lazy<Checksum>(() => originalSourceTextChecksum ?? ComputeContentHash(generatedSourceText));
         return Create(documentIdentity, generatedSourceText, parseOptions, languageServices, lazyTextChecksum);
     }
 
@@ -101,23 +101,23 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         SourceText text,
         LoadTextOptions loadTextOptions,
         AsyncLazy<TreeAndVersion> treeSource,
-        Lazy<Checksum> lazyTextChecksum)
+        Lazy<Checksum> lazyContentHash)
         : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
     {
         Identity = documentIdentity;
 
         SourceText = text;
-        _lazyTextChecksum = lazyTextChecksum;
+        _lazyContentHash = lazyContentHash;
     }
 
-    private static Checksum ComputeChecksum(SourceText text)
-        => Checksum.From(text.GetChecksum());
+    private static Checksum ComputeContentHash(SourceText text)
+        => Checksum.From(text.GetContentHash());
 
     // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
     public new ParseOptions ParseOptions => base.ParseOptions!;
 
     public SourceGeneratedDocumentContentIdentity GetContentIdentity()
-        => new(this.GetOriginalSourceTextChecksum(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
+        => new(this.GetOriginalSourceTextContentHash(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
@@ -125,8 +125,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     public SourceGeneratedDocumentState WithText(SourceText sourceText)
     {
         // See if we can reuse this instance directly
-        var newSourceTextChecksum = ComputeChecksum(sourceText);
-        if (this.GetOriginalSourceTextChecksum() == newSourceTextChecksum)
+        var newSourceTextChecksum = ComputeContentHash(sourceText);
+        if (this.GetOriginalSourceTextContentHash() == newSourceTextChecksum)
             return this;
 
         return Create(
@@ -150,7 +150,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             parseOptions,
             LanguageServices,
             // We're just changing the parse options.  So the checksum will remain as is.
-            _lazyTextChecksum);
+            _lazyContentHash);
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
-            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
             triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
@@ -145,18 +146,21 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
                 Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
             {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
                 var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
                 if (trigger.Kind == CompletionTriggerKind.Insertion)
                 {
                     foreach (var provider in triggeredProviders)
                     {
-                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
-                        {
+                        var isSyntacticTrigger = await extensionManager.PerformFunctionAsync(
+                            provider,
+                            () => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
+                            defaultValue: false).ConfigureAwait(false);
+                        if (!isSyntacticTrigger)
                             additionalAugmentingProviders.Add(provider);
-                        }
                     }
                 }
 
@@ -318,8 +322,16 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
-            await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+            // Wrap with extension manager call.  This will ensure this provider is not disabled.  If not, it will ask
+            // it for completions.  If that throws, then the provider will be moved to the disabled state.
+            await extensionManager.PerformActionAsync(
+                provider,
+                () => provider.ProvideCompletionsAsync(context)).ConfigureAwait(false);
+
             return context;
         }
 

@@ -12102,5 +12102,338 @@ class Derived : BaseClass
                 Await state.AssertCompletionItemsContainAll("StaticMember", "InstanceMember")
             End Using
         End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherNoMatchingItemShouldCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".x")
+                Await state.AssertSelectedCompletionItem(displayText:="X", isHardSelected:=True)
+                state.SendTypeChars("+")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("point.X+", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70732")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TypingCommitCharWhichIsAlsoFilterCharOfAnotherPotentiallyMatchingItemShouldNotCommit() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{  
+    public struct PointF
+    {
+
+        public float Y { get; set; }
+        
+        public float X { get; set; }
+        
+        public static int operator +(PointF pt, PointF sz) => 0;
+        
+        public static int operator -(PointF ptA, PointF ptB) => 0;
+
+        public static bool operator ==(PointF ptA, PointF ptB) => true;
+        
+        public static bool operator !=(PointF ptA, PointF ptB) => true;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            PointF point;
+            point$$
+        }
+    }
+}                              </Document>)
+
+                state.SendTypeChars(".+")
+                Await state.AssertSelectedCompletionItem(displayText:="+", inlineDescription:="x + y")
+                state.SendTab()
+                Assert.Contains("point +", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = "int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar(<%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForRegularMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M()
+    { 
+        Bar$$
+    }
+
+    private bool Bar() => true;
+    private bool Bar(int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_NoOverLoad(hasParameter As Boolean)
+            Dim parameter As String
+            If (hasParameter) Then
+                parameter = ", int x"
+            Else
+                parameter = ""
+            End If
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string <%= parameter %>) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                If (hasParameter) Then
+                    Assert.NotEmpty(state.GetCompletionItems())
+                Else
+                    state.AssertCompletionSession()
+                End If
+            End Using
+        End Sub
+
+        <WpfFact>
+        <WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_HasOverLoad()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        x.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+    public static bool Bar(this string, int x) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6374")>
+        Public Sub TestArgumentCompletionTriggerForExtensionMethod_DirectInvoke()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class Class1
+{
+    public void M(string x)
+    { 
+        Ext.Bar$$
+    }
+}
+
+public static class Ext
+{
+    public static bool Bar(this string) => true;
+}
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars("(")
+
+                Assert.NotEmpty(state.GetCompletionItems())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+}
+
+class Ddd { }
+class Ddd<T1> { }
+class Ddd<T1, T2> { }
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd", "Ddd{T1}", "Ddd{T1, T2}"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
+        Public Async Function TestGenerics2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+        <Document><![CDATA[
+class C
+{
+    /// <summary>
+    /// <see cref="$$"/>
+    /// </summary>
+    public void M() { }
+
+    void Ddd() { }
+    void Ddd<T1>() { }
+    void Ddd<T1, T2>() { }
+}
+                    ]]></Document>,
+    showCompletionInArgumentLists:=True)
+                state.SendTypeChars("ddd")
+
+                Await state.AssertCompletionSession()
+                state.AssertItemsInOrder({"Ddd()", "Ddd{T1}()", "Ddd{T1, T2}()"})
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+   override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Moo()", "")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21418")>
+        Public Async Function TestOverrideFiltering2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    <Document>
+public class A
+{
+    public sealed override bool Equals(object obj) => throw null;
+    public sealed override int GetHashCode() => throw null;
+    public sealed override string ToString() => throw null;
+
+    public virtual void Moo() { }
+}
+
+public class B : A
+{
+    public new virtual void Moo() { }
+}
+
+public class C : B
+{
+    public override void Moo() { }
+    override$$
+}
+
+                    </Document>,
+                showCompletionInArgumentLists:=True)
+                state.SendTypeChars(" ")
+
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace
