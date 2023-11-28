@@ -164,7 +164,6 @@
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>17.8.36726</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
-    <MicrosoftVisualStudioInternalMicroBuildNpmPackVersion>2.0.93</MicrosoftVisualStudioInternalMicroBuildNpmPackVersion>
     <MicrosoftVisualStudioInteropVersion>17.8.36711</MicrosoftVisualStudioInteropVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
@@ -230,7 +229,7 @@
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
     <SystemCompositionVersion>7.0.0</SystemCompositionVersion>
     <SystemCodeDomVersion>7.0.0</SystemCodeDomVersion>
-    <SystemCommandLineVersion>2.0.0-beta4.23307.1</SystemCommandLineVersion>
+    <SystemCommandLineVersion>2.0.0-beta4.23407.1</SystemCommandLineVersion>
     <SystemComponentModelCompositionVersion>7.0.0</SystemComponentModelCompositionVersion>
     <SystemConfigurationConfigurationManagerVersion>7.0.0</SystemConfigurationConfigurationManagerVersion>
     <SystemDrawingCommonVersion>7.0.0</SystemDrawingCommonVersion>

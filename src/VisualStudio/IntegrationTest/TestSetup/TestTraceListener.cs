@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
@@ -98,6 +99,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         private static void Exit(string? message)
         {
             var reportedException = new Exception(message);
+            try
+            {
+                // Set stack trace on the exception for logging
+                ExceptionDispatchInfo.Capture(reportedException).Throw();
+            }
+            catch (Exception ex)
+            {
+                reportedException = ex;
+            }
+
             if (message?.Contains("Pretty-listing introduced errors in error-free code") ?? false)
             {
                 // Ignore this known assertion failure

@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             ImmutableArray<VariableInfo> variables,
             VariableInfo variableToUseAsReturnValue,
             ITypeSymbol returnType,
+            bool returnsByRef,
             bool awaitTaskReturn,
             bool instanceMemberIsUsed,
             bool shouldBeReadOnly,
@@ -53,10 +54,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public bool AwaitTaskReturn { get; } = awaitTaskReturn;
 
-            /// <summary>
-            /// return type
-            /// </summary>
             public ITypeSymbol ReturnType { get; } = returnType;
+            public bool ReturnsByRef { get; } = returnsByRef;
 
             /// <summary>
             /// analyzer result operation status

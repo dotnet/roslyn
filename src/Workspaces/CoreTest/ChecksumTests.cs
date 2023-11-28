@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -53,7 +55,7 @@ public class ChecksumTests
         const int max = 10;
         var checksums = Enumerable.Range(0, max).Select(i => Checksum.Create($"{i}")).ToArray();
 
-        var checksumA = Checksum.Create(checksums.Select(c => c.Hash).ToArray().AsSpan());
+        var checksumA = Checksum.Create(checksums.AsSpan());
 
         // Running this test on multiple target frameworks with the same expectation ensures the results match
         Assert.Equal(Checksum.FromBase64String("umt6tOdNsvIArs4OY7MFCg=="), checksumA);
@@ -78,5 +80,34 @@ public class ChecksumTests
         Assert.NotEqual(checksum1, checksum2);
         Assert.NotEqual(checksum2, checksum3);
         Assert.NotEqual(checksum3, checksum1);
+    }
+
+    [Fact]
+    public void DoNotProduceNullChecksum()
+    {
+        // Ensure empty sources don't create the Null checksum.
+        Assert.NotEqual(Checksum.Null, Checksum.Create(Array.Empty<string>()));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(""));
+        Assert.NotEqual(Checksum.Null, Checksum.Create("\0"));
+        Assert.NotEqual(Checksum.Null, Checksum.Create((string?)null));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[0]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<Checksum>.Empty));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray<byte>.Empty));
+
+        Assert.NotEqual(Checksum.Null, Checksum.Create([""]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(["\0"]));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new string?[] { null }));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(new MemoryStream()));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(stackalloc Checksum[] { Checksum.Null }));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create(Checksum.Null)));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(ImmutableArray.Create((byte)0)));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(Checksum.Null, Checksum.Null));
+        Assert.NotEqual(Checksum.Null, Checksum.Create(Checksum.Null, Checksum.Null, Checksum.Null));
+
+        var stream = new MemoryStream();
+        stream.WriteByte(0);
+        stream.Position = 0;
+        Assert.NotEqual(Checksum.Null, Checksum.Create(stream));
     }
 }

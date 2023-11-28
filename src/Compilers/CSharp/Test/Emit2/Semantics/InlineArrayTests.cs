@@ -21903,5 +21903,36 @@ struct MyArray
 }
 ");
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70910")]
+        public void StringConcatenation()
+        {
+            var src = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        var buffer = new ThreeStringBuffer();
+        Console.WriteLine(buffer[0] + ""123"" + buffer[1] + ""124 "" + buffer[2]);
+    }
+}
+
+[InlineArray(3)]
+struct ThreeStringBuffer {
+    string _;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics();
+        }
     }
 }

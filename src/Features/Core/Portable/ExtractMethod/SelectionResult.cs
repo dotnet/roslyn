@@ -53,8 +53,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public abstract bool ContainingScopeHasAsyncKeyword();
 
         public abstract SyntaxNode GetContainingScope();
-        public abstract ITypeSymbol GetContainingScopeType();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
+
+        public abstract (ITypeSymbol returnType, bool returnsByRef) GetReturnType();
+
+        public ITypeSymbol GetContainingScopeType()
+        {
+            var (typeSymbol, _) = GetReturnType();
+            return typeSymbol;
+        }
+
+        public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
 
         public TextSpan OriginalSpan { get; }
         public TextSpan FinalSpan { get; }
