@@ -533,19 +533,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // new ReadOnlySpan<char>(in <expr>)
-                return new BoundObjectCreationExpression(
-                    expr.Syntax,
-                    readOnlySpanWrappingCtorChar,
-                    ImmutableArray.Create(expr),
-                    argumentNamesOpt: default,
-                    argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
-                    expanded: false,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
-                    constantValueOpt: null,
-                    initializerExpressionOpt: null,
-                    type: readOnlySpanWrappingCtorChar.ContainingType);
+                if (CanBePassedByReference(expr))
+                {
+                    // new ReadOnlySpan<char>(in <expr>)
+                    return new BoundObjectCreationExpression(
+                        expr.Syntax,
+                        readOnlySpanWrappingCtorChar,
+                        ImmutableArray.Create(expr),
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
+                        expanded: false,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        constantValueOpt: null,
+                        initializerExpressionOpt: null,
+                        type: readOnlySpanWrappingCtorChar.ContainingType);
+                }
+                else
+                {
+                    var temp = _factory.StoreToTemp(expr, out var tempAssignment);
+
+                    var wrappedChar = new BoundObjectCreationExpression(
+                        expr.Syntax,
+                        readOnlySpanWrappingCtorChar,
+                        ImmutableArray.Create<BoundExpression>(temp),
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
+                        expanded: false,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        constantValueOpt: null,
+                        initializerExpressionOpt: null,
+                        type: readOnlySpanWrappingCtorChar.ContainingType);
+
+                    // var temp = <expr>;
+                    // new ReadOnlySpan<char>(in temp)
+                    return new BoundSequence(
+                        expr.Syntax,
+                        ImmutableArray.Create(temp.LocalSymbol),
+                        ImmutableArray.Create<BoundExpression>(tempAssignment),
+                        wrappedChar,
+                        wrappedChar.Type);
+                }
             }
         }
 
