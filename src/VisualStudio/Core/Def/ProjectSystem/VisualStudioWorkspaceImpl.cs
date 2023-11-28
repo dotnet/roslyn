@@ -177,6 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
+                        // A real build just finished.  Clear out any results from the last "run code analysis" command.
+                        this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                         ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
                     }
                 };
@@ -643,7 +645,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Instead, we invoke this in JTF run which will mitigate deadlocks when the ConfigureAwait(true)
             // tries to switch back to the main thread in the LSP client.
             // Link to LSP client bug for ConfigureAwait(true) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1216657
-            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChanges(solutionChanges));
+            var mappedChanges = _threadingContext.JoinableTaskFactory.Run(() => GetMappedTextChangesAsync(solutionChanges));
 
             // Group the mapped text changes by file, then apply all mapped text changes for the file.
             foreach (var changesForFile in mappedChanges)
@@ -658,7 +660,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return;
 
-            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChanges(SolutionChanges solutionChanges)
+            async Task<MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>> GetMappedTextChangesAsync(SolutionChanges solutionChanges)
             {
                 var filePathToMappedTextChanges = new MultiDictionary<string, (TextChange TextChange, ProjectId ProjectId)>();
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())

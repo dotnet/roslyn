@@ -4,12 +4,11 @@
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    // TODO: Kind might not actually needed. see whether we can get rid of this
     internal enum WellKnownSynchronizationKind
     {
-        Null,
+        // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-        SolutionState,
+        SolutionState = 1,
         ProjectState,
         DocumentState,
 

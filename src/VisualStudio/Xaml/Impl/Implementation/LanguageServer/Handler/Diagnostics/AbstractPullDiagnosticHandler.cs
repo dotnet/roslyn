@@ -135,14 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Tags = ConvertTags(d),
                 Source = d.Tool,
                 CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
-                Projects = new[]
-                {
+                Projects =
+                [
                     new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
+                ],
             }).ToArray();
         }
 

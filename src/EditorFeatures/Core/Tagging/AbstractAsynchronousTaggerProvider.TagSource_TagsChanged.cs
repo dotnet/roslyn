@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
                         : collection;
 
+                    _dataSource.BeforeTagsChanged(snapshot);
+
                     foreach (var span in coalesced)
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }

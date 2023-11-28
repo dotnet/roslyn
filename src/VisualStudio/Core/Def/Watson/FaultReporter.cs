@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
         }
 
         private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
@@ -87,7 +88,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         private const int P5MethodNameDefaultIndex = 5;
 
-        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create("Roslyn.Utilities.Contract.", "System.Linq.");
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create(
+            "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired", // Covers GetRequiredDocument, GetRequiredProject, and similar methods
+            "Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService",
+            "Roslyn.Utilities.Contract.",
+            "System.Linq.");
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.

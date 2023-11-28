@@ -346,9 +346,9 @@ namespace Microsoft.CodeAnalysis
                 return selector(source[0], arg, cancellationToken);
             }
 
-            return CreateTask();
+            return CreateTaskAsync();
 
-            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            async ValueTask<ImmutableArray<TResult>> CreateTaskAsync()
             {
                 var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -1024,8 +1024,10 @@ namespace Microsoft.CodeAnalysis
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
 
-        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T>? comparer = null)
         {
+            comparer ??= Comparer<T>.Default;
+
             for (var i = 1; i < array.Length; i++)
             {
                 if (comparer.Compare(array[i - 1], array[i]) > 0)

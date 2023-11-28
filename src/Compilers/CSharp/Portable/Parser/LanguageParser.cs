@@ -1552,8 +1552,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
-                    // ignore members if missing type name or missing open curly
-                    if (name.IsMissing || openBrace.IsMissing)
+                    // ignore members if missing open curly
+                    if (openBrace.IsMissing)
                     {
                         parseMembers = false;
                     }

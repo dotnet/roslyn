@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        ISymbolInternal IFieldSymbolInternal.AssociatedSymbol => AssociatedSymbol;
         bool IFieldSymbolInternal.IsVolatile => this.IsVolatile;
 
         protected override ISymbol CreateISymbol()

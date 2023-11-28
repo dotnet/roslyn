@@ -15,12 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractOverrideCompletionProvider : AbstractMemberInsertingCompletionProvider
+    internal abstract partial class AbstractOverrideCompletionProvider() : AbstractMemberInsertingCompletionProvider
     {
-        public AbstractOverrideCompletionProvider()
-        {
-        }
-
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
         public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);

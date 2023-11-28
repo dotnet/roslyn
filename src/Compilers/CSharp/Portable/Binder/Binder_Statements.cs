@@ -3877,7 +3877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
-                argumentNamesOpt: ImmutableArray<string>.Empty,
+                argumentNamesOpt: ImmutableArray<string?>.Empty,
                 argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
                 isDelegateCall: false,
                 expanded: false,

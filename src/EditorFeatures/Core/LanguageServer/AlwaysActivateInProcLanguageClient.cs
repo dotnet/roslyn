@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverCapabilities.SupportsDiagnosticRequests = true;
                 serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
                 serverCapabilities.DiagnosticProvider ??= new();
-                serverCapabilities.DiagnosticProvider.DiagnosticKinds = new VSInternalDiagnosticKind[]
-                {
+                serverCapabilities.DiagnosticProvider.DiagnosticKinds =
+                [
                     // Support a specialized requests dedicated to task-list items.  This way the client can ask just
                     // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
                     // the task list would not be visible.
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     new(PullDiagnosticCategories.DocumentCompilerSemantic),
                     new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
                     new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-                };
+                ];
                 serverCapabilities.DiagnosticProvider.BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
                     .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                     .Distinct()

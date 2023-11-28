@@ -276,13 +276,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
-        public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable
+        public sealed class LocalizableStringWithArguments : LocalizableString
         {
             private readonly LocalizableString _messageFormat;
             private readonly string[] _formatArguments;
-
-            static LocalizableStringWithArguments()
-                => ObjectBinder.RegisterTypeReader(typeof(LocalizableStringWithArguments), reader => new LocalizableStringWithArguments(reader));
 
             public LocalizableStringWithArguments(LocalizableString messageFormat, params object[] formatArguments)
             {
@@ -301,40 +298,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 for (var i = 0; i < formatArguments.Length; i++)
                 {
                     _formatArguments[i] = $"{formatArguments[i]}";
-                }
-            }
-
-            private LocalizableStringWithArguments(ObjectReader reader)
-            {
-                _messageFormat = (LocalizableString)reader.ReadValue();
-
-                var length = reader.ReadInt32();
-                if (length == 0)
-                {
-                    _formatArguments = Array.Empty<string>();
-                }
-                else
-                {
-                    using var _ = ArrayBuilder<string>.GetInstance(length, out var argumentsBuilder);
-                    for (var i = 0; i < length; i++)
-                    {
-                        argumentsBuilder.Add(reader.ReadString());
-                    }
-
-                    _formatArguments = argumentsBuilder.ToArray();
-                }
-            }
-
-            bool IObjectWritable.ShouldReuseInSerialization => false;
-
-            void IObjectWritable.WriteTo(ObjectWriter writer)
-            {
-                writer.WriteValue(_messageFormat);
-                var length = _formatArguments.Length;
-                writer.WriteInt32(length);
-                for (var i = 0; i < length; i++)
-                {
-                    writer.WriteString(_formatArguments[i]);
                 }
             }
 

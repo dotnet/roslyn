@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
         /// <summary>
         /// temporary symbol until we have a symbol that can hold onto both local and parameter symbol
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public abstract SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken);
 
             public abstract void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken);
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken);
 
             protected abstract int CompareTo(VariableSymbol right);
 
@@ -50,14 +50,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// </summary>
             public ITypeSymbol OriginalType { get; }
 
-            public static int Compare(
-                VariableSymbol left,
-                VariableSymbol right,
-                INamedTypeSymbol cancellationTokenType)
+            public static int Compare(VariableSymbol left, VariableSymbol right)
             {
                 // CancellationTokens always go at the end of method signature.
-                var leftIsCancellationToken = left.OriginalType.Equals(cancellationTokenType);
-                var rightIsCancellationToken = right.OriginalType.Equals(cancellationTokenType);
+                var leftIsCancellationToken = IsCancellationToken(left.OriginalType);
+                var rightIsCancellationToken = IsCancellationToken(right.OriginalType);
 
                 if (leftIsCancellationToken && !rightIsCancellationToken)
                 {
@@ -75,6 +72,23 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return left.DisplayOrder - right.DisplayOrder;
             }
+
+            private static bool IsCancellationToken(ITypeSymbol originalType)
+            {
+                return originalType is
+                {
+                    Name: nameof(CancellationToken),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Threading),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System),
+                            ContainingNamespace.IsGlobalNamespace: true,
+                        }
+                    }
+                };
+            }
         }
 
         protected abstract class NotMovableVariableSymbol(Compilation compilation, ITypeSymbol type) : VariableSymbol(compilation, type)
@@ -91,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override SyntaxAnnotation IdentifierTokenAnnotation => throw ExceptionUtilities.Unreachable();
 
             public override void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
                 // do nothing for parameter
             }
@@ -244,9 +258,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public override bool CanBeCapturedByLocalFunction => true;
 
             public override void AddIdentifierTokenAnnotationPair(
-                List<Tuple<SyntaxToken, SyntaxAnnotation>> annotations, CancellationToken cancellationToken)
+                List<(SyntaxToken, SyntaxAnnotation)> annotations, CancellationToken cancellationToken)
             {
-                annotations.Add(Tuple.Create(GetOriginalIdentifierToken(cancellationToken), _annotation));
+                annotations.Add((GetOriginalIdentifierToken(cancellationToken), _annotation));
             }
 
             public override bool GetUseSaferDeclarationBehavior(CancellationToken cancellationToken)

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         End Sub
 
         Protected Overrides Function GetTitle() As String
-            Return VisualBasicCodeFixesResources.Remove_Unnecessary_Imports
+            Return VisualBasicCodeFixesResources.Remove_unnecessary_imports
         End Function
 
         Protected Overrides Function GetSyntaxFormatting() As ISyntaxFormatting

@@ -12492,6 +12492,304 @@ class C
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                using System;
+
+                class X
+                {
+                    public bool Select<T>(Func<int, T> selector) => true;
+                    public static int operator +(Action a, X right) => 0;
+                }
+
+                public class PrecedenceInversionClass
+                {
+                    void M1()
+                    {
+                        var src = new X();
+                        var b = false && from x in src select x; // Parsing warning -- CS8848: Operator 'from' cannot be used here due to precedence
+                    }
+                }
+
+                public class {} // Parsing error -- CS1001: Identifier expected";
+
+            var sourceDirectory = Temp.CreateDirectory();
+            var sourceFile = sourceDirectory.CreateFile("BuggyCode.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            // During the parsing stage, both CS8848 (a warning) and CS1001 (an unsuppressible error) will be detected.
+            // This test verifies that CS8848 is correctly suppressed, and that CS1001 is correctly reported.
+            var precedenceInversionWarningSuppressor = new DiagnosticSuppressorForId("CS8848");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_PrecedenceInversion, "from"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.Id,
+                    precedenceInversionWarningSuppressor.SuppressionDescriptor.Justification);
+
+            // CS8848 is automatically suppressed if the warning level is <5.
+            // Set the warning level to 5 to ensure that it will not get automatically suppressed, and leave it up to the `precedenceInversionWarningSuppressor` to suppress it.
+            var output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    additionalFlags: new[] { "/warn:5" },
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    analyzers: new[] { precedenceInversionWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS8848", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            // During the parsing stage, both CS8848 (a warning) and CS1001 (an unsuppressible error) will be detected.
+            // This test verifies that CS8848 is correctly suppressed even when elevated as an error (using `warnaserror`), and that CS1001 is correctly reported.
+            output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warn:5", "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    errorlog: true,
+                    analyzers: new[] { precedenceInversionWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS8848", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS8848", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS1001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxDeclarationError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                partial struct MyPartialStruct
+                {
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
+                    {
+                        MyInt = value;
+                    }
+                }
+
+                public abstract class MyAbstractClass
+                {
+                    // error CS0180: Methods cannot be both extern and abstract -- this is a declaration error
+                    public extern abstract void MyFaultyMethod()
+                    {
+                    }
+                }";
+            var sourceDirectory = Temp.CreateDirectory();
+            var sourceFile = sourceDirectory.CreateFile("NotGenerated.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            const string GeneratedCode =
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedCode, "Generated.cs");
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS0180` is reported.
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
+
+            var output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0180", output, StringComparison.Ordinal);
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS0180` is reported.
+            output =
+                VerifyOutput(
+                    sourceDirectory,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    errorlog: true,
+                    analyzers: new[] { partialStructWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0180", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        public void TestSuppression_CompilerSyntaxBindingError_SuppressWarningTriggeredByGenerator(bool skipAnalyzers)
+        {
+            const string SourceCode = @"
+                // warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public int MyInt;
+
+                    public void SetMyInt(int value)
+                    {
+                        MyInt = value;
+                    }
+                }
+
+                public class MyClass
+                {
+                    void MyPrivateMethod()
+                    {
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var sourceDir = Temp.CreateDirectory();
+            var sourceFile = sourceDir.CreateFile("NotGenerated.cs");
+            sourceFile.WriteAllText(SourceCode);
+
+            const string GeneratedSource =
+                @"// warning CS0282: Partial struct warning
+                partial struct MyPartialStruct
+                {
+                    public bool MyBoolean;
+
+                    public void SetMyBoolean(bool value)
+                    {
+                        MyBoolean = value;
+                    }
+                }";
+            var partialStructGenerator = new SingleFileTestGenerator(GeneratedSource, "Generated.cs");
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor,
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS1001` is reported.
+            var partialStructWarningSuppressor = new DiagnosticSuppressorForId("CS0282");
+
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
+            var suppressionMessage =
+                string.Format(
+                    CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
+                    partialStructWarningSuppressor.SuppressionDescriptor.SuppressedDiagnosticId,
+                    new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_SequentialOnPartialClass, "MyPartialStruct"), Location.None).GetMessage(CultureInfo.InvariantCulture),
+                    partialStructWarningSuppressor.SuppressionDescriptor.Id,
+                    partialStructWarningSuppressor.SuppressionDescriptor.Justification);
+
+            var output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor },
+                    errorlog: true);
+
+            Assert.DoesNotContain("warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            // The generated code will trigger `CS0282`. This test verifies 3 things:
+            // 1. Compiler warning `CS0282` is suppressed with diagnostic suppressor even when elevated as an error (using `/warnaserror`),
+            // 2. Info diagnostic for the suppression is logged with programmatic suppression information,
+            // 3. Compiler error `CS1001` is reported.
+            output =
+                VerifyOutput(
+                    sourceDir,
+                    sourceFile,
+                    expectedErrorCount: 1,
+                    expectedInfoCount: 1,
+                    expectedWarningCount: 0,
+                    additionalFlags: new[] { "/warnaserror" },
+                    includeCurrentAssemblyAsAnalyzerReference: false,
+                    skipAnalyzers: skipAnalyzers,
+                    errorlog: true,
+                    generators: new[] { partialStructGenerator },
+                    analyzers: new[] { partialStructWarningSuppressor });
+
+            Assert.DoesNotContain($"error CS0282", output, StringComparison.Ordinal);
+            Assert.DoesNotContain($"warning CS0282", output, StringComparison.Ordinal);
+
+            Assert.Contains(suppressionMessage, output, StringComparison.Ordinal);
+            Assert.Contains("info SP0001", output, StringComparison.Ordinal);
+            Assert.Contains("error CS0122", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(sourceFile.Path);
+        }
+
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         [Fact]
         public void TestNoSuppression_CompilerSyntaxError()
@@ -12737,22 +13035,29 @@ dotnet_analyzer_diagnostic.category-{category}.severity = none";
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
-        [InlineData(DiagnosticSeverity.Warning, false)]
-        [InlineData(DiagnosticSeverity.Info, true)]
-        [InlineData(DiagnosticSeverity.Info, false)]
-        [InlineData(DiagnosticSeverity.Hidden, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, true)]
+        [InlineData(DiagnosticSeverity.Info, true, false)]
+        [InlineData(DiagnosticSeverity.Info, false, false)]
+        [InlineData(DiagnosticSeverity.Info, true, true)]
+        [InlineData(DiagnosticSeverity.Info, false, true)]
+        [InlineData(DiagnosticSeverity.Hidden, false, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false, true)]
         [Theory]
-        public void TestBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog)
+        public void TestBulkAnalyzerDiagnosticConfiguration(DiagnosticSeverity defaultSeverity, bool errorlog, bool customConfigurable)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: false);
 
             var diagnosticId = analyzer.Descriptor.Id;
 
-            // Verify bulk configuration without any diagnostic ID configuration is respected.
+            // Verify bulk configuration without any diagnostic ID configuration is respected,
+            // unless analyzer reports 'CustomConfigurable' diagnostics, which explicitly disables bulk configuration.
+            var defaultReportDiagnostic = DiagnosticDescriptor.MapSeverityToReport(defaultSeverity);
+            var expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Error;
             var analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration does not get applied for suppressed diagnostic.
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress, noWarn: true);
@@ -12767,44 +13072,55 @@ dotnet_analyzer_diagnostic.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn, rulesetText: rulesetText);
 
             // Verify bulk configuration before diagnostic ID configuration is not respected.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
+            expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Warn;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error
 dotnet_diagnostic.{diagnosticId}.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration after diagnostic ID configuration is not respected.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
             analyzerConfigText = $@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             // Verify bulk configuration to warning + /warnaserror reports errors.
+            // If the analyzer reports 'CustomConfigurable' diagnostics, all editorconfig configurations are ignored.
+            expectedDiagnosticSeverity = customConfigurable && defaultReportDiagnostic != ReportDiagnostic.Warn ? defaultReportDiagnostic : ReportDiagnostic.Error;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = warning";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity, warnAsError: true);
 
             // Verify disabled by default analyzer is not enabled by bulk configuration.
-            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
+            // However, analyzer reporting 'CustomConfigurable' diagnostics is considered to be enabled.
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity, customConfigurable, throwOnAllNamedTypes: false);
+            expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
             analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
-            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
 
             if (defaultSeverity == DiagnosticSeverity.Hidden ||
                 defaultSeverity == DiagnosticSeverity.Info && !errorlog)
             {
                 // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
-                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
-                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+                // Unless the analyzer reports 'CustomConfigurable' diagnostics, in which case it is always executed.
+                expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: !customConfigurable);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity);
 
                 // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                // However, analyzer reporting 'CustomConfigurable' diagnostics is considered to be enabled.
+                expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Suppress;
                 analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.severity = none";
-                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity);
             }
         }
 
@@ -13097,19 +13413,19 @@ class C
         public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
             var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog, customConfigurable: false);
         }
 
         [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
         [CombinatorialData]
-        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog)
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog, bool customConfigurable)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning, customConfigurable, throwOnAllNamedTypes: false);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog, customConfigurable);
         }
 
-        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog)
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog, bool customConfigurable)
         {
             if (analyzerConfigSeverity == ReportDiagnostic.Default)
             {
@@ -13122,6 +13438,10 @@ class C
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
+
+            // Severity of 'CustomSeverityConfigurable' diagnostics should not be affected by editorconfig entries.
+            if (customConfigurable)
+                analyzerConfigSeverity = DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity);
 
             var arguments = new[] {
                 "/nologo",
@@ -13211,17 +13531,18 @@ generated_code = auto");
 
         [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
         [CombinatorialData, Theory]
-        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
+        public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog, bool customConfigurable)
         {
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            var analyzerShouldBeSkipped = defaultSeverity == DiagnosticSeverity.Hidden ||
-                defaultSeverity == DiagnosticSeverity.Info && !errorlog;
+            // However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            var analyzerShouldBeSkipped = (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog) && !customConfigurable;
 
             // We use an analyzer that throws an exception on every analyzer callback.
             // So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, customConfigurable, throwOnAllNamedTypes: true);
 
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
@@ -13247,16 +13568,17 @@ generated_code = auto");
 
         [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
         [CombinatorialData, Theory]
-        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault)
+        public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, bool customConfigurable)
         {
             // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
             // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            var analyzerShouldBeSkipped = !isEnabledByDefault ||
-                defaultSeverity == DiagnosticSeverity.Hidden ||
-                defaultSeverity == DiagnosticSeverity.Info;
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, throwOnAllNamedTypes: analyzerShouldBeSkipped);
+            // However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
+            var analyzerShouldBeSkipped = (!isEnabledByDefault ||
+                defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info) && !customConfigurable;
+
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, customConfigurable, throwOnAllNamedTypes: analyzerShouldBeSkipped);
             var diagnosticId = analyzer.Descriptor.Id;
 
             var dir = Temp.CreateDirectory();
@@ -13272,7 +13594,7 @@ generated_code = auto");
             Assert.Equal(expectedExitCode, exitCode);
 
             var output = outWriter.ToString();
-            if (analyzerShouldBeSkipped)
+            if (analyzerShouldBeSkipped || customConfigurable && defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info)
             {
                 Assert.Empty(output);
             }
@@ -13286,24 +13608,50 @@ generated_code = auto");
         [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
         [Theory]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
-        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when custom configured analyzer bumps severity to 'Warning'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file or custom configured setting is specified.
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, null, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
-        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' or 'Warning' and custom configured severity is 'Error'
+        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
+            bool useGlobalConfig,
             DiagnosticSeverity defaultSeverity,
             DiagnosticSeverity? severityInConfigFile,
+            DiagnosticSeverity? customConfiguredSeverityByAnalyzer,
             DiagnosticSeverity expectedEffectiveSeverity)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: false);
+            var customConfigurable = customConfiguredSeverityByAnalyzer.HasValue;
+            var reportedSeverity = customConfiguredSeverityByAnalyzer ?? defaultSeverity;
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, reportedSeverity, customConfigurable, throwOnAllNamedTypes: false);
             var diagnosticId = analyzer.Descriptor.Id;
 
             var dir = Temp.CreateDirectory();
@@ -13313,9 +13661,20 @@ generated_code = auto");
             if (severityInConfigFile.HasValue)
             {
                 var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
-                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+
+                TempFile analyzerConfig;
+                if (useGlobalConfig)
+                {
+                    analyzerConfig = dir.CreateFile(".globalconfig").WriteAllText($@"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
+                else
+                {
+                    analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+                }
 
                 additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
             }
@@ -14874,6 +15233,125 @@ public class C
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress));
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental(" ")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.CS9211.severity = warning
+""");
+            Assert.Equal((ErrorCode)9211, ErrorCode.ERR_InvalidExperimentalDiagID);
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith("test.cs(3,47): error CS9211: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier",
+                outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalWithValidDiagnosticID_WarnForDiagID()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.DiagID.severity = warning
+""");
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.StartsWith("test.cs(1,1): warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+                outWriter.ToString());
+        }
+
+        [Fact]
+        public void ExperimentalWithValidDiagnosticID_WarnForExperimental()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("""
+C.M();
+
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID")]
+public class C
+{
+    public static void M() { }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+    }
+}
+""");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("""
+[*.cs]
+dotnet_diagnostic.CS9204.severity = warning
+""");
+            Assert.Equal((ErrorCode)9204, ErrorCode.WRN_Experimental);
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:exe",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.StartsWith("test.cs(1,1): error DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.",
+                outWriter.ToString());
         }
     }
 

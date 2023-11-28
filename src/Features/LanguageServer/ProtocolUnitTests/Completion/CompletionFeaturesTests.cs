@@ -152,7 +152,7 @@ class A
             ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(0, 20), End = new(0, 24) } }
             : new() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
 
-        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit], resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
         Assert.Null(resolvedItem.FilterText);
@@ -234,7 +234,7 @@ namespace NS1
         Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
 
         var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit], resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
         Assert.Null(resolvedItem.FilterText);
@@ -640,7 +640,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
         var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit1 }, resolvedItem1.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit1], resolvedItem1.AdditionalTextEdits);
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
@@ -648,7 +648,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
+        AssertJsonEquals([expectedAdditionalEdit2], resolvedItem2.AdditionalTextEdits);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5732")]
@@ -919,5 +919,60 @@ public class C
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)268, resolvedItem.Command.Arguments[3]);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]
+    public async Task FilteringShouldBeDoneByTextBeforeCursorLocation(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"
+public class Z
+{
+    public int M()
+    {
+        int ia, ib, ic, ifa, ifb, ifc; 
+        i{|caret:|}Exception
+    }
+}";
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caret.Uri);
+
+        var completionParams = new LSP.CompletionParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Position = caret.Range.Start,
+            Context = new LSP.CompletionContext()
+            {
+                TriggerKind = LSP.CompletionTriggerKind.Invoked,
+            }
+        };
+
+        var globalOptions = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
+        var listMaxSize = 3;
+
+        globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, listMaxSize);
+
+        // Because of the limit in list size, we should not have item "if" returned here
+        var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        AssertEx.NotNull(results);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.False(results.Items.Any(i => i.Label == "if"));
+
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+
+        completionParams = CreateCompletionParams(
+            GetLocationPlusOne(caret),
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+            triggerCharacter: "f",
+            triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+
+        // Now that user typed "Z", we should have item "Z" in the updated list since it's a perfect match
+        results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+        Assert.True(results.IsIncomplete);
+        Assert.Equal(listMaxSize, results.Items.Length);
+        Assert.True(results.Items.Any(i => i.Label == "if"));
+
     }
 }

@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool IsEquivalentToThisReference => false;
     }
 
+    internal partial class BoundCollectionExpressionSpreadExpressionPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
     internal partial class BoundDeconstructValuePlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
@@ -511,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(
                 constructor: Constructor,
                 arguments: newArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
