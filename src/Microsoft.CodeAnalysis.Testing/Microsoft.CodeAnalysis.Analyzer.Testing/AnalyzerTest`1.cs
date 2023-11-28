@@ -6,9 +6,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Testing.Extensions;
+using Microsoft.CodeAnalysis.Testing.Lightup;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -30,23 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing
     public abstract class AnalyzerTest<TVerifier>
         where TVerifier : IVerifier, new()
     {
-        private static readonly Lazy<IExportProviderFactory> ExportProviderFactory;
-
-        static AnalyzerTest()
-        {
-            ExportProviderFactory = new Lazy<IExportProviderFactory>(
-                () =>
-                {
-                    var discovery = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
-                    var parts = Task.Run(() => discovery.CreatePartsAsync(MefHostServices.DefaultAssemblies)).GetAwaiter().GetResult();
-                    var catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts).WithDocumentTextDifferencingService();
-
-                    var configuration = CompositionConfiguration.Create(catalog);
-                    var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-                    return runtimeComposition.CreateExportProviderFactory();
-                },
-                LazyThreadSafetyMode.ExecutionAndPublication);
-        }
+        private static readonly ConditionalWeakTable<Diagnostic, object> NonLocalDiagnostics = new ConditionalWeakTable<Diagnostic, object>();
 
         /// <summary>
         /// Gets the default verifier for the test.
@@ -278,21 +265,20 @@ namespace Microsoft.CodeAnalysis.Testing
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(Language, sourceGenerators, testState, verifier.PushContext("Source generator application"), cancellationToken);
         }
 
         private protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
             string language,
             ImmutableArray<Type> sourceGenerators,
             SolutionState testState,
-            Func<ImmutableArray<Type>, Project, IVerifier, CancellationToken, Task<(Project project, ImmutableArray<Diagnostic> diagnostics)>> getFixedProject,
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
             var project = await CreateProjectAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), cancellationToken);
 
             ImmutableArray<Diagnostic> diagnostics;
-            (project, diagnostics) = await getFixedProject(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
+            (project, diagnostics) = await ApplySourceGeneratorsAsync(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying the source generator, compare the resulting string to the inputted one
             if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
@@ -492,6 +478,9 @@ namespace Microsoft.CodeAnalysis.Testing
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, generatedCodeVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, generatedCodeVerifier);
         }
 
+        /// <summary>
+        /// Checks that diagnostics will not be reported if a <c>#pragma warning disable</c> appears at the beginning of the file.
+        /// </summary>
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
@@ -517,7 +506,14 @@ namespace Microsoft.CodeAnalysis.Testing
             var suppressedDiagnostics = expected.Where(x => IsSubjectToExclusion(x, analyzers, sources)).Select(x => x.Id).Distinct();
             var suppression = prefix + " " + string.Join(", ", suppressedDiagnostics);
             var transformedProject = primaryProject.WithSources(primaryProject.Sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $"{suppression}\r\n"))).ToImmutableArray());
-            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, suppressionVerifier);
+            var actualDiagnostics = await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false);
+
+            // For #pragma verification, we only care about unsuppressed diagnostics. Filter out suppressed diagnostics
+            // from both the expected and actual lists.
+            actualDiagnostics = actualDiagnostics.Where((projectAndDiagnostic) => !projectAndDiagnostic.diagnostic.IsSuppressed()).ToImmutableArray();
+            expectedResults = expectedResults.Where(diagnosticResult => diagnosticResult.IsSuppressed != true).ToArray();
+
+            VerifyDiagnosticResults(actualDiagnostics, analyzers, expectedResults, suppressionVerifier);
         }
 
         /// <summary>
@@ -595,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic message arguments to match");
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
-                        GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty),
+                        actual.diagnostic.Arguments().Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
                         message);
                 }
@@ -751,7 +747,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     if (expected.MessageArguments?.Length > 0)
                     {
-                        var actualArguments = GetArguments(actual).Select(ToStringOrEmpty);
+                        var actualArguments = actual.Arguments().Select(ToStringOrEmpty);
                         var expectedArguments = expected.MessageArguments.Select(ToStringOrEmpty);
                         return actualArguments.SequenceEqual(expectedArguments);
                     }
@@ -866,7 +862,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
                 }
 
-                var arguments = GetArguments(diagnostics[i]);
+                var arguments = diagnostics[i].Arguments();
                 if (arguments.Count > 0)
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
@@ -992,10 +988,15 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        private static bool IsCompilerDiagnosticId(string id)
+        {
+            return id.StartsWith("CS", StringComparison.Ordinal)
+                || id.StartsWith("BC", StringComparison.Ordinal);
+        }
+
         private static bool IsSubjectToExclusion(DiagnosticResult result, ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources)
         {
-            if (result.Id.StartsWith("CS", StringComparison.Ordinal)
-                || result.Id.StartsWith("BC", StringComparison.Ordinal))
+            if (IsCompilerDiagnosticId(result.Id))
             {
                 // This is a compiler diagnostic
                 return false;
@@ -1112,25 +1113,84 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var project in solution.Projects)
             {
                 var (compilation, generatorDiagnostics) = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, GetAnalyzerOptions(project), cancellationToken);
-                var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+                var analyzerOptions = GetAnalyzerOptions(project);
+                var compilationWithAnalyzers = CreateCompilationWithAnalyzers(compilation, analyzers, analyzerOptions, cancellationToken);
+
+                ImmutableArray<Diagnostic> allDiagnostics;
+                if (AnalysisResultWrapper.WrappedType is not null)
+                {
+                    var compilerReportedDiagnostics = await GetCompilerDiagnosticsAsync(this, compilation, analyzers, analyzerOptions, cancellationToken).ConfigureAwait(false);
+                    var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var (analyzer, analyzerNonLocalDiagnostics) in analysisResult.CompilationDiagnostics)
+                    {
+                        foreach (var diagnostic in analyzerNonLocalDiagnostics)
+                        {
+                            NonLocalDiagnostics.Add(diagnostic, new object());
+                        }
+                    }
+
+                    allDiagnostics = compilerReportedDiagnostics.AddRange(analysisResult.GetAllDiagnostics());
+                }
+                else
+                {
+                    allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 diagnostics.AddRange(generatorDiagnostics.Select(diagnostic => (project, diagnostic)));
                 diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)).Select(diagnostic => (project, diagnostic)));
             }
 
             diagnostics.AddRange(additionalDiagnostics);
-            var results = SortDistinctDiagnostics(diagnostics);
+            var filteredDiagnostics = FilterDiagnostics(diagnostics.ToImmutable());
+            var results = SortDistinctDiagnostics(filteredDiagnostics);
             return results;
+
+            static async Task<ImmutableArray<Diagnostic>> GetCompilerDiagnosticsAsync(AnalyzerTest<TVerifier> self, Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            {
+                if (!analyzers.Any(static analyzer => IsCompilerDiagnosticSuppressor(analyzer)))
+                {
+                    return compilation.GetDiagnostics(cancellationToken);
+                }
+
+                // Need to get the compiler diagnostics through a new CompilationWithAnalyzers instance to ensure
+                // suppressions are applied.
+                var compilerSuppressors = analyzers.Where(static analyzer => IsCompilerDiagnosticSuppressor(analyzer)).ToImmutableArray();
+                var compilationWithAnalyzers = self.CreateCompilationWithAnalyzers(compilation, compilerSuppressors, analyzerOptions, cancellationToken);
+                return await compilationWithAnalyzers.GetAllDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static bool IsCompilerDiagnosticSuppressor(DiagnosticAnalyzer analyzer)
+            {
+                if (!DiagnosticSuppressorWrapper.IsInstance(analyzer))
+                {
+                    return false;
+                }
+
+                var wrapper = DiagnosticSuppressorWrapper.FromInstance(analyzer);
+                foreach (var descriptor in wrapper.SupportedSuppressions)
+                {
+                    if (IsCompilerDiagnosticId(descriptor.SuppressedDiagnosticId))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        private protected static bool IsNonLocalDiagnostic(Diagnostic diagnostic)
+        {
+            return NonLocalDiagnostics.TryGetValue(diagnostic, out _);
         }
 
         protected virtual async Task<(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics)> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var (finalProject, generatorDiagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            var (finalProject, generatorDiagnostics) = await ApplySourceGeneratorsAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
             return ((await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!, generatorDiagnostics);
         }
 
-        private protected async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
+        private protected async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorsAsync(ImmutableArray<Type> sourceGeneratorTypes, Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             verifier.True(compilation is { });
@@ -1201,6 +1261,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     var iincrementalGeneratorType = isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.IIncrementalGenerator");
+                    verifier.True(iincrementalGeneratorType?.IsAssignableFrom(sourceGenerators[i].GetType()) ?? false, $"'{sourceGenerators[i].GetType().FullName}' must implement '{iincrementalGeneratorType.FullName}' or '{isourceGeneratorType.FullName}'");
                     var asGeneratorMethod = (from method in isourceGeneratorType.GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorExtensions")!.GetMethods()
                                              where method is { Name: "AsSourceGenerator", IsStatic: true, IsPublic: true }
                                              let parameterTypes = method.GetParameters().Select(parameter => parameter.ParameterType).ToArray()
@@ -1219,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var analyzerOptions = project.AnalyzerOptions;
             var additionalFiles = analyzerOptions.AdditionalFiles;
-            var analyzerConfigOptionsProvider = typeof(AnalyzerOptions).GetTypeInfo().DeclaredProperties.SingleOrDefault(property => property.Name == "AnalyzerConfigOptionsProvider")?.GetValue(analyzerOptions);
+            var analyzerConfigOptionsProvider = analyzerOptions.AnalyzerConfigOptionsProvider();
             verifier.True(analyzerConfigOptionsProvider is not null, "Failed to locate AnalyzerConfigOptionsProvider for project");
 
             var driver = createMethod.Invoke(null, new[] { convertedSourceGenerators, additionalFiles, project.ParseOptions, analyzerConfigOptionsProvider });
@@ -1279,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="CompilationWithAnalyzers"/> object representing the provided compilation, analyzers, and options.</returns>
         protected virtual CompilationWithAnalyzers CreateCompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
-            => compilation.WithAnalyzers(analyzers, options, cancellationToken);
+            => CompilationWithAnalyzersExtensions.Create(compilation, analyzers, options, cancellationToken);
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the
@@ -1510,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var parseOptions = CreateParseOptions()
                 .WithDocumentationMode(projectState.DocumentationMode);
 
-            var workspace = CreateWorkspace();
+            var workspace = await CreateWorkspaceAsync().ConfigureAwait(false);
             foreach (var transform in OptionsTransforms)
             {
                 workspace.Options = transform(workspace.Options);
@@ -1583,16 +1644,27 @@ namespace Microsoft.CodeAnalysis.Testing
             return solution.GetProject(project.Id);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
         public Workspace CreateWorkspace()
+            => throw new NotSupportedException();
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete($"Use {nameof(CreateWorkspaceImplAsync)} instead. https://github.com/dotnet/roslyn-sdk/pull/1120", error: true)]
+        protected virtual Workspace CreateWorkspaceImpl()
+            => throw new NotSupportedException();
+
+        public async Task<Workspace> CreateWorkspaceAsync()
         {
-            var workspace = CreateWorkspaceImpl();
+            var workspace = await CreateWorkspaceImplAsync().ConfigureAwait(false);
             _workspaces.Add(workspace);
             return workspace;
         }
 
-        protected virtual Workspace CreateWorkspaceImpl()
+        protected virtual async Task<Workspace> CreateWorkspaceImplAsync()
         {
-            var exportProvider = ExportProviderFactory.Value.CreateExportProvider();
+            var exportProviderFactory = await ExportProviderFactory.GetOrCreateExportProviderFactoryAsync().ConfigureAwait(false);
+            var exportProvider = exportProviderFactory.CreateExportProvider();
             var host = MefHostServices.Create(exportProvider.AsCompositionContext());
             return new AdhocWorkspace(host);
         }
@@ -1602,25 +1674,34 @@ namespace Microsoft.CodeAnalysis.Testing
         protected abstract ParseOptions CreateParseOptions();
 
         /// <summary>
+        /// Filter <see cref="Diagnostic"/>s to only include items of interest to testing. By default, this includes all
+        /// unsuppressed diagnostics, and all diagnostics suppressed by a
+        /// <see cref="T:Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor"/>.
+        /// </summary>
+        /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be filtered.</param>
+        /// <returns>A collection containing the input <paramref name="diagnostics"/>, filtered to only include
+        /// diagnostics relevant for testing.</returns>
+        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> FilterDiagnostics(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics)
+        {
+            return diagnostics
+                .Where(d => !d.diagnostic.IsSuppressed() || d.diagnostic.ProgrammaticSuppressionInfo() != null)
+                .ToImmutableArray();
+        }
+
+        /// <summary>
         /// Sort <see cref="Diagnostic"/>s by location in source document.
         /// </summary>
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be sorted.</param>
         /// <returns>A collection containing the input <paramref name="diagnostics"/>, sorted by
         /// <see cref="Diagnostic.Location"/> and <see cref="Diagnostic.Id"/>.</returns>
-        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
+        protected virtual ImmutableArray<(Project project, Diagnostic diagnostic)> SortDistinctDiagnostics(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics)
         {
             return diagnostics
                 .OrderBy(d => d.diagnostic.Location.GetLineSpan().Path, StringComparer.Ordinal)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.Start)
                 .ThenBy(d => d.diagnostic.Location.SourceSpan.End)
                 .ThenBy(d => d.diagnostic.Id)
-                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToImmutableArray();
-        }
-
-        private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
-        {
-            return (IReadOnlyList<object?>?)diagnostic.GetType().GetProperty("Arguments", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(diagnostic)
-                ?? new object[0];
+                .ThenBy(d => d.diagnostic.Arguments(), LexicographicComparer.Instance).ToImmutableArray();
         }
 
         /// <summary>
@@ -1742,6 +1823,20 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private sealed class LightupGeneratorDriverRunResult
         {
+            private static readonly Type? s_generatorDriverRunResultType = typeof(Compilation).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.GeneratorDriverRunResult");
+
+            private static readonly Func<object, ImmutableArray<SyntaxTree>> s_generatedTrees =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<SyntaxTree>>(
+                    s_generatorDriverRunResultType,
+                    nameof(GeneratedTrees),
+                    defaultValue: ImmutableArray<SyntaxTree>.Empty);
+
+            private static readonly Func<object, ImmutableArray<Diagnostic>> s_diagnostics =
+                LightupHelpers.CreatePropertyAccessor<object, ImmutableArray<Diagnostic>>(
+                    s_generatorDriverRunResultType,
+                    nameof(Diagnostics),
+                    defaultValue: ImmutableArray<Diagnostic>.Empty);
+
             private readonly object _instance;
 
             public LightupGeneratorDriverRunResult(object instance)
@@ -1749,21 +1844,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 _instance = instance;
             }
 
-            public ImmutableArray<SyntaxTree> GeneratedTrees
-            {
-                get
-                {
-                    return (ImmutableArray<SyntaxTree>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(GeneratedTrees)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<SyntaxTree> GeneratedTrees => s_generatedTrees(_instance);
 
-            public ImmutableArray<Diagnostic> Diagnostics
-            {
-                get
-                {
-                    return (ImmutableArray<Diagnostic>)_instance.GetType().GetTypeInfo().GetProperties().SingleOrDefault(property => property.Name == nameof(Diagnostics)).GetValue(_instance)!;
-                }
-            }
+            public ImmutableArray<Diagnostic> Diagnostics => s_diagnostics(_instance);
         }
     }
 }

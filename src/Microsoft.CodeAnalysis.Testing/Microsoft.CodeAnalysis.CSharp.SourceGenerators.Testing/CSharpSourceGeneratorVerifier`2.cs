@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Testing;
 namespace Microsoft.CodeAnalysis.CSharp.Testing
 {
     public class CSharpSourceGeneratorVerifier<TSourceGenerator, TVerifier> : SourceGeneratorVerifier<TSourceGenerator, CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>, TVerifier>
-        where TSourceGenerator : ISourceGenerator, new()
+        where TSourceGenerator : new()
         where TVerifier : IVerifier, new()
     {
     }

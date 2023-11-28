@@ -618,6 +618,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is not null)
                     .ToImmutableArray();
 
+                if (!CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipLocalDiagnosticCheck))
+                {
+                    foreach (var fixableDiagnostic in fixableDiagnostics)
+                    {
+                        Verify.False(IsNonLocalDiagnostic(fixableDiagnostic.diagnostic), $"Code fix is attempting to provide a fix for a non-local analyzer diagnostic");
+                    }
+                }
+
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
                     var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
@@ -759,6 +767,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is not null)
                     .ToImmutableArray();
 
+                if (!CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.SkipLocalDiagnosticCheck))
+                {
+                    foreach (var fixableDiagnostic in fixableDiagnostics)
+                    {
+                        Verify.False(IsNonLocalDiagnostic(fixableDiagnostic.diagnostic), $"Code fix is attempting to provide a fix for a non-local analyzer diagnostic");
+                    }
+                }
+
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
                     var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
@@ -811,10 +827,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider = TestDiagnosticProvider.Create(analyzerDiagnostics);
 
                 var fixableDocument = project.Solution.GetDocument(firstDiagnostic.Location.SourceTree);
-                var analyzerDiagnosticIds = analyzers.SelectMany(x => x.SupportedDiagnostics).Select(x => x.Id);
-                var compilerDiagnosticIds = codeFixProviders.SelectMany(codeFixProvider => codeFixProvider.FixableDiagnosticIds).Where(x => x.StartsWith("CS", StringComparison.Ordinal) || x.StartsWith("BC", StringComparison.Ordinal));
-                var disabledDiagnosticIds = project.CompilationOptions.SpecificDiagnosticOptions.Where(x => x.Value == ReportDiagnostic.Suppress).Select(x => x.Key);
-                var relevantIds = analyzerDiagnosticIds.Concat(compilerDiagnosticIds).Except(disabledDiagnosticIds).Distinct();
+                var relevantIds = fixAllProvider.GetSupportedFixAllDiagnosticIds(effectiveCodeFixProvider);
                 var fixAllContext = CreateFixAllContext(fixableDocument, fixableDocument.Project, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, fixAllDiagnosticProvider, cancellationToken);
 
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);

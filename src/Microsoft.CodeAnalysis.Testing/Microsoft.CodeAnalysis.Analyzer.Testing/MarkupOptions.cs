@@ -23,5 +23,13 @@ namespace Microsoft.CodeAnalysis.Testing
         /// descriptor.
         /// </summary>
         UseFirstDescriptor = 0x0001,
+
+        /// <summary>
+        /// Ignore position indicators (<c>$$</c>) in markup processing. Spans and named spans are still supported in markup.
+        /// </summary>
+        /// <remarks>
+        /// This flag makes it easier to write tests for code containing interpolated raw strings (<see href="https://github.com/dotnet/roslyn-sdk/issues/1067">dotnet/roslyn-sdk#1067</see>).
+        /// </remarks>
+        TreatPositionIndicatorsAsCode = 0x0002,
     }
 }
