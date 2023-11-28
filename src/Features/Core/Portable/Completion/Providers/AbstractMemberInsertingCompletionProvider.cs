@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = GetToken(completionItem, tree, cancellationToken);
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
-            // Make sure the new document is frozen before we try to get the semantic model.
+            // Make sure the new document is frozen before we try to get the semantic model. This is to 
+            // avoid trigger source generator, which is expensive and not needed for calculating the change.
             document = document.WithSyntaxRoot(annotatedRoot).WithFrozenPartialSemantics(cancellationToken);
 
             var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, fallbackOptions, cancellationToken).ConfigureAwait(false);

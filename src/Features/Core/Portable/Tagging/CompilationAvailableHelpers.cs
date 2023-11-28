@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Tagging
 
         // this method is super basic.  but it ensures that the remote impl and the local impl always agree.
         public static Task ComputeCompilationInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
-            => s_shouldSkipComputation ? Task.CompletedTask : project.GetCompilationAsync(cancellationToken) ;
+            => s_shouldSkipComputation ? Task.CompletedTask : project.GetCompilationAsync(cancellationToken);
 
         public static class TestAccessor
         {

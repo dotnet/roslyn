@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
 
-            // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator.
+            // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator
+            // which is not needed for snippet completion and will cause perf issue.
             var newDocument = document.WithText(originalText).WithFrozenPartialSemantics(cancellationToken);
             return (newDocument, span.Start);
         }
