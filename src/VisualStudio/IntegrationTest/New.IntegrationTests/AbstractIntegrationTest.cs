@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,6 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
         private static AsynchronousOperationListenerProvider? s_listenerProvider;
+        private static VisualStudioWorkspace? s_workspace;
 
         protected const string ProjectName = "TestProj";
         protected const string SolutionName = "TestSolution";
@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             IdeStateCollector.RegisterCustomState(
                 "Pending asynchronous operations",
-                () =>
+                static () =>
                 {
                     if (s_listenerProvider is null)
                         return "Unknown";
@@ -49,6 +49,47 @@ namespace Roslyn.VisualStudio.IntegrationTests
                         foreach (var token in group)
                         {
                             messageBuilder.AppendLine($"  {token}");
+                        }
+                    }
+
+                    return messageBuilder.ToString();
+                });
+
+            IdeStateCollector.RegisterCustomState(
+                "Solution state",
+                static () =>
+                {
+                    if (s_workspace is null)
+                        return "Unknown";
+
+                    var messageBuilder = new StringBuilder();
+                    foreach (var project in s_workspace.CurrentSolution.Projects)
+                    {
+                        messageBuilder.AppendLine($"Project '{project.Name}'");
+                        messageBuilder.AppendLine($"  Metadata References");
+                        foreach (var reference in project.MetadataReferences)
+                        {
+                            messageBuilder.AppendLine($"    {reference.Display}");
+                        }
+
+                        messageBuilder.AppendLine($"  Project References");
+                        foreach (var reference in project.ProjectReferences)
+                        {
+                            messageBuilder.AppendLine($"    {reference.ProjectId}");
+                        }
+
+                        messageBuilder.AppendLine($"  Analyzer References");
+                        foreach (var reference in project.AnalyzerReferences)
+                        {
+                            messageBuilder.AppendLine($"    {reference.FullPath}");
+                        }
+
+                        messageBuilder.AppendLine($"  Documents");
+                        foreach (var document in project.Documents)
+                        {
+                            var path = string.Join("/", document.Folders);
+                            path = path == "" ? document.Name : $"{path}/{document.Name}";
+                            messageBuilder.AppendLine($"    {path}");
                         }
                     }
 
@@ -66,6 +107,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             await base.InitializeAsync();
 
             s_listenerProvider ??= await TestServices.Shell.GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
+            s_workspace ??= await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
 
             if (await TestServices.SolutionExplorer.IsSolutionOpenAsync(HangMitigatingCancellationToken))
             {
