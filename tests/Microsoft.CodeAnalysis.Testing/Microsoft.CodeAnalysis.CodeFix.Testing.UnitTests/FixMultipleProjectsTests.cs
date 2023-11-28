@@ -249,7 +249,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Diagnostics of fixed state{Environment.NewLine}Mismatch between number of diagnostics returned, expected \"1\" actual \"0\"{Environment.NewLine}{Environment.NewLine}Diagnostics:{Environment.NewLine}    NONE.{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Diagnostics of fixed state
+                Mismatch between number of diagnostics returned, expected "1" actual "0"
+
+                Diagnostics:
+                    NONE.
+
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
@@ -300,7 +309,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}content of '/Secondary/Test0.cs' did not match. Diff shown with expected as baseline:{Environment.NewLine}-public class Type3 {{ int field = 5; }}{Environment.NewLine}+public class Type3 {{ int field =  5; }}{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff(
+                """
+                Context: Iterative code fix application
+                content of '/Secondary/Test0.cs' did not match. Diff shown with expected as baseline:
+                -public class Type3 { int field = 5; }
+                +public class Type3 { int field =  5; }
+
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
     }
 }

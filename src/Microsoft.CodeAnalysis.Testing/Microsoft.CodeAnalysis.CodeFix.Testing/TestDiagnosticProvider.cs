@@ -29,6 +29,6 @@ namespace Microsoft.CodeAnalysis.Testing
         public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             => Task.FromResult(_diagnostics.Where(i => !i.diagnostic.Location.IsInSource).Where(diagnostic => diagnostic.project.Id == project.Id).Select(diagnostic => diagnostic.diagnostic));
 
-        internal static TestDiagnosticProvider Create(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics) => new TestDiagnosticProvider(diagnostics);
+        internal static TestDiagnosticProvider Create(ImmutableArray<(Project project, Diagnostic diagnostic)> diagnostics) => new(diagnostics);
     }
 }

@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Testing
         private const string NamedSpanEndString = "|}";
         private const string NamedSpanNumberedEndString = "|#";
 
-        private static readonly Regex s_namedSpanStartRegex = new Regex(
+        private static readonly Regex s_namedSpanStartRegex = new(
             @"\{\| ([^:|[\]{}]+) \:",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
-        private static readonly Regex s_namedSpanEndRegex = new Regex(
+        private static readonly Regex s_namedSpanEndRegex = new(
             @"\| (\#\d+) \}",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public static string CreateTestFile(string code, int? position, ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            var positions = position is object ? ImmutableArray.Create(position.Value) : ImmutableArray<int>.Empty;
+            var positions = position is not null ? ImmutableArray.Create(position.Value) : ImmutableArray<int>.Empty;
             return CreateTestFile(code, positions, spans.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToImmutableArray()));
         }
 

@@ -18,11 +18,14 @@ namespace Microsoft.CodeAnalysis.Testing
         [Fact]
         public async Task TestCSharpUndeclaredCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -30,23 +33,29 @@ class TestClass {
             });
 
             var expected =
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.cs(3,34): error CS1002: ; expected" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS1002\").WithSpan(3, 34, 3, 35)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.cs(3,34): error CS1002: ; expected
+                DiagnosticResult.CompilerError("CS1002").WithSpan(3, 34, 3, 35),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestCSharpExplicitCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -58,12 +67,15 @@ class TestClass {
         [Fact]
         public async Task TestCSharpExplicitCompilerErrorWithExplicitInterfaceSymbol()
         {
-            var testCode = @"using System;
+            var testCode =
+                """
+                using System;
 
-class TestClass {
-  void IDisposable.Dispose() { }
-}
-";
+                class TestClass {
+                  void IDisposable.Dispose() { }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -79,10 +91,13 @@ class TestClass {
         [Fact]
         public async Task TestMultipleErrorsMatchQuality()
         {
-            var testCode = @"class TestClass {
-  void IDisposable.Dispose() { }
-}
-";
+            var testCode =
+                """
+                class TestClass {
+                  void IDisposable.Dispose() { }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -101,27 +116,33 @@ class TestClass {
             });
 
             var expected =
-                "Expected diagnostic to end at column \"21\" was actually at column \"19\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Expected diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(2,8,2,21): error CS0246" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS0246\").WithSpan(2, 8, 2, 21).WithArguments(\"IDisposable\")," + Environment.NewLine +
-                Environment.NewLine +
-                "Actual diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(2,8): error CS0246: The type or namespace name 'IDisposable' could not be found (are you missing a using directive or an assembly reference?)" + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"CS0246\").WithSpan(2, 8, 2, 19).WithArguments(\"IDisposable\")," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Expected diagnostic to end at column "21" was actually at column "19"
+
+                Expected diagnostic:
+                    // /0/Test0.cs(2,8,2,21): error CS0246
+                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 8, 2, 21).WithArguments("IDisposable"),
+
+                Actual diagnostic:
+                    // /0/Test0.cs(2,8): error CS0246: The type or namespace name 'IDisposable' could not be found (are you missing a using directive or an assembly reference?)
+                DiagnosticResult.CompilerError("CS0246").WithSpan(2, 8, 2, 19).WithArguments("IDisposable"),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestCSharpReorderedExplicitCompilerErrorWithExplicitInterfaceSymbol()
         {
-            var testCode = @"using System.Collections.Generic;
+            var testCode =
+                """
+                using System.Collections.Generic;
 
-class TestClass : IEnumerable<int> {
-}
-";
+                class TestClass : IEnumerable<int> {
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -140,11 +161,14 @@ class TestClass : IEnumerable<int> {
         [Fact]
         public async Task TestCSharpMarkupCompilerError()
         {
-            var testCode = @"
-class TestClass {
-  void TestMethod() { throw null {|CS1002:}|}
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  void TestMethod() { throw null {|CS1002:}|}
+                }
+
+                """;
 
             await new CSharpTest { TestCode = testCode }.RunAsync();
         }
@@ -152,11 +176,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerWarning()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             // By default the warning is ignored
             Assert.Equal(CompilerDiagnostics.Errors, new CSharpTest { TestCode = testCode }.CompilerDiagnostics);
@@ -174,11 +201,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerWarningDeclaredWithWrongArgument()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -191,27 +221,33 @@ class TestClass {
             });
 
             var expected =
-                "Expected diagnostic message arguments to match" + Environment.NewLine +
-                Environment.NewLine +
-                "Expected diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(3,7,3,12): warning CS0414" + Environment.NewLine +
-                "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass2.value\")," + Environment.NewLine +
-                Environment.NewLine +
-                "Actual diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
-                "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass.value\")," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Expected diagnostic message arguments to match
+
+                Expected diagnostic:
+                    // /0/Test0.cs(3,7,3,12): warning CS0414
+                DiagnosticResult.CompilerWarning("CS0414").WithSpan(3, 7, 3, 12).WithArguments("TestClass2.value"),
+
+                Actual diagnostic:
+                    // /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used
+                DiagnosticResult.CompilerWarning("CS0414").WithSpan(3, 7, 3, 12).WithArguments("TestClass.value"),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestCSharpCompilerWarningNotDeclared()
         {
-            var testCode = @"
-class TestClass {
-  int value = 3;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int value = 3;
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -219,24 +255,30 @@ class TestClass {
             });
 
             var expected =
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used" + Environment.NewLine +
-                "DiagnosticResult.CompilerWarning(\"CS0414\").WithSpan(3, 7, 3, 12).WithArguments(\"TestClass.value\")," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.cs(3,7): warning CS0414: The field 'TestClass.value' is assigned but its value is never used
+                DiagnosticResult.CompilerWarning("CS0414").WithSpan(3, 7, 3, 12).WithArguments("TestClass.value"),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestCSharpCompilerHidden()
         {
-            var testCode = @"
-using System;
+            var testCode =
+                """
 
-class TestClass {
-}
-";
+                using System;
+
+                class TestClass {
+                }
+
+                """;
 
             // By default the warning is ignored
             Assert.Equal(CompilerDiagnostics.Errors, new CSharpTest { TestCode = testCode }.CompilerDiagnostics);
@@ -260,12 +302,15 @@ class TestClass {
         [Fact]
         public async Task TestCSharpCompilerHiddenNotDeclared()
         {
-            var testCode = @"
-using System;
+            var testCode =
+                """
 
-class TestClass {
-}
-";
+                using System;
+
+                class TestClass {
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -273,24 +318,30 @@ class TestClass {
             });
 
             var expected =
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.cs(2,1): hidden CS8019: Unnecessary using directive." + Environment.NewLine +
-                "new DiagnosticResult(\"CS8019\", DiagnosticSeverity.Hidden).WithSpan(2, 1, 2, 14)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.cs(2,1): hidden CS8019: Unnecessary using directive.
+                new DiagnosticResult("CS8019", DiagnosticSeverity.Hidden).WithSpan(2, 1, 2, 14),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestVisualBasicUndeclaredCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method)
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method)
+                  End Sub
+                End Class
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
@@ -298,24 +349,30 @@ End Class
             });
 
             var expected =
-                "Mismatch between number of diagnostics returned, expected \"0\" actual \"1\"" + Environment.NewLine +
-                Environment.NewLine +
-                "Diagnostics:" + Environment.NewLine +
-                "// /0/Test0.vb(3) : error BC30205: End of statement expected." + Environment.NewLine +
-                "DiagnosticResult.CompilerError(\"BC30205\").WithSpan(3, 13, 3, 14)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Mismatch between number of diagnostics returned, expected "0" actual "1"
+
+                Diagnostics:
+                // /0/Test0.vb(3) : error BC30205: End of statement expected.
+                DiagnosticResult.CompilerError("BC30205").WithSpan(3, 13, 3, 14),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
         public async Task TestVisualBasicExplicitCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method)
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method)
+                  End Sub
+                End Class
+
+                """;
 
             await new VisualBasicTest
             {
@@ -327,12 +384,15 @@ End Class
         [Fact]
         public async Task TestVisualBasicMarkupCompilerError()
         {
-            var testCode = @"
-Class TestClass
-  Sub Method{|BC30205:)|}
-  End Sub
-End Class
-";
+            var testCode =
+                """
+
+                Class TestClass
+                  Sub Method{|BC30205:)|}
+                  End Sub
+                End Class
+
+                """;
 
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
@@ -340,11 +400,14 @@ End Class
         [Fact]
         public async Task TestCSharpValueTupleUsageNet46()
         {
-            var testCode = @"
-class TestClass {
-  (int x, int y) TestMethod() { return (0, 1); }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  (int x, int y) TestMethod() { return (0, 1); }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -360,11 +423,14 @@ class TestClass {
         [Fact]
         public async Task TestCSharpValueTupleUsageNet472()
         {
-            var testCode = @"
-class TestClass {
-  (int x, int y) TestMethod() { return (0, 1); }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  (int x, int y) TestMethod() { return (0, 1); }
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -381,12 +447,15 @@ class TestClass {
         [InlineData("net472")]
         public async Task TestRoslynCompilerUsage_1(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.CloseBraceToken;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.CloseBraceToken;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -412,12 +481,15 @@ class TestClass {
 #endif
         public async Task TestRoslynCompilerUsage_2(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.TupleType;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.TupleType;
+                }
+
+                """;
 
             await new CSharpTest
             {
@@ -440,12 +512,15 @@ class TestClass {
 #endif
         public async Task TestRoslynCompilerUsage_3(string targetFramework)
         {
-            var testCode = @"
-using Microsoft.CodeAnalysis.CSharp;
-class TestClass {
-  SyntaxKind TestMethod() => SyntaxKind.DotDotToken;
-}
-";
+            var testCode =
+                """
+
+                using Microsoft.CodeAnalysis.CSharp;
+                class TestClass {
+                  SyntaxKind TestMethod() => SyntaxKind.DotDotToken;
+                }
+
+                """;
 
             await new CSharpTest
             {

@@ -21,17 +21,23 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class CodeFixValidationTests
     {
-        private const string ReplaceThisWithBaseTestCode = @"
-class TestClass {
-  void TestMethod() { [|this|].Equals(null); }
-}
-";
+        private const string ReplaceThisWithBaseTestCode =
+            """
 
-        private const string ReplaceThisWithBaseFixedCode = @"
-class TestClass {
-  void TestMethod() { base.Equals(null); }
-}
-";
+            class TestClass {
+              void TestMethod() { [|this|].Equals(null); }
+            }
+
+            """;
+
+        private const string ReplaceThisWithBaseFixedCode =
+            """
+
+            class TestClass {
+              void TestMethod() { base.Equals(null); }
+            }
+
+            """;
 
         [Fact]
         [WorkItem(149, "https://github.com/dotnet/roslyn-sdk/pull/149")]
@@ -48,55 +54,57 @@ class TestClass {
             });
 
             Assert.Equal(
-                @"Context: Iterative code fix application
-Actual and expected values differ. Expected shown in baseline of diff:
- Node(CompilationUnit):
-   Node(ClassDeclaration):
-     Token(ClassKeyword): class
-       Leading(EndOfLineTrivia): \r\n
-       Trailing(WhitespaceTrivia):  
-     Token(IdentifierToken): TestClass
-       Trailing(WhitespaceTrivia):  
-     Token(OpenBraceToken): {
-       Trailing(EndOfLineTrivia): \r\n
-     Node(MethodDeclaration):
-       Node(PredefinedType):
-         Token(VoidKeyword): void
-           Leading(WhitespaceTrivia):   
-           Trailing(WhitespaceTrivia):  
-       Token(IdentifierToken): TestMethod
-       Node(ParameterList):
-         Token(OpenParenToken): (
-         Token(CloseParenToken): )
-           Trailing(WhitespaceTrivia):  
-       Node(Block):
-         Token(OpenBraceToken): {
-           Trailing(WhitespaceTrivia):  
-         Node(ExpressionStatement):
-           Node(InvocationExpression):
-             Node(SimpleMemberAccessExpression):
--              Node(BaseExpression):
--                Token(BaseKeyword): base
-+              Node(ThisExpression):
-+                Token(ThisKeyword): base
-               Token(DotToken): .
-               Node(IdentifierName):
-                 Token(IdentifierToken): Equals
-             Node(ArgumentList):
-               Token(OpenParenToken): (
-               Node(Argument):
-                 Node(NullLiteralExpression):
-                   Token(NullKeyword): null
-               Token(CloseParenToken): )
-           Token(SemicolonToken): ;
-             Trailing(WhitespaceTrivia):  
-         Token(CloseBraceToken): }
-           Trailing(EndOfLineTrivia): \r\n
-     Token(CloseBraceToken): }
-       Trailing(EndOfLineTrivia): \r\n
-   Token(EndOfFileToken): 
- 
-",
+                """
+                Context: Iterative code fix application
+                Actual and expected values differ. Expected shown in baseline of diff:
+                 Node(CompilationUnit):
+                   Node(ClassDeclaration):
+                     Token(ClassKeyword): class
+                       Leading(EndOfLineTrivia): \r\n
+                       Trailing(WhitespaceTrivia):  
+                     Token(IdentifierToken): TestClass
+                       Trailing(WhitespaceTrivia):  
+                     Token(OpenBraceToken): {
+                       Trailing(EndOfLineTrivia): \r\n
+                     Node(MethodDeclaration):
+                       Node(PredefinedType):
+                         Token(VoidKeyword): void
+                           Leading(WhitespaceTrivia):   
+                           Trailing(WhitespaceTrivia):  
+                       Token(IdentifierToken): TestMethod
+                       Node(ParameterList):
+                         Token(OpenParenToken): (
+                         Token(CloseParenToken): )
+                           Trailing(WhitespaceTrivia):  
+                       Node(Block):
+                         Token(OpenBraceToken): {
+                           Trailing(WhitespaceTrivia):  
+                         Node(ExpressionStatement):
+                           Node(InvocationExpression):
+                             Node(SimpleMemberAccessExpression):
+                -              Node(BaseExpression):
+                -                Token(BaseKeyword): base
+                +              Node(ThisExpression):
+                +                Token(ThisKeyword): base
+                               Token(DotToken): .
+                               Node(IdentifierName):
+                                 Token(IdentifierToken): Equals
+                             Node(ArgumentList):
+                               Token(OpenParenToken): (
+                               Node(Argument):
+                                 Node(NullLiteralExpression):
+                                   Token(NullKeyword): null
+                               Token(CloseParenToken): )
+                           Token(SemicolonToken): ;
+                             Trailing(WhitespaceTrivia):  
+                         Token(CloseBraceToken): }
+                           Trailing(EndOfLineTrivia): \r\n
+                     Token(CloseBraceToken): }
+                       Trailing(EndOfLineTrivia): \r\n
+                   Token(EndOfFileToken): 
+                 
+
+                """,
                 failure.Message);
         }
 
@@ -115,54 +123,56 @@ Actual and expected values differ. Expected shown in baseline of diff:
             });
 
             Assert.Equal(
-                @"Context: Iterative code fix application
-Actual and expected values differ. Expected shown in baseline of diff:
- Node(CompilationUnit):
-   Node(ClassDeclaration):
-     Token(ClassKeyword): class
-       Leading(EndOfLineTrivia): \r\n
-       Trailing(WhitespaceTrivia):  
-     Token(IdentifierToken): TestClass
-       Trailing(WhitespaceTrivia):  
-     Token(OpenBraceToken): {
-       Trailing(EndOfLineTrivia): \r\n
-     Node(MethodDeclaration):
-       Node(PredefinedType):
-         Token(VoidKeyword): void
-           Leading(WhitespaceTrivia):   
-           Trailing(WhitespaceTrivia):  
-       Token(IdentifierToken): TestMethod
-       Node(ParameterList):
-         Token(OpenParenToken): (
-         Token(CloseParenToken): )
-           Trailing(WhitespaceTrivia):  
-       Node(Block):
-         Token(OpenBraceToken): {
--          Trailing(WhitespaceTrivia):  
-         Node(ExpressionStatement):
-           Node(InvocationExpression):
-             Node(SimpleMemberAccessExpression):
-               Node(BaseExpression):
-                 Token(BaseKeyword): base
-+                  Leading(WhitespaceTrivia):  
-               Token(DotToken): .
-               Node(IdentifierName):
-                 Token(IdentifierToken): Equals
-             Node(ArgumentList):
-               Token(OpenParenToken): (
-               Node(Argument):
-                 Node(NullLiteralExpression):
-                   Token(NullKeyword): null
-               Token(CloseParenToken): )
-           Token(SemicolonToken): ;
-             Trailing(WhitespaceTrivia):  
-         Token(CloseBraceToken): }
-           Trailing(EndOfLineTrivia): \r\n
-     Token(CloseBraceToken): }
-       Trailing(EndOfLineTrivia): \r\n
-   Token(EndOfFileToken): 
- 
-",
+                """
+                Context: Iterative code fix application
+                Actual and expected values differ. Expected shown in baseline of diff:
+                 Node(CompilationUnit):
+                   Node(ClassDeclaration):
+                     Token(ClassKeyword): class
+                       Leading(EndOfLineTrivia): \r\n
+                       Trailing(WhitespaceTrivia):  
+                     Token(IdentifierToken): TestClass
+                       Trailing(WhitespaceTrivia):  
+                     Token(OpenBraceToken): {
+                       Trailing(EndOfLineTrivia): \r\n
+                     Node(MethodDeclaration):
+                       Node(PredefinedType):
+                         Token(VoidKeyword): void
+                           Leading(WhitespaceTrivia):   
+                           Trailing(WhitespaceTrivia):  
+                       Token(IdentifierToken): TestMethod
+                       Node(ParameterList):
+                         Token(OpenParenToken): (
+                         Token(CloseParenToken): )
+                           Trailing(WhitespaceTrivia):  
+                       Node(Block):
+                         Token(OpenBraceToken): {
+                -          Trailing(WhitespaceTrivia):  
+                         Node(ExpressionStatement):
+                           Node(InvocationExpression):
+                             Node(SimpleMemberAccessExpression):
+                               Node(BaseExpression):
+                                 Token(BaseKeyword): base
+                +                  Leading(WhitespaceTrivia):  
+                               Token(DotToken): .
+                               Node(IdentifierName):
+                                 Token(IdentifierToken): Equals
+                             Node(ArgumentList):
+                               Token(OpenParenToken): (
+                               Node(Argument):
+                                 Node(NullLiteralExpression):
+                                   Token(NullKeyword): null
+                               Token(CloseParenToken): )
+                           Token(SemicolonToken): ;
+                             Trailing(WhitespaceTrivia):  
+                         Token(CloseBraceToken): }
+                           Trailing(EndOfLineTrivia): \r\n
+                     Token(CloseBraceToken): }
+                       Trailing(EndOfLineTrivia): \r\n
+                   Token(EndOfFileToken): 
+                 
+
+                """,
                 failure.Message);
         }
 
@@ -193,44 +203,46 @@ Actual and expected values differ. Expected shown in baseline of diff:
             });
 
             Assert.Equal(
-                @"Context: Iterative code fix application
-Actual and expected values differ. Expected shown in baseline of diff:
- Node(CompilationUnit):
-   Node(ClassDeclaration):
-     Token(ClassKeyword): class
-     Token(IdentifierToken): TestClass
-     Token(OpenBraceToken): {
-     Node(MethodDeclaration):
-       Node(PredefinedType):
-         Token(VoidKeyword): void
-       Token(IdentifierToken): TestMethod
-       Node(ParameterList):
-         Token(OpenParenToken): (
-         Token(CloseParenToken): )
-       Node(Block):
-         Token(OpenBraceToken): {
-         Node(ExpressionStatement):
-           Node(InvocationExpression):
-             Node(SimpleMemberAccessExpression):
--              Node(BaseExpression):
--                Token(BaseKeyword): base
-+              Node(ThisExpression):
-+                Token(ThisKeyword): base
-               Token(DotToken): .
-               Node(IdentifierName):
-                 Token(IdentifierToken): Equals
-             Node(ArgumentList):
-               Token(OpenParenToken): (
-               Node(Argument):
-                 Node(NullLiteralExpression):
-                   Token(NullKeyword): null
-               Token(CloseParenToken): )
-           Token(SemicolonToken): ;
-         Token(CloseBraceToken): }
-     Token(CloseBraceToken): }
-   Token(EndOfFileToken): 
- 
-",
+                """
+                Context: Iterative code fix application
+                Actual and expected values differ. Expected shown in baseline of diff:
+                 Node(CompilationUnit):
+                   Node(ClassDeclaration):
+                     Token(ClassKeyword): class
+                     Token(IdentifierToken): TestClass
+                     Token(OpenBraceToken): {
+                     Node(MethodDeclaration):
+                       Node(PredefinedType):
+                         Token(VoidKeyword): void
+                       Token(IdentifierToken): TestMethod
+                       Node(ParameterList):
+                         Token(OpenParenToken): (
+                         Token(CloseParenToken): )
+                       Node(Block):
+                         Token(OpenBraceToken): {
+                         Node(ExpressionStatement):
+                           Node(InvocationExpression):
+                             Node(SimpleMemberAccessExpression):
+                -              Node(BaseExpression):
+                -                Token(BaseKeyword): base
+                +              Node(ThisExpression):
+                +                Token(ThisKeyword): base
+                               Token(DotToken): .
+                               Node(IdentifierName):
+                                 Token(IdentifierToken): Equals
+                             Node(ArgumentList):
+                               Token(OpenParenToken): (
+                               Node(Argument):
+                                 Node(NullLiteralExpression):
+                                   Token(NullKeyword): null
+                               Token(CloseParenToken): )
+                           Token(SemicolonToken): ;
+                         Token(CloseBraceToken): }
+                     Token(CloseBraceToken): }
+                   Token(EndOfFileToken): 
+                 
+
+                """,
                 failure.Message);
         }
 
@@ -298,7 +310,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
         private class ReplaceThisWithBaseAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("ThisToBase", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

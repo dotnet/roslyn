@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.Testing
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixNotProvided()
         {
-            var testCode = @"
-namespace MyNamespace {|Brace:{|}
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {|Brace:{|}
+                }
+
+                """;
 
             // Test through the helper
             await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixNotOfferedProvider>
@@ -54,10 +57,13 @@ namespace MyNamespace {|Brace:{|}
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixProvidedWhenNotExpected()
         {
-            var testCode = @"
-namespace MyNamespace {|Brace:{|}
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {|Brace:{|}
+                }
+
+                """;
 
             // Test through the helper
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -69,7 +75,12 @@ namespace MyNamespace {|Brace:{|}
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
 
             // Test through the verifier
             exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -77,7 +88,12 @@ namespace MyNamespace {|Brace:{|}
                 await Verify<CodeFixOfferedProvider>.VerifyCodeFixAsync(testCode, testCode);
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         /// <summary>
@@ -88,10 +104,13 @@ namespace MyNamespace {|Brace:{|}
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixProvidedButTakesNoAction()
         {
-            var testCode = @"
-namespace MyNamespace {|Brace:{|}
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {|Brace:{|}
+                }
+
+                """;
 
             // Test through the helper
             await new CSharpCodeFixTest<HighlightBracesAnalyzer, CodeFixOfferedProvider>
@@ -115,10 +134,13 @@ namespace MyNamespace {|Brace:{|}
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixNotProvidedWhenNoActionFixIsExpected()
         {
-            var testCode = @"
-namespace MyNamespace {|Brace:{|}
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {|Brace:{|}
+                }
+
+                """;
 
             // Test through the helper (this scenario cannot be described via the verifier)
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -132,7 +154,12 @@ namespace MyNamespace {|Brace:{|}
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '0' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '1' iterations but found '0' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [ExportCodeFixProvider(LanguageNames.CSharp)]

@@ -30,16 +30,22 @@ namespace Microsoft.CodeAnalysis.Testing
         [WorkItem(171, "https://github.com/dotnet/roslyn-sdk/issues/171")]
         public async Task TestDefaultSelection()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 1;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 1;
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -53,16 +59,22 @@ class TestClass {{
         [Fact]
         public async Task TestDefaultSelectionMultipleFixers()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 1;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 1;
+                }
+
+                """;
 
             // Three CodeFixProviders provide three actions
             var codeFixes = ImmutableArray.Create(
@@ -80,16 +92,22 @@ class TestClass {{
         [Fact]
         public async Task TestDefaultSelectionNestedFixers()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 1;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 1;
+                }
+
+                """;
 
             // Three CodeFixProviders provide three actions
             var codeFixes = ImmutableArray.Create(
@@ -111,16 +129,22 @@ class TestClass {{
         [WorkItem(171, "https://github.com/dotnet/roslyn-sdk/issues/171")]
         public async Task TestSelectionByIndex(int index)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = {index + 1};
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{index + 1}};
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -139,16 +163,22 @@ class TestClass {{
         [WorkItem(171, "https://github.com/dotnet/roslyn-sdk/issues/171")]
         public async Task TestSelectionByEquivalenceKey(int index, string equivalenceKey)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = {index + 1};
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{index + 1}};
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -167,16 +197,22 @@ class TestClass {{
         [WorkItem(171, "https://github.com/dotnet/roslyn-sdk/issues/171")]
         public async Task TestIndexAndEquivalenceKeyMatch(int index, string equivalenceKey)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = {index + 1};
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{index + 1}};
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -195,16 +231,22 @@ class TestClass {{
         [InlineData(2, "ReplaceZeroFix_3")]
         public async Task TestIndexAndEquivalenceKeyMatchMultipleFixers(int index, string equivalenceKey)
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = {index + 1};
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                $$"""
+
+                class TestClass {
+                  int field = {{index + 1}};
+                }
+
+                """;
 
             // Three CodeFixProviders provide three actions
             var codeFixes = ImmutableArray.Create(
@@ -224,16 +266,22 @@ class TestClass {{
         [WorkItem(171, "https://github.com/dotnet/roslyn-sdk/issues/171")]
         public async Task TestIndexAndEquivalenceKeyMismatch()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 2;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 2;
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -248,22 +296,33 @@ class TestClass {{
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}The code action equivalence key and index must be consistent when both are specified.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                The code action equivalence key and index must be consistent when both are specified.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [Fact]
         public async Task TestAdditionalVerificationSuccess()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 2;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 2;
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -280,16 +339,22 @@ class TestClass {{
         [Fact]
         public async Task TestAdditionalVerificationFailure()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|0|];
-}
-";
-            var fixedCode = $@"
-class TestClass {{
-  int field = 2;
-}}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|0|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field = 2;
+                }
+
+                """;
 
             // A single CodeFixProvider provides three actions
             var codeFixes = ImmutableArray.Create(ImmutableArray.Create(1, 2, 3));
@@ -305,14 +370,19 @@ class TestClass {{
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'Expected title' actual:'ThisToBase'", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                items not equal.  expected:'Expected title' actual:'ThisToBase'
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class LiteralZeroAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("LiteralZero", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("LiteralZero", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 

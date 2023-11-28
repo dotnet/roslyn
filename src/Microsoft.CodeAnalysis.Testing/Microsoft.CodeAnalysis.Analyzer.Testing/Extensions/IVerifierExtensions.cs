@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         private static readonly IChunker s_lineChunker = new LineChunker();
         private static readonly IChunker s_lineEndingsPreservingChunker = new LineEndingsPreservingChunker();
-        private static readonly InlineDiffBuilder s_diffBuilder = new InlineDiffBuilder(new Differ());
+        private static readonly InlineDiffBuilder s_diffBuilder = new(new Differ());
 
         /// <summary>
         /// Asserts that two strings are equal, and prints a diff between the two if they are not.

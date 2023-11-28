@@ -18,16 +18,22 @@ namespace Microsoft.CodeAnalysis.Testing
         [Fact]
         public async Task TestOneIterationRequiredWithoutChangingGeneratedSource()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  5;
+                }
+
+                """;
 
             await new CSharpTest<TreeNameGenerator>
             {
@@ -49,16 +55,22 @@ class TestClass {
         [Fact]
         public async Task TestOneIterationRequiredWithChangeToGeneratedSource()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  5;
+                }
+
+                """;
 
             await new CSharpTest<TreeLengthGenerator>
             {
@@ -84,16 +96,22 @@ class TestClass {
         [Fact]
         public async Task TestErrorForMissingGeneratedSourcesInTestState()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  5;
+                }
+
+                """;
 
             // No error is reported if generated source validation is disabled
             await CreateTest(TestBehaviors.SkipGeneratedSourcesCheck).RunAsync();
@@ -104,12 +122,15 @@ class TestClass {
                 await CreateTest(TestBehaviors.None).RunAsync();
             });
 
-            var expectedMessage = @"Context: Generated sources of test state
-Context: Source generator application
-Context: Verifying source generated files
-Expected source file list to match
-+Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
-";
+            var expectedMessage =
+                """
+                Context: Generated sources of test state
+                Context: Source generator application
+                Context: Verifying source generated files
+                Expected source file list to match
+                +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
+
+                """;
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)
@@ -136,16 +157,22 @@ Expected source file list to match
         [Fact]
         public async Task TestErrorForMissingGeneratedSourcesInFixedState()
         {
-            var testCode = @"
-class TestClass {
-  int field = [|4|];
-}
-";
-            var fixedCode = @"
-class TestClass {
-  int field =  5;
-}
-";
+            var testCode =
+                """
+
+                class TestClass {
+                  int field = [|4|];
+                }
+
+                """;
+            var fixedCode =
+                """
+
+                class TestClass {
+                  int field =  5;
+                }
+
+                """;
 
             // No error is reported if generated source validation is disabled
             await CreateTest(TestBehaviors.SkipGeneratedSourcesCheck).RunAsync();
@@ -156,13 +183,16 @@ class TestClass {
                 await CreateTest(TestBehaviors.None).RunAsync();
             });
 
-            var expectedMessage = @"Context: Iterative code fix application
-Context: Generated sources of fixed state
-Context: Source generator application
-Context: Verifying source generated files
-Expected source file list to match
-+Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
-";
+            var expectedMessage =
+                """
+                Context: Iterative code fix application
+                Context: Generated sources of fixed state
+                Context: Source generator application
+                Context: Verifying source generated files
+                Expected source file list to match
+                +Microsoft.CodeAnalysis.CodeFix.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.SourceGeneratorTests+TreeLengthGenerator\Generated.g.cs
+
+                """;
             new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
 
             CSharpTest<TreeLengthGenerator> CreateTest(TestBehaviors testBehaviors)

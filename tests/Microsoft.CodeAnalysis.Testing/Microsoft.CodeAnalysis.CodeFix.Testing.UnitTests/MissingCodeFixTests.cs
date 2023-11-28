@@ -29,10 +29,13 @@ namespace Microsoft.CodeAnalysis.Testing
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixNotProvided()
         {
-            var testCode = @"
-namespace MyNamespace {
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {
+                }
+
+                """;
             var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
@@ -56,10 +59,13 @@ namespace MyNamespace {
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixProvidedWhenNotExpected()
         {
-            var testCode = @"
-namespace MyNamespace {
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {
+                }
+
+                """;
             var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
@@ -73,7 +79,12 @@ namespace MyNamespace {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
 
             // Test through the verifier
             exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -81,7 +92,12 @@ namespace MyNamespace {
                 await Verify<CodeFixOfferedProvider>.VerifyCodeFixAsync(testCode, expected, testCode);
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '0' iterations but found '1' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '0' iterations but found '1' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         /// <summary>
@@ -92,10 +108,13 @@ namespace MyNamespace {
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixProvidedButTakesNoAction()
         {
-            var testCode = @"
-namespace MyNamespace {
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {
+                }
+
+                """;
             var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper
@@ -121,10 +140,13 @@ namespace MyNamespace {
         [WorkItem(219, "https://github.com/dotnet/roslyn-sdk/issues/219")]
         public async Task TestCodeFixNotProvidedWhenNoActionFixIsExpected()
         {
-            var testCode = @"
-namespace MyNamespace {
-}
-";
+            var testCode =
+                """
+
+                namespace MyNamespace {
+                }
+
+                """;
             var expected = new DiagnosticResult(new HighlightBracesAnalyzer().Descriptor).WithSpan(2, 23, 2, 24);
 
             // Test through the helper (this scenario cannot be described via the verifier)
@@ -140,7 +162,12 @@ namespace MyNamespace {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '0' iterations.", exception.Message);
+            Assert.Equal(
+                """
+                Context: Iterative code fix application
+                Expected '1' iterations but found '0' iterations.
+                """.ReplaceLineEndings(),
+                exception.Message);
         }
 
         [ExportCodeFixProvider(LanguageNames.CSharp)]

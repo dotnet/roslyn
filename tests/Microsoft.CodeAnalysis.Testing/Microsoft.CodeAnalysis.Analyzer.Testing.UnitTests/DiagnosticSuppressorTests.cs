@@ -99,16 +99,19 @@ class Sample { string {|#0:_value|}; }",
             });
 
             var expected =
-                "Expected diagnostic suppression state to match" + Environment.NewLine +
-                Environment.NewLine +
-                "Expected diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(1,23,1,24): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(false)," + Environment.NewLine +
-                Environment.NewLine +
-                "Actual diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(true)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Expected diagnostic suppression state to match
+
+                Expected diagnostic:
+                    // /0/Test0.cs(1,23,1,24): warning Brace: message
+                VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(false),
+
+                Actual diagnostic:
+                    // /0/Test0.cs(1,23): warning Brace: message
+                VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(true),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
@@ -131,16 +134,19 @@ class Sample { string {|#0:_value|}; }",
             });
 
             var expected =
-                "Expected diagnostic suppression state to match" + Environment.NewLine +
-                Environment.NewLine +
-                "Expected diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(1,23,1,24): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(true)," + Environment.NewLine +
-                Environment.NewLine +
-                "Actual diagnostic:" + Environment.NewLine +
-                "    // /0/Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
-                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24)," + Environment.NewLine +
-                Environment.NewLine;
+                """
+                Expected diagnostic suppression state to match
+
+                Expected diagnostic:
+                    // /0/Test0.cs(1,23,1,24): warning Brace: message
+                VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24).WithIsSuppressed(true),
+
+                Actual diagnostic:
+                    // /0/Test0.cs(1,23): warning Brace: message
+                VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24),
+
+
+                """.ReplaceLineEndings();
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
@@ -148,7 +154,7 @@ class Sample { string {|#0:_value|}; }",
         internal class HighlightBracesSuppressor : DiagnosticSuppressor
         {
             internal static readonly SuppressionDescriptor Descriptor =
-                new SuppressionDescriptor("XBrace", DiagnosticDescriptor.Id, "justification");
+                new("XBrace", DiagnosticDescriptor.Id, "justification");
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(Descriptor);
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="descriptor">The diagnostic descriptor.</param>
         /// <returns>A <see cref="DiagnosticResult"/> initialed using the specified <paramref name="descriptor"/>.</returns>
-        public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor) => new DiagnosticResult(descriptor);
+        public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor) => new(descriptor);
 
         /// <summary>
         /// Verifies the analyzer produces the specified diagnostics for the given source text.

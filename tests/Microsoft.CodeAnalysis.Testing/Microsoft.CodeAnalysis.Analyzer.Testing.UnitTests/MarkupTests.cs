@@ -21,11 +21,14 @@ namespace Microsoft.CodeAnalysis.Testing
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
         public async Task TestCSharpMarkupBrace(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass {|Brace:{|}
-  void TestMethod() {|Brace:{|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|Brace:{|}
+                  void TestMethod() {|Brace:{|} }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
@@ -35,10 +38,13 @@ class TestClass {|Brace:{|}
         [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
         public async Task TestCSharpMarkupSingleBracePosition(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass $${
-}
-";
+            var testCode =
+                """
+
+                class TestClass $${
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
@@ -66,11 +72,14 @@ class TestClass [|{|]
         [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
         public async Task TestCSharpMarkupMultipleBracePositions(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass $${
-  void TestMethod() $${ }
-}
-";
+            var testCode =
+                """
+
+                class TestClass $${
+                  void TestMethod() $${ }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
@@ -80,11 +89,14 @@ class TestClass $${
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
         public async Task TestCSharpNestedMarkupBrace(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass {|BraceOuter:{|Brace:{|}|}
-  void TestMethod() {|BraceOuter:{|Brace:{|}|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|BraceOuter:{|Brace:{|}|}
+                  void TestMethod() {|BraceOuter:{|Brace:{|}|} }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
@@ -93,11 +105,14 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
         public async Task TestCSharpNestedMarkupBraceWithCombinedSyntax()
         {
-            var testCode = @"
-class TestClass {|#0:{|}
-  void TestMethod() {|#1:{|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|#0:{|}
+                  void TestMethod() {|#1:{|} }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: false)
             {
@@ -117,11 +132,14 @@ class TestClass {|#0:{|}
         public async Task TestCSharpNestedMarkupBraceWithCombinedSyntaxInSecondFile()
         {
             var testCode1 = string.Empty;
-            var testCode2 = @"
-class TestClass {|#0:{|}
-  void TestMethod() {|#1:{|} }
-}
-";
+            var testCode2 =
+                """
+
+                class TestClass {|#0:{|}
+                  void TestMethod() {|#1:{|} }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: false)
             {
@@ -143,11 +161,14 @@ class TestClass {|#0:{|}
         [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
         public async Task TestCSharpNestedMarkupBraceWithCombinedSyntaxAndAdditionalLocations()
         {
-            var testCode = @"
-class TestClass {|#0:{|}
-  void TestMethod() {|#1:{|} {|#2:}|}
-{|#3:}|}
-";
+            var testCode =
+                """
+
+                class TestClass {|#0:{|}
+                  void TestMethod() {|#1:{|} {|#2:}|}
+                {|#3:}|}
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: true)
             {
@@ -166,11 +187,14 @@ class TestClass {|#0:{|}
         [CombinatorialData]
         public async Task TestCSharpNestedMarkupBraceUnspecifiedIdWithoutDefault(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass {|BraceOuter:{|Brace:{|}|}
-  void TestMethod() {|BraceOuter:[|Brace:{|]|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|BraceOuter:{|Brace:{|}|}
+                  void TestMethod() {|BraceOuter:[|Brace:{|]|} }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
@@ -183,11 +207,14 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
         public async Task TestCSharpNestedMarkupBraceMultipleWithoutDefault(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass {|BraceOuter:{|Brace:{|}|}
-  void TestMethod() {|BraceOuter:{|Brace:{|}|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|BraceOuter:{|Brace:{|}|}
+                  void TestMethod() {|BraceOuter:{|Brace:{|}|} }
+                }
+
+                """;
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: true, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
@@ -200,11 +227,14 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
         public async Task TestCSharpNestedMarkupBraceWithDefault(bool reportAdditionalLocations)
         {
-            var testCode = @"
-class TestClass {|BraceOuter:{|Brace:{|}|}
-  void TestMethod() {|BraceOuter:[|{|]|} }
-}
-";
+            var testCode =
+                """
+
+                class TestClass {|BraceOuter:{|Brace:{|}|}
+                  void TestMethod() {|BraceOuter:[|{|]|} }
+                }
+
+                """;
 
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode, MarkupOptions = MarkupOptions.UseFirstDescriptor }.RunAsync();
         }
@@ -213,16 +243,16 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         private class HighlightBracesAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor DescriptorOuter =
-                new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("BraceOuter", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor DescriptorOuterHidden =
-                new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+                new("BraceOuter", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             internal static readonly DiagnosticDescriptor DescriptorHidden =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+                new("Brace", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
             private readonly bool _nestedDiagnostics;
             private readonly bool _hiddenDescriptors;
