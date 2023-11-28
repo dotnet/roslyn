@@ -2450,6 +2450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
+                case ErrorCode.ERR_DefaultValueUsedWithAttributes:
+                case ErrorCode.ERR_ExplicitParamArray:
                     return false;
                 default:
                     return true;

@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis
         public static PooledObject<StringBuilder> GetPooledObject(this ObjectPool<StringBuilder> pool)
             => PooledObject<StringBuilder>.Create(pool);
 
+        public static PooledObject<StringBuilder> GetPooledObject(this ObjectPool<StringBuilder> pool, out StringBuilder builder)
+        {
+            var pooledObject = PooledObject<StringBuilder>.Create(pool);
+            builder = pooledObject.Object;
+            return pooledObject;
+        }
+
         public static PooledObject<Stack<TItem>> GetPooledObject<TItem>(this ObjectPool<Stack<TItem>> pool)
             => PooledObject<Stack<TItem>>.Create(pool);
 
