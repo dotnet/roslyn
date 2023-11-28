@@ -22,6 +22,10 @@ internal struct LazyNullable<T>
     /// </list>
     /// </summary>
     private int _initialized;
+
+    /// <summary>
+    /// Actual stored value.  Only safe to read once <see cref="_initialized"/> is set to 2.
+    /// </summary>
     private T _value;
 
     /// <summary>
