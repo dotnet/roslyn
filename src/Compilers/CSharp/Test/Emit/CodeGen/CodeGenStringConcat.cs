@@ -2167,7 +2167,7 @@ class Test
                     static void Main()
                     {
                         var s = "s";
-                        var c = 'c';
+                        var c = 'C';
                         Console.Write(M1(s, c));
                         Console.Write(M2(s, c));
                     }
@@ -2365,7 +2365,7 @@ class Test
                     static void Main()
                     {
                         var s = "s";
-                        var c = 'c';
+                        var c = 'C';
                         Console.Write(M1(s, c));
                         Console.Write(M2(s, c));
                         Console.Write(M3(s, c));
@@ -2739,7 +2739,7 @@ class Test
                     static void Main()
                     {
                         var s = "s";
-                        var c = 'c';
+                        var c = 'C';
                         Console.Write(M1(s, c));
                         Console.Write(M2(s, c));
                         Console.Write(M3(s, c));
