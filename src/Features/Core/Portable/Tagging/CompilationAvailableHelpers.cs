@@ -9,8 +9,19 @@ namespace Microsoft.CodeAnalysis.Tagging
 {
     internal static class CompilationAvailableHelpers
     {
+        private static bool s_shouldSkipComputation;
+
         // this method is super basic.  but it ensures that the remote impl and the local impl always agree.
         public static Task ComputeCompilationInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
-            => project.GetCompilationAsync(cancellationToken);
+            => s_shouldSkipComputation ? Task.CompletedTask : project.GetCompilationAsync(cancellationToken) ;
+
+        public static class TestAccessor
+        {
+            public static bool SkipComputation
+            {
+                get => s_shouldSkipComputation;
+                set => s_shouldSkipComputation = value;
+            }
+        }
     }
 }
