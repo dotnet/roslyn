@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SynthesizedLocalKind.LambdaDisplayClass:
                         return GeneratedNames.MakeLambdaDisplayLocalName(uniqueId++);
                     case SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal:
+                    case SynthesizedLocalKind.TryAwaitPendingException:
+                    case SynthesizedLocalKind.TryAwaitPendingCaughtException:
                         return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
                     case SynthesizedLocalKind.InstrumentationPayload:
                         return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
