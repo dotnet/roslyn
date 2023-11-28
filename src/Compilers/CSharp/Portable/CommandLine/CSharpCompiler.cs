@@ -81,21 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var normalizedFilePaths = new string?[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
-            // <Metalama>
-            string? langVersionBeforeOverride = null;
-            globalConfigOptions.AnalyzerOptions?.TryGetValue("build_property.MetalamaLangVersionBeforeOverride", out langVersionBeforeOverride);
-
-            if (!string.IsNullOrWhiteSpace(langVersionBeforeOverride))
-            {
-                diagnosticBag.Add(
-                    Diagnostic.Create(
-                        MetalamaCompilerMessageProvider.Instance,
-                        (int)MetalamaErrorCode.WRN_LanguageVersionUpdated,
-                        langVersionBeforeOverride,
-                        parseOptions.LanguageVersion.ToDisplayString()));
-            }
-            // </Metalama>
-
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 RoslynParallel.For(

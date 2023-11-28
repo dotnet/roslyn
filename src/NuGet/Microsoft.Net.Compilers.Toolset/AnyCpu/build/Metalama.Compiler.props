@@ -33,7 +33,6 @@
     <CompilerVisibleProperty Include="MetalamaLicense" />
     <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
     <CompilerVisibleProperty Include="MSBuildProjectFullPath "/>
-    <CompilerVisibleProperty Include="MetalamaLangVersionBeforeOverride "/>
 
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers" />
     <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues" />

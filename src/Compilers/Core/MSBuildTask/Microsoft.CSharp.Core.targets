@@ -43,7 +43,7 @@
   <Choose>
     <When Condition="'$(_MaxSupportedLangVersion)' &lt; '$(MetalamaMinSupportedLangVersion)'">
       <PropertyGroup>
-        <MetalamaLangVersionBeforeOverride Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</MetalamaLangVersionBeforeOverride>
+        <MetalamaLangVersionOverridden Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">true</MetalamaLangVersionOverridden>
         <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(MetalamaMinSupportedLangVersion)</LangVersion>
       </PropertyGroup>
     </When>
@@ -53,6 +53,12 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+
+  <Target Name="MetalamaLangVersionOverrideWarning" BeforeTargets="CoreCompile" Condition="'$(MetalamaLangVersionOverridden)' != ''">
+    <Warning
+      Code="LAMA0620"
+      Text="The C# language version of the current project was updated from $(_MaxSupportedLangVersion) to $(MetalamaMinSupportedLangVersion), because that is the lowest version supported by Metalama. To hide this warning, set &lt;LangVersion&gt; to at least $(MetalamaMinSupportedLangVersion) in your project file." />
+  </Target>
 
   <!-- </Metalama> -->
 
