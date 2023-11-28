@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Lock on <see langword="this"/> to ensure safe reading/writing of this field.
             /// </summary>
-            private Checksum? _lazyChecksum;
+            LazyNullable<Checksum> _lazyChecksum;
 
             /// <summary>
             /// The Id of the document.
@@ -258,16 +258,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Checksum Checksum
-            {
-                get
-                {
-                    // Ensure reading/writing from the nullable checksum is atomic.
-                    lock (this)
-                    {
-                        return _lazyChecksum ??= Checksum.Create(this, static (@this, writer) => @this.WriteTo(writer));
-                    }
-                }
-            }
+                => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
         }
     }
 }
