@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 #if NETFRAMEWORK
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
 #else
-            public TimeSpan CachePollDelay { get; } = TimeSpan.FromDays(6).TotalMinutes; // Max is too big for an int. 6 days ends up being almost infinite in the world of sessions.
+            // Don't poll on .NET Core because caching isn't supported, instead, we'll always re-download the file.
+            // TimeSpan.Max is too big for an int, 6 days should be enough days for most people to restart their session.
+            public TimeSpan CachePollDelay { get; } = TimeSpan.FromDays(6).TotalMinutes;
 #endif
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);
             public TimeSpan ExpectedFailureDelay { get; } = TimeSpan.FromMinutes(1);

@@ -505,8 +505,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 //
-                //      .net Core workflow
-                //      .net Core version of Remote Control Client currently does not support caching.
+                //      .NET Core workflow
+                //      .NET Core version of Remote Control Client currently does not support caching.
                 //      Therefore, we must force the download everytime. To support this new workflow,
                 //      the pollingMinutes has been increased from 1 day to 3 days, and the 
                 //      SymbolSearchUpdateEngine.DelayService.CachePollDelay has also been updated from
