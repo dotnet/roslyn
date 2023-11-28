@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
-            var newDocument = document.WithText(originalText);
+
+            // The document might not be frozen, so make sure we freeze it here to avoid triggering source generator.
+            var newDocument = document.WithText(originalText).WithFrozenPartialSemantics(cancellationToken);
             return (newDocument, span.Start);
         }
     }
