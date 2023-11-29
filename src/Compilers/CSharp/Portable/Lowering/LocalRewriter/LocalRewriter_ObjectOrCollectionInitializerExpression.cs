@@ -506,23 +506,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool onlyContainsEmptyLeafNestedInitializers(BoundExpression expression)
             {
-                if (expression is not BoundObjectInitializerExpression initializer)
-                {
-                    return false;
-                }
-
-                return initializer.Initializers.All(e => e is BoundAssignmentOperator assignment && onlyContainsEmptyLeafNestedInitializers(assignment.Right));
+                return expression is BoundObjectInitializerExpression initializer
+                    && initializer.Initializers.All(e => e is BoundAssignmentOperator assignment && onlyContainsEmptyLeafNestedInitializers(assignment.Right));
             }
 
             void addIndexes(ArrayBuilder<BoundExpression> result, BoundAssignmentOperator assignment)
             {
-                // If we have `[argument] = { ... }`, we'll evaluate `argument` only
+                // If we have an element access of the form `[arguments] = { ... }`, we'll evaluate `arguments` only
                 var lhs = assignment.Left;
                 if (lhs is BoundObjectInitializerMember initializerMember)
                 {
                     foreach (var argument in initializerMember.Arguments)
                     {
-                        result.Add(VisitExpression(argument));
+                        if (argument is BoundArrayCreation { IsParamsArray: true, InitializerOpt: var initializers })
+                        {
+                            Debug.Assert(initializers is not null);
+                            foreach (var element in initializers.Initializers)
+                            {
+                                result.Add(VisitExpression(element));
+                            }
+                        }
+                        else
+                        {
+                            result.Add(VisitExpression(argument));
+                        }
                     }
                 }
                 else if (lhs is BoundImplicitIndexerAccess implicitIndexerAccess)
@@ -554,7 +561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
 
         private ImmutableArray<BoundExpression> EvaluateSideEffectingArgumentsToTemps(
                                                  ImmutableArray<BoundExpression> args,

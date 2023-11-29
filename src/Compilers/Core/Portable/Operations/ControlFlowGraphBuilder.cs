@@ -6072,7 +6072,7 @@ oneMoreTime:
 
                 if (onlyContainsEmptyLeafNestedInitializers(memberInitializer))
                 {
-                    // However, when the leave nested initializers are empty, we won't access the chain of initialized members
+                    // However, when the leaf nested initializers are empty, we won't access the chain of initialized members
                     // and we only evaluate the arguments/indexes they contain.
                     addIndexes(memberInitializer);
                     return;
@@ -6207,23 +6207,32 @@ oneMoreTime:
 
             static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
             {
-                if (memberInitializer.Initializer is not IObjectOrCollectionInitializerOperation nestedInitializer)
-                {
-                    return false;
-                }
-
-                return nestedInitializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
+                    && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
             }
 
             void addIndexes(IMemberInitializerOperation memberInitializer)
             {
                 var lhs = memberInitializer.InitializedMember;
-                // If we have `[argument] = { ... }`, we'll evaluate `argument` only
+                // If we have an element access of the form `[arguments] = { ... }`, we'll evaluate `arguments` only
                 if (lhs is IPropertyReferenceOperation propertyReference)
                 {
                     foreach (var argument in propertyReference.Arguments)
                     {
-                        AddStatement(Visit(argument.Value));
+                        if (argument is { ArgumentKind: ArgumentKind.ParamArray })
+                        {
+                            var array = (IArrayCreationOperation)argument.Value;
+                            Debug.Assert(array.Initializer is not null);
+
+                            foreach (var element in array.Initializer.ElementValues)
+                            {
+                                AddStatement(Visit(element));
+                            }
+                        }
+                        else
+                        {
+                            AddStatement(Visit(argument.Value));
+                        }
                     }
                 }
                 else if (lhs is IImplicitIndexerReferenceOperation implicitIndexer)
