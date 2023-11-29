@@ -2,44 +2,62 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Linq;
 using System.Composition;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
-using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+
+[ExportLanguageService(typeof(IDefinitionLocationService), LanguageNames.FSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class FSharpDefinitionLocationService(
+    IFSharpGoToDefinitionService service) : IDefinitionLocationService
 {
-    [Shared]
-    [ExportLanguageService(typeof(IGoToDefinitionService), LanguageNames.FSharp)]
-    internal class FSharpGoToDefinitionService : IGoToDefinitionService
+    public async Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        private readonly IFSharpGoToDefinitionService _service;
+        var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+        if (items is null)
+            return null;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpGoToDefinitionService(IFSharpGoToDefinitionService service)
+        var firstItem = items.FirstOrDefault();
+        if (firstItem is null)
+            return null;
+
+        var navigableItem = await new DocumentSpan(firstItem.Document, firstItem.SourceSpan).GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+        if (navigableItem is null)
+            return null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        return new DefinitionLocation(navigableItem, GetDocumentSpan());
+
+        DocumentSpan GetDocumentSpan()
         {
-            _service = service;
+            // To determine the span to underline, just use a simple heuristic of expanding out to the surrounding
+            // letters and numbers.  F# can reimplement this in the future to be more accurate to their language.
+
+            var startPosition = position;
+            var endPosition = position + 1;
+
+            if (char.IsLetterOrDigit(text[position]))
+            {
+                while (char.IsLetterOrDigit(GetChar(startPosition - 1)))
+                    startPosition--;
+
+                while (char.IsLetterOrDigit(GetChar(endPosition + 1)))
+                    endPosition++;
+            }
+
+            return new DocumentSpan(document, TextSpan.FromBounds(startPosition, endPosition));
         }
 
-        public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var items = await _service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return items?.Select(x => new InternalFSharpNavigableItem(x));
-        }
-
-        public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
-        {
-            return _service.TryGoToDefinition(document, position, cancellationToken);
-        }
+        char GetChar(int position)
+            => position >= 0 && position < text.Length ? text[position] : (char)0;
     }
 }

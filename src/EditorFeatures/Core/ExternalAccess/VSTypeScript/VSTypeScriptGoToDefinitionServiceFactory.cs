@@ -8,40 +8,35 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
-{
-    [ExportLanguageServiceFactory(typeof(IGoToDefinitionService), InternalLanguageNames.TypeScript), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptGoToDefinitionServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl) : ILanguageServiceFactory
-    {
-        private readonly IVSTypeScriptGoToDefinitionServiceFactoryImplementation _impl = impl;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-        public ILanguageService? CreateLanguageService(HostLanguageServices languageServices)
+[ExportLanguageServiceFactory(typeof(IDefinitionLocationService), InternalLanguageNames.TypeScript), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptDefinitionLocationServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl) : ILanguageServiceFactory
+{
+    public ILanguageService? CreateLanguageService(HostLanguageServices languageServices)
+    {
+        var service = impl.CreateLanguageService(languageServices);
+        return service != null ? new VSTypeScriptDefinitionLocationService(service) : null;
+    }
+
+    private sealed class VSTypeScriptDefinitionLocationService(IVSTypeScriptGoToDefinitionService service) : IDefinitionLocationService
+    {
+        public async Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var service = _impl.CreateLanguageService(languageServices);
-            return (service != null) ? new ServiceWrapper(service) : null;
+            var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return items?.Select(item => new VSTypeScriptNavigableItemWrapper(item));
         }
 
-        private sealed class ServiceWrapper(IVSTypeScriptGoToDefinitionService service) : IGoToDefinitionService
+        public Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            private readonly IVSTypeScriptGoToDefinitionService _service = service;
-
-            public async Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
-            {
-                var items = await _service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                return items?.Select(item => new VSTypeScriptNavigableItemWrapper(item));
-            }
-
-            public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
-                => _service.TryGoToDefinition(document, position, cancellationToken);
+            throw new NotImplementedException();
         }
     }
 }
