@@ -1706,8 +1706,8 @@ End Class")
 
             Private ReadOnly _cache As New ConcurrentDictionary(Of SyntaxTree, SemanticModel)()
 
-            Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional ignoreAccessibility As Boolean = False) As SemanticModel
-                Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility))
+            Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional ignoreAccessibility As Boolean = False, Optional disableNullableAnalysis As Boolean = False) As SemanticModel
+                Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility, disableNullableAnalysis))
             End Function
 
             Public Sub VerifyCachedModel(tree As SyntaxTree, model As SemanticModel)

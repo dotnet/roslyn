@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a <see cref="SemanticModel"/> for the given <paramref name="tree"/> that belongs to the given <paramref name="compilation"/>.
         /// </summary>
-        public abstract SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false);
+        public abstract SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false, bool disableNullableAnalysis = false);
     }
 }
