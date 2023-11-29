@@ -12417,7 +12417,7 @@ public static class Ext
                 Assert.NotEmpty(seenProvider)
             End Using
         End Function
-        
+
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8623")>
         Public Async Function TestGenerics1() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
