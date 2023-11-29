@@ -75,25 +75,48 @@ stages:
     value: $(Build.SourcesDirectory)\artifacts\log\Debug
   jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - job: VS_Integration_Debug_32
+    - job: VS_Integration_Debug_32_Build
       pool:
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.queueName }}
       timeoutInMinutes: ${{ parameters.timeout }}
       steps:
-        - template: eng/pipelines/test-integration-job.yml
+        - template: eng/pipelines/test-integration-build-job.yml
+          parameters:
+            configuration: Debug
+            oop64bit: false
+            lspEditor: false
+    - job: VS_Integration_Debug_32_Test
+      pool:
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
+      steps:
+        - template: eng/pipelines/test-integration-test-job.yml
           parameters:
             configuration: Debug
             oop64bit: false
             lspEditor: false
 
-  - job: VS_Integration_Debug_64
+  - job: VS_Integration_Debug_64_Build
     pool:
       name: ${{ parameters.poolName }}
       demands: ImageOverride -equals ${{ parameters.queueName }}
     timeoutInMinutes: ${{ parameters.timeout }}
     steps:
-      - template: eng/pipelines/test-integration-job.yml
+      - template: eng/pipelines/test-integration-build-job.yml
+        parameters:
+          configuration: Debug
+          oop64bit: true
+          lspEditor: false
+
+  - job: VS_Integration_Debug_64_Test
+    pool:
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
+    steps:
+      - template: eng/pipelines/test-integration-test-job.yml
         parameters:
           configuration: Debug
           oop64bit: true
@@ -105,26 +128,48 @@ stages:
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\Release
   jobs:
-  - job: VS_Integration_Release_32
+  - job: VS_Integration_Release_32_Build
     pool:
       name: ${{ parameters.poolName }}
       demands: ImageOverride -equals ${{ parameters.queueName }}
     timeoutInMinutes: ${{ parameters.timeout }}
     steps:
-      - template: eng/pipelines/test-integration-job.yml
+      - template: eng/pipelines/test-integration-build-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: false
+          lspEditor: false
+  - job: VS_Integration_Release_32_Test
+    pool:
+      name: ${{ parameters.poolName }}
+      demands: ImageOverride -equals ${{ parameters.queueName }}
+    timeoutInMinutes: ${{ parameters.timeout }}
+    steps:
+      - template: eng/pipelines/test-integration-test-job.yml
         parameters:
           configuration: Release
           oop64bit: false
           lspEditor: false
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - job: VS_Integration_Release_64
+    - job: VS_Integration_Release_64_Build
       pool:
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.queueName }}
       timeoutInMinutes: ${{ parameters.timeout }}
       steps:
-        - template: eng/pipelines/test-integration-job.yml
+        - template: eng/pipelines/test-integration-build-job.yml
+          parameters:
+            configuration: Release
+            oop64bit: true
+            lspEditor: false
+    - job: VS_Integration_Release_64_Test
+      pool:
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
+      steps:
+        - template: eng/pipelines/test-integration-test-job.yml
           parameters:
             configuration: Release
             oop64bit: true
