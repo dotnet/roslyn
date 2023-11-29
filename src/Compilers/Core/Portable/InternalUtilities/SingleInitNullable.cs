@@ -36,6 +36,14 @@ internal struct SingleInitNullable<T>
     /// delegate may be called more than once by multiple threads, but only one of those values will successfully be
     /// written to the target.</param>
     /// <returns>The target value.</returns>
+    /// <remarks>
+    /// An alternative approach here would be to pass <paramref name="valueFactory"/> and <paramref name="arg"/> into
+    /// <see cref="GetOrStore"/>, and to only compute the value if the winning thread.  However, this has two potential
+    /// downsides.  First, the computation of the value might take an indeterminate amount of time.  This would require
+    /// other threads to then busy-spin for that same amount of time.  Second, we would have to make the code very
+    /// resilient to failure paths (including cancellation), ensuring that the type reset itself <em>safely</em> to the
+    /// initial state so that other threads were not perpetually stuck in the busy state.
+    /// </remarks>
     public T Initialize<TArg>(Func<TArg, T> valueFactory, TArg arg)
         => ReadIfInitialized() ?? GetOrStore(valueFactory(arg));
 
