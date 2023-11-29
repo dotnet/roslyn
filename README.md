@@ -91,3 +91,6 @@ Visit [Roslyn Architecture Overview](https://docs.microsoft.com/en-us/dotnet/csh
 
 This project is part of the [.NET Foundation](http://www.dotnetfoundation.org/projects) along with other
 projects like [the .NET Runtime](https://github.com/dotnet/runtime/).
+
+A little note :
+The `roslyn-3.10.0-3.21201.20` zip in the Releases is 52.9 MB (5,55,72,436 bytes) in size.
