@@ -12038,41 +12038,72 @@ class C
             await VerifyAnyItemExistsAsync(source);
         }
 
-        [Fact]
-        public async Task AfterScopedInsideMethod()
+        [Theory, CombinatorialData]
+        public async Task AfterScopedInsideMethod(bool useRef)
         {
-            var source = @"
+            var refKeyword = useRef ? "ref " : "";
+            var source = $$"""
 class C
 {
     void M()
     {
-        scoped $$
+        scoped {{refKeyword}}$$
     }
 }
 
 ref struct MyRefStruct { }
-";
+""";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
         }
 
-        [Fact]
-        public async Task AfterScopedGlobalStatement_FollowedByType()
+        [Theory, CombinatorialData]
+        public async Task AfterScopedGlobalStatement_FollowedByRefStruct(bool useRef)
         {
-            var source = @"
-scoped $$
+            var refKeyword = useRef ? "ref " : "";
+            var source = $$"""
+scoped {{refKeyword}}$$
 
 ref struct MyRefStruct { }
-";
+""";
             await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
         }
 
-        [Fact]
-        public async Task AfterScopedGlobalStatement_NotFollowedByType()
+        [Theory, CombinatorialData]
+        public async Task AfterScopedGlobalStatement_FollowedByStruct(bool useRef)
         {
-            var source = """
+            var refKeyword = useRef ? "ref " : "";
+            var source = $$"""
+using System;
+
+scoped {{refKeyword}}$$
+
+struct S { }
+""";
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Theory, CombinatorialData]
+        public async Task AfterScopedGlobalStatement_FollowedByPartialStruct(bool useRef)
+        {
+            var refKeyword = useRef ? "ref " : "";
+            var source = $$"""
+using System;
+
+scoped {{refKeyword}}$$
+
+partial struct S { }
+""";
+            await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+        }
+
+        [Theory, CombinatorialData]
+        public async Task AfterScopedGlobalStatement_NotFollowedByType(bool useRef)
+        {
+            var refKeyword = useRef ? "ref " : "";
+            var source = $"""
                 using System;
 
-                scoped $$
+                scoped {refKeyword}$$
                 """;
 
             await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
