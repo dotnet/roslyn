@@ -135,5 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

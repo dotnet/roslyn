@@ -78,16 +78,16 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
+                    return CreateChecksum((MetadataReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
+                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetChecksum());
+                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
 
                 case WellKnownSynchronizationKind.SourceText:
-                    return Checksum.Create(((SourceText)value).GetChecksum());
+                    return Checksum.Create(((SourceText)value).GetContentHash());
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -108,10 +108,19 @@ internal partial class SerializerService : ISerializerService
             switch (kind)
             {
                 case WellKnownSynchronizationKind.SolutionAttributes:
+                    ((SolutionInfo.SolutionAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.ProjectAttributes:
+                    ((ProjectInfo.ProjectAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.DocumentAttributes:
+                    ((DocumentInfo.DocumentAttributes)value).WriteTo(writer);
+                    return;
+
                 case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                    ((IObjectWritable)value).WriteTo(writer);
+                    ((SourceGeneratedDocumentIdentity)value).WriteTo(writer);
                     return;
 
                 case WellKnownSynchronizationKind.CompilationOptions:

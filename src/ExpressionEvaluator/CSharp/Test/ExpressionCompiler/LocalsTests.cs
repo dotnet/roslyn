@@ -2486,11 +2486,11 @@ public struct B
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
-                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics: new[]
-                {
+                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics:
+                [
                 // error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-            });
+            ]);
 
                 Assert.Equal(0, locals.Count);
                 locals.Free();
@@ -2530,11 +2530,11 @@ public struct B
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
 
-                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics: new[]
-                {
+                context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData, expectedDiagnostics:
+                [
                 // error CS0012: The type 'I' is defined in an assembly that is not referenced. You must add a reference to assembly 'Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-            });
+            ]);
 
                 Assert.Equal(0, locals.Count);
                 locals.Free();
@@ -3868,7 +3868,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
-                Assert.Equal(names, new[] { "y", "x" });
+                Assert.Equal(names, ["y", "x"]);
                 locals.Free();
             });
 
@@ -3882,7 +3882,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
-                Assert.Equal(names, new[] { "x", "y" });
+                Assert.Equal(names, ["x", "y"]);
                 locals.Free();
             });
         }
@@ -3918,7 +3918,7 @@ class C
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
-                Assert.Equal(names, new[] { "y", "x" });
+                Assert.Equal(names, ["y", "x"]);
                 locals.Free();
             });
         }

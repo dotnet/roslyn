@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             // Verify registered configuration code actions do not have duplicates.
             var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
-            var codeActions = fixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).ToImmutableArray();
+            var codeActions = fixCollections.SelectManyAsArray(c => c.Fixes.Select(f => f.Action));
             Assert.Equal(7, codeActions.Length);
             var uniqueTitles = new HashSet<string>();
             foreach (var codeAction in codeActions)

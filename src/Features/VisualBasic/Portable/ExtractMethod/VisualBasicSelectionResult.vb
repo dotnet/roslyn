@@ -153,7 +153,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
         End Function
 
-        Public Overrides Function GetContainingScopeType() As ITypeSymbol
+        Public Overrides Function GetReturnType() As (returnType As ITypeSymbol, returnsByRef As Boolean)
+            ' Todo: consider supporting byref return types in VB
+            Dim returnType = GetReturnTypeWorker()
+            Return (returnType, returnsByRef:=False)
+        End Function
+
+        Private Function GetReturnTypeWorker() As ITypeSymbol
             Dim node = Me.GetContainingScope()
             Dim semanticModel = Me.SemanticDocument.SemanticModel
 

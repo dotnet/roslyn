@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private BoundIndexerAccess BindIndexerDefaultArguments(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
+        private BoundIndexerAccess BindIndexerDefaultArgumentsAndParamsArray(BoundIndexerAccess indexerAccess, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
             var accessorForDefaultArguments = useSetAccessor
@@ -347,11 +347,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BitVector defaultArguments = default;
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
 
+                ImmutableArray<string?> argumentNamesOpt = indexerAccess.ArgumentNamesOpt;
+
                 // If OriginalIndexersOpt is set, there was an overload resolution failure, and we don't want to make guesses about the default
                 // arguments that will end up being reflected in the SemanticModel/IOperation
                 if (indexerAccess.OriginalIndexersOpt.IsDefault)
                 {
-                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                    ArrayBuilder<(string Name, Location Location)?>? namesBuilder = null;
+
+                    if (!argumentNamesOpt.IsDefaultOrEmpty)
+                    {
+                        namesBuilder = ArrayBuilder<(string Name, Location Location)?>.GetInstance(argumentNamesOpt.Length);
+                        foreach (var name in argumentNamesOpt)
+                        {
+                            if (name is null)
+                            {
+                                namesBuilder.Add(null);
+                            }
+                            else
+                            {
+                                namesBuilder.Add((name, NoLocation.Singleton));
+                            }
+                        }
+                    }
+
+                    BindDefaultArgumentsAndParamsArray(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, namesBuilder, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+
+                    if (namesBuilder is object)
+                    {
+                        argumentNamesOpt = namesBuilder.SelectAsArray(item => item?.Name);
+                        namesBuilder.Free();
+                    }
                 }
 
                 indexerAccess = indexerAccess.Update(
@@ -359,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     indexerAccess.Indexer,
                     argumentsBuilder.ToImmutableAndFree(),
-                    indexerAccess.ArgumentNamesOpt,
+                    argumentNamesOpt,
                     refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
                     indexerAccess.Expanded,
                     argsToParams,
@@ -389,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     if (expr is BoundIndexerAccess indexerAccess)
                     {
-                        expr = BindIndexerDefaultArguments(indexerAccess, valueKind, diagnostics);
+                        expr = BindIndexerDefaultArgumentsAndParamsArray(indexerAccess, valueKind, diagnostics);
                     }
                     break;
 
@@ -407,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    expr = BindIndexerDefaultArguments((BoundIndexerAccess)expr, valueKind, diagnostics);
+                    expr = BindIndexerDefaultArgumentsAndParamsArray((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
@@ -2693,13 +2719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!paramsMatched[paramIndex])
                 {
-                    // Default arguments for params arrays are not created during
-                    // binding (see https://github.com/dotnet/roslyn/issues/49602),
-                    // but a params array cannot contain references or ref structs.
-                    if (parameters[paramIndex] is not { IsParams: true, Type.TypeKind: TypeKind.Array })
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
             return true;

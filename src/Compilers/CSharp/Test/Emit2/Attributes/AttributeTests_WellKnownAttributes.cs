@@ -8208,19 +8208,19 @@ class Test
             CreateCompilation(source).VerifyDiagnostics(
                 // (26,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(26, 13),
                 // (26,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c++;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(26, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator Convertible(int)", "From int").WithLocation(27, 13),
                 // (27,13): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //             c -= 2;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c -= 2").WithArguments("Convertible.implicit operator int(Convertible)", "To int"),
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(27, 13),
                 // (23,9): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //         foreach (int i in new Convertible[1])
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Convertible.implicit operator int(Convertible)", "To int").WithLocation(23, 9));
         }
 
         [Fact]

@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertCollectionExpression(
+        private BoundCollectionExpression ConvertCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             Conversion conversion,
@@ -765,6 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
+                isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
                 builder: out _);

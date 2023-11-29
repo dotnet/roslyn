@@ -149,6 +149,31 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), argument, cancellationToken);
         }
 
+        public Task<bool> IsCommandAvailableAsync(CommandID command, CancellationToken cancellationToken)
+            => IsCommandAvailableAsync(command.Guid, (uint)command.ID, cancellationToken);
+
+        public Task<bool> IsCommandAvailableAsync<TEnum>(TEnum command, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            return IsCommandAvailableAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), cancellationToken);
+        }
+
+        public async Task<bool> IsCommandAvailableAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+            OLECMD[] commands =
+            {
+                new OLECMD { cmdID = commandId },
+            };
+
+            var status = dispatcher.QueryStatus(commandGuid, (uint)commands.Length, commands, pCmdText: IntPtr.Zero);
+            ErrorHandler.ThrowOnFailure(status);
+            return ((OLECMDF)commands[0].cmdf).HasFlag(OLECMDF.OLECMDF_SUPPORTED)
+                && ((OLECMDF)commands[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED);
+        }
+
         // This is based on WaitForQuiescenceAsync in the FileChangeService tests
         public async Task WaitForFileChangeNotificationsAsync(CancellationToken cancellationToken)
         {

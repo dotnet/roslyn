@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -38,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function UseTwice(
             containingMember As Symbol,
             value As BoundExpression,
+            isForRegularCompoundAssignment As Boolean,
             temporaries As ArrayBuilder(Of SynthesizedLocal)
         ) As Result
             Debug.Assert(value.IsValue())
@@ -45,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case value.Kind
                 Case BoundKind.XmlMemberAccess
                     Dim memberAccess = DirectCast(value, BoundXmlMemberAccess)
-                    Dim result = UseTwice(containingMember, memberAccess.MemberAccess, temporaries)
+                    Dim result = UseTwice(containingMember, memberAccess.MemberAccess, isForRegularCompoundAssignment, temporaries)
                     Return New Result(memberAccess.Update(result.First), memberAccess.Update(result.Second))
 
                 Case BoundKind.PropertyAccess
-                    Return UseTwicePropertyAccess(containingMember, DirectCast(value, BoundPropertyAccess), temporaries)
+                    Return UseTwicePropertyAccess(containingMember, DirectCast(value, BoundPropertyAccess), isForRegularCompoundAssignment, temporaries)
 
                 Case BoundKind.LateInvocation
                     Return UseTwiceLateInvocation(containingMember, DirectCast(value, BoundLateInvocation), temporaries)
@@ -126,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      BoundKind.WithLValueExpressionPlaceholder
                     Return New Result(value, value)
                 Case Else
-                    Debug.Assert(value.Kind <> BoundKind.RangeVariable)
+                    Debug.Assert(False) ' Add tests if this assert fires
                     Return UseTwiceRValue(containingMember, value, temporaries)
 
             End Select
@@ -299,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' We only want to rewrite property access at the top of the expression, not within
         ' the expression. (For instance, P1 should not be rewritten in M(x.P1.P2).)
-        Private Shared Function UseTwicePropertyAccess(containingMember As Symbol, node As BoundPropertyAccess, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
+        Private Shared Function UseTwicePropertyAccess(containingMember As Symbol, node As BoundPropertyAccess, isForRegularCompoundAssignment As Boolean, arg As ArrayBuilder(Of SynthesizedLocal)) As Result
             Dim propertySymbol = node.PropertySymbol
 
             ' Visit receiver.
@@ -310,8 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = New Result(Nothing, Nothing)
             ElseIf node.PropertySymbol.IsShared Then
                 receiver = New Result(receiverOpt, Nothing)
-            ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType AndAlso
-                   Not receiverOpt.Type.IsTypeParameter() Then ' Skip type parameters to enforce Dev12 behavior
+            ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType Then
                 Dim boundTemp As BoundLocal = Nothing
                 receiver = New Result(CaptureInATemp(containingMember, receiverOpt.MakeRValue(), arg, boundTemp), boundTemp)
             ElseIf Not receiverOpt.IsLValue AndAlso Not receiverOpt.Type.IsReferenceType AndAlso Not receiverOpt.Type.IsValueType Then
@@ -321,6 +322,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 receiver = New Result(New BoundSequence(capture.Syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(capture), boundTemp, boundTemp.Type),
                                       boundTemp)
+            ElseIf receiverOpt.IsLValue AndAlso
+                   CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverOpt) AndAlso
+                   Not CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverOpt) AndAlso
+                   Not (isForRegularCompoundAssignment AndAlso CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(node.Arguments)) Then
+
+                Debug.Assert(Not receiverOpt.Type.IsReferenceType)
+
+                ' A case where T is actually a class must be handled specially.
+                ' Taking a reference to a class instance is fragile because the value behind the 
+                ' reference might change while arguments are evaluated. However, the call should be
+                ' performed on the instance that is behind reference at the time we push the
+                ' reference to the stack. So, for a class we need to emit a reference to a temporary
+                ' location, rather than to the original location
+
+                receiver = UseTwiceExpression(containingMember, receiverOpt, arg)
+
+                Dim cloneTemp As BoundLocal = Nothing
+                Dim clone As BoundAssignmentOperator = CaptureInATemp(containingMember, receiver.Second.MakeRValue(), arg, cloneTemp)
+
+                Dim complexReceiverFirst = New BoundComplexConditionalAccessReceiver(receiverOpt.Syntax,
+                                                                                     receiver.Second,
+                                                                                     New BoundSequence(receiverOpt.Syntax, ImmutableArray(Of LocalSymbol).Empty,
+                                                                                                       ImmutableArray.Create(Of BoundExpression)(clone),
+                                                                                                       cloneTemp.Update(cloneTemp.LocalSymbol, isLValue:=True, cloneTemp.Type),
+                                                                                                       cloneTemp.Type).MakeCompilerGenerated(),
+                                                                                     receiverOpt.Type).MakeCompilerGenerated()
+
+                Dim complexReceiverSecond = New BoundComplexConditionalAccessReceiver(receiverOpt.Syntax,
+                                                                                      receiver.Second,
+                                                                                      cloneTemp.Update(cloneTemp.LocalSymbol, isLValue:=True, cloneTemp.Type),
+                                                                                      receiverOpt.Type).MakeCompilerGenerated()
+
+                receiver = New Result(New BoundSequence(receiverOpt.Syntax, ImmutableArray(Of LocalSymbol).Empty,
+                                                        ImmutableArray.Create(Of BoundExpression)(receiver.First.MakeRValue()),
+                                                        complexReceiverFirst, receiverOpt.Type).MakeCompilerGenerated(),
+                                      complexReceiverSecond)
             Else
                 receiver = UseTwiceExpression(containingMember, receiverOpt, arg)
             End If

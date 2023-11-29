@@ -1250,6 +1250,9 @@ tryAgain:
             return paramInfo;
         }
 
+        internal void DecodeMethodSignatureParameterCountsOrThrow(MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
+            => GetSignatureCountsOrThrow(Module, methodDef, out parameterCount, out typeParameterCount);
+
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal static void GetSignatureCountsOrThrow(PEModule module, MethodDefinitionHandle methodDef, out int parameterCount, out int typeParameterCount)
         {
