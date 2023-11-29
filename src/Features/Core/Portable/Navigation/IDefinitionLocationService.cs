@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -47,7 +48,7 @@ internal static class DefinitionLocationServiceHelpers
         if (items is null)
             return null;
 
-        var firstItem = items.FirstOrDefault();
+        var firstItem = items.FirstOrNull();
         if (firstItem is null)
             return null;
 
