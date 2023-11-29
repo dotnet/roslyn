@@ -123,9 +123,6 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 var definitionLocation = await service.GetDefinitionLocationAsync(
                     document, position, cancellationToken).ConfigureAwait(false);
 
-                if (definitionLocation is null)
-                    return;
-
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
                 if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
                     return;
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.
                 backgroundIndicator.CancelOnFocusLost = false;
-                succeeded = await definitionLocation.Location.TryNavigateToAsync(
+                succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
                     _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
             }
 
