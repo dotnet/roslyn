@@ -3785,7 +3785,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (containerNode is CompilationUnitSyntax)
                 {
                     // Must be a source of top level statements with a partial type declaration
-                    // that specifies non-object base. The object base is handled above.
+                    // that specifies a non-object base. The object base is handled above.
+                    // We need an actual TypeDeclarationSyntax in order to locate the correct binder for this case.
                     containerNode = containingType.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<TypeDeclarationSyntax>().First();
                 }
 
