@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -44,7 +45,7 @@ internal sealed class VSTypeScriptNavigableItemsServiceFactory(IVSTypeScriptGoTo
             if (items is null)
                 return ImmutableArray<INavigableItem>.Empty;
 
-            return items.Select(i => new VSTypeScriptNavigableItemWrapper(i)).ToImmutableArray<INavigableItem>();
+            return items.SelectAsArray(i => (INavigableItem)new VSTypeScriptNavigableItemWrapper(i));
         }
     }
 }

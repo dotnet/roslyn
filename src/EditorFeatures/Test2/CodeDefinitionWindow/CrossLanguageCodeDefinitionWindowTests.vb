@@ -77,16 +77,16 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Property
         End Class
 
-        <ExportLanguageService(GetType(IFindDefinitionService), NoCompilationConstants.LanguageName), [Shared]>
-        Private Class FakeFindDefinitionService
-            Implements IFindDefinitionService
+        <ExportLanguageService(GetType(INavigableItemsService), NoCompilationConstants.LanguageName), [Shared]>
+        Private Class FakeNavigableItemsService
+            Implements INavigableItemsService
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
-            Public Function FindDefinitionsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements IFindDefinitionService.FindDefinitionsAsync
+            Public Function GetNavigableItemsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements INavigableItemsService.GetNavigableItemsAsync
                 Return Task.FromResult(ImmutableArray.Create(Of INavigableItem)(New FakeNavigableItem(document)))
             End Function
         End Class
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeFindDefinitionService)))
+                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeNavigableItemsService)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

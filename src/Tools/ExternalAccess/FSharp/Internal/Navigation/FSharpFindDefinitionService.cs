@@ -5,28 +5,22 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor;
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 
 [ExportLanguageService(typeof(INavigableItemsService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FSharpNavigableItemsService(
-    IFSharpGoToDefinitionService service) : INavigableItemsService
+internal class FSharpNavigableItemsService(IFSharpFindDefinitionService service) : INavigableItemsService
 {
     public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-        if (items is null)
-            return ImmutableArray<INavigableItem>.Empty;
-
-        return items.Select(i => new InternalFSharpNavigableItem(i)).ToImmutableArray<INavigableItem>();
+        return items.SelectAsArray(x => (INavigableItem)new InternalFSharpNavigableItem(x));
     }
 }
