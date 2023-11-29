@@ -2918,7 +2918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TypeInference_34()
+        public void TypeInference_OutputTypeInference()
         {
             string source = """
                 using System;
@@ -2941,6 +2941,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
                 expectedOutput: "[System.Func`1[System.String]], [null, System.Func`1[System.Int32]], [System.Func`1[System.String], System.Func`1[System.String]], ");
+        }
+
+        [Fact]
+        public void TypeInference_OutputTypeInference_Tuple()
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static (Func<T>, int)[] F<T>((Func<T>, int)[] x)
+                    {
+                        return x;
+                    }
+                    static void Main()
+                    {
+                        var x = F([(null, 1), (() => "2", 2)]);
+                        x.Report();
+                    }
+                }
+                """;
+            CompileAndVerify(
+                new[] { source, s_collectionExtensions },
+                expectedOutput: "[(, 1), (System.Func`1[System.String], 2)], ");
+        }
+
+        // An output type inference from an anonymous function requires the return value has a type.
+        // Collection expressions do not have a natural type, so inference fails as expected.
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69488")]
+        [Fact]
+        public void TypeInference_OutputTypeInference_LambdaExpression()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void TupleResult<T>(Func<(T, T)> x)
+                    {
+                        Console.WriteLine(typeof(T).Name);
+                    }
+
+                    static void CollectionResult<T>(Func<T[]> x)
+                    {
+                        Console.WriteLine(typeof(T).Name);
+                    }
+
+                    static void Main()
+                    {
+                        TupleResult(() => (1, 2));
+                        CollectionResult(() => new[] { 1, 2 });
+                        CollectionResult(() => [1, 2]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (20,9): error CS0411: The type arguments for method 'Program.CollectionResult<T>(Func<T[]>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         CollectionResult(() => [1, 2]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "CollectionResult").WithArguments("Program.CollectionResult<T>(System.Func<T[]>)").WithLocation(20, 9));
         }
 
         [Fact]
