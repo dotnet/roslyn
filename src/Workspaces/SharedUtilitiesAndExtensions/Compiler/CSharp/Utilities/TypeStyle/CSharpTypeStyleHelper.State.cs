@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             public readonly UseVarPreference TypeStylePreference;
 
-            private readonly ReportDiagnostic _forBuiltInTypes;
-            private readonly ReportDiagnostic _whenTypeIsApparent;
-            private readonly ReportDiagnostic _elsewhere;
-
             public readonly bool IsInIntrinsicTypeContext;
             public readonly bool IsTypeApparentInContext;
 
@@ -30,19 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxNode declaration, SemanticModel semanticModel,
                 CSharpSimplifierOptions options, CancellationToken cancellationToken)
             {
-                TypeStylePreference = default;
-                IsInIntrinsicTypeContext = default;
-                IsTypeApparentInContext = default;
-
-                var styleForIntrinsicTypes = options.VarForBuiltInTypes;
-                var styleForApparent = options.VarWhenTypeIsApparent;
-                var styleForElsewhere = options.VarElsewhere;
-
-                _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
-                _whenTypeIsApparent = styleForApparent.Notification.Severity;
-                _elsewhere = styleForElsewhere.Notification.Severity;
-
-                this.TypeStylePreference = options.GetUseVarPreference();
+                TypeStylePreference = options.GetUseVarPreference();
 
                 IsTypeApparentInContext =
                         declaration is VariableDeclarationSyntax varDecl
@@ -52,10 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         IsPredefinedTypeInDeclaration(declaration, semanticModel)
                      || IsInferredPredefinedType(declaration, semanticModel);
             }
-
-            public ReportDiagnostic GetDiagnosticSeverityPreference()
-                => IsInIntrinsicTypeContext ? _forBuiltInTypes :
-                   IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
 
             /// <summary>
             /// Returns true if type information could be gleaned by simply looking at the given statement.

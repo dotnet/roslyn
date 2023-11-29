@@ -70,8 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
+            var severity = GetDiagnosticSeverityPreference(typeStyle, simplifierOptions);
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, severity));
         }
+
+        private static ReportDiagnostic GetDiagnosticSeverityPreference(TypeStyleResult result, CSharpSimplifierOptions options)
+            => result.IsInIntrinsicTypeContext ? options.VarForBuiltInTypes.Notification.Severity :
+               result.IsTypeApparentInContext ? options.VarWhenTypeIsApparent.Notification.Severity :
+               options.VarElsewhere.Notification.Severity;
 
         private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
             => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
