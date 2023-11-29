@@ -496,7 +496,6 @@ namespace Microsoft.CodeAnalysis
             public Guid TelemetryId { get; } = telemetryId;
 
             private SingleInitNullable<(string? name, string? flavor)> _lazyNameAndFlavor;
-
             private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
