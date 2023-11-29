@@ -16,11 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Internal\Utilities\**" />
-    <EmbeddedResource Remove="Internal\Utilities\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
