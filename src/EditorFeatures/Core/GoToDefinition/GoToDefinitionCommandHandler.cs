@@ -89,61 +89,14 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             if (!caretPos.HasValue)
                 return false;
 
-            if (_globalOptionService.GetOption(FeatureOnOffOptions.NavigateAsynchronously))
-            {
-                // We're showing our own UI, ensure the editor doesn't show anything itself.
-                context.OperationContext.TakeOwnership();
-                var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-                ExecuteAsynchronouslyAsync(args, document, service, caretPos.Value)
-                    .ReportNonFatalErrorAsync()
-                    .CompletesAsyncOperation(token);
-            }
-            else
-            {
-                // The language either doesn't support async goto-def, or the option is disabled to navigate
-                // asynchronously.  So fall back to normal synchronous navigation.
-                var succeeded = ExecuteSynchronously(document, service, caretPos.Value, context);
-
-                if (!succeeded)
-                {
-                    // Dismiss any context dialog that is up before showing our own notification.
-                    context.OperationContext.TakeOwnership();
-                    ReportFailure(document);
-                }
-            }
+            // We're showing our own UI, ensure the editor doesn't show anything itself.
+            context.OperationContext.TakeOwnership();
+            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+            ExecuteAsynchronouslyAsync(args, document, service, caretPos.Value)
+                .ReportNonFatalErrorAsync()
+                .CompletesAsyncOperation(token);
 
             return true;
-        }
-
-        private bool ExecuteSynchronously(
-            Document document,
-            IDefinitionLocationService service,
-            int position,
-            CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
-            {
-                var cancellationToken = context.OperationContext.UserCancellationToken;
-                return _threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    // determine the location first.
-                    var definitionLocation = await service.GetDefinitionLocationAsync(
-                        document, position, cancellationToken).ConfigureAwait(false);
-
-                    if (definitionLocation == null)
-                        return false;
-
-                    return await definitionLocation.Location.TryNavigateToAsync(
-                        _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-                });
-            }
-        }
-
-        private static void ReportFailure(Document document)
-        {
-            var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
-            notificationService.SendNotification(
-                FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
         }
 
         private async Task ExecuteAsynchronouslyAsync(
@@ -187,7 +140,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             if (!succeeded)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-                ReportFailure(document);
+
+                var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
+                notificationService.SendNotification(
+                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
             }
         }
     }
