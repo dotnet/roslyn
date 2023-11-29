@@ -3178,7 +3178,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the starting state of the local function has changed and we've already visited
                 // the local function, we need another pass
                 stateChangedAfterUse = true;
-                CleanupAfterLocalFunctionStartingStateChange();
+
+                // Local function starting state has changed, so a loop inside the local function
+                // can have an outdated head state, hence we need to recompute it in the next pass.
+                clearLoopHeadState = true;
             }
         }
 

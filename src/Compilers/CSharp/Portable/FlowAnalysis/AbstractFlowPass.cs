@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected bool stateChangedAfterUse;
 
+        protected bool clearLoopHeadState;
+
         /// <summary>
         /// All of the labels seen so far in this forward scan of the body
         /// </summary>
@@ -445,6 +447,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
+
+                if (this.clearLoopHeadState)
+                {
+                    this._loopHeadState.Clear();
+                    this.clearLoopHeadState = false;
+                }
+
                 returns = this.Scan(ref badRegion);
             }
             while (this.stateChangedAfterUse);

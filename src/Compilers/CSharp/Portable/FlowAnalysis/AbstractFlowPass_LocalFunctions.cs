@@ -148,13 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void CleanupAfterLocalFunctionStartingStateChange()
-        {
-            // Local function starting state has changed, so a loop inside the local function
-            // can have an outdated head state, hence we need to recompute it in the next pass.
-            _loopHeadState.Clear();
-        }
-
         private bool RecordStateChange(
             TLocalFunctionState savedState,
             TLocalFunctionState currentState,
