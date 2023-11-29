@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,6 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
+        private static AsyncPackage? s_editorPackage;
         private static AsynchronousOperationListenerProvider? s_listenerProvider;
         private static VisualStudioWorkspace? s_workspace;
 
@@ -34,6 +37,32 @@ namespace Roslyn.VisualStudio.IntegrationTests
             // it will replace it with ThrowingTraceListener later.
             RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
             TestTraceListener.Install();
+
+            DataCollectionService.RegisterCustomLogger(
+                static fileName =>
+                {
+                    if (s_editorPackage is null)
+                        return;
+
+                    var folder = s_editorPackage.UserLocalDataPath;
+                    var file = Path.Combine(folder, "ComponentModelCache", "Microsoft.VisualStudio.Default.err");
+                    if (File.Exists(file))
+                    {
+                        string content;
+                        try
+                        {
+                            content = File.ReadAllText(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            content = ex.ToString();
+                        }
+
+                        File.WriteAllText(fileName, content);
+                    }
+                },
+                logId: "MEF",
+                extension: "err");
 
             IdeStateCollector.RegisterCustomState(
                 "Pending asynchronous operations",
@@ -106,6 +135,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             await base.InitializeAsync();
 
+            s_editorPackage ??= await TestServices.Editor.GetEditorPackageAsync(HangMitigatingCancellationToken);
             s_listenerProvider ??= await TestServices.Shell.GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(HangMitigatingCancellationToken);
             s_workspace ??= await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
 
