@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document?, IGoToDefinitionService?, IAsyncGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?, IDefinitionLocationService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IAsyncGoToDefinitionService>());
+            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IDefinitionLocationService>());
         }
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         private bool ExecuteSynchronously(
             Document document,
             IGoToDefinitionService? service,
-            IAsyncGoToDefinitionService? asyncService,
+            IDefinitionLocationService? asyncService,
             int position,
             CommandExecutionContext context)
         {
@@ -130,9 +130,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                     return _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
                         // determine the location first.
-                        var (location, _) = await asyncService.FindDefinitionLocationAsync(
-                            document, position, includeType: true, cancellationToken).ConfigureAwait(false);
-                        return await location.TryNavigateToAsync(
+                        var definitionLocation = await asyncService.GetDefinitionLocationAsync(
+                            document, position, cancellationToken).ConfigureAwait(false);
+
+                        if (definitionLocation == null)
+                            return false;
+
+                        return await definitionLocation.Location.TryNavigateToAsync(
                             _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                     });
                 }
@@ -155,7 +159,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         }
 
         private async Task ExecuteAsynchronouslyAsync(
-            GoToDefinitionCommandArgs args, Document document, IAsyncGoToDefinitionService service, SnapshotPoint position)
+            GoToDefinitionCommandArgs args, Document document, IDefinitionLocationService service, SnapshotPoint position)
         {
             bool succeeded;
 
@@ -175,8 +179,11 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
 
                 // determine the location first.
-                var (location, _) = await service.FindDefinitionLocationAsync(
-                    document, position, includeType: true, cancellationToken).ConfigureAwait(false);
+                var definitionLocation = await service.GetDefinitionLocationAsync(
+                    document, position, cancellationToken).ConfigureAwait(false);
+
+                if (definitionLocation is null)
+                    return;
 
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
                 if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
@@ -185,7 +192,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.
                 backgroundIndicator.CancelOnFocusLost = false;
-                succeeded = await location.TryNavigateToAsync(
+                succeeded = await definitionLocation.Location.TryNavigateToAsync(
                     _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
             }
 
