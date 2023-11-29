@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="115">
         <source>editorconfig File (empty)</source>
-        <target state="needs-review-translation">Arquivo editorconfig (padrão)</target>
+        <target state="new">editorconfig File (empty)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">
