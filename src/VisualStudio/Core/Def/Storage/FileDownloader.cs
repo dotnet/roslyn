@@ -30,8 +30,14 @@ internal sealed class FileDownloader : IFileDownloader
     private FileDownloader(RemoteControlClient client)
         => _client = client;
 
+#if NETFRAMEWORK
     public Task<Stream> ReadFileAsync()
         => _client.ReadFileAsync(BehaviorOnStale.ReturnStale);
+#else
+    // ReturnStale is unsupported on .NET Core
+    public Task<Stream> ReadFileAsync()
+        => _client.ReadFileAsync(BehaviorOnStale.ForceDownload);
+#endif 
 
     public void Dispose()
         => _client.Dispose();

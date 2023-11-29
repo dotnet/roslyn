@@ -495,6 +495,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Create a client that will attempt to download the specified file.  The client works
                 // in the following manner:
                 //
+                //      .net Framework workflow
                 //      1) If the file is not cached locally it will download it in the background.
                 //         Until the file is downloaded, null will be returned from client.ReadFile.
                 //      2) If the file is cached locally and was downloaded less than (24 * 60) 
@@ -503,7 +504,18 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //      3) If the file is cached locally and was downloaded more than (24 * 60) 
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
+                //
+                //      .NET Core workflow
+                //      .NET Core version of Remote Control Client currently does not support caching.
+                //      Therefore, we must force the download everytime. To support this new workflow,
+                //      the pollingMinutes has been increased from 1 day to 3 days, and the 
+                //      SymbolSearchUpdateEngine.DelayService.CachePollDelay has also been updated from
+                //      1 minute, to 6 days since caching is not implemented in .net core.
+#if NETFRAMEWORK
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
+#else
+                var pollingMinutes = (int)TimeSpan.FromDays(3).TotalMinutes;
+#endif
                 using var client = _service._fileDownloaderFactory.CreateClient(HostId, serverPath, pollingMinutes);
 
                 LogInfo("Creating download client completed");
