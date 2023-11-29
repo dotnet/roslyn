@@ -35,7 +35,7 @@ internal sealed class FileDownloader : IFileDownloader
     /// <summary>
     /// The netcore version of <see cref="RemoteControlClient"/> doesn't support ReturnStale.  It will download the file
     /// (on a separate thread), but then not cache it because it doesn't have access to the normal IE component that
-    /// does proper header reading/caching.  Then, when we call in to read thefile, we get nothing back, since nothing
+    /// does proper header reading/caching.  Then, when we call in to read the file, we get nothing back, since nothing
     /// was cached.
     /// <para/> The temporary solution to this is to force the download to happen.  This is not ideal as we will no
     /// longer be respecting the server "Cache-Control:Max-Age" header.  Which means we'll continually download the
