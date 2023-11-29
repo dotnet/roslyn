@@ -210,18 +210,8 @@ internal class DefinitionContextTracker(
     {
         // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
         var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
-        if (findDefinitionService != null)
-            return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-        // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391. Once it is removed,
-        // this GetDefinitions method should be inlined into call sites.
-        var goToDefinitionsService = document.GetLanguageService<IGoToDefinitionService>();
-        if (goToDefinitionsService != null)
-        {
-            var result = await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return result.AsImmutableOrEmpty();
-        }
-
-        return ImmutableArray<INavigableItem>.Empty;
+        return findDefinitionService != null
+            ? await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false)
+            : ImmutableArray<INavigableItem>.Empty;
     }
 }
