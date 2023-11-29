@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly Guid _registrationId;
 
         /// <summary>
@@ -47,7 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         public DidChangeConfigurationNotificationHandler(
             ILspLogger logger,
             IGlobalOptionService globalOptionService,
-            IClientLanguageServerManager clientLanguageServerManager)
+            IClientLanguageServerManager clientLanguageServerManager,
+            IAsynchronousOperationListenerProvider provider)
         {
             _lspLogger = logger;
             _globalOptionService = globalOptionService;
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             _registrationId = Guid.NewGuid();
             _configurationItems = GenerateGlobalConfigurationItems();
             _optionsAndLanguageNamesToRefresh = GenerateOptionsNeedsToRefresh();
+            _listener = provider.GetListener(FeatureAttribute.Workspace);
             RoslynDebug.Assert(_configurationItems.Length == _optionsAndLanguageNamesToRefresh.Length);
         }
 
@@ -67,6 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
+            using var _ = _listener.BeginAsyncOperation(nameof(DidChangeConfigurationNotificationHandler));
+
             // We rely on the workspace/configuration to get the option values. If client doesn't support this, don't update.
             if (!_supportWorkspaceConfiguration)
             {
