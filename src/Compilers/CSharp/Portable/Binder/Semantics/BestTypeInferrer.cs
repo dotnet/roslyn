@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.ContainsErrorType())
                     {
                         inferredFromFunctionType = false;
-                        return type;
+                        return type is FunctionTypeSymbol function ? function.GetInternalDelegateType() : type;
                     }
 
                     candidateTypes.Add(type);
