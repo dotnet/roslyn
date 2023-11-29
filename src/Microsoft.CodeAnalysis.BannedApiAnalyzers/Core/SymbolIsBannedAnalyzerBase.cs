@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         protected abstract SyntaxNode GetReferenceSyntaxNodeFromXmlCref(SyntaxNode syntaxNode);
 
+        protected abstract ImmutableArray<TSyntaxKind> BaseTypeSyntaxKinds { get; }
+
+        protected abstract IEnumerable<SyntaxNode> GetTypeSyntaxNodesFromBaseType(SyntaxNode syntaxNode);
+
         protected abstract SymbolDisplayFormat SymbolDisplayFormat { get; }
 
         public override void Initialize(AnalysisContext context)
@@ -148,6 +152,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
                 XmlCrefSyntaxKind);
+
+            compilationContext.RegisterSyntaxNodeAction(
+                context => VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context),
+                BaseTypeSyntaxKinds);
 
             return;
 
@@ -374,6 +382,19 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 else if (symbol != null)
                 {
                     VerifySymbol(reportDiagnostic, symbol, syntaxNode);
+                }
+            }
+
+            void VerifyBaseTypesSyntax(Action<Diagnostic> reportDiagnostic, IEnumerable<SyntaxNode> typeSyntaxNodes, SyntaxNodeAnalysisContext context)
+            {
+                foreach (var typeSyntaxNode in typeSyntaxNodes)
+                {
+                    var symbol = context.SemanticModel.GetSymbolInfo(typeSyntaxNode, context.CancellationToken).Symbol;
+
+                    if (symbol is ITypeSymbol typeSymbol)
+                    {
+                        VerifyType(reportDiagnostic, typeSymbol, typeSyntaxNode);
+                    }
                 }
             }
         }
