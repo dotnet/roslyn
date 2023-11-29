@@ -3422,7 +3422,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="ISpreadOperation" Base="IOperation" HasType="true">
+  <Node Name="ISpreadOperation" Base="IOperation" HasType="false">
       <Comments>
       <summary>
         Represents a collection expression spread element.

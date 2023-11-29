@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
+        private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
             SyntaxNode syntax = expr.Syntax;
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
@@ -1264,26 +1264,25 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpressionElement(BoundNode element)
         {
-            if (element is BoundCollectionExpressionSpreadElement spreadElement)
-            {
-                var iteratorBody = ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
-                return CreateBoundCollectionExpressionSpreadElement(spreadElement, getUnderlyingExpression(iteratorBody));
-            }
-            return Create(getUnderlyingExpression((BoundExpression)element));
-
-            [return: NotNullIfNotNull("element")] static BoundExpression? getUnderlyingExpression(BoundExpression? element)
-            {
-                return element switch
-                {
-                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
-                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
-                    _ => element,
-                };
-            }
+            return element is BoundCollectionExpressionSpreadElement spreadElement ?
+                CreateBoundCollectionExpressionSpreadElement(spreadElement) :
+                Create(GetUnderlyingCollectionExpressionElement((BoundExpression)element));
         }
 
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, BoundExpression? iteratorItem)
+        private static BoundExpression GetUnderlyingCollectionExpressionElement(BoundExpression element)
         {
+            return element switch
+            {
+                BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
+                _ => element,
+            };
+        }
+
+        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
+        {
+            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
+            var iteratorItem = iteratorBody is null ? null : GetUnderlyingCollectionExpressionElement(iteratorBody);
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
@@ -1295,7 +1294,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 elementConversion,
                 _semanticModel,
                 syntax,
-                type: null,
                 isImplicit);
         }
 

@@ -10446,13 +10446,12 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SpreadOperation : Operation, ISpreadOperation
     {
-        internal SpreadOperation(IOperation operand, ITypeSymbol? elementType, IConvertibleConversion elementConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal SpreadOperation(IOperation operand, ITypeSymbol? elementType, IConvertibleConversion elementConversion, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Operand = SetParentOperation(operand, this);
             ElementType = elementType;
             ElementConversionConvertible = elementConversion;
-            Type = type;
         }
         public IOperation Operand { get; }
         public ITypeSymbol? ElementType { get; }
@@ -10495,7 +10494,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
-        public override ITypeSymbol? Type { get; }
+        public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Spread;
         public override void Accept(OperationVisitor visitor) => visitor.VisitSpread(this);
@@ -11122,7 +11121,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
         {
             var internalOperation = (SpreadOperation)operation;
-            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #endregion
