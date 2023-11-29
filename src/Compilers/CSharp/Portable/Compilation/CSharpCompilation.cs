@@ -2403,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
         {
             if (syntaxTree == null)
             {
@@ -2418,15 +2418,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SemanticModel? model = null;
             if (SemanticModelProvider != null)
             {
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility);
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility, disableNullableAnalysis);
                 Debug.Assert(model != null);
             }
 
-            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
+            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis);
         }
 
-        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
-            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility, disableNullableAnalysis);
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3816,9 +3816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility, bool disableNullableAnalysis)
         {
-            return this.GetSemanticModel(syntaxTree, ignoreAccessibility);
+            return this.GetSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis);
         }
 
         protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees

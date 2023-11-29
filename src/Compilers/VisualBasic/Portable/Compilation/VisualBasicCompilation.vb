@@ -2040,14 +2040,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
             Dim model As SemanticModel = Nothing
             If SemanticModelProvider IsNot Nothing Then
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility)
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, Me, ignoreAccessibility, disableNullableAnalysis:=False)
                 Debug.Assert(model IsNot Nothing)
             End If
 
-            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility))
+            Return If(model, CreateSemanticModel(syntaxTree, ignoreAccessibility, disableNullableAnalysis:=False))
         End Function
 
-        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
+        Friend Overrides Function CreateSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean, disableNullableAnalysis As Boolean) As SemanticModel
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
 
@@ -2740,7 +2740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean) As SemanticModel
+        Protected Overrides Function CommonGetSemanticModel(syntaxTree As SyntaxTree, ignoreAccessibility As Boolean, disableNullableAnalysis As Boolean) As SemanticModel
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 

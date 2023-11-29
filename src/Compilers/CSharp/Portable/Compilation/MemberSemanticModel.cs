@@ -104,6 +104,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(ndsm): it feels strange to have both 'DisableNullableAnalysis' and 'IsNullableAnalysisEnabled' members. But maybe it's fine.
+        public sealed override bool DisableNullableAnalysis
+        {
+            get
+            {
+                return _containingPublicSemanticModel.DisableNullableAnalysis;
+            }
+        }
+
         public sealed override int OriginalPositionForSpeculation
         {
             get
@@ -1900,7 +1909,7 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            bool isNullableAnalysisEnabled = !DisableNullableAnalysis && IsNullableAnalysisEnabled();
             if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
@@ -2029,7 +2038,9 @@ done:
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 
-        protected abstract bool IsNullableAnalysisEnabled();
+        protected abstract bool IsNullableAnalysisEnabledCore();
+
+        protected bool IsNullableAnalysisEnabled() => !DisableNullableAnalysis && IsNullableAnalysisEnabledCore();
 #nullable disable
 
         /// <summary>

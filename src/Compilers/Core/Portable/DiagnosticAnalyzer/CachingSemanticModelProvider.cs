@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
         }
 
-        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
-            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
+        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false, bool disableNullableAnalysis = false)
+            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, ignoreAccessibility, disableNullableAnalysis);
 
         internal void ClearCache(SyntaxTree tree, Compilation compilation)
         {
@@ -60,15 +60,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _compilation = compilation;
                 _semanticModelsMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
-                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, ignoreAccessibility: false);
+                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, ignoreAccessibility: false, disableNullableAnalysis: false);
             }
 
-            public SemanticModel GetSemanticModel(SyntaxTree tree, bool ignoreAccessibility)
+            public SemanticModel GetSemanticModel(SyntaxTree tree, bool ignoreAccessibility, bool disableNullableAnalyis)
             {
                 // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
-                return !ignoreAccessibility
+                return !ignoreAccessibility && !disableNullableAnalyis
                     ? _semanticModelsMap.GetOrAdd(tree, _createSemanticModel)
-                    : _compilation.CreateSemanticModel(tree, ignoreAccessibility: true);
+                    : _compilation.CreateSemanticModel(tree, ignoreAccessibility, disableNullableAnalyis);
             }
 
             public void ClearCachedSemanticModel(SyntaxTree tree)
