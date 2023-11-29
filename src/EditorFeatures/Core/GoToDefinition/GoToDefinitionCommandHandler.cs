@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document?, IGoToDefinitionService?, IDefinitionLocationService?) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IDefinitionLocationService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IDefinitionLocationService>());
+            return (document, document?.GetLanguageService<IDefinitionLocationService>());
         }
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (_, service, asyncService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            return service != null || asyncService != null
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
-            var (document, service, asyncService) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
 
-            if (service == null && asyncService == null)
+            if (service == null)
                 return false;
 
             Contract.ThrowIfNull(document);
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             if (!caretPos.HasValue)
                 return false;
 
-            if (asyncService != null && _globalOptionService.GetOption(FeatureOnOffOptions.NavigateAsynchronously))
+            if (_globalOptionService.GetOption(FeatureOnOffOptions.NavigateAsynchronously))
             {
                 // We're showing our own UI, ensure the editor doesn't show anything itself.
                 context.OperationContext.TakeOwnership();
                 var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-                ExecuteAsynchronouslyAsync(args, document, asyncService, caretPos.Value)
+                ExecuteAsynchronouslyAsync(args, document, service, caretPos.Value)
                     .ReportNonFatalErrorAsync()
                     .CompletesAsyncOperation(token);
             }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             {
                 // The language either doesn't support async goto-def, or the option is disabled to navigate
                 // asynchronously.  So fall back to normal synchronous navigation.
-                var succeeded = ExecuteSynchronously(document, service, asyncService, caretPos.Value, context);
+                var succeeded = ExecuteSynchronously(document, service, caretPos.Value, context);
 
                 if (!succeeded)
                 {
@@ -117,37 +117,25 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
         private bool ExecuteSynchronously(
             Document document,
-            IGoToDefinitionService? service,
-            IDefinitionLocationService? asyncService,
+            IDefinitionLocationService service,
             int position,
             CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                if (asyncService != null)
+                return _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    return _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        // determine the location first.
-                        var definitionLocation = await asyncService.GetDefinitionLocationAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                    // determine the location first.
+                    var definitionLocation = await service.GetDefinitionLocationAsync(
+                        document, position, cancellationToken).ConfigureAwait(false);
 
-                        if (definitionLocation == null)
-                            return false;
+                    if (definitionLocation == null)
+                        return false;
 
-                        return await definitionLocation.Location.TryNavigateToAsync(
-                            _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-                    });
-                }
-                else if (service != null)
-                {
-                    return service.TryGoToDefinition(document, position, cancellationToken);
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
+                    return await definitionLocation.Location.TryNavigateToAsync(
+                        _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                });
             }
         }
 
