@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -89,18 +90,46 @@ namespace Microsoft.CodeAnalysis
 
             public override string GetMessage(IFormatProvider? formatProvider = null)
             {
-                if (_messageArgs.Length == 0)
+                var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
+
+#if DEBUG
+                try
                 {
-                    return _descriptor.MessageFormat.ToString(formatProvider);
+                    _ = string.Format(formatProvider, localizedMessageFormat, _messageArgs);
+                }
+                catch (FormatException)
+                {
+                    // AnalyzerReportingMisformattedDiagnostic used for unit testing.
+                    if (Id != "ID1")
+                    {
+                        // This happens when the number of _messageArgs is less than the placeholders.
+                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments. Arguments Count: '{_messageArgs.Length}'. Message Format: '{localizedMessageFormat}'.");
+                    }
                 }
 
-                var localizedMessageFormat = _descriptor.MessageFormat.ToString(formatProvider);
+                // Used in unit testing.
+                if (Id != "MockAdditionalDiagnostic" && Id != "MockProjectDiagnostic")
+                {
+                    for (int i = 0; i < _messageArgs.Length; i++)
+                    {
+                        if (!localizedMessageFormat.Contains($"{{{i}}}"))
+                        {
+                            // This happens when the number of _messageArgs is larger than the placeholders.
+                            Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
+                        }
+                    }
+                }
+#endif
+                if (_messageArgs.Length == 0)
+                {
+                    return localizedMessageFormat;
+                }
 
                 try
                 {
                     return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
                 }
-                catch (Exception)
+                catch (FormatException)
                 {
                     // Analyzer reported diagnostic with invalid format arguments, so just return the unformatted message.
                     return localizedMessageFormat;
