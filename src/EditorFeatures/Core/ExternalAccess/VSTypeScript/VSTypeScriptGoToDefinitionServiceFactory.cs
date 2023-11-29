@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -28,15 +28,45 @@ internal sealed class VSTypeScriptDefinitionLocationServiceFactory(IVSTypeScript
 
     private sealed class VSTypeScriptDefinitionLocationService(IVSTypeScriptGoToDefinitionService service) : IDefinitionLocationService
     {
-        public async Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return items?.Select(item => new VSTypeScriptNavigableItemWrapper(item));
-        }
+            if (items is null)
+                return null;
 
-        public Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            var firstItem = items.FirstOrDefault();
+            if (firstItem is null)
+                return null;
+
+            var navigableItem = await new DocumentSpan(firstItem.Document, firstItem.SourceSpan).GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+            if (navigableItem is null)
+                return null;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return new DefinitionLocation(navigableItem, GetDocumentSpan());
+
+            DocumentSpan GetDocumentSpan()
+            {
+                // To determine the span to underline, just use a simple heuristic of expanding out to the surrounding
+                // letters and numbers.  F# can reimplement this in the future to be more accurate to their language.
+
+                var startPosition = position;
+                var endPosition = position + 1;
+
+                if (char.IsLetterOrDigit(text[position]))
+                {
+                    while (char.IsLetterOrDigit(GetChar(startPosition - 1)))
+                        startPosition--;
+
+                    while (char.IsLetterOrDigit(GetChar(endPosition + 1)))
+                        endPosition++;
+                }
+
+                return new DocumentSpan(document, TextSpan.FromBounds(startPosition, endPosition));
+            }
+
+            char GetChar(int position)
+                => position >= 0 && position < text.Length ? text[position] : (char)0;
         }
     }
 }

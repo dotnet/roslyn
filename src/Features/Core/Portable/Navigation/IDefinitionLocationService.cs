@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -34,3 +37,48 @@ internal interface IDefinitionLocationService : ILanguageService
 /// navigable location.  e.g. the full identifier token that the position is within.  Can be used to highlight/underline
 /// that text in the document in some fashion.</param>
 internal sealed record DefinitionLocation(INavigableLocation Location, DocumentSpan Span);
+
+internal static class DefinitionLocationServiceHelpers
+{
+    public static async Task<DefinitionLocation?> GetDefinitionLocationFromLegacyImplementationsAsync(
+        Document document, int position, Func<CancellationToken, Task<IEnumerable<(Document document, TextSpan sourceSpan)?>?>> getNavigableItems, CancellationToken cancellationToken)
+    {
+        var items = await getNavigableItems(cancellationToken).ConfigureAwait(false);
+        if (items is null)
+            return null;
+
+        var firstItem = items.FirstOrDefault();
+        if (firstItem is null)
+            return null;
+
+        var navigableItem = await new DocumentSpan(firstItem.Value.document, firstItem.Value.sourceSpan).GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+        if (navigableItem is null)
+            return null;
+
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        return new DefinitionLocation(navigableItem, GetDocumentSpan());
+
+        DocumentSpan GetDocumentSpan()
+        {
+            // To determine the span to underline, just use a simple heuristic of expanding out to the surrounding
+            // letters and numbers.  F#/TS can reimplement this in the future to be more accurate to their language.
+
+            var startPosition = position;
+            var endPosition = position + 1;
+
+            if (char.IsLetterOrDigit(text[position]))
+            {
+                while (char.IsLetterOrDigit(GetChar(startPosition - 1)))
+                    startPosition--;
+
+                while (char.IsLetterOrDigit(GetChar(endPosition + 1)))
+                    endPosition++;
+            }
+
+            return new DocumentSpan(document, TextSpan.FromBounds(startPosition, endPosition));
+        }
+
+        char GetChar(int position)
+            => position >= 0 && position < text.Length ? text[position] : (char)0;
+    }
+}
