@@ -30,6 +30,12 @@ function Create-SymbolicLink {
     } else {
         cmd /c "mklink `"$Link`" `"$Target`"" | Out-Null
     }
+
+    if ($LASTEXITCODE -ne 0) {
+        # Windows requires admin privileges to create symbolic links
+        # unless Developer Mode has been enabled.
+        throw "Failed to create symbolic link at $Link that points to $Target"
+    }
 }
 
 # Stage all artifacts
