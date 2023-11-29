@@ -16,6 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Internal\Utilities\**" />
+    <EmbeddedResource Remove="Internal\Utilities\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
@@ -65,10 +70,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Internal\Utilities\" />
   </ItemGroup>
 
 </Project>

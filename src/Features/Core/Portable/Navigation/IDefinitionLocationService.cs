@@ -41,7 +41,7 @@ internal sealed record DefinitionLocation(INavigableLocation Location, DocumentS
 internal static class DefinitionLocationServiceHelpers
 {
     public static async Task<DefinitionLocation?> GetDefinitionLocationFromLegacyImplementationsAsync(
-        Document document, int position, Func<CancellationToken, Task<IEnumerable<(Document document, TextSpan sourceSpan)?>?>> getNavigableItems, CancellationToken cancellationToken)
+        Document document, int position, Func<CancellationToken, Task<IEnumerable<(Document document, TextSpan sourceSpan)>?>> getNavigableItems, CancellationToken cancellationToken)
     {
         var items = await getNavigableItems(cancellationToken).ConfigureAwait(false);
         if (items is null)
