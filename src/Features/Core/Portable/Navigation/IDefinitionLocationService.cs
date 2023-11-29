@@ -14,7 +14,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Navigation;
 
 /// <summary>
-/// Service used by "go to definition" and "ctrl-click on symbol" to find the symbol definition location and navigate to it.
+/// Service used by "go to definition" and "ctrl-click on symbol" to find the symbol definition location and navigate to
+/// it. Specifically, services that do not intend to show any interesting UI for the symbol definition, they just intend
+/// to navigate to it.  If richer information is desired (like determining what to display for the symbol name), then 
+/// <see cref="INavigableItemsService"/> should be used instead.
 /// </summary>
 internal interface IDefinitionLocationService : ILanguageService
 {
