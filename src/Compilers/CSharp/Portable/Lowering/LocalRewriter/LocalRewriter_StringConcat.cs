@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Convert both sides to a string (calling ToString if necessary)
-            loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
-            loweredRight = ConvertConcatExprToString(syntax, loweredRight);
+            loweredLeft = ConvertConcatExprToStringOrLeaveItAsChar(syntax, loweredLeft);
+            loweredRight = ConvertConcatExprToStringOrLeaveItAsChar(syntax, loweredRight);
 
             Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsCharType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
             Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
@@ -595,10 +595,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns an expression which converts the given expression into a string (or null).
+        /// Returns an expression which converts the given expression into a string (or null) or, if the type of expression is char, returns it as is.
         /// If necessary, this invokes .ToString() on the expression, to avoid boxing value types.
+        /// Char type is the only exception since we can later apply span-based optimization based on the amount of arguments we get.
         /// </summary>
-        private BoundExpression ConvertConcatExprToString(SyntaxNode syntax, BoundExpression expr)
+        private BoundExpression ConvertConcatExprToStringOrLeaveItAsChar(SyntaxNode syntax, BoundExpression expr)
         {
             // If it's a value type, it'll have been boxed by the +(string, object) or +(object, string)
             // operator. Undo that.
