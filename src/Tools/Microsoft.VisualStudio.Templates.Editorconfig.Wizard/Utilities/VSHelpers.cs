@@ -78,6 +78,13 @@ public static class VSHelpers
         foreach (UIHierarchyItem selItem in items)
         {
             selectedItem = selItem.Object;
+
+            // Check if selected item is the solution 
+            if (selectedItem is EnvDTE.Solution)
+            {
+                return (true, Path.GetDirectoryName(DTE.Solution.FullName), HasVisualBasicProjects() ? LanguageNames.VisualBasic : LanguageNames.CSharp, selectedItem);
+            }
+
             var containingProject = GetVSProject(selectedItem);
             if (containingProject is null)
             {
@@ -108,6 +115,7 @@ public static class VSHelpers
             }
         }
 
+        // Default to solution level
         return (true, Path.GetDirectoryName(DTE.Solution.FullName), HasVisualBasicProjects() ? LanguageNames.VisualBasic : LanguageNames.CSharp, selectedItem);
     }
 
@@ -286,7 +294,7 @@ public static class VSHelpers
     {
         try
         {
-            if (item == null || item.ContainingProject == null)
+            if (item == null || item.ContainingProject == null || item.Properties == null)
             {
                 return;
             }

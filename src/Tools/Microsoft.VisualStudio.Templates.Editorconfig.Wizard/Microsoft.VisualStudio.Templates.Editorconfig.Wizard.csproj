@@ -11,11 +11,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
+    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
     <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" />
-    <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="StreamJsonRpc" Version="2.17.9" />
     <PackageReference Include="System.ValueTuple" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="17.9.4-alpha"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="WizardResource.Designer.cs">
@@ -29,5 +31,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>WizardResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
 </Project>

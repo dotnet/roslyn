@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="115" xml:space="preserve">
-    <value>editorconfig File (default)</value>
+    <value>editorconfig File (empty)</value>
   </data>
   <data name="116" xml:space="preserve">
     <value>Create an editorconfig file to persist your editor and code settings.</value>

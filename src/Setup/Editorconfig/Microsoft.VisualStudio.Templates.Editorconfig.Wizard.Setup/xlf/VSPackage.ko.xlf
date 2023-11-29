@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="ko" original="../VSPackage.resx">
     <body>
       <trans-unit id="115">
-        <source>editorconfig File (default)</source>
-        <target state="translated">editorconfig 파일(기본값)</target>
+        <source>editorconfig File (empty)</source>
+        <target state="needs-review-translation">editorconfig 파일(기본값)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">

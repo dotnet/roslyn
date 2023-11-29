@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="ru" original="../VSPackage.resx">
     <body>
       <trans-unit id="115">
-        <source>editorconfig File (default)</source>
-        <target state="translated">Файл EDITORCONFIG (по умолчанию)</target>
+        <source>editorconfig File (empty)</source>
+        <target state="needs-review-translation">Файл EDITORCONFIG (по умолчанию)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">

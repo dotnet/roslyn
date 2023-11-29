@@ -60,11 +60,6 @@ public partial class Logger
         LogEvent(eventId, new SingleLogMessage<string>(value));
     }
 
-    internal static void LogEvents(EventId eventId, OptionsInfo messages)
-    {
-        GetLogger().LogEventsImpl(eventId, messages);
-    }
-
     public static void LogEvent<T>(EventId eventId, ILogMessage<T> message) where T : ILogMessageData
     {
         GetLogger().LogEventImpl(eventId, message);
@@ -100,19 +95,6 @@ public partial class Logger
         }
 
         return EmptyDisposable.Instance;
-    }
-
-    private void LogEventsImpl(EventId eventId, OptionsInfo messages)
-    {
-        if (_session.IsOptedIn)
-        {
-            foreach (var message in messages)
-            {
-                var telemetryEvent = new TelemetryEvent(GetEventName(eventId));
-                SetProperties(telemetryEvent, eventId, message);
-                _session.PostEvent(telemetryEvent);
-            }
-        }
     }
 
     private void LogEventImpl<T>(EventId eventId, ILogMessage<T> message) where T : ILogMessageData

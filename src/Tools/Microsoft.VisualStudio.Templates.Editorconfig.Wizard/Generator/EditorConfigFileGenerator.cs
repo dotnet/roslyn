@@ -132,7 +132,7 @@ public static class EditorConfigFileGenerator
                 };
             }
 
-            var generator = new RoslynEditorConfigFileGenerator(VSHelpers.DTE);
+            var generator = new RoslynEditorConfigFileGenerator();
             return language switch
             {
                 LanguageNames.CSharp => generator.Generate(LanguageNames.CSharp),
