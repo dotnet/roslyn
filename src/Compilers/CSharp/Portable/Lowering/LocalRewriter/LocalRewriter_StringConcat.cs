@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredRight = ConvertConcatExprToString(syntax, loweredRight);
 
             Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsCharType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
-            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true); ;
+            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsCharType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(loweredLeft, loweredRight);
