@@ -29,16 +29,6 @@ internal sealed class VSTypeScriptNavigableItemsServiceFactory(IVSTypeScriptGoTo
 
     private sealed class VSTypeScriptNavigableItemsService(IVSTypeScriptGoToDefinitionService service) : INavigableItemsService
     {
-        public Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
-            => DefinitionLocationServiceHelpers.GetDefinitionLocationFromLegacyImplementationsAsync(
-                document, position,
-                async cancellationToken =>
-                {
-                    var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    return items?.Select(i => (i.Document, i.SourceSpan));
-                },
-                cancellationToken);
-
         public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var items = await service.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
