@@ -151,7 +151,7 @@ internal class DefinitionContextTracker(
     internal async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAsync(
         Workspace workspace, Document document, int position, CancellationToken cancellationToken)
     {
-        var navigableItems = await GetDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+        var navigableItems = await GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
         if (navigableItems.Length > 0)
         {
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
@@ -206,12 +206,12 @@ internal class DefinitionContextTracker(
         return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
     }
 
-    private static async Task<ImmutableArray<INavigableItem>> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
     {
         // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
-        var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
+        var findDefinitionService = document.GetLanguageService<INavigableItemsService>();
         return findDefinitionService != null
-            ? await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false)
+            ? await findDefinitionService.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false)
             : ImmutableArray<INavigableItem>.Empty;
     }
 }

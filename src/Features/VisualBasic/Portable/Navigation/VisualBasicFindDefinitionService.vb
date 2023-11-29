@@ -3,13 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Navigation
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
-    <ExportLanguageService(GetType(IFindDefinitionService), LanguageNames.VisualBasic), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.Navigation
+    <ExportLanguageService(GetType(INavigableItemsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFindDefinitionService
-        Inherits AbstractFindDefinitionService
+        Inherits AbstractNavigableItemsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

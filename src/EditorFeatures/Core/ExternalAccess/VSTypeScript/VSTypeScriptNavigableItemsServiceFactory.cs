@@ -44,7 +44,7 @@ internal sealed class VSTypeScriptNavigableItemsServiceFactory(IVSTypeScriptGoTo
             if (items is null)
                 return ImmutableArray<INavigableItem>.Empty;
 
-            return items.Select(i => new VSTypeScriptNavigableItemWrapper(i)).ToImmutableArray<INavigableItem>()
+            return items.Select(i => new VSTypeScriptNavigableItemWrapper(i)).ToImmutableArray<INavigableItem>();
         }
     }
 }
