@@ -13,7 +13,7 @@ internal sealed class FileDownloader : IFileDownloader
 {
     public sealed class Factory : IFileDownloaderFactory
     {
-        public static readonly Factory Instance = new Factory();
+        public static readonly Factory Instance = new();
 
         public IFileDownloader CreateClient(string hostId, string serverPath, int pollingMinutes)
         {
@@ -50,12 +50,16 @@ internal sealed class FileDownloader : IFileDownloader
     /// <para/> https://github.com/dotnet/roslyn/issues/71014 tracks this issue.  Once RemoteControlClient is updated to
     /// support this again, we can remove this specialized code for netcore.
     /// </summary>
-    public Task<Stream> ReadFileAsync()
-        => _client.ReadFileAsync(BehaviorOnStale.ForceDownload);
+    public async Task<Stream?> ReadFileAsync()
+        // Note: we try .ReturnStale first so this will automatically light up once they fix their issue, without 
+        // us having to do anything on our end.  Once we do get around to making a change, we'll remove the 
+        // .ForceDownload part entirely.
+        => await _client.ReadFileAsync(BehaviorOnStale.ReturnStale).ConfigureAwait(false) ??
+           await _client.ReadFileAsync(BehaviorOnStale.ForceDownload).ConfigureAwait(false);
 
 #else
 
-    public Task<Stream> ReadFileAsync()
+    public Task<Stream?> ReadFileAsync()
         => _client.ReadFileAsync(BehaviorOnStale.ReturnStale);
 
 #endif
