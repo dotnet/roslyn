@@ -9,6 +9,8 @@
     <UseAppHost>false</UseAppHost>
     <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
     <SelfContained>false</SelfContained>
+    <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
