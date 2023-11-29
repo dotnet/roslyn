@@ -83,12 +83,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public async ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
             DocumentKey documentKey, ImmutableArray<TextSpan> textSpans, ClassificationType type, Checksum checksum, CancellationToken cancellationToken)
         {
-            var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
-            var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
-            return classifiedSpans.IsDefault
-                ? null
-                : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));
+            return null;
+            //var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
+            //    documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
+            //var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
+            //return classifiedSpans.IsDefault
+            //    ? null
+            //    : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));
         }
 
         private static async ValueTask CacheClassificationsAsync(
