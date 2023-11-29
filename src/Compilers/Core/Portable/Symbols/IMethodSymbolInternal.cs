@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -31,6 +33,27 @@ namespace Microsoft.CodeAnalysis.Symbols
         int ParameterCount { get; }
 
         ImmutableArray<IParameterSymbolInternal> Parameters { get; }
+
+        bool HasDeclarativeSecurity { get; }
+        bool IsAccessCheckedOnOverride { get; }
+        bool IsExternal { get; }
+        bool IsHiddenBySignature { get; }
+        bool IsMetadataNewSlot { get; }
+        bool IsPlatformInvoke { get; }
+        bool IsMetadataFinal { get; }
+        bool HasSpecialName { get; }
+        bool HasRuntimeSpecialName { get; }
+        bool RequiresSecurityObject { get; }
+        MethodImplAttributes ImplementationAttributes { get; }
+
+        ISymbolInternal? AssociatedSymbol { get; }
+        IMethodSymbolInternal? PartialImplementationPart { get; }
+        IMethodSymbolInternal? PartialDefinitionPart { get; }
+
+        /// <summary>
+        /// Handle of the method signature blob or nil if not a PE symbol.
+        /// </summary>
+        BlobHandle MetadataSignatureHandle { get; }
 
         int CalculateLocalSyntaxOffset(int declaratorPosition, SyntaxTree declaratorTree);
 

@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.UnderlyingParameter = underlyingParameter;
             }
 
+            public bool IsEncDeleted
+                => false;
+
             protected TEmbeddedTypesManager TypeManager
             {
                 get

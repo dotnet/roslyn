@@ -3695,7 +3695,6 @@ class Attr3 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount13);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
-            Assert.Equal(1, analyzer.FireCount17);
             Assert.Equal(1, analyzer.FireCount18);
             Assert.Equal(1, analyzer.FireCount19);
             Assert.Equal(1, analyzer.FireCount20);
@@ -3729,7 +3728,6 @@ class Attr3 : System.Attribute {}
             public int FireCount13;
             public int FireCount15;
             public int FireCount16;
-            public int FireCount17;
             public int FireCount18;
             public int FireCount19;
             public int FireCount20;
@@ -3865,9 +3863,6 @@ class Attr3 : System.Attribute {}
                         {
                             case "B..ctor([System.Int32 Y = 1])":
                                 Interlocked.Increment(ref FireCount9);
-                                break;
-                            case "B":
-                                Interlocked.Increment(ref FireCount17);
                                 break;
                             default:
                                 Assert.True(false);
@@ -4924,7 +4919,6 @@ interface I1 {}
             Assert.Equal(0, analyzer.FireCount13);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
-            Assert.Equal(0, analyzer.FireCount17);
             Assert.Equal(0, analyzer.FireCount18);
             Assert.Equal(0, analyzer.FireCount19);
             Assert.Equal(0, analyzer.FireCount20);

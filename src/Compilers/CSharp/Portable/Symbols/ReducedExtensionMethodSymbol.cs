@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.
         /// The latest language version is assumed if this is null.</param>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation)
+        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation, out bool wasFullyInferred)
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 
-            method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteInfo);
+            method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteInfo, out wasFullyInferred);
             if ((object)method == null)
             {
                 return null;
@@ -109,19 +109,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// are not satisfied, the return value is null.
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.  The latest language version is assumed if this is null.</param>
-        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool wasFullyInferred)
         {
             Debug.Assert(method.IsExtensionMethod);
             Debug.Assert((object)thisType != null);
 
             if (!method.IsGenericMethod || method != method.ConstructedFrom)
             {
+                wasFullyInferred = true;
                 return method;
             }
 
             // We never resolve extension methods on a dynamic receiver.
             if (thisType.IsDynamic())
             {
+                wasFullyInferred = false;
                 return null;
             }
 
@@ -158,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (typeArgs.IsDefault)
             {
+                wasFullyInferred = false;
                 return null;
             }
 
@@ -215,12 +219,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!success)
             {
+                wasFullyInferred = false;
                 return null;
             }
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
             ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
-            if (typeArgs.Any(static t => !t.HasType))
+            wasFullyInferred = typeArgs.All(static t => t.HasType);
+            if (!wasFullyInferred)
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
                     method.TypeParameters,
@@ -598,6 +604,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            return _reducedFrom.HasAsyncMethodBuilderAttribute(out builderArgument);
+        }
 
 #nullable enable
 

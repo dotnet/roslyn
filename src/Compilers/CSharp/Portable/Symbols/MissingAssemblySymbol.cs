@@ -218,5 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

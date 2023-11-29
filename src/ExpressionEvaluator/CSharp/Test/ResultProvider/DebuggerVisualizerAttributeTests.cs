@@ -53,22 +53,34 @@ class Q
             string defaultDebuggeeSideVisualizerAssemblyName = $"Microsoft.VisualStudio.DebuggerVisualizers, Version={vsVersion}.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
             DkmCustomUIVisualizerInfo[] customUIVisualizerInfo =
-            {
-                new DkmCustomUIVisualizerInfo { Id = 0, Description = "P", MenuName = "P", Metric = "ClrCustomVisualizerVSHost",
+            [
+                new DkmCustomUIVisualizerInfo
+                {
+                    Id = 0,
+                    Description = "P",
+                    MenuName = "P",
+                    Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeP.FullName,
                     UISideVisualizerAssemblyName = typeP.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
                     DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
-                    ExtensionPartId = Guid.Empty},
-                new DkmCustomUIVisualizerInfo { Id = 1, Description = "Q Visualizer", MenuName = "Q Visualizer",  Metric = "ClrCustomVisualizerVSHost",
+                    ExtensionPartId = Guid.Empty
+                },
+                new DkmCustomUIVisualizerInfo
+                {
+                    Id = 1,
+                    Description = "Q Visualizer",
+                    MenuName = "Q Visualizer",
+                    Metric = "ClrCustomVisualizerVSHost",
                     UISideVisualizerTypeName = typeQ.FullName,
                     UISideVisualizerAssemblyName = typeQ.Assembly.FullName,
                     UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
                     DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
                     DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
-                    ExtensionPartId = Guid.Empty}
-            };
+                    ExtensionPartId = Guid.Empty
+                }
+            ];
 
             Verify(evalResult,
                 EvalResult("new C()", "{C}", "C", "new C()", flags: DkmEvaluationResultFlags.Expandable, customUIVisualizerInfo: customUIVisualizerInfo));

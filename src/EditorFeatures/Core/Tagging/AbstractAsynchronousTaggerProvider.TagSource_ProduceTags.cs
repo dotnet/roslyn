@@ -193,9 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </param>
             private async Task<VoidResult> RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
                 if (cancellationToken.IsCancellationRequested)
                     return default;
 
@@ -251,9 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-#pragma warning disable VSTHRD004 // Await SwitchToMainThreadAsync
                     await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
-#pragma warning restore VSTHRD004 // Await SwitchToMainThreadAsync
                     if (cancellationToken.IsCancellationRequested)
                         return default;
 
@@ -575,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tags;
             }
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
+            public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -584,14 +580,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ResumeIfVisible();
 
                 if (requestedSpans.Count == 0)
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                    return;
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
+                var tagIntervalTree = this.TryGetTagIntervalTreeForBuffer(buffer);
 
-                return tags == null
-                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
-                    : tags.GetIntersectingTagSpans(requestedSpans);
+                tagIntervalTree?.AddIntersectingTagSpans(requestedSpans, tags);
             }
         }
     }

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var documentServiceProvider = GetDocumentServiceProvider();
             var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
                 ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
-                : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
+                : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
 
 #if !CODE_STYLE
             if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
@@ -886,7 +886,7 @@ Consider using the title as the equivalence key instead of 'null'";
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)
-            => codeActions.SelectMany(a => a.NestedCodeActions).ToImmutableArray();
+            => codeActions.SelectManyAsArray(a => a.NestedCodeActions);
 
         /// <summary>
         /// Tests all the code actions for the given <paramref name="input"/> string.  Each code

@@ -45,7 +45,7 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
-      "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.VisualStudio.LanguageServices.DevKit": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
@@ -191,7 +191,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.9P1]"
+      "insertionTitlePrefix": "[d17.9.p2]"
     },
     "main": {
       "nugetKind": [
@@ -201,7 +201,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[main]"
+      "insertionTitlePrefix": "[d17.9.p3]"
     },
     "dev/jorobich/fix-pr-val": {
       "nugetKind": [

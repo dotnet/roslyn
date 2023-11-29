@@ -11029,7 +11029,7 @@ public struct Buffer4
   .locals init (System.Span<int> V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldc.i4.1
-  IL_0003:  call       ""InlineArrayElementRef<Buffer4, int>(ref Buffer4, int)""
+  IL_0003:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<Buffer4, int>(ref Buffer4, int)""
   IL_0008:  ldind.i4
   IL_0009:  ret
 }");
@@ -11079,7 +11079,7 @@ public struct Buffer4
                 System.Span<int> V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldc.i4.4
-  IL_0003:  call       ""InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
   IL_0008:  stloc.1
   IL_0009:  ldloca.s   V_1
   IL_000b:  ldarg.1
@@ -11137,7 +11137,7 @@ public struct Buffer4
                 System.Span<int> V_5)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldc.i4.4
-  IL_0003:  call       ""InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
   IL_0008:  stloc.s    V_5
   IL_000a:  ldloca.s   V_5
   IL_000c:  ldc.i4.1
@@ -11217,7 +11217,7 @@ public struct Buffer4
   IL_002b:  sub
   IL_002c:  stloc.s    V_7
   IL_002e:  ldc.i4.4
-  IL_002f:  call       ""InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+  IL_002f:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
   IL_0034:  stloc.s    V_9
   IL_0036:  ldloca.s   V_9
   IL_0038:  ldloc.s    V_6
@@ -11269,7 +11269,7 @@ public struct Buffer4
  .maxstack  2
  IL_0000:  ldarga.s   V_0
  IL_0002:  ldc.i4.4
- IL_0003:  call       ""InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
+ IL_0003:  call       ""System.Span<int> <PrivateImplementationDetails>.InlineArrayAsSpan<Buffer4, int>(ref Buffer4, int)""
  IL_0008:  ret
 }");
         }

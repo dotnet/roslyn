@@ -293,8 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                FunctionPointerUnmanagedCallingConventionSyntax syntax => GetCallingConventionSymbols(semanticModel, syntax),
                 _ => GetSymbolInfo(semanticModel, node, token, cancellationToken),
             };
+
+            static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
+            {
+                var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
+                if (type is null)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                return ImmutableArray.Create<ISymbol>(type);
+            }
         }
 
         /// <summary>

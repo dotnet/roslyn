@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// <remarks>This method is optional and only should be implemented by languages that support
         /// syntax.  If the language does not support syntax, callers should use
         /// <see cref="AddSyntacticClassificationsAsync"/> instead.</remarks>
-        void AddSyntacticClassifications(SolutionServices services, SyntaxNode root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
+        void AddSyntacticClassifications(SolutionServices services, SyntaxNode? root, ImmutableArray<TextSpan> textSpans, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// Produce the classifications for the span of text specified.  The syntax of the document 

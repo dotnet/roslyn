@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -307,7 +306,9 @@ internal partial class SyntacticClassificationTaggerProvider
 
             lock (_gate)
             {
-                _lastProcessedData = (currentSnapshot, (SumType<SyntaxNode, Document>?)currentRoot ?? currentDocument);
+                SumType<SyntaxNode, Document> lastProcessedDocumentOrRoot =
+                    currentRoot is not null ? currentRoot : currentDocument;
+                _lastProcessedData = (currentSnapshot, lastProcessedDocumentOrRoot);
             }
 
             // Notify the editor now that there were changes.  Note: we do not need to go the
@@ -364,33 +365,35 @@ internal partial class SyntacticClassificationTaggerProvider
                 return _lastProcessedData;
         }
 
-        public SegmentedList<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        public void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
 
             using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
-            {
-                return GetTagsWorker(spans) ?? new();
-            }
+                AddTagsWorker(spans, tags);
         }
 
-        private SegmentedList<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)
+        private void AddTagsWorker(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> tags)
         {
             _taggerProvider._threadingContext.ThrowIfNotOnUIThread();
             if (spans.Count == 0 || _workspace == null)
-                return null;
+                return;
 
             var snapshot = spans[0].Snapshot;
 
             if (TryGetClassificationService(snapshot) is not (var solutionServices, var classificationService))
-                return null;
+                return;
 
             using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
             foreach (var span in spans)
                 AddClassifications(span);
 
-            return ClassificationUtilities.Convert(_taggerProvider._typeMap, snapshot, classifiedSpans);
+            var typeMap = _taggerProvider._typeMap;
+            foreach (var classifiedSpan in classifiedSpans)
+                tags.Add(ClassificationUtilities.Convert(typeMap, snapshot, classifiedSpan));
+
+            return;
 
             void AddClassifications(SnapshotSpan span)
             {
@@ -440,11 +443,22 @@ internal partial class SyntacticClassificationTaggerProvider
 
             using var _ = Classifier.GetPooledList(out var tempList);
 
-            // If we have a syntax root ready, use the direct, non-async/non-blocking approach to getting classifications.
-            if (!lastProcessedDocumentOrRoot.TryGetFirst(out var root))
-                classificationService.AddSyntacticClassificationsAsync(lastProcessedDocumentOrRoot.Second, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
-            else
+            // If we have a syntax root ready, use it.  Otherwise, get the root synchronously.  We do not want to do
+            // anything async here as we'd have to block on that, potentially starving the UI thread while the
+            // threadpool does work.
+            //
+            // If this is a language that does not support syntax, we have no choice but to try to get the
+            // classifications asynchronously, blocking on that result.
+            var root = lastProcessedDocumentOrRoot.TryGetFirst(out var tempRoot)
+                ? tempRoot
+                : lastProcessedDocumentOrRoot.Second.SupportsSyntaxTree
+                    ? lastProcessedDocumentOrRoot.Second.GetSyntaxRootSynchronously(cancellationToken)
+                    : null;
+
+            if (root != null)
                 classificationService.AddSyntacticClassifications(solutionServices, root, span.Span.ToTextSpan(), tempList, cancellationToken);
+            else
+                classificationService.AddSyntacticClassificationsAsync(lastProcessedDocumentOrRoot.Second, span.Span.ToTextSpan(), tempList, cancellationToken).Wait(cancellationToken);
 
             _lastLineCache.Update(span, tempList);
             classifiedSpans.AddRange(tempList);

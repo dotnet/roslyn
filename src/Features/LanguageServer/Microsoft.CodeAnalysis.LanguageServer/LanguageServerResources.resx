@@ -157,8 +157,8 @@
   <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
     <value>Failed to read .runsettings file at {0}:{1}</value>
   </data>
-  <data name="Failed_to_run_restore_see_output_for_details" xml:space="preserve">
-    <value>Failed to run restore, see output for details</value>
+  <data name="Failed_to_run_restore_on_0" xml:space="preserve">
+    <value>Failed to run restore on {0}</value>
   </data>
   <data name="Found_0_tests_in_1" xml:space="preserve">
     <value>Found {0} tests in {1}</value>
