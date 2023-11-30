@@ -403,28 +403,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TransformImplicitIndexerAccess(
             BoundImplicitIndexerAccess indexerAccess,
-            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool isRegularCompoundAssignment,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
             bool isDynamicAssignment)
         {
-            var argumentType = indexerAccess.Argument.Type;
-            if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
+            if (TypeSymbol.Equals(
+                indexerAccess.Argument.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything))
             {
-                return TransformIndexPatternIndexerAccess(indexerAccess, isRegularAssignmentOrRegularCompoundAssignment, stores, temps, isDynamicAssignment);
+                return TransformIndexPatternIndexerAccess(indexerAccess, isRegularCompoundAssignment, stores, temps, isDynamicAssignment);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(argumentType);
+            throw ExceptionUtilities.UnexpectedValue(indexerAccess.Argument.Type);
         }
 
-        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, bool isRegularAssignmentOrRegularCompoundAssignment,
-            ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, bool isRegularCompoundAssignment, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
             var access = GetUnderlyingIndexerOrSliceAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
-                isRegularAssignmentOrRegularCompoundAssignment: isRegularAssignmentOrRegularCompoundAssignment,
+                isRegularAssignmentOrRegularCompoundAssignment: isRegularCompoundAssignment,
                 cacheAllArgumentsOnly: false,
                 stores, temps);
 

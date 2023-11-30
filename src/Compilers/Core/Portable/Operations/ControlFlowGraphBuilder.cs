@@ -6261,7 +6261,7 @@ oneMoreTime:
                 }
                 else if (lhs is not FieldReferenceOperation)
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
                 }
 
                 // And any nested indexes

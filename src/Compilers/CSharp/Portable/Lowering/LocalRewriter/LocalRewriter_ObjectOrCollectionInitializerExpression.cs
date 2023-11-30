@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We only bind to a BoundDynamicCollectionElementInitializer in a situation like:
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
                 }
 
                 // And any nested indexes

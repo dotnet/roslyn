@@ -566,14 +566,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
                         locals.Add(integerTemp.LocalSymbol);
                         sideeffects.Add(integerStore);
-
-                        AddPlaceholderReplacement(argumentPlaceholder, integerTemp);
-                    }
-                    else
-                    {
-                        AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                        integerArgument = integerTemp;
                     }
 
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment);
                 }
             }
@@ -584,14 +580,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
                     locals.Add(integerTemp.LocalSymbol);
                     sideeffects.Add(integerStore);
-
-                    AddPlaceholderReplacement(argumentPlaceholder, integerTemp);
-                }
-                else
-                {
-                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                    integerArgument = integerTemp;
                 }
 
+                AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                 rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess((BoundArrayAccess)node.IndexerOrSliceAccess);
             }
 
