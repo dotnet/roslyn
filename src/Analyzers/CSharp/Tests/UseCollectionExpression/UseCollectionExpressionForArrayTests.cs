@@ -4168,4 +4168,64 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => [|[|new|] int[]|] { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<int[]>> f = () => new int[] { 1, 2, 3 };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

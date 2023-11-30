@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,14 +46,14 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         {
         }
 
+        protected abstract ISemanticFacts SemanticFacts { get; }
         protected abstract CodeStyleOption2<bool> PreferThrowExpressionStyle(OperationAnalysisContext context);
+        protected abstract bool IsSupported(Compilation compilation);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool IsSupported(Compilation compilation);
-
-        protected override void InitializeWorker(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(startContext =>
             {
@@ -61,12 +62,12 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                     return;
                 }
 
-                var expressionTypeOpt = startContext.Compilation.ExpressionOfTType();
-                startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.Throw);
+                var expressionType = startContext.Compilation.ExpressionOfTType();
+                startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionType), OperationKind.Throw);
             });
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionTypeOpt)
+        private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var cancellationToken = context.CancellationToken;
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             if (!option.Value)
                 return;
 
-            if (IsInExpressionTree(semanticModel, throwStatementSyntax, expressionTypeOpt, cancellationToken))
+            if (this.SemanticFacts.IsInExpressionTree(semanticModel, throwStatementSyntax, expressionType, cancellationToken))
                 return;
 
             if (ifOperation.Parent is not IBlockOperation containingBlock)
@@ -162,8 +163,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return exprDataFlow.ReadInside.Contains(localOrParameter) ||
                    exprDataFlow.WrittenInside.Contains(localOrParameter);
         }
-
-        protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
 
         private static bool TryFindAssignmentExpression(
             IBlockOperation containingBlock, IConditionalOperation ifOperation, ISymbol localOrParameter,

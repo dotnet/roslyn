@@ -15,22 +15,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForArray)
 {
-    public CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForArray)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
     {
+        context.RegisterSyntaxNodeAction(context => AnalyzeArrayInitializerExpression(context, expressionType), SyntaxKind.ArrayInitializerExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeArrayCreationExpression(context, expressionType), SyntaxKind.ArrayCreationExpression);
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-    {
-        context.RegisterSyntaxNodeAction(AnalyzeArrayInitializerExpression, SyntaxKind.ArrayInitializerExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeArrayCreationExpression, SyntaxKind.ArrayCreationExpression);
-    }
-
-    private void AnalyzeArrayCreationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeArrayCreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -47,7 +43,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             return;
 
         // Analyze the statements that follow to see if they can initialize this array.
-        var matches = TryGetMatches(semanticModel, arrayCreationExpression, cancellationToken);
+        var matches = TryGetMatches(semanticModel, arrayCreationExpression, expressionType, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -57,6 +53,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
         // we have `new T[...] ...;` defer to analyzer to find the items that follow that may need to
@@ -64,6 +61,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var matches = UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            expressionType,
             static e => e.Type,
             static e => e.Initializer,
             cancellationToken);
@@ -71,7 +69,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             return default;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }
@@ -82,12 +80,13 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ImplicitArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
         // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
         // from within the initializer.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }
@@ -95,7 +94,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         return ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty;
     }
 
-    private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeArrayInitializerExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -118,7 +117,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             : initializer;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, arrayCreationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, arrayCreationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }
@@ -127,8 +126,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         {
             var matches = initializer.Parent switch
             {
-                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, cancellationToken),
-                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, cancellationToken),
+                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, cancellationToken),
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 

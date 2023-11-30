@@ -2611,4 +2611,67 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<List<int>> f = () => new int[] { 1, 2, 3 }.[|ToList|]();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<List<int>> f = () => [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<List<int>>> f = () => new int[] { 1, 2, 3 }.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

@@ -27,6 +27,7 @@ internal static class UseCollectionExpressionHelpers
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
         ExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
@@ -54,6 +55,9 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
+            return false;
+
+        if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             return false;
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
@@ -481,6 +485,7 @@ internal static class UseCollectionExpressionHelpers
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             ArrowExpressionClauseSyntax => true,
+            LambdaExpressionSyntax lambda => lambda.ExpressionBody == topExpression,
             _ => false,
         };
 
@@ -674,6 +679,7 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken)
@@ -777,7 +783,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }

@@ -30,10 +30,12 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
-    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeInvocationExpression(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
@@ -44,7 +46,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (!option.Value)
             return;
 
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
@@ -93,8 +95,12 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
     public static AnalysisResult? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
+        INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
+        if (invocationExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
+            return null;
+
         // Looking for `XXX.CreateBuilder(...)`
         // Or `ArrayBuilder<>.GetInstance`
         if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression ||
@@ -187,7 +193,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Make sure we can actually use a collection expression in place of the created collection.
             if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                    semanticModel, creationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+                    semanticModel, creationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             {
                 return null;
             }

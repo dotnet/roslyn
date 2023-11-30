@@ -24,10 +24,10 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeMemberAccess, SyntaxKind.SimpleMemberAccessExpression);
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
 
-    private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context)
+    private void AnalyzeMemberAccess(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
@@ -48,7 +48,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, nodeToReplace, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(

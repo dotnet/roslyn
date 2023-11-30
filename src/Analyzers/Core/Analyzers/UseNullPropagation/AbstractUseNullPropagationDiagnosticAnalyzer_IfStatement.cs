@@ -34,7 +34,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (!option.Value)
             return;
 
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
         var ifStatement = (TIfStatementSyntax)context.Node;
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;

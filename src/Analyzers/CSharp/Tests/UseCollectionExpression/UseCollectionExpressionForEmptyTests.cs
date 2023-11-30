@@ -1479,4 +1479,64 @@ public class UseCollectionExpressionForEmptyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => Array.[|Empty|]<int>();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int[]> f = () => [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<int[]>> f = () => Array.Empty<int>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
