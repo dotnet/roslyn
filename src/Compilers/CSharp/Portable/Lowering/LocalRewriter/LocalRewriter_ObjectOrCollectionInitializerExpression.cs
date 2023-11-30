@@ -471,12 +471,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerAccess:
-                    if (temps == null)
-                    {
-                        temps = ArrayBuilder<LocalSymbol>.GetInstance();
-                    }
-
                     var implicitIndexer = (BoundImplicitIndexerAccess)left;
+                    temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
 
                     if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
                     {
