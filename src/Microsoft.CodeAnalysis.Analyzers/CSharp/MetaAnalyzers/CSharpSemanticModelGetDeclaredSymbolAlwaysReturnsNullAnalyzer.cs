@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpExtensions, out var csharpExtensions)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisModelExtensions, out var modelExtensions)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax, out var baseFieldDeclaration)
+                    || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpSyntaxLocalFunctionStatementSyntax, out var localFunctionStatement)
                     || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisSyntaxNode, out var syntaxNode)
                     || (getDeclaredSymbolMethod = (IMethodSymbol?)modelExtensions.GetMembers(nameof(ModelExtensions.GetDeclaredSymbol)).FirstOrDefault(m => m is IMethodSymbol { Parameters.Length: >= 2 })) is null)
                 {
@@ -62,11 +63,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                     .Where(m => m.Parameters.Length >= 2)
                     .Select(m => m.Parameters[1].Type);
 
-                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, allowedTypes, baseFieldDeclaration, syntaxNode), OperationKind.Invocation);
+                context.RegisterOperationAction(ctx => AnalyzeInvocation(ctx, getDeclaredSymbolMethod, allowedTypes, baseFieldDeclaration, localFunctionStatement, syntaxNode), OperationKind.Invocation);
             });
         }
 
-        private static void AnalyzeInvocation(OperationAnalysisContext context, IMethodSymbol getDeclaredSymbolMethod, IEnumerable<ITypeSymbol> allowedTypes, INamedTypeSymbol baseFieldDeclarationType, INamedTypeSymbol syntaxNodeType)
+        private static void AnalyzeInvocation(
+            OperationAnalysisContext context,
+            IMethodSymbol getDeclaredSymbolMethod,
+            IEnumerable<ITypeSymbol> allowedTypes,
+            INamedTypeSymbol baseFieldDeclarationType,
+            INamedTypeSymbol localFunctionStatementType,
+            INamedTypeSymbol syntaxNodeType)
         {
             var invocation = (IInvocationOperation)context.Operation;
             if (SymbolEqualityComparer.Default.Equals(invocation.TargetMethod, getDeclaredSymbolMethod))
@@ -81,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 {
                     context.ReportDiagnostic(invocation.CreateDiagnostic(FieldDiagnosticDescriptor, syntaxNodeDerivingType.Name));
                 }
-                else if (allowedTypes.All(type => !syntaxNodeDerivingType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)))
+                else if (allowedTypes.All(type => !syntaxNodeDerivingType.DerivesFrom(type, baseTypesOnly: true, checkTypeParameterConstraints: false)
+                                                  && !syntaxNodeDerivingType.Equals(localFunctionStatementType, SymbolEqualityComparer.Default)))
                 {
                     context.ReportDiagnostic(invocation.CreateDiagnostic(DiagnosticDescriptor, syntaxNodeDerivingType.Name));
                 }

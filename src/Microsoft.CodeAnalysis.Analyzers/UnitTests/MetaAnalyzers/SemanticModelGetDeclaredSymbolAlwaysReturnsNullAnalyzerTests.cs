@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer,
@@ -94,6 +95,25 @@ public class Test {
         var x = semanticModel.{|CS7036:GetDeclaredSymbol|}();
     }
 }";
+
+            return VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact, WorkItem(7061, "https://github.com/dotnet/roslyn-analyzers/issues/7061")]
+        public Task LocalFunctionStatement_NoDiagnostic()
+        {
+            const string code = """
+                       using Microsoft.CodeAnalysis;
+                       using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+                       public class Test
+                       {
+                           public void M(SemanticModel semanticModel, LocalFunctionStatementSyntax syntax)
+                           {
+                               var x = semanticModel.GetDeclaredSymbol(syntax);
+                           }
+                       }
+                       """;
 
             return VerifyCS.VerifyAnalyzerAsync(code);
         }

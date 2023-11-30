@@ -37,6 +37,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
         public const string MicrosoftCodeAnalysisCSharpExtensions = "Microsoft.CodeAnalysis.CSharpExtensions";
         public const string MicrosoftCodeAnalysisCSharpSyntaxBaseFieldDeclarationSyntax = "Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax";
+        public const string MicrosoftCodeAnalysisCSharpSyntaxLocalFunctionStatementSyntax = "Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
         public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
         public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
