@@ -395,16 +395,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                     {
-                        var arrayAccess = (BoundArrayAccess)VisitArrayAccess((BoundArrayAccess)left);
-                        Debug.Assert(arrayAccess is { });
-                        Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+                        var rewrittenArrayAccess = VisitArrayAccess((BoundArrayAccess)left);
+                        Debug.Assert(rewrittenArrayAccess is { });
 
-                        var indices = EvaluateSideEffectingArgumentsToTemps(
-                            arrayAccess.Indices,
-                            paramRefKindsOpt: default,
-                            result,
-                            ref temps);
-                        rewrittenAccess = arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
+                        if (rewrittenArrayAccess is BoundArrayAccess arrayAccess)
+                        {
+                            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+
+                            var indices = EvaluateSideEffectingArgumentsToTemps(
+                                arrayAccess.Indices,
+                                paramRefKindsOpt: default,
+                                result,
+                                ref temps);
+                            rewrittenAccess = arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
+                        }
+                        else if (rewrittenArrayAccess is BoundCall getSubArrayCall)
+                        {
+                            Debug.Assert(getSubArrayCall.Arguments.Length == 2);
+                            var rangeArgument = getSubArrayCall.Arguments[1];
+                            Debug.Assert(TypeSymbol.Equals(rangeArgument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything));
+
+                            var rangeTemp = _factory.StoreToTemp(rangeArgument, out BoundAssignmentOperator rangeStore);
+                            temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                            temps.Add(rangeTemp.LocalSymbol);
+                            result.Add(rangeStore);
+
+                            rewrittenAccess = getSubArrayCall.Update(ImmutableArray.Create(getSubArrayCall.Arguments[0], rangeTemp));
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(rewrittenArrayAccess.Kind);
+                        }
 
                         if (!isRhsNestedInitializer)
                         {

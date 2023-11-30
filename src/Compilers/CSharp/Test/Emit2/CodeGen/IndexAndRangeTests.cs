@@ -2853,6 +2853,123 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_ArrayAccess_WithNestedNesting()
+        {
+            string source = """
+C.M(1..^1);
+
+public class D
+{
+    public int X { set { System.Console.Write($"X={value} "); } }
+}
+class C
+{
+    public D[] F = new D[] { new D(), new D(), new D() };
+    public static C M(System.Range r1)
+    {
+        return new C() { F = { [Id(r1)] = { [Id(0)] = { X = Id(42) } } } };
+    }
+
+    public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
+    public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
+}
+""";
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  ldarg.0
+  IL_0006:  call       "System.Range C.Id(System.Range)"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       "int C.Id(int)"
+  IL_0012:  stloc.1
+  IL_0013:  dup
+  IL_0014:  ldfld      "D[] C.F"
+  IL_0019:  ldloc.0
+  IL_001a:  call       "D[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<D>(D[], System.Range)"
+  IL_001f:  ldloc.1
+  IL_0020:  ldelem.ref
+  IL_0021:  ldc.i4.s   42
+  IL_0023:  call       "int C.Id(int)"
+  IL_0028:  callvirt   "void D.X.set"
+  IL_002d:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_ArrayAccess_WithMultipleNestedNesting()
+        {
+            string source = """
+C.M(1..^1);
+
+public class D
+{
+    public int X { set { System.Console.Write($"X={value} "); } }
+}
+class C
+{
+    public D[] F = new D[] { new D(), new D(), new D(), new D() };
+    public static C M(System.Range r1)
+    {
+        return new C() { F = { [Id(r1)] = { [Id(0)] = { X = Id(42) }, [Id(1)] = { X = Id(43) } } } };
+    }
+
+    public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
+    public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
+}
+""";
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42 Id(1) Id(43) X=43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       79 (0x4f)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  ldarg.0
+  IL_0006:  call       "System.Range C.Id(System.Range)"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       "int C.Id(int)"
+  IL_0012:  stloc.1
+  IL_0013:  dup
+  IL_0014:  ldfld      "D[] C.F"
+  IL_0019:  ldloc.0
+  IL_001a:  call       "D[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<D>(D[], System.Range)"
+  IL_001f:  ldloc.1
+  IL_0020:  ldelem.ref
+  IL_0021:  ldc.i4.s   42
+  IL_0023:  call       "int C.Id(int)"
+  IL_0028:  callvirt   "void D.X.set"
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       "int C.Id(int)"
+  IL_0033:  stloc.2
+  IL_0034:  dup
+  IL_0035:  ldfld      "D[] C.F"
+  IL_003a:  ldloc.0
+  IL_003b:  call       "D[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<D>(D[], System.Range)"
+  IL_0040:  ldloc.2
+  IL_0041:  ldelem.ref
+  IL_0042:  ldc.i4.s   43
+  IL_0044:  call       "int C.Id(int)"
+  IL_0049:  callvirt   "void D.X.set"
+  IL_004e:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
         public void InObjectInitializer_Integer_PointerAccess_WithEmptyNestedNesting()
         {
             string source = """
