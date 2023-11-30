@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
     internal abstract class AbstractUseAutoPropertyAnalyzer<
         TSyntaxKind,
         TPropertyDeclaration,
+        TConstructorDeclaration,
         TFieldDeclaration,
         TVariableDeclarator,
-        TExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TExpression,
+        TIdentifierName> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct, Enum
         where TPropertyDeclaration : SyntaxNode
+        where TConstructorDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TExpression : SyntaxNode
+        where TIdentifierName : TExpression
     {
         /// <summary>
         /// ConcurrentStack as that's the only concurrent collection that supports 'Clear' in netstandard2.
@@ -65,7 +69,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract ISemanticFacts SemanticFacts { get; }
+        protected ISyntaxFacts SyntaxFacts => this.SemanticFacts.SyntaxFacts;
 
         protected abstract TSyntaxKind PropertyDeclarationKind { get; }
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
@@ -78,9 +83,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract void RegisterIneligibleFieldsAction(
             HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
-
-        protected abstract void RegisterNonConstructorFieldWrites(
-            HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSymbolStartAction(context =>
@@ -169,6 +171,34 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     return true;
                 }
             }, SymbolKind.NamedType);
+
+        private void RegisterNonConstructorFieldWrites(
+            HashSet<string> fieldNames,
+            ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites,
+            SemanticModel semanticModel,
+            SyntaxNode codeBlock,
+            CancellationToken cancellationToken)
+        {
+            if (codeBlock.FirstAncestorOrSelf<TConstructorDeclaration>() != null)
+                return;
+
+            var semanticFacts = this.SemanticFacts;
+            var syntaxFacts = this.SyntaxFacts;
+            foreach (var identifierName in codeBlock.DescendantNodesAndSelf().OfType<TIdentifierName>())
+            {
+                var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierName);
+                if (!fieldNames.Contains(identifier.ValueText))
+                    continue;
+
+                if (semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol is not IFieldSymbol field)
+                    continue;
+
+                if (!semanticFacts.IsWrittenTo(semanticModel, identifierName, cancellationToken))
+                    continue;
+
+                AddFieldWrite(fieldWrites, field, identifierName);
+            }
+        }
 
         private void AnalyzePropertyDeclaration(
             SyntaxNodeAnalysisContext context,
@@ -329,10 +359,24 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 // field is written to outside of a constructor, then this field Is Not eligible for replacement with an
                 // auto prop.  We'd have to make the autoprop read/write, And that could be opening up the property
                 // widely (in accessibility terms) in a way the user would not want.
-                if (result.Property.DeclaredAccessibility != Accessibility.Private &&
-                    result.Property.SetMethod is null &&
-                    nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations) &&
-                    writeLocations.Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+                if (result.Property.Language == LanguageNames.VisualBasic)
+                {
+                    if (result.Property.DeclaredAccessibility != Accessibility.Private &&
+                        result.Property.SetMethod is null &&
+                        nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations1) &&
+                        writeLocations1.Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+                    {
+                        continue;
+                    }
+                }
+
+                // If this was an `init` property, and there was a write to the field, then we can't support this.
+                // That's because we can't still keep this `init` as that write will not be allowed, and we can't make
+                // it a `setter` as that would allow arbitrary writing outside the type, despite the original `init`
+                // semantics.
+                if (result.Property.SetMethod is { IsInitOnly: true } &&
+                    nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations2) &&
+                    writeLocations2.Count > 0)
                 {
                     continue;
                 }
