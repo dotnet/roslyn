@@ -1,2 +1,2 @@
-# This value is used to craft a \\cpvsbuild\drops path for symbol archival.
+# This value is used as an input to the MicroBuild Insert VS task.
 'VS IDE'
