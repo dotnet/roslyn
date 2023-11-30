@@ -4807,8 +4807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lengthOrCount: lengthOrCount,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false)
-                { WasCompilerGenerated = true };
+                    hasErrors: false);
             }
         }
 #nullable disable
@@ -5978,12 +5977,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
             var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = collectionInitializerAddMethodBinder.MakeInvocationExpression(
-                syntax,
-                implicitReceiver,
-                methodName: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                args: ImmutableArray.Create<BoundExpression>(addElementPlaceholder),
-                diagnostics);
+            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
+                syntax.Expression,
+                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
+                hasEnumerableInitializerType: true,
+                collectionInitializerAddMethodBinder,
+                diagnostics,
+                implicitReceiver);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
