@@ -2623,6 +2623,59 @@ print Goodbye, World";
         }
 
         [Fact]
+        public void ParseReferencesAlias()
+        {
+            Assert.True(parseRef(@"/r:a=util.dll") is
+            {
+                Reference: @"util.dll",
+                Properties.Aliases: ["a"],
+                Properties.EmbedInteropTypes: false
+            });
+
+            Assert.True(parseRef(@"/r:""a=util.dll""") is
+            {
+                Reference: @"a=util.dll",
+                Properties.Aliases: [],
+                Properties.EmbedInteropTypes: false
+            });
+
+            Assert.True(parseRef(@"/r:""c:\users\app=exe\util.dll""") is
+            {
+                Reference: @"c:\users\app=exe\util.dll",
+                Properties.Aliases: [],
+                Properties.EmbedInteropTypes: false
+            });
+
+            Assert.True(parseRef(@"/r:a=b=util.dll") is
+            {
+                Reference: @"b=util.dll",
+                Properties.Aliases: ["a"],
+                Properties.EmbedInteropTypes: false
+            });
+
+            CommandLineReference parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                Assert.Equal(2, parsedArgs.MetadataReferences.Length);
+                Assert.Empty(parsedArgs.Errors);
+                return parsedArgs.MetadataReferences[1];
+            }
+        }
+
+        [Fact]
+        public void ParseReferencesAliasErrors()
+        {
+            parseRef(@"/reference:a\b=util.dll").Verify();
+
+            ImmutableArray<Diagnostic> parseRef(string refText)
+            {
+                var parsedArgs = DefaultParse([refText, "test.cs"], WorkingDirectory);
+                return parsedArgs.Errors;
+            }
+        }
+
+
+        [Fact]
         public void ParseAnalyzers()
         {
             var parsedArgs = DefaultParse(new string[] { @"/a:goo.dll", "a.cs" }, WorkingDirectory);

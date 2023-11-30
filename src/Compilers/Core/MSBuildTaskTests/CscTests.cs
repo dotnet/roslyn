@@ -582,6 +582,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             core(@"a=util.dll", null, @"/reference:""a=util.dll""");
             core(@"util.dll", "lib", @"/reference:lib=util.dll");
             core(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+
+            // These result in illegal /reference: syntax but that is for the compiler to 
+            // determine
+            core(@"util.dll", "lib=bad", @"/reference:lib=bad=util.dll");
+            core(@"util.dll", @"lib\bad", @"/reference:lib\bad=util.dll");
             void core(string refText, string? alias, params string[] args)
             {
                 var engine = new MockEngine(TestOutputHelper);
