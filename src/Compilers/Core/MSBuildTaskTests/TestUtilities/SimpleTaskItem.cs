@@ -1,0 +1,75 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Metadata;
+using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+
+internal sealed class SimpleTaskItem : ITaskItem
+{
+    public string ItemSpec { get; set; }
+
+    public Dictionary<string, string> Metadata { get; }
+
+    public ICollection MetadataNames => Metadata.Keys;
+
+    public int MetadataCount => Metadata.Count;
+
+    internal SimpleTaskItem(string itemSpec, Dictionary<string, string> metadata)
+    {
+        ItemSpec = itemSpec;
+        Metadata = metadata;
+    }
+
+    public IDictionary CloneCustomMetadata() => throw new NotImplementedException();
+
+    public void CopyMetadataTo(ITaskItem destinationItem) => throw new NotImplementedException();
+
+    public string? GetMetadata(string metadataName)
+    {
+        if (Metadata is not null)
+        {
+            return Metadata.TryGetValue(metadataName, out var metadataValue) ? metadataValue : null;
+        }
+
+        return null;
+    }
+
+    public void RemoveMetadata(string metadataName)
+    {
+        if (Metadata is { })
+        {
+            Metadata.Remove(metadataName);
+        }
+    }
+
+    public void SetMetadata(string metadataName, string metadataValue)
+    {
+        Metadata[metadataName] = metadataValue;
+    }
+
+    public static SimpleTaskItem CreateReference(string itemSpec, string? alias = null, bool? embedInteropTypes = null)
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (alias is not null)
+        {
+            map["Aliases"] = alias;
+        }
+
+        if (embedInteropTypes is { } e)
+        {
+            map["EmbedInteropTypes"] = e.ToString();
+        }
+
+        return new SimpleTaskItem(itemSpec, map);
+    }
+}

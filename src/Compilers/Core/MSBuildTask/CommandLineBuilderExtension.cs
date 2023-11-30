@@ -17,6 +17,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public class CommandLineBuilderExtension : CommandLineBuilder
     {
+        private bool _isQuotingRequired;
+
+        protected override bool IsQuotingRequired(string parameter) => 
+            _isQuotingRequired
+            ? true
+            : base.IsQuotingRequired(parameter);
+
         /// <summary>
         /// Set a boolean switch iff its value exists and its value is 'true'.
         /// </summary>
@@ -108,6 +115,42 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             AppendSwitchUnquotedIfNotNull(switchName, alias + "=");
             AppendTextWithQuoting(parameter);
+        }
+
+        /// <summary>
+        /// Appends a switch with a value that is force quoted. This will quote as if <see cref="CommandLineBuilder.IsQuotingRequired(string)"/>
+        /// returns true for <paramref name="parameter"/>. That means even simple values will be quoted.
+        /// </summary>
+        internal void AppendTextWithForceQuoting(string parameter)
+        {
+            Debug.Assert(!_isQuotingRequired);
+            _isQuotingRequired = true;
+            try
+            {
+                AppendTextWithQuoting(parameter);
+            }
+            finally
+            {
+                _isQuotingRequired = false;
+            }
+        }
+
+        /// <summary>
+        /// Appends a switch with a value that is force quoted. This will quote as if <see cref="CommandLineBuilder.IsQuotingRequired(string)"/>
+        /// returns true for <paramref name="parameter"/>. That means even simple values will be quoted.
+        /// </summary>
+        internal void AppendSwitchForceQuoted(string switchName, string parameter)
+        {
+            AppendSwitch(switchName);
+            _isQuotingRequired = true;
+            try
+            {
+                AppendTextWithQuoting(parameter);
+            }
+            finally
+            {
+                _isQuotingRequired = false;
+            }
         }
 
         /// <summary>

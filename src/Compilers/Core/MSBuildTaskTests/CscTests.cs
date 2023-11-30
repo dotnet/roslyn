@@ -568,5 +568,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
+
+        [Fact]
+        public void References_Equals()
+        {
+            core(@"util.dll", null, @"/reference:util.dll");
+            core(@"util.dll", "global", @"/reference:util.dll");
+            core(@"util.dll", "lib", @"/reference:lib=util.dll");
+            core(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
+            core(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
+            core(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
+            core(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
+            core(@"a=util.dll", null, @"/reference:""a=util.dll""");
+            core(@"util.dll", "lib", @"/reference:lib=util.dll");
+            core(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            void core(string refText, string? alias, params string[] args)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias: alias)],
+                };
+
+                TaskTestUtil.AssertCommandLine(csc, engine, [.. args, "/out:test.dll", "/target:library", "test.cs"]);
+            }
+        }
     }
 }
