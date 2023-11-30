@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
-            Assert.IsEmpty(collection, CreateMessage($"Expected '{collectionName}' to be empty, contains '{collection?.Count()}' elements"));
+            Assert.That(collection, Is.Empty, CreateMessage($"Expected '{collectionName}' to be empty, contains '{collection?.Count()}' elements"));
         }
 
         public virtual void Equal<T>(T expected, T actual, string? message = null)
         {
             if (message is null && Context.IsEmpty)
             {
-                Assert.AreEqual(expected, actual);
+                Assert.That(actual, Is.EqualTo(expected));
             }
             else
             {
-                Assert.AreEqual(expected, actual, CreateMessage(message));
+                Assert.That(actual, Is.EqualTo(expected), CreateMessage(message));
             }
         }
 
@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
         {
             if (message is null && Context.IsEmpty)
             {
-                Assert.IsTrue(assert);
+                Assert.That(assert);
             }
             else
             {
-                Assert.IsTrue(assert, CreateMessage(message));
+                Assert.That(assert, CreateMessage(message));
             }
         }
 
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
         {
             if (message is null && Context.IsEmpty)
             {
-                Assert.IsFalse(assert);
+                Assert.That(assert, Is.False);
             }
             else
             {
-                Assert.IsFalse(assert, CreateMessage(message));
+                Assert.That(assert, Is.False, CreateMessage(message));
             }
         }
 
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void LanguageIsSupported(string language)
         {
-            Assert.IsFalse(language != LanguageNames.CSharp && language != LanguageNames.VisualBasic, CreateMessage($"Unsupported Language: '{language}'"));
+            Assert.That(language != LanguageNames.CSharp && language != LanguageNames.VisualBasic, Is.False, CreateMessage($"Unsupported Language: '{language}'"));
         }
 
         public virtual void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
         {
-            Assert.IsNotEmpty(collection, CreateMessage($"expected '{collectionName}' to be non-empty, contains"));
+            Assert.That(collection, Is.Not.Empty, CreateMessage($"expected '{collectionName}' to be non-empty, contains"));
         }
 
         public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T>? equalityComparer = null, string? message = null)
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual IVerifier PushContext(string context)
         {
-            Assert.AreEqual(typeof(NUnitVerifier), GetType());
+            Assert.That(GetType(), Is.EqualTo(typeof(NUnitVerifier)));
             return new NUnitVerifier(Context.Push(context));
         }
 
