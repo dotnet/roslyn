@@ -5,12 +5,11 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Experimental;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests.Experimental
 {
     public class HostOutputsTests : CSharpTestBase
     {

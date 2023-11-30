@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using TOutput = System.Collections.Immutable.ImmutableArray<(string, string)>;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
+namespace Microsoft.CodeAnalysis.Experimental
 {
     internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
     {

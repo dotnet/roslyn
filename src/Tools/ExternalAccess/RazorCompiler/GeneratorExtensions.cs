@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
+
+[assembly: TypeForwardedTo(typeof(HostProductionContext))]
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
 {
@@ -13,22 +16,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
     {
         public static void RegisterHostOutput<TSource>(ref this IncrementalGeneratorInitializationContext @this, IncrementalValuesProvider<TSource> source, Action<HostProductionContext, TSource, CancellationToken> action)
         {
-            _ = @this;
-            source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action));
+            Experimental.GeneratorExtensions.RegisterHostOutput(ref @this, source, action);
         }
 
-        public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs;
-    }
-
-    internal readonly struct HostProductionContext
-    {
-        internal readonly ArrayBuilder<(string, string)> Outputs;
-
-        internal HostProductionContext(ArrayBuilder<(string, string)> outputs)
+        public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult)
         {
-            Outputs = outputs;
+            return Experimental.GeneratorExtensions.GetHostOutputs(runResult);
         }
-
-        public void AddOutput(string name, string value) => Outputs.Add((name, value));
     }
 }
