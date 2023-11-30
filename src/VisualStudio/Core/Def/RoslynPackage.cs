@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -66,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private ColorSchemeApplier? _colorSchemeApplier;
         private IDisposable? _solutionEventMonitor;
 
+        private PackageSettingsPersister? _lazyPackageSettingsPersister;
         private BackgroundAnalysisScope? _analysisScope;
 
         public RoslynPackage()
@@ -194,7 +196,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             foreach (var provider in persisterProviders)
             {
-                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+                var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+                if (persister is PackageSettingsPersister packageSettingsPersister)
+                    _lazyPackageSettingsPersister = packageSettingsPersister;
             }
         }
 
@@ -314,6 +318,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor.Dispose();
                 _solutionEventMonitor = null;
             }
+
+            _lazyPackageSettingsPersister?.Dispose();
 
             base.Dispose(disposing);
         }
