@@ -98,9 +98,6 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
-        if (invocationExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
-            return null;
-
         // Looking for `XXX.CreateBuilder(...)`
         // Or `ArrayBuilder<>.GetInstance`
         if (invocationExpression.Expression is not MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccessExpression ||
