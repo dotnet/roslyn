@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private ColorSchemeApplier? _colorSchemeApplier;
         private IDisposable? _solutionEventMonitor;
 
-        private PackageSettingsPersister? _lazyPackageSettingsPersister;
         private BackgroundAnalysisScope? _analysisScope;
 
         public RoslynPackage()
@@ -198,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
                 if (persister is PackageSettingsPersister packageSettingsPersister)
-                    _lazyPackageSettingsPersister = packageSettingsPersister;
+                    packageSettingsPersister.Initialize(this);
             }
         }
 
@@ -318,8 +317,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor.Dispose();
                 _solutionEventMonitor = null;
             }
-
-            _lazyPackageSettingsPersister?.Dispose();
 
             base.Dispose(disposing);
         }
