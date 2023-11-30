@@ -238,10 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
-            Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
+            Debug.Assert(thisType is not null);
+            Debug.Assert(thisParameter is null || TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
-            Debug.Assert(diagnostics.DiagnosticBag is object);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             var analysis = Analysis.Analyze(
                 loweredBody,
