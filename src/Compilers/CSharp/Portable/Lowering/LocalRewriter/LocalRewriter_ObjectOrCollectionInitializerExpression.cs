@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DynamicObjectInitializerMember:
                     {
-                        var initializerMember = (BoundDynamicObjectInitializerMember)VisitExpression(left);
+                        var initializerMember = (BoundDynamicObjectInitializerMember?)VisitDynamicObjectInitializerMember((BoundDynamicObjectInitializerMember)left);
                         Debug.Assert(initializerMember is { });
                         if (dynamicSiteInitializers == null)
                         {
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                     {
-                        var arrayAccess = (BoundArrayAccess)VisitExpression(left);
+                        var arrayAccess = (BoundArrayAccess)VisitArrayAccess((BoundArrayAccess)left);
                         Debug.Assert(arrayAccess is { });
                         Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
 
@@ -457,35 +457,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var implicitIndexer = (BoundImplicitIndexerAccess)left;
 
-                    BoundExpression transformedImplicitIndexer;
-                    var argumentType = implicitIndexer.Argument.Type;
-                    if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
+                    if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
                     {
-                        transformedImplicitIndexer = VisitRangePatternIndexerAccess(implicitIndexer, temps, result, inInitializer: true);
+                        rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
+                            implicitIndexer,
+                            isLeftOfAssignment: !isRhsNestedInitializer,
+                            isRegularAssignmentOrRegularCompoundAssignment: true,
+                            cacheAllArgumentsOnly: true,
+                            result, temps);
 
-                        Debug.Assert(transformedImplicitIndexer is BoundCall
+                        if (rewrittenAccess is BoundIndexerAccess indexerAccess1)
                         {
-                            Arguments: [BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } },
-                                        BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } }]
-                        });
+                            rewrittenAccess = TransformIndexerAccessContinued(indexerAccess1, indexerAccess1.ReceiverOpt!, indexerAccess1.Arguments, result, temps);
+                        }
                     }
                     else
                     {
-                        transformedImplicitIndexer = TransformImplicitIndexerAccess(implicitIndexer,
-                            isRegularAssignmentOrRegularCompoundAssignment: true, inInitializer: true, result, temps, isDynamicAssignment: false);
-
-                        Debug.Assert(transformedImplicitIndexer is BoundArrayAccess { Indices: [BoundLocal { LocalSymbol: SynthesizedLocal }] }
-                            or BoundIndexerAccess { Arguments: [BoundLiteral or BoundLocal { LocalSymbol: SynthesizedLocal }] }
-                            or BoundLocal { LocalSymbol: SynthesizedLocal });
-                    }
-
-                    if (transformedImplicitIndexer is BoundIndexerAccess indexerAccess)
-                    {
-                        rewrittenAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment: !isRhsNestedInitializer || indexerAccess.Indexer.RefKind != RefKind.None);
-                    }
-                    else
-                    {
-                        rewrittenAccess = transformedImplicitIndexer;
+                        rewrittenAccess = VisitRangePatternIndexerAccess(implicitIndexer, temps, result, cacheAllArgumentsOnly: true);
                     }
 
                     if (!isRhsNestedInitializer)
@@ -547,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result.Add(VisitExpression(pointerElementAccess.Index));
                 }
-                else if (lhs is BoundDynamicCollectionElementInitializer)
+                else
                 {
                     // We only bind to a BoundDynamicCollectionElementInitializer in a situation like:
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic

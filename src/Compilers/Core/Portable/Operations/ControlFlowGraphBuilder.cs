@@ -6221,7 +6221,7 @@ oneMoreTime:
                     {
                         if (argument is { ArgumentKind: ArgumentKind.ParamArray })
                         {
-                            var array = (IArrayCreationOperation)argument.Value;
+                            var array = argument.Value as IArrayCreationOperation ?? throw ExceptionUtilities.Unreachable();
                             Debug.Assert(array.Initializer is not null);
 
                             foreach (var element in array.Initializer.ElementValues)
@@ -6258,6 +6258,10 @@ oneMoreTime:
                 {
                     // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
                     AddStatement(Visit(index));
+                }
+                else if (lhs is not FieldReferenceOperation)
+                {
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // And any nested indexes

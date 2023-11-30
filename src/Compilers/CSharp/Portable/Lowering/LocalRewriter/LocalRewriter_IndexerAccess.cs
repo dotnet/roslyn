@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
                 node, isLeftOfAssignment,
                 isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
-                inInitializer: false,
+                cacheAllArgumentsOnly: false,
                 sideeffects, locals);
 
             return _factory.Sequence(
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
             bool isRegularAssignmentOrRegularCompoundAssignment,
-            bool inInitializer,
+            bool cacheAllArgumentsOnly,
             ArrayBuilder<BoundExpression> sideeffects,
             ArrayBuilder<LocalSymbol> locals)
         {
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = VisitExpression(node.Receiver);
 
             // Do not capture receiver if we're in an initializer
-            if (!inInitializer)
+            if (!cacheAllArgumentsOnly)
             {
                 // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
                 // If length access is a local, then we are evaluating a pattern
@@ -530,15 +530,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
-            AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
             Debug.Assert(integerArgument.Type!.SpecialType == SpecialType.System_Int32);
 
             BoundExpression rewrittenIndexerAccess;
 
             if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
-                if (isLeftOfAssignment && (inInitializer || indexerAccess.GetRefKind() == RefKind.None))
+                if (isLeftOfAssignment && indexerAccess.GetRefKind() == RefKind.None)
                 {
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,
                         captureReceiverMode: ReceiverCaptureMode.Default,
@@ -561,11 +561,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (cacheAllArgumentsOnly)
+                    {
+                        var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
+                        locals.Add(integerTemp.LocalSymbol);
+                        sideeffects.Add(integerStore);
+
+                        AddPlaceholderReplacement(argumentPlaceholder, integerTemp);
+                    }
+                    else
+                    {
+                        AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                    }
+
                     rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment);
                 }
             }
             else
             {
+                if (cacheAllArgumentsOnly)
+                {
+                    var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
+                    locals.Add(integerTemp.LocalSymbol);
+                    sideeffects.Add(integerStore);
+
+                    AddPlaceholderReplacement(argumentPlaceholder, integerTemp);
+                }
+                else
+                {
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                }
+
                 rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess((BoundArrayAccess)node.IndexerOrSliceAccess);
             }
 
@@ -705,8 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
-            var rewrittenIndexerAccess = VisitRangePatternIndexerAccess(node, localsBuilder, sideEffectsBuilder, inInitializer: false);
-            Debug.Assert(rewrittenIndexerAccess is BoundCall);
+            var rewrittenIndexerAccess = VisitRangePatternIndexerAccess(node, localsBuilder, sideEffectsBuilder, cacheAllArgumentsOnly: false);
 
             return F.Sequence(
                 localsBuilder.ToImmutableAndFree(),
@@ -714,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
-        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool inInitializer)
+        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool cacheAllArgumentsOnly)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
             Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
@@ -908,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
                 rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
 
-                if (inInitializer)
+                if (cacheAllArgumentsOnly)
                 {
                     var startLocal = F.StoreToTemp(startExpr, out var startStore);
                     localsBuilder.Add(startLocal.LocalSymbol);
@@ -937,13 +962,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
-
-            Debug.Assert(!inInitializer ||
-                rewrittenIndexerAccess is BoundCall
-                {
-                    Arguments: [BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } },
-                                BoundPassByCopy { Expression: BoundLocal { LocalSymbol: SynthesizedLocal } }]
-                });
 
             return rewrittenIndexerAccess;
         }

@@ -404,7 +404,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TransformImplicitIndexerAccess(
             BoundImplicitIndexerAccess indexerAccess,
             bool isRegularAssignmentOrRegularCompoundAssignment,
-            bool inInitializer,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
             bool isDynamicAssignment)
@@ -412,23 +411,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentType = indexerAccess.Argument.Type;
             if (TypeSymbol.Equals(argumentType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
             {
-                return TransformIndexPatternIndexerAccess(indexerAccess, isRegularAssignmentOrRegularCompoundAssignment, inInitializer, stores, temps, isDynamicAssignment);
+                return TransformIndexPatternIndexerAccess(indexerAccess, isRegularAssignmentOrRegularCompoundAssignment, stores, temps, isDynamicAssignment);
             }
 
             throw ExceptionUtilities.UnexpectedValue(argumentType);
         }
 
         private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, bool isRegularAssignmentOrRegularCompoundAssignment,
-            bool inInitializer, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+            ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
-            Debug.Assert(inInitializer || implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
-            Debug.Assert(isRegularAssignmentOrRegularCompoundAssignment || !inInitializer);
-
+            Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
             var access = GetUnderlyingIndexerOrSliceAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignmentOrRegularCompoundAssignment: isRegularAssignmentOrRegularCompoundAssignment,
-                inInitializer: inInitializer,
+                cacheAllArgumentsOnly: false,
                 stores, temps);
 
             if (access is BoundIndexerAccess indexerAccess)
@@ -625,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
-                            return TransformImplicitIndexerAccess(implicitIndexerAccess, isRegularCompoundAssignment, inInitializer: false, stores, temps, isDynamicAssignment);
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, isRegularCompoundAssignment, stores, temps, isDynamicAssignment);
                         }
                     }
                     break;
