@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             {
                 if (!syntaxTreeToModel.TryGetValue(syntaxTree, out var model))
                 {
-                    model = compilation.GetSemanticModel(syntaxTree);
+                    model = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis: true);
                     syntaxTreeToModel.Add(syntaxTree, model);
                 }
 
