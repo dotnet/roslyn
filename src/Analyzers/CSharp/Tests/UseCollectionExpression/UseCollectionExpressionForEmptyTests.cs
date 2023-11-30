@@ -1518,6 +1518,29 @@ public class UseCollectionExpressionForEmptyTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        var f = () => Array.Empty<int>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
     public async Task TestNotInExpressionTree()
     {
         await new VerifyCS.Test

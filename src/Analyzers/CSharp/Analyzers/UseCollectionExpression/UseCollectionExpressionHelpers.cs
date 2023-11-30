@@ -482,10 +482,10 @@ internal static class UseCollectionExpressionHelpers
             CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
+            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             ArrowExpressionClauseSyntax => true,
-            LambdaExpressionSyntax lambda => lambda.ExpressionBody == topExpression,
             _ => false,
         };
 
@@ -509,6 +509,9 @@ internal static class UseCollectionExpressionHelpers
             else
                 return false;
         }
+
+        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
 
         bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {

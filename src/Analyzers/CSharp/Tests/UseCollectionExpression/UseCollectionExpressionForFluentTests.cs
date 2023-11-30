@@ -2652,6 +2652,30 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        var f = () => new int[] { 1, 2, 3 }.ToList();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
     public async Task TestNotInExpressionTree()
     {
         await new VerifyCS.Test

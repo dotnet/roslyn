@@ -5036,6 +5036,25 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    var e = () => new List<int>();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
     public async Task TestNotInExpressionTree()
     {
         await TestMissingInRegularAndScriptAsync(
