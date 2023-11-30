@@ -495,8 +495,7 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public Guid TelemetryId { get; } = telemetryId;
 
-            private StrongBox<(string?, string?)>? _lazyNameAndFlavor;
-
+            private SingleInitNullable<(string? name, string? flavor)> _lazyNameAndFlavor;
             private SingleInitNullable<Checksum> _lazyChecksum;
 
             /// <summary>
@@ -506,18 +505,11 @@ namespace Microsoft.CodeAnalysis
             /// langword="null"/> if the name does not contain a flavor.
             /// </summary>
             public (string? name, string? flavor) NameAndFlavor
-            {
-                get
+                => _lazyNameAndFlavor.Initialize(static @this =>
                 {
-                    if (_lazyNameAndFlavor == null)
-                    {
-                        var match = s_projectNameAndFlavor.Match(Name);
-                        _lazyNameAndFlavor = new StrongBox<(string?, string?)>(match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default);
-                    }
-
-                    return _lazyNameAndFlavor.Value;
-                }
-            }
+                    var match = s_projectNameAndFlavor.Match(@this.Name);
+                    return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
+                }, this);
 
             public ProjectAttributes With(
                 VersionStamp? version = null,
