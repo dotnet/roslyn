@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // public options do not affect classification:
             return GetClassifiedSpans(document.Project.Solution.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);

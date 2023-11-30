@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis
         private WeakReference<SemanticModel>? _model;
 
         /// <summary>
+        /// A cached reference to the <see cref="SemanticModel"/>.
+        /// </summary>
+        private WeakReference<SemanticModel>? _nullableDisabledModel;
+
+        /// <summary>
         /// A cached task that can be returned once the tree has already been created. This is only set if <see cref="SupportsSyntaxTree"/> returns true,
         /// so the inner value can be non-null.
         /// </summary>
@@ -258,6 +263,30 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the current nullable disabled semantic model for this document if the model is already computed and still cached.
+        /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
+        /// if necessary.
+        /// </summary>
+        public bool TryGetNullableDisabledSemanticModel([NotNullWhen(returnValue: true)] out SemanticModel? semanticModel)
+        {
+            semanticModel = null;
+            return _nullableDisabledModel != null && _nullableDisabledModel.TryGetTarget(out semanticModel);
+        }
+
+        /// <summary>
+        /// Gets the nullable disbaled semantic model for this document asynchronously.
+        /// </summary>
+        /// <returns>
+        /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
+        /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
+        /// </returns>
+        public async Task<SemanticModel?> GetNullableDisabledSemanticModelAsync(CancellationToken cancellationToken = default)
+        {
+            return await GetSemanticModelAsync(cancellationToken, disableNullableAnalysis: true).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
         /// <returns>
@@ -267,6 +296,19 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         public async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
+            return await GetSemanticModelAsync(cancellationToken, disableNullableAnalysis: false).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets the semantic model for this document asynchronously.
+        /// </summary>
+        /// <returns>
+        /// The returned <see cref="SemanticModel"/> may be <see langword="null"/> if <see
+        /// cref="SupportsSemanticModel"/> returns <see langword="false"/>. This function will
+        /// return the same value if called multiple times.
+        /// </returns>
+        private async Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default, bool disableNullableAnalysis = false)
+        {
             try
             {
                 if (!this.SupportsSemanticModel)
@@ -274,19 +316,38 @@ namespace Microsoft.CodeAnalysis
                     return null;
                 }
 
-                if (this.TryGetSemanticModel(out var semanticModel))
+                SemanticModel? semanticModel;
+                if (disableNullableAnalysis)
                 {
-                    return semanticModel;
+                    if (this.TryGetNullableDisabledSemanticModel(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
+                }
+                else
+                {
+                    if (this.TryGetSemanticModel(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
                 }
 
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var result = compilation.GetSemanticModel(syntaxTree);
+                var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis: disableNullableAnalysis);
                 Contract.ThrowIfNull(result);
+                WeakReference<SemanticModel>? original = null;
 
                 // first try set the cache if it has not been set
-                var original = Interlocked.CompareExchange(ref _model, new WeakReference<SemanticModel>(result), null);
+                if (disableNullableAnalysis)
+                {
+                    original = Interlocked.CompareExchange(ref _nullableDisabledModel, new WeakReference<SemanticModel>(result), null);
+                }
+                else
+                {
+                    original = Interlocked.CompareExchange(ref _model, new WeakReference<SemanticModel>(result), null);
+                }
 
                 // okay, it is first time.
                 if (original == null)
