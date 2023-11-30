@@ -34,23 +34,11 @@ internal sealed class SimpleTaskItem : ITaskItem
 
     public void CopyMetadataTo(ITaskItem destinationItem) => throw new NotImplementedException();
 
-    public string? GetMetadata(string metadataName)
-    {
-        if (Metadata is not null)
-        {
-            return Metadata.TryGetValue(metadataName, out var metadataValue) ? metadataValue : null;
-        }
+    public string? GetMetadata(string metadataName) =>
+        Metadata.TryGetValue(metadataName, out var metadataValue) ? metadataValue : null;
 
-        return null;
-    }
-
-    public void RemoveMetadata(string metadataName)
-    {
-        if (Metadata is { })
-        {
-            Metadata.Remove(metadataName);
-        }
-    }
+    public void RemoveMetadata(string metadataName) =>
+       _ = Metadata.Remove(metadataName);
 
     public void SetMetadata(string metadataName, string metadataValue)
     {
