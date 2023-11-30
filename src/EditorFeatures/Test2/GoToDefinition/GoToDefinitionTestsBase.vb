@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim defLocationAndSpan = Await goToDefService.GetDefinitionLocationAsync(
                     document, cursorPosition, CancellationToken.None)
-                Dim defLocation = defLocationAndSpan.location
+                Dim defLocation = defLocationAndSpan?.Location
 
                 Dim actualResult = defLocation IsNot Nothing AndAlso
                     Await defLocation.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
