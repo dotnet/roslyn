@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ImmutableArray<CodeAction>? NestedCodeActions { get; }
 
-        public string[] CodeActionPath { get; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string[]? CodeActionPath { get; }
 
         public CodeActionResolveData(
             string uniqueIdentifier,
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             LSP.TextDocumentIdentifier textDocument,
             string[]? fixAllFlavors,
             ImmutableArray<CodeAction>? nestedCodeActions,
-            string[] codeActionPath)
+            string[]? codeActionPath)
         {
             UniqueIdentifier = uniqueIdentifier;
             CustomTags = customTags;
