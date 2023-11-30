@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal class SemanticTokensHelpers
     {
-        private static List<long> s_new = new List<long>();
         internal static async Task<int[]> HandleRequestHelperAsync(
             IGlobalOptionService globalOptions,
             SemanticTokensRefreshQueue semanticTokensRefreshQueue,
@@ -84,7 +82,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // We either calculate the tokens for the full document span, or the user 
             // can pass in a range from the full document if they wish.
             ranges ??= [ProtocolConversions.TextSpanToRange(root.FullSpan, text)];
-            var stopwatch = Stopwatch.StartNew();
             using var _ = ArrayBuilder<TextSpan>.GetInstance(ranges.Length, out var textSpans);
             foreach (var range in ranges)
             {
@@ -93,8 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             await GetClassifiedSpansForDocumentAsync(
                 classifiedSpans, document, textSpans.ToImmutableArray(), options, cancellationToken).ConfigureAwait(false);
-            stopwatch.Stop();
-            s_new.Add(stopwatch.ElapsedMilliseconds);
 
             // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
             classifiedSpans.Sort(ClassifiedSpanComparer.Instance);

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         _cachedData.Clear();
 
                     // Enqueue this document into our work queue to fully classify and cache.
-                    //_workQueue.AddWork((document, type, options));
+                    _workQueue.AddWork((document, type, options));
                 }
 
                 return SerializableClassifiedSpans.Dehydrate(temp.ToImmutableArray());
