@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" Link="InternalUtilities\ReadOnlyMemoryOfCharComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SingleInitNullable.cs" Link="InternalUtilities\SingleInitNullable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
@@ -540,6 +541,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticEquivalence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SignatureComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpecializedTasks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />

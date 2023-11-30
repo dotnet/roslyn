@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
-        private IOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
+        private ICollectionExpressionOperation CreateBoundCollectionExpression(BoundCollectionExpression expr)
         {
             SyntaxNode syntax = expr.Syntax;
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
@@ -1258,18 +1258,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundCollectionExpressionElement(BoundNode element)
         {
-            if (element is BoundCollectionExpressionSpreadElement spreadElement)
-            {
-                var iteratorBody = ((BoundExpressionStatement?)spreadElement.IteratorBody)?.Expression;
-                return CreateBoundCollectionExpressionSpreadElement(
-                    spreadElement,
-                    iteratorBody is null ? null : Binder.GetUnderlyingCollectionExpressionElement(iteratorBody));
-            }
-            return Create(Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element));
+            return element is BoundCollectionExpressionSpreadElement spreadElement ?
+                CreateBoundCollectionExpressionSpreadElement(spreadElement) :
+                Create(Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element));
         }
 
-        private IOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element, BoundExpression? iteratorItem)
+        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
         {
+            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
+            var iteratorItem = iteratorBody is null ? null : Binder.GetUnderlyingCollectionExpressionElement(iteratorBody);
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
@@ -1281,7 +1278,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 elementConversion,
                 _semanticModel,
                 syntax,
-                type: null,
                 isImplicit);
         }
 
