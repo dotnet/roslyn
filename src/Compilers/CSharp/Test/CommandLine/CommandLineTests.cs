@@ -2665,7 +2665,17 @@ print Goodbye, World";
         [Fact]
         public void ParseReferencesAliasErrors()
         {
-            parseRef(@"/reference:a\b=util.dll").Verify();
+            parseRef(@"/reference:a\b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a\b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a$b=util.dll").Verify(
+                Diagnostic(ErrorCode.ERR_BadExternIdentifier).WithArguments(@"a$b").WithLocation(1, 1));
+
+            parseRef(@"/reference:a=util.dll,util2.dll").Verify(
+                Diagnostic(ErrorCode.ERR_OneAliasPerReference).WithLocation(1, 1));
+
+            parseRef(@"/reference:a=").Verify(
+                Diagnostic(ErrorCode.ERR_AliasMissingFile).WithArguments("a").WithLocation(1, 1));
 
             ImmutableArray<Diagnostic> parseRef(string refText)
             {
@@ -2673,7 +2683,6 @@ print Goodbye, World";
                 return parsedArgs.Errors;
             }
         }
-
 
         [Fact]
         public void ParseAnalyzers()

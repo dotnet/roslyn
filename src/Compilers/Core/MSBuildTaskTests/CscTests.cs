@@ -570,24 +570,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void References_Equals()
+        public void ReferenceForms()
         {
-            core(@"util.dll", null, @"/reference:util.dll");
-            core(@"util.dll", "global", @"/reference:util.dll");
-            core(@"util.dll", "lib", @"/reference:lib=util.dll");
-            core(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
-            core(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
-            core(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
-            core(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
-            core(@"a=util.dll", null, @"/reference:""a=util.dll""");
-            core(@"util.dll", "lib", @"/reference:lib=util.dll");
-            core(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            parse(@"util.dll", null, @"/reference:util.dll");
+            parse(@"util.dll", "global", @"/reference:util.dll");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"""util.dll""", "global", @"/reference:""\""util.dll\""""");
+            parse(@"c:\a=util.dll", null, @"/reference:""c:\a=util.dll""");
+            parse(@"c:\a=util.dll", "global", @"/reference:""c:\a=util.dll""");
+            parse(@"""c:\a=util.dll""", "global", @"/reference:""\""c:\a=util.dll\""""");
+            parse(@"a=util.dll", null, @"/reference:""a=util.dll""");
+            parse(@"util.dll", "lib", @"/reference:lib=util.dll");
+            parse(@"c:\a=util.dll", "lib", @"/reference:lib=c:\a=util.dll");
+            parse(@"util.dll", null, @"/link:util.dll", true);
+            parse(@"util.dll", "global", @"/link:util.dll", true);
+            parse(@"util.dll", "lib", @"/link:lib=util.dll", true);
+            parseMultiple(@"util.dll", "global,a", @"/reference:util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"util.dll", "b,a", @"/reference:b=util.dll", @"/reference:a=util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "global,c", @"/reference:""c:\a=b\util.dll""", @"/reference:c=c:\a=b\util.dll");
+            parseMultiple(@"c:\a=b\util.dll", "x,z", @"/reference:x=c:\a=b\util.dll", @"/reference:z=c:\a=b\util.dll");
 
-            // These result in illegal /reference: syntax but that is for the compiler to 
-            // determine
-            core(@"util.dll", "lib=bad", @"/reference:lib=bad=util.dll");
-            core(@"util.dll", @"lib\bad", @"/reference:lib\bad=util.dll");
-            void core(string refText, string? alias, params string[] args)
+            void parse(string refText, string? alias, string args, bool embedInteropTypes = false) =>
+                parseCore(refText, alias, embedInteropTypes, [args]);
+
+            void parseMultiple(string refText, string? alias, params string[] args) =>
+                parseCore(refText, alias, embedInteropTypes: false, args);
+
+            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] args)
             {
                 var engine = new MockEngine(TestOutputHelper);
                 var csc = new Csc()
@@ -595,10 +604,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     BuildEngine = engine,
                     Sources = MSBuildUtil.CreateTaskItems("test.cs"),
                     TargetType = "library",
-                    References = [SimpleTaskItem.CreateReference(refText, alias: alias)],
+                    References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
                 };
 
                 TaskTestUtil.AssertCommandLine(csc, engine, [.. args, "/out:test.dll", "/target:library", "test.cs"]);
+            }
+        }
+
+        [Fact]
+        public void ReferenceErrors()
+        {
+            parseRef(@"util.dll", "a=b");
+            parseRef(@"util.dll", "a b");
+            parseRef(@"util.dll", "a;b");
+
+            void parseRef(string refText, string alias)
+            {
+                var engine = new MockEngine(TestOutputHelper);
+                var csc = new Csc()
+                {
+                    BuildEngine = engine,
+                    Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+                    TargetType = "library",
+                    References = [SimpleTaskItem.CreateReference(refText, alias)]
+                };
+
+                Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
         }
     }
