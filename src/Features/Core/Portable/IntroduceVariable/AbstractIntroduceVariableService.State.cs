@@ -80,6 +80,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (expressionType is IErrorTypeSymbol)
                     return false;
 
+                if (this.IsInAttributeContext())
+                {
+                    // Can't introduce a constant/static for the arrays in an attribute.
+                    if (expressionType is IArrayTypeSymbol)
+                        return false;
+
+                    // Can't introduce a constant/static for a `typeof` in an attribute.
+                    if (expressionType is INamedTypeSymbol { ContainingNamespace.Name: nameof(System), Name: nameof(System.Type) })
+                        return false;
+                }
+
                 var containingType = Expression.AncestorsAndSelf()
                     .Select(n => Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()
