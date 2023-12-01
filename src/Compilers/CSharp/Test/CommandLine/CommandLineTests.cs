@@ -2625,33 +2625,24 @@ print Goodbye, World";
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71022")]
         public void ParseReferencesAlias()
         {
-            Assert.True(parseRef(@"/r:a=util.dll") is
-            {
-                Reference: @"util.dll",
-                Properties.Aliases: ["a"],
-                Properties.EmbedInteropTypes: false
-            });
+            assert(@"/r:a=util.dll", @"util.dll", ["a"], false);
+            assert(@"/r:""a=util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:""c:\users\app=exe\util.dll""", @"c:\users\app=exe\util.dll", [], false);
+            assert(@"/r:a=b=util.dll", @"b=util.dll", ["a"], false);
+            assert(@"/r:""a=b""=util.dll", @"a=b=util.dll", [], false);
+            assert(@"/r:\""a=b\""=util.dll", @"""a=b""=util.dll", [], false);
+            assert(@"/r:a""b=util.dll", "ab=util.dll", [], false);
+            assert(@"/r:a\""b=util.dll", @"a""b=util.dll", [], false);
+            assert(@"/r:""a""=""util.dll""", @"a=util.dll", [], false);
+            assert(@"/r:\""a\""=\""util.dll""", @"""a""=""util.dll", [], false);
 
-            Assert.True(parseRef(@"/r:""a=util.dll""") is
+            void assert(string arg, string expectedRef, string[] expectedAliases, bool expectedEmbed)
             {
-                Reference: @"a=util.dll",
-                Properties.Aliases: [],
-                Properties.EmbedInteropTypes: false
-            });
-
-            Assert.True(parseRef(@"/r:""c:\users\app=exe\util.dll""") is
-            {
-                Reference: @"c:\users\app=exe\util.dll",
-                Properties.Aliases: [],
-                Properties.EmbedInteropTypes: false
-            });
-
-            Assert.True(parseRef(@"/r:a=b=util.dll") is
-            {
-                Reference: @"b=util.dll",
-                Properties.Aliases: ["a"],
-                Properties.EmbedInteropTypes: false
-            });
+                var result = parseRef(arg);
+                Assert.Equal(expectedRef, result.Reference);
+                Assert.Equal(expectedAliases, result.Properties.Aliases);
+                Assert.Equal(expectedEmbed, result.Properties.EmbedInteropTypes);
+            }
 
             CommandLineReference parseRef(string refText)
             {

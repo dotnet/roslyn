@@ -590,13 +590,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             parseMultiple(@"c:\a=b\util.dll", "global,c", @"/reference:""c:\a=b\util.dll""", @"/reference:c=c:\a=b\util.dll");
             parseMultiple(@"c:\a=b\util.dll", "x,z", @"/reference:x=c:\a=b\util.dll", @"/reference:z=c:\a=b\util.dll");
 
-            void parse(string refText, string? alias, string args, bool embedInteropTypes = false) =>
-                parseCore(refText, alias, embedInteropTypes, [args]);
+            void parse(string refText, string? alias, string expectedArg, bool embedInteropTypes = false) =>
+                parseCore(refText, alias, embedInteropTypes, [expectedArg]);
 
-            void parseMultiple(string refText, string? alias, params string[] args) =>
-                parseCore(refText, alias, embedInteropTypes: false, args);
+            void parseMultiple(string refText, string? alias, params string[] expectedArgs) =>
+                parseCore(refText, alias, embedInteropTypes: false, expectedArgs);
 
-            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] args)
+            void parseCore(string refText, string? alias, bool embedInteropTypes, string[] expectedArgs)
             {
                 var engine = new MockEngine(TestOutputHelper);
                 var csc = new Csc()
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     References = [SimpleTaskItem.CreateReference(refText, alias: alias, embedInteropTypes)],
                 };
 
-                TaskTestUtil.AssertCommandLine(csc, engine, [.. args, "/out:test.dll", "/target:library", "test.cs"]);
+                TaskTestUtil.AssertCommandLine(csc, engine, [.. expectedArgs, "/out:test.dll", "/target:library", "test.cs"]);
             }
         }
 
@@ -617,6 +617,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             parseRef(@"util.dll", "a=b");
             parseRef(@"util.dll", "a b");
             parseRef(@"util.dll", "a;b");
+            parseRef(@"util.dll", @"a""b");
 
             void parseRef(string refText, string alias)
             {

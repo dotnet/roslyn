@@ -140,15 +140,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal void AppendSwitchForceQuoted(string switchName, string parameter)
         {
             AppendSwitch(switchName);
-            _isQuotingRequired = true;
-            try
-            {
-                AppendTextWithQuoting(parameter);
-            }
-            finally
-            {
-                _isQuotingRequired = false;
-            }
+            AppendTextWithForceQuoting(parameter);
         }
 
         /// <summary>
