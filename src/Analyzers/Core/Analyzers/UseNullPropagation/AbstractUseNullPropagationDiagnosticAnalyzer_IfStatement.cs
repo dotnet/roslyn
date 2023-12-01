@@ -31,7 +31,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     {
         var cancellationToken = context.CancellationToken;
         var option = context.GetAnalyzerOptions().PreferNullPropagation;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var syntaxFacts = GetSyntaxFacts();
@@ -94,7 +94,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             ImmutableArray.Create(
                 ifStatement.GetLocation(),
                 trueStatement.GetLocation(),

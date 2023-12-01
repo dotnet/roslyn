@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             SemanticModel semanticModel,
             SimplifierOptions simplifierOptions,
             [NotNullWhen(true)] out TThisExpressionSyntax? thisExpression,
-            out ReportDiagnostic severity,
+            out NotificationOption2 notificationOption,
             CancellationToken cancellationToken)
         {
-            severity = default;
+            notificationOption = NotificationOption2.Silent;
             thisExpression = null;
 
             if (memberAccessExpression is null)
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Simplification.Simplifiers
             if (!symbolInfo.Symbol.Equals(newSymbolInfo.Symbol, SymbolEqualityComparer.IncludeNullability))
                 return false;
 
-            severity = optionValue.Notification.Severity;
+            notificationOption = optionValue.Notification;
             return !semanticModel.SyntaxTree.OverlapsHiddenPosition(memberAccessExpression.Span, cancellationToken) &&
                    !MayCauseParseDifference(memberAccessExpression);
         }

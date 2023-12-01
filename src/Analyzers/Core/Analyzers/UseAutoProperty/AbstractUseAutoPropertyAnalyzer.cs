@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -132,7 +131,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 }
             });
 
-            static bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+            bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                     return false;
@@ -142,7 +141,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
                 {
                     var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
-                    return preferAutoProps.Value && preferAutoProps.Notification.Severity != ReportDiagnostic.Suppress;
+                    return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, context.Compilation.Options, preferAutoProps.Notification, context.CancellationToken);
                 }))
                 {
                     return false;
@@ -248,8 +247,8 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
         // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
         // helper diagnostic which is not otherwise influenced by the severity settings.
-        var severity = preferAutoProps.Notification.Severity;
-        if (severity == ReportDiagnostic.Suppress)
+        var notification = preferAutoProps.Notification;
+        if (notification.Severity == ReportDiagnostic.Suppress)
             return;
 
         var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
@@ -318,7 +317,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return;
 
         // Looks like a viable property/field to convert into an auto property.
-        analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, severity));
+        analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
@@ -402,7 +401,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         var diagnostic1 = DiagnosticHelper.Create(
             Descriptor,
             fieldNode.GetLocation(),
-            result.Severity,
+            result.Notification,
             additionalLocations: additionalLocations,
             properties: null);
 
@@ -422,5 +421,5 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         TPropertyDeclaration PropertyDeclaration,
         TFieldDeclaration FieldDeclaration,
         TVariableDeclarator VariableDeclarator,
-        ReportDiagnostic Severity);
+        NotificationOption2 Notification);
 }
