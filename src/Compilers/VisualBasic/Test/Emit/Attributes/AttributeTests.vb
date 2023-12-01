@@ -5243,7 +5243,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <expected><![CDATA[
-DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+BC30668: 'C' is obsolete: 'error'.
     Sub M(c As C)
                ~
 ]]></expected>)
