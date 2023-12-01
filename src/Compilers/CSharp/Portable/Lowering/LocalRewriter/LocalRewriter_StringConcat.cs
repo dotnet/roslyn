@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullOrEmptyStringConstant(BoundExpression operand)
         {
-            return (operand.ConstantValueOpt?.IsStringType() == true && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
+            return (operand.ConstantValueOpt?.IsString == true && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
                     operand.IsDefaultValue();
         }
 
