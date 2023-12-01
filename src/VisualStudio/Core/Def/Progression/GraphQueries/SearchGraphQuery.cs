@@ -47,9 +47,6 @@ internal sealed partial class SearchGraphQuery(
         return graphBuilder;
     }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="isFullyLoaded"></param>
     private sealed class SearchGraphQueryNavigateToSearchHost(bool isFullyLoaded) : INavigateToSearcherHost
     {
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
