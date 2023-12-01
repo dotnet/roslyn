@@ -100,24 +100,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly Kind _kind;
 
             /// <summary>
-            /// The path to subscribe to for <see cref="Kind.WatchDirectory"/> or <see cref="Kind.WatchFile"/>.
-            /// </summary>
-            private readonly string _directory;
-
-            /// <summary>
             /// The extension filter to apply for <see cref="Kind.WatchDirectory"/>. This value may be
             /// <see langword="null"/> to disable the extension filter.
             /// </summary>
             private readonly string? _filter;
 
             /// <summary>
-            /// The file change flags to apply for <see cref="Kind.WatchFile"/>.
+            /// The file change flags to apply for <see cref="Kind.WatchFiles"/>.
             /// </summary>
             private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
 
             /// <summary>
             /// The instance to receive callback events for <see cref="Kind.WatchDirectory"/> or
-            /// <see cref="Kind.WatchFile"/>.
+            /// <see cref="Kind.WatchFiles"/>.
             /// </summary>
             private readonly IVsFreeThreadedFileChangeEvents2 _sink;
 
@@ -134,70 +129,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly List<uint> _cookies;
 
             /// <summary>
-            /// A file watcher token. The <see cref="Context.RegularWatchedFile.Cookie"/> field is assigned by the
-            /// operation for <see cref="Kind.WatchFile"/>, or read by the operation for <see cref="Kind.UnwatchFile"/>.
+            /// A collection of file watcher tokens. The <see cref="Context.RegularWatchedFile.Cookie"/> field is
+            /// assigned by the operation for <see cref="Kind.WatchFiles"/>, or read by the operation for
+            /// <see cref="Kind.UnwatchFiles"/>.
             /// </summary>
-            private readonly Context.RegularWatchedFile _token;
+            private readonly OneOrMany<Context.RegularWatchedFile> _tokens;
 
             /// <summary>
-            /// A collection of file watcher tokens to remove for <see cref="Kind.UnwatchFiles"/>.
+            /// A collection of file paths to subscribe to for <see cref="Kind.WatchFiles"/> or
+            /// <see cref="Kind.WatchDirectory"/>.
             /// </summary>
-            private readonly ImmutableArray<Context.RegularWatchedFile> _tokens;
-
-            /// <summary>
-            /// A collection of file paths to subscribe to for <see cref="Kind.WatchFiles"/>/>.
-            /// </summary>
-            private readonly ImmutableArray<string> _files;
+            private readonly OneOrMany<string> _paths;
 
             private WatcherOperation(Kind kind, string directory, string? filter, IVsFreeThreadedFileChangeEvents2 sink, List<uint> cookies)
             {
                 Contract.ThrowIfFalse(kind is Kind.WatchDirectory);
                 _kind = kind;
 
-                _directory = directory;
+                _paths = new OneOrMany<string>(directory);
                 _filter = filter;
                 _sink = sink;
                 _cookies = cookies;
 
                 // Other watching fields are not used for this kind
                 _fileChangeFlags = 0;
-                _token = null!;
-                _tokens = ImmutableArray<Context.RegularWatchedFile>.Empty;
-                _files = ImmutableArray<string>.Empty;
+                _tokens = OneOrMany<Context.RegularWatchedFile>.Empty;
             }
 
-            private WatcherOperation(Kind kind, string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.RegularWatchedFile token)
-            {
-                Contract.ThrowIfFalse(kind is Kind.WatchFile);
-                _kind = kind;
-
-                _directory = path;
-                _fileChangeFlags = fileChangeFlags;
-                _sink = sink;
-                _token = token;
-
-                // Other watching fields are not used for this kind
-                _filter = null;
-                _cookies = null!;
-                _tokens = ImmutableArray<Context.RegularWatchedFile>.Empty;
-                _files = ImmutableArray<string>.Empty;
-            }
-
-            private WatcherOperation(Kind kind, ImmutableArray<string> files, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, ImmutableArray<Context.RegularWatchedFile> tokens)
+            private WatcherOperation(Kind kind, OneOrMany<string> files, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, OneOrMany<Context.RegularWatchedFile> tokens)
             {
                 Contract.ThrowIfFalse(kind is Kind.WatchFiles);
                 _kind = kind;
 
-                _files = files;
+                _paths = files;
                 _fileChangeFlags = fileChangeFlags;
                 _sink = sink;
                 _tokens = tokens;
 
                 // Other watching fields are not used for this kind
-                _directory = null!;
                 _filter = null;
                 _cookies = null!;
-                _token = null!;
             }
 
             private WatcherOperation(Kind kind, List<uint> cookies)
@@ -208,16 +179,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _cookies = cookies;
 
                 // Other watching fields are not used for this kind
-                _directory = null!;
                 _filter = null;
                 _fileChangeFlags = 0;
                 _sink = null!;
-                _token = null!;
-                _tokens = ImmutableArray<Context.RegularWatchedFile>.Empty;
-                _files = ImmutableArray<string>.Empty;
+                _tokens = OneOrMany<Context.RegularWatchedFile>.Empty;
+                _paths = OneOrMany<string>.Empty;
             }
 
-            private WatcherOperation(Kind kind, ImmutableArray<Context.RegularWatchedFile> tokens)
+            private WatcherOperation(Kind kind, OneOrMany<Context.RegularWatchedFile> tokens)
             {
                 Contract.ThrowIfFalse(kind is Kind.UnwatchFiles);
                 _kind = kind;
@@ -225,38 +194,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _tokens = tokens;
 
                 // Other watching fields are not used for this kind
-                _directory = null!;
                 _filter = null;
                 _fileChangeFlags = 0;
                 _sink = null!;
                 _cookies = null!;
-                _token = null!;
-                _files = ImmutableArray<string>.Empty;
-            }
-
-            private WatcherOperation(Kind kind, Context.RegularWatchedFile token)
-            {
-                Contract.ThrowIfFalse(kind is Kind.UnwatchFile);
-                _kind = kind;
-
-                _token = token;
-
-                // Other watching fields are not used for this kind
-                _directory = null!;
-                _filter = null;
-                _fileChangeFlags = 0;
-                _sink = null!;
-                _cookies = null!;
-                _tokens = ImmutableArray<Context.RegularWatchedFile>.Empty;
-                _files = ImmutableArray<string>.Empty;
+                _paths = OneOrMany<string>.Empty;
             }
 
             private enum Kind
             {
                 WatchDirectory,
-                WatchFile,
                 WatchFiles,
-                UnwatchFile,
                 UnwatchDirectories,
                 UnwatchFiles,
             }
@@ -265,19 +213,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 => new(Kind.WatchDirectory, directory, filter, sink, cookies);
 
             public static WatcherOperation WatchFile(string path, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, Context.RegularWatchedFile token)
-                => new(Kind.WatchFile, path, fileChangeFlags, sink, token);
+                => new(Kind.WatchFiles, OneOrMany.Create(path), fileChangeFlags, sink, OneOrMany.Create(token));
 
             public static WatcherOperation WatchFiles(ImmutableArray<string> files, _VSFILECHANGEFLAGS fileChangeFlags, IVsFreeThreadedFileChangeEvents2 sink, ImmutableArray<Context.RegularWatchedFile> tokens)
-                => new(Kind.WatchFiles, files, fileChangeFlags, sink, tokens);
+                => new(Kind.WatchFiles, new OneOrMany<string>(files), fileChangeFlags, sink, new OneOrMany<Context.RegularWatchedFile>(tokens));
 
             public static WatcherOperation UnwatchDirectories(List<uint> cookies)
                 => new(Kind.UnwatchDirectories, cookies);
 
             public static WatcherOperation UnwatchFiles(ImmutableArray<Context.RegularWatchedFile> tokens)
-                => new(Kind.UnwatchFiles, tokens);
+                => new(Kind.UnwatchFiles, new OneOrMany<Context.RegularWatchedFile>(tokens));
 
             public static WatcherOperation UnwatchFile(Context.RegularWatchedFile token)
-                => new(Kind.UnwatchFile, token);
+                => new(Kind.UnwatchFiles, OneOrMany.Create(token));
 
             /// <summary>
             /// Combines <see cref="WatcherOperation"/> instances between <paramref name="start"/> and <paramref name="end"/>
@@ -304,22 +252,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     switch (op._kind)
                     {
-                        case Kind.WatchFile:
-                            fileNamesBuilder.Add(op._directory);
-                            tokensBuilder.Add(op._token);
-                            break;
-
                         case Kind.WatchFiles:
-                            fileNamesBuilder.AddRange(op._files);
-                            tokensBuilder.AddRange(op._tokens);
-                            break;
+                            for (var i = 0; i < op._paths.Count; i++)
+                            {
+                                fileNamesBuilder.AddRange(op._paths[i]);
+                            }
 
-                        case Kind.UnwatchFile:
-                            tokensBuilder.Add(op._token);
+                            for (var i = 0; i < op._tokens.Count; i++)
+                            {
+                                tokensBuilder.AddRange(op._tokens[i]);
+                            }
                             break;
 
                         case Kind.UnwatchFiles:
-                            tokensBuilder.AddRange(op._tokens);
+                            for (var i = 0; i < op._tokens.Count; i++)
+                            {
+                                tokensBuilder.AddRange(op._tokens[i]);
+                            }
                             break;
 
                         case Kind.UnwatchDirectories:
@@ -333,9 +282,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 return firstOp._kind switch
                 {
-                    Kind.WatchFile or Kind.WatchFiles =>
+                    Kind.WatchFiles =>
                         WatchFiles(fileNamesBuilder.ToImmutable(), firstOp._fileChangeFlags, firstOp._sink, tokensBuilder.ToImmutable()),
-                    Kind.UnwatchFile or Kind.UnwatchFiles =>
+                    Kind.UnwatchFiles =>
                         UnwatchFiles(tokensBuilder.ToImmutable()),
                     Kind.UnwatchDirectories =>
                         UnwatchDirectories(cookiesBuilder.ToList()),
@@ -349,10 +298,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return _kind switch
                 {
                     Kind.WatchDirectory => false, // Watching directory operation cannot be combined
-                    Kind.WatchFile when other._kind is Kind.WatchFile or Kind.WatchFiles => true,
-                    Kind.WatchFiles when other._kind is Kind.WatchFile or Kind.WatchFiles => true,
-                    Kind.UnwatchFile when other._kind is Kind.UnwatchFile or Kind.UnwatchFiles => true,
-                    Kind.UnwatchFiles when other._kind is Kind.UnwatchFile or Kind.UnwatchFiles => true,
+                    Kind.WatchFiles when other._kind is Kind.WatchFiles => true,
+                    Kind.UnwatchFiles when other._kind is Kind.UnwatchFiles => true,
                     Kind.UnwatchDirectories when other._kind == Kind.UnwatchDirectories => true,
                     _ => false,
                 };
@@ -363,7 +310,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 switch (_kind)
                 {
                     case Kind.WatchDirectory:
-                        var cookie = await service.AdviseDirChangeAsync(_directory, watchSubdirectories: true, _sink, cancellationToken).ConfigureAwait(false);
+                        var cookie = await service.AdviseDirChangeAsync(_paths[0], watchSubdirectories: true, _sink, cancellationToken).ConfigureAwait(false);
                         _cookies.Add(cookie);
 
                         if (_filter != null)
@@ -371,21 +318,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         return;
 
-                    case Kind.WatchFile:
-                        _token.Cookie = await service.AdviseFileChangeAsync(_directory, _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
-                        return;
-
                     case Kind.WatchFiles:
-                        var cookies = await service.AdviseFileChangesAsync(_files, _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
+                        var cookies = await service.AdviseFileChangesAsync(_paths.ToImmutable(), _fileChangeFlags, _sink, cancellationToken).ConfigureAwait(false);
 
-                        Contract.ThrowIfTrue(cookies.Length != _tokens.Length);
+                        Contract.ThrowIfTrue(cookies.Length != _tokens.Count);
                         for (var i = 0; i < cookies.Length; i++)
                             _tokens[i].Cookie = cookies[i];
 
-                        return;
-
-                    case Kind.UnwatchFile:
-                        await service.UnadviseFileChangeAsync(_token.Cookie!.Value, cancellationToken).ConfigureAwait(false);
                         return;
 
                     case Kind.UnwatchDirectories:
