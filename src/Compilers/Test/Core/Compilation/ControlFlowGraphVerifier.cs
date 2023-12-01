@@ -504,7 +504,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             if (referencedInLastOperation.Contains(id) ||
                                 longLivedIds.Contains(id) ||
-                                isCSharpEmptyObjectInitializerCapture(region, block, id) ||
                                 isWithStatementTargetCapture(region, block, id) ||
                                 isSwitchTargetCapture(region, block, id) ||
                                 isForEachEnumeratorCapture(region, block, id) ||
@@ -530,43 +529,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     referencedInLastOperation.Free();
                 }
-            }
-
-            bool isCSharpEmptyObjectInitializerCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
-            {
-                if (graph.OriginalOperation.Language != LanguageNames.CSharp)
-                {
-                    return false;
-                }
-
-                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, block.Ordinal))
-                {
-                    if (candidate.Id.Equals(id))
-                    {
-                        CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
-                        CSharpSyntaxNode parent = syntax;
-
-                        do
-                        {
-                            parent = parent.Parent;
-                        }
-                        while (parent != null && parent.Kind() != CSharp.SyntaxKind.SimpleAssignmentExpression);
-
-                        if (parent is AssignmentExpressionSyntax assignment &&
-                            assignment.Parent?.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
-                            assignment.Left.DescendantNodesAndSelf().Contains(syntax) &&
-                            assignment.Right is InitializerExpressionSyntax initializer &&
-                            initializer.Kind() == CSharp.SyntaxKind.ObjectInitializerExpression &&
-                            !initializer.Expressions.Any())
-                        {
-                            return true;
-                        }
-
-                        break;
-                    }
-                }
-
-                return false;
             }
 
             bool isWithStatementTargetCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)

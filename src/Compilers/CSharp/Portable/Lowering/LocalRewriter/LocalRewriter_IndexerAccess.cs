@@ -532,8 +532,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
+                Debug.Assert(indexerAccess.Arguments.Length == 1);
                 if (isLeftOfAssignment && indexerAccess.GetRefKind() == RefKind.None)
                 {
+                    // Note: we currently don't honor cacheAllArgumentsOnly in this branch, and let
+                    // callers do the caching instead
+                    // Tracked by https://github.com/dotnet/roslyn/issues/71056
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                         ref receiver,

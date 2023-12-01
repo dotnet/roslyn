@@ -6207,6 +6207,7 @@ oneMoreTime:
 
             static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
             {
+                // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
                 return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
                     && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
             }
@@ -6219,9 +6220,8 @@ oneMoreTime:
                 {
                     foreach (var argument in propertyReference.Arguments)
                     {
-                        if (argument is { ArgumentKind: ArgumentKind.ParamArray })
+                        if (argument is { ArgumentKind: ArgumentKind.ParamArray, Value: IArrayCreationOperation array })
                         {
-                            var array = argument.Value as IArrayCreationOperation ?? throw ExceptionUtilities.Unreachable();
                             Debug.Assert(array.Initializer is not null);
 
                             foreach (var element in array.Initializer.ElementValues)

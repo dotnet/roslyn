@@ -242,6 +242,48 @@ struct Buffer10
                 );
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_NestedCollectionInitializer(bool useCsharp13)
+        {
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+
+M();
+
+partial class Program
+{
+    static Buffer10 M() { return new Buffer10() { [Id(^1)] = { Id(1), Id(2) } }; }
+
+    public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+class C : System.Collections.Generic.IEnumerable<int>
+{
+    public void Add(int i) { }
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() { yield return 0; }
+    IEnumerator IEnumerable.GetEnumerator() { yield return 0; }
+}
+
+struct Buffer10
+{
+    public int Length => 10;
+    public C this[int x] => new C();
+}
+""";
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(1) Id(2)");
+            verifier.VerifyDiagnostics();
+
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (8,51): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { Id(1), Id(2) } }; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(^1)]").WithArguments("implicit indexer initializer").WithLocation(8, 51)
+                );
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
         public void InObjectInitializer_Index_FieldInitializerWithEmptyInitializer()
         {
@@ -489,6 +531,188 @@ class C
   IL_005f:  ret
 }
 """);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new C() { F = {[Id(^1)] = Id(42), [Id(^2)] = Id(43)} }", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... = Id(43)} }')
+Arguments(0)
+Initializer:
+  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ F = {[Id( ... = Id(43)} }')
+    Initializers(1):
+        IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Int32[]) (Syntax: 'F = {[Id(^1 ... ] = Id(43)}')
+          InitializedMember:
+            IFieldReferenceOperation: System.Int32[] C.F (OperationKind.FieldReference, Type: System.Int32[]) (Syntax: 'F')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
+          Initializer:
+            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32[]) (Syntax: '{[Id(^1)] = ... ] = Id(43)}')
+              Initializers(2):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[Id(^1)] = Id(42)')
+                    Left:
+                      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[Id(^1)]')
+                        Array reference:
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Int32[], IsImplicit) (Syntax: 'F')
+                        Indices(1):
+                            IInvocationOperation (System.Index C.Id(System.Index i)) (OperationKind.Invocation, Type: System.Index) (Syntax: 'Id(^1)')
+                              Instance Receiver:
+                                null
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '^1')
+                                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                                      Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right:
+                      IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(42)')
+                        Instance Receiver:
+                          null
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[Id(^2)] = Id(43)')
+                    Left:
+                      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[Id(^2)]')
+                        Array reference:
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Int32[], IsImplicit) (Syntax: 'F')
+                        Indices(1):
+                            IInvocationOperation (System.Index C.Id(System.Index i)) (OperationKind.Invocation, Type: System.Index) (Syntax: 'Id(^2)')
+                              Instance Receiver:
+                                null
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '^2')
+                                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^2')
+                                      Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right:
+                      IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(43)')
+                        Instance Receiver:
+                          null
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '43')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 43) (Syntax: '43')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""");
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C() { F ... = Id(43)} }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... = Id(43)} }')
+                  Arguments(0)
+                  Initializer:
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (2)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Id(^1)')
+                  Value:
+                    IInvocationOperation (System.Index C.Id(System.Index i)) (OperationKind.Invocation, Type: System.Index) (Syntax: 'Id(^1)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '^1')
+                            IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[Id(^1)] = Id(42)')
+                  Left:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[Id(^1)]')
+                      Array reference:
+                        IFieldReferenceOperation: System.Int32[] C.F (OperationKind.FieldReference, Type: System.Int32[]) (Syntax: 'F')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C() { F ... = Id(43)} }')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Index, IsImplicit) (Syntax: 'Id(^1)')
+                  Right:
+                    IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(42)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Id(^2)')
+                  Value:
+                    IInvocationOperation (System.Index C.Id(System.Index i)) (OperationKind.Invocation, Type: System.Index) (Syntax: 'Id(^2)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '^2')
+                            IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^2')
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[Id(^2)] = Id(43)')
+                  Left:
+                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: '[Id(^2)]')
+                      Array reference:
+                        IFieldReferenceOperation: System.Int32[] C.F (OperationKind.FieldReference, Type: System.Int32[]) (Syntax: 'F')
+                          Instance Receiver:
+                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C() { F ... = Id(43)} }')
+                      Indices(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Index, IsImplicit) (Syntax: 'Id(^2)')
+                  Right:
+                    IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(43)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '43')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 43) (Syntax: '43')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B4]
+                Leaving: {R3}
+    }
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (0)
+        Next (Return) Block[B5]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C() { F ... = Id(43)} }')
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+""", graph, symbol);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
@@ -1680,8 +1904,8 @@ class C
                 );
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-        public void InObjectInitializer_Range_WithNesting()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithNesting(bool useCsharp13)
         {
             string source = """
 var c = C.M(3..^6);
@@ -1705,7 +1929,7 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-            var comp = CreateCompilationWithIndexAndRange(source);
+            var comp = CreateCompilationWithIndexAndRange(source, parseOptions: useCsharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6) Length Id(1) Slice(3, 1) Id(42) Id(2) Slice(3, 1) Id(43) Results=42,43");
             verifier.VerifyIL("C.M", """
@@ -1992,6 +2216,13 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 """, graph, symbol);
+
+            comp = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (16,32): error CS8652: The feature 'implicit indexer initializer' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[Id(r)]").WithArguments("implicit indexer initializer").WithLocation(16, 32)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
