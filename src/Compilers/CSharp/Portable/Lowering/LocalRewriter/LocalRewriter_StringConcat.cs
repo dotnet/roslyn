@@ -327,15 +327,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((leftIsChar || rightIsChar) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
-                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
+                TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanCtorRefParamGeneric, isOptional: true))
             {
                 // One of args is a char. We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call.
                 // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
-                var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
-                var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
+                var readOnlySpanOfChar = readOnlySpanCtorRefParamGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
+                var readOnlySpanCtorRefParamChar = readOnlySpanCtorRefParamGeneric.AsMember(readOnlySpanOfChar);
 
-                var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
-                var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanWrappingCtorChar);
+                var wrappedLeft = WrapIntoReadOnlySpanOfCharIfNecessary(loweredLeft, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
+                var wrappedRight = WrapIntoReadOnlySpanOfCharIfNecessary(loweredRight, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar);
 
                 return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringConcatSpans, wrappedLeft, wrappedRight);
             }
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
-        private BoundExpression WrapIntoReadOnlySpanOfCharIfNecessary(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanWrappingCtorChar)
+        private BoundExpression WrapIntoReadOnlySpanOfCharIfNecessary(BoundExpression expr, MethodSymbol stringImplicitConversionToReadOnlySpan, MethodSymbol readOnlySpanCtorRefParamChar)
         {
             var exprType = expr.Type;
 
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // new ReadOnlySpan<char>(in <expr>)
                     return new BoundObjectCreationExpression(
                         expr.Syntax,
-                        readOnlySpanWrappingCtorChar,
+                        readOnlySpanCtorRefParamChar,
                         ImmutableArray.Create(expr),
                         argumentNamesOpt: default,
                         argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultArguments: default,
                         constantValueOpt: null,
                         initializerExpressionOpt: null,
-                        type: readOnlySpanWrappingCtorChar.ContainingType);
+                        type: readOnlySpanCtorRefParamChar.ContainingType);
                 }
                 else
                 {
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var wrappedChar = new BoundObjectCreationExpression(
                         expr.Syntax,
-                        readOnlySpanWrappingCtorChar,
+                        readOnlySpanCtorRefParamChar,
                         ImmutableArray.Create<BoundExpression>(temp),
                         argumentNamesOpt: default,
                         argumentRefKindsOpt: ImmutableArray.Create(RefKindExtensions.StrictIn),
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultArguments: default,
                         constantValueOpt: null,
                         initializerExpressionOpt: null,
-                        type: readOnlySpanWrappingCtorChar.ContainingType);
+                        type: readOnlySpanCtorRefParamChar.ContainingType);
 
                     // var temp = <expr>;
                     // new ReadOnlySpan<char>(in temp)
