@@ -74,16 +74,34 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                                   .WhereAsArray(d => d != _activeDocument);
         }
 
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
+        /// <summary>
+        /// Creates a searcher using the default host.
+        /// </summary>
+        /// <param name="disposalToken">Disposal token normally provided by <see
+        /// cref="T:Microsoft.CodeAnalysis.Editor.Shared.Utilities.IThreadingContext.DisposalToken"/>.  Used to control
+        /// the lifetime of internal async work within the default host.</param>
+        public static NavigateToSearcher Create(
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
+            Solution solution,
+            IAsynchronousOperationListener asyncListener,
+            INavigateToSearchCallback callback,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            CancellationToken disposalToken)
+        {
+            var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
+            return Create(solution, asyncListener, callback, searchPattern, kinds, host);
+        }
+
         public static NavigateToSearcher Create(
             Solution solution,
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             IImmutableSet<string> kinds,
-            CancellationToken disposalToken,
-            INavigateToSearcherHost? host = null)
+            INavigateToSearcherHost host)
         {
-            host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
             return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
         }
 

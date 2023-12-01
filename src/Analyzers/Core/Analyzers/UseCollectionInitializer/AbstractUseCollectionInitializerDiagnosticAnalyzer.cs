@@ -67,6 +67,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
         IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
         EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: false);
@@ -74,6 +75,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
         IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
         EnforceOnBuildValues.UseCollectionInitializer,
+        hasAnyCodeStyleOption: true,
         new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: true);
@@ -135,8 +137,14 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var preferExpressionOption = context.GetAnalyzerOptions().PreferCollectionExpression;
 
         // not point in analyzing if both options are off.
-        if (!preferInitializerOption.Value && !preferExpressionOption.Value)
+        if (!preferInitializerOption.Value
+            && !preferExpressionOption.Value
+            && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
+                    ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification),
+                    context.CancellationToken))
+        {
             return;
+        }
 
         // Object creation can only be converted to collection initializer if it implements the IEnumerable type.
         var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
@@ -179,7 +187,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties));
 
@@ -247,7 +255,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties));

@@ -175,7 +175,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 _diagnosticAnalyzer.Descriptor,
                 _primaryConstructorDeclaration.Identifier.GetLocation(),
-                _styleOption.Notification.Severity,
+                _styleOption.Notification,
                 ImmutableArray.Create(_primaryConstructorDeclaration.GetLocation()),
                 properties));
 
@@ -251,8 +251,11 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                     return null;
 
                 var styleOption = options.GetCSharpAnalyzerOptions(reference.SyntaxTree).PreferPrimaryConstructors;
-                if (!styleOption.Value)
+                if (!styleOption.Value
+                    || diagnosticAnalyzer.ShouldSkipAnalysis(reference.SyntaxTree, context.Options, context.Compilation.Options, styleOption.Notification, cancellationToken))
+                {
                     return null;
+                }
 
                 // only classes/structs can have primary constructors (not interfaces, enums or delegates).
                 if (namedType.TypeKind is not (TypeKind.Class or TypeKind.Struct))

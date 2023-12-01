@@ -73,7 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var memberAccess = (MemberAccessExpressionSyntax)context.Node;
@@ -99,7 +99,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
             properties: null));
 

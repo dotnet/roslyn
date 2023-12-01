@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var cancellationToken = context.CancellationToken;
 
             var option = context.GetIdeAnalyzerOptions().ReportInvalidRegexPatterns;
-            if (!option)
+            if (!option || ShouldSkipAnalysis(context, notification: null))
                 return;
 
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             Descriptor,
                             Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                            ReportDiagnostic.Warn,
+                            NotificationOption2.Warning,
                             additionalLocations: null,
                             properties: null,
                             diag.Message));

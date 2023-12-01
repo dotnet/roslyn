@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,7 +42,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
@@ -51,7 +52,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             analysisResult.DiagnosticLocation,
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -66,7 +67,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: null));
@@ -83,7 +84,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties: null));
