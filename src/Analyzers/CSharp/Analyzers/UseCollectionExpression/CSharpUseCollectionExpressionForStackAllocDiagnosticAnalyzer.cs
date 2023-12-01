@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -42,7 +43,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
@@ -55,7 +56,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -67,7 +68,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
@@ -81,7 +82,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var matches = TryGetMatches(semanticModel, expression, cancellationToken);
@@ -92,7 +93,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -104,7 +105,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }

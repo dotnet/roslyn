@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var onItemFound = GetOnItemFoundCallback(solution, activeDocument, onResultFound, cancellationToken);
 
-            var documentKeys = projects.SelectMany(p => p.Documents.Select(DocumentKey.ToDocumentKey)).ToImmutableArray();
+            var documentKeys = projects.SelectManyAsArray(p => p.Documents.Select(DocumentKey.ToDocumentKey));
             var priorityDocumentKeys = priorityDocuments.SelectAsArray(DocumentKey.ToDocumentKey);
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);

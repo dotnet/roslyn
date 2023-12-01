@@ -12702,6 +12702,182 @@ public static class Extension
                 """;
         }
 
+        #region Collection expressions
+
+        [Fact]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToVar()
+        {
+            var source = AddInsideMethod(
+                """
+                const int val = 3;
+                var x = [$$
+                """);
+
+            await VerifyItemExistsAsync(source, "val");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToReturn()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+
+                    IEnumerable<string> M() => [$$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_AfterFirstElementToVar()
+        {
+            var source = AddInsideMethod(
+                """
+                const int val = 3;
+                var x = [val, $$
+                """);
+
+            await VerifyItemExistsAsync(source, "val");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+                
+                    IEnumerable<string> M() => [string.Empty, $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [.. $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [string.Empty, .. $$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+
+                    IEnumerable<string> M() => [($$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
+        {
+            var source =
+                """
+                using System;
+
+                class C
+                {
+                    private readonly string field = string.Empty;
+
+                    IEnumerable<string> M() => [string.Empty, ($$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "field");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [.. ($$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
+        }
+
+        [Fact]
+        public async Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
+        {
+            var source =
+                """
+                class C
+                {
+                    private static readonly string[] strings = [string.Empty, "", "hello"];
+                
+                    IEnumerable<string> M() => [string.Empty, .. ($$
+                }
+                """;
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemExistsAsync(source, "strings");
+        }
+
+        #endregion
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

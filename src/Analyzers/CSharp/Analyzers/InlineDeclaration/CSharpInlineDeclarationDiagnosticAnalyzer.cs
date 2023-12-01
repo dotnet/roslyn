@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var option = context.GetCSharpAnalyzerOptions().PreferInlinedVariableDeclaration;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Don't bother doing any work if the user doesn't even have this preference set.
                 return;
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 reportNode.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: allLocations,
                 properties: null));
         }

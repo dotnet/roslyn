@@ -43,7 +43,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         // Analyze the statements that follow to see if they can initialize this array.
@@ -104,7 +104,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
         var isConcreteOrImplicitArrayCreation = initializer.Parent is ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax;
@@ -146,7 +146,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 initializer.OpenBraceToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
                 properties: null));
         }
@@ -158,7 +158,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             additionalLocations: locations,
             properties: null));
 
@@ -172,7 +172,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
+            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
+            return stack.SelectManyAsArray(n => n.TypeParameters);
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
@@ -529,34 +530,79 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Keep track of the symbols we've seen and what order we saw them in.  The 
             // order allows us to produce the symbols in the end from the furthest base-type
             // to the closest base-type
-            var result = new Dictionary<ISymbol, int>();
+            using var _ = PooledDictionary<ISymbol, int>.GetInstance(out var result);
             var index = 0;
 
-            if (containingType != null &&
-                !containingType.IsScriptClass &&
-                !containingType.IsImplicitClass &&
-                !containingType.IsStatic)
-            {
-                if (containingType.TypeKind is TypeKind.Class or TypeKind.Struct)
+            if (containingType is
                 {
-                    var baseTypes = containingType.GetBaseTypes().Reverse();
-                    foreach (var type in baseTypes)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    IsScriptClass: false,
+                    IsImplicitClass: false,
+                    IsStatic: false,
+                    TypeKind: TypeKind.Class or TypeKind.Struct
+                })
+            {
+                var baseTypes = containingType.GetBaseTypes().Reverse();
+                foreach (var type in baseTypes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                        // Prefer overrides in derived classes
-                        RemoveOverriddenMembers(result, type, cancellationToken);
+                    // Prefer overrides in derived classes
+                    RemoveOverriddenMembers(result, type, cancellationToken);
 
-                        // Retain overridable methods
-                        AddOverridableMembers(result, containingType, type, ref index, cancellationToken);
-                    }
-
-                    // Don't suggest already overridden members
-                    RemoveOverriddenMembers(result, containingType, cancellationToken);
+                    // Retain overridable methods
+                    AddOverridableMembers(result, containingType, type, ref index, cancellationToken);
                 }
+
+                // Don't suggest already overridden members
+                RemoveOverriddenMembers(result, containingType, cancellationToken);
+
+                // Don't suggest members that can't be overridden (because they would collide with an existing member).
+                RemoveNonOverriddableMembers(result, containingType, cancellationToken);
             }
 
             return result.Keys.OrderBy(s => result[s]).ToImmutableArray();
+
+            static void RemoveOverriddenMembers(
+                Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+            {
+                foreach (var member in containingType.GetMembers())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // An implicitly declared override is still something the user can provide their own explicit
+                    // override for.  This is true for all implicit overrides *except* for the one for `bool
+                    // object.Equals(object)`. This override is not one the user is allowed to provide their own
+                    // override for as it must have a very particular implementation to ensure proper record equality
+                    // semantics.
+                    if (!member.IsImplicitlyDeclared || IsEqualsObjectOverride(member))
+                    {
+                        var overriddenMember = member.GetOverriddenMember();
+                        if (overriddenMember != null)
+                            result.Remove(overriddenMember);
+                    }
+                }
+            }
+
+            static void RemoveNonOverriddableMembers(
+                Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)
+            {
+                var caseSensitive = containingType.Language != LanguageNames.VisualBasic;
+                var comparer = caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                foreach (var member in containingType.GetMembers())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (member.IsImplicitlyDeclared)
+                        continue;
+
+                    var matches = result.Where(kvp =>
+                        comparer.Equals(member.Name, kvp.Key.Name) &&
+                        SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive));
+
+                    // realize the matches since we're mutating the collection we're querying.
+                    foreach (var match in matches.ToImmutableArray())
+                        result.Remove(match.Key);
+                }
+            }
         }
 
         private static void AddOverridableMembers(
@@ -592,26 +638,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 IPropertySymbol { IsWithEvents: false } => true,
                 _ => false,
             };
-        }
-
-        private static void RemoveOverriddenMembers(
-            Dictionary<ISymbol, int> result, INamedTypeSymbol containingType, CancellationToken cancellationToken)
-        {
-            foreach (var member in containingType.GetMembers())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // An implicitly declared override is still something the user can provide their own explicit override
-                // for.  This is true for all implicit overrides *except* for the one for `bool object.Equals(object)`.
-                // This override is not one the user is allowed to provide their own override for as it must have a very
-                // particular implementation to ensure proper record equality semantics.
-                if (!member.IsImplicitlyDeclared || IsEqualsObjectOverride(member))
-                {
-                    var overriddenMember = member.GetOverriddenMember();
-                    if (overriddenMember != null)
-                        result.Remove(overriddenMember);
-                }
-            }
         }
 
         private static bool IsEqualsObjectOverride(ISymbol? member)

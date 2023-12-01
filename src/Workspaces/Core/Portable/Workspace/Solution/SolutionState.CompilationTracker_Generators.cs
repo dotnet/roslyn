@@ -188,8 +188,8 @@ internal partial class SolutionState
                         // Server provided us the checksum, so we just pass that along.  Note: it is critical that we do
                         // this as it may not be possible to reconstruct the same checksum the server produced due to
                         // the lossy nature of source texts.  See comment on GetOriginalSourceTextChecksum for more detail.
-                        contentIdentity.OriginalSourceTextChecksum);
-                    Contract.ThrowIfTrue(generatedDocument.GetOriginalSourceTextChecksum() != contentIdentity.OriginalSourceTextChecksum, "Checksums must match!");
+                        contentIdentity.OriginalSourceTextContentHash);
+                    Contract.ThrowIfTrue(generatedDocument.GetOriginalSourceTextContentHash() != contentIdentity.OriginalSourceTextContentHash, "Checksums must match!");
                     generatedDocumentsBuilder.Add(generatedDocument);
                 }
                 else
@@ -197,7 +197,7 @@ internal partial class SolutionState
                     // a document that already matched something locally.
                     var existingDocument = generatorInfo.Documents.GetRequiredState(documentId);
                     Contract.ThrowIfTrue(existingDocument.Identity != documentIdentity, "Identities must match!");
-                    Contract.ThrowIfTrue(existingDocument.GetOriginalSourceTextChecksum() != contentIdentity.OriginalSourceTextChecksum, "Checksums must match!");
+                    Contract.ThrowIfTrue(existingDocument.GetOriginalSourceTextContentHash() != contentIdentity.OriginalSourceTextContentHash, "Checksums must match!");
 
                     // ParseOptions may have changed between last generation and this one.  Ensure that they are
                     // properly propagated to the generated doc.

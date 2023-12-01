@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 // collects various variable informations
                 // extracted code contains return value
                 var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement(model);
-                var (parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed) =
+                var (parameters, returnType, returnsByRef, variableToUseAsReturnValue, unsafeAddressTakenUsed) =
                     GetSignatureInformation(dataFlowAnalysisData, variableInfoMap, isInExpressionOrHasReturnStatement);
 
                 var returnTypeTuple = AdjustReturnType(model, returnType);
@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     parameters,
                     variableToUseAsReturnValue,
                     returnType,
+                    returnsByRef,
                     awaitTaskReturn,
                     instanceMemberIsUsed,
                     shouldBeReadOnly,
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
+            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
                 GetSignatureInformation(
                     DataFlowAnalysis dataFlowAnalysisData,
                     Dictionary<ISymbol, VariableInfo> variableInfoMap,
@@ -301,10 +302,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap);
-                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
+                    var (returnType, returnsByRef) = SelectionResult.GetReturnType();
+                    returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, null, unsafeAddressTakenUsed);
+                    return (parameters, returnType, returnsByRef, null, unsafeAddressTakenUsed);
                 }
                 else
                 {
@@ -316,7 +318,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         : compilation.GetSpecialType(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed);
+                    return (parameters, returnType, returnsByRef: false, variableToUseAsReturnValue, unsafeAddressTakenUsed);
                 }
             }
 
@@ -409,9 +411,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private DataFlowAnalysis GetDataFlowAnalysisData(SemanticModel model)
             {
                 if (SelectionResult.SelectionInExpression)
-                {
-                    return model.AnalyzeDataFlow(SelectionResult.GetContainingScope());
-                }
+                    return model.AnalyzeDataFlow(SelectionResult.GetNodeForDataFlowAnalysis());
 
                 var pair = GetFlowAnalysisNodeRange();
                 return model.AnalyzeDataFlow(pair.Item1, pair.Item2);
