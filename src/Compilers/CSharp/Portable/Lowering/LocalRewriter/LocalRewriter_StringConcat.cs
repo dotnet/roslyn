@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString))
+                        if ((object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                            (object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                            (object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString))
                         {
                             arguments = boundCall.Arguments;
                             return true;
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Faced `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>) + string` (e.g. as a result of a previous rewrite).
                         // We can only unwrap this if we can later rewrite it to `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>)`
-                        if ((object)method == (object?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) &&
+                        if ((object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan) &&
                             TryGetWellKnownTypeMember<MethodSymbol>(lowered.Syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan, out _, isOptional: true))
                         {
                             arguments = boundCall.Arguments;
@@ -177,14 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Faced `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>) + string` (e.g. as a result of a previous rewrite).
                         // We can only unwrap this if we can later rewrite it to `string.Concat(ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>, ReadOnlySpan<char>)`
-                        if ((object)method == (object?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan) &&
+                        if ((object)method == _compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan) &&
                             TryGetWellKnownTypeMember<MethodSymbol>(lowered.Syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan, out _, isOptional: true))
                         {
                             arguments = boundCall.Arguments;
                             return true;
                         }
 
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
+                        if ((object)method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
                         {
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
                             if (args != null)
