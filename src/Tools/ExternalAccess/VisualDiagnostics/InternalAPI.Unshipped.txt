@@ -1,0 +1,3 @@
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.OnInitializedServiceFactory
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.OnInitializedServiceFactory.CreateILspService(Microsoft.CodeAnalysis.LanguageServer.LspServices lspServices, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> Microsoft.CodeAnalysis.LanguageServer.ILspService
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.OnInitializedServiceFactory.OnInitializedServiceFactory() -> void
