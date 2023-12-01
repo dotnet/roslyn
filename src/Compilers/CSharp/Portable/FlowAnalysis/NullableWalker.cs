@@ -3047,6 +3047,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _variables);
             localFunctionState.Visited = true;
 
+            localFunctionState.LoopHeadState ??= CreateLoopHeadState();
+            var previousLoopHeadState = _loopHeadState;
+            _loopHeadState = localFunctionState.LoopHeadState;
+
             AnalyzeLocalFunctionOrLambda(
                 node,
                 localFunc,
@@ -3054,6 +3058,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateInvokeMethod: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false);
+
+            _loopHeadState = previousLoopHeadState;
 
             SetInvalidResult();
 
@@ -3181,7 +3187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Local function starting state has changed, so a loop inside the local function
                 // can have an outdated head state, hence we need to recompute it in the next pass.
-                clearLoopHeadState = true;
+                localFunctionState.LoopHeadState?.Clear();
             }
         }
 
@@ -12087,6 +12093,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// produce diagnostics and determine types.
             /// </summary>
             public LocalState StartingState;
+
+            public Dictionary<BoundLoopStatement, LocalState>? LoopHeadState;
+
             public LocalFunctionState(LocalState unreachableState)
                 : base(unreachableState.Clone(), unreachableState.Clone())
             {

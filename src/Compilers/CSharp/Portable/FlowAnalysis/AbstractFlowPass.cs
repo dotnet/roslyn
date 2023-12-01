@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected bool stateChangedAfterUse;
 
-        protected bool clearLoopHeadState;
-
         /// <summary>
         /// All of the labels seen so far in this forward scan of the body
         /// </summary>
@@ -178,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A cache of the state at the backward branch point of each loop.  This is not needed
         /// during normal flow analysis, but is needed for DataFlowsOut region analysis.
         /// </summary>
-        private readonly Dictionary<BoundLoopStatement, TLocalState> _loopHeadState;
+        protected Dictionary<BoundLoopStatement, TLocalState> _loopHeadState;
         #endregion Region
 
         protected AbstractFlowPass(
@@ -218,9 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
-            _loopHeadState = new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
+            _loopHeadState = CreateLoopHeadState();
             TrackingRegions = trackRegions;
             _nonMonotonicTransfer = nonMonotonicTransferFunction;
+        }
+
+        protected static Dictionary<BoundLoopStatement, TLocalState> CreateLoopHeadState()
+        {
+            return new Dictionary<BoundLoopStatement, TLocalState>(ReferenceEqualityComparer.Instance);
         }
 
         protected abstract string Dump(TLocalState state);
@@ -447,13 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
-
-                if (this.clearLoopHeadState)
-                {
-                    this._loopHeadState.Clear();
-                    this.clearLoopHeadState = false;
-                }
-
                 returns = this.Scan(ref badRegion);
             }
             while (this.stateChangedAfterUse);
