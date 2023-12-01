@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -319,7 +318,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
         // Looks like a viable property/field to convert into an auto property.
         analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
-        }
+    }
 
     protected virtual bool CanConvert(IPropertySymbol property)
         => true;
