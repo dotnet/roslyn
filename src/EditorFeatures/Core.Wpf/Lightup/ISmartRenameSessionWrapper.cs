@@ -22,6 +22,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, bool> s_isAvailableAccessor;
     private static readonly Func<object, bool> s_hasSuggestionsAccessor;
     private static readonly Func<object, bool> s_isInProgressAccessor;
+    private static readonly Func<object, bool> s_isPreemptedAccessor;
     private static readonly Func<object, string> s_statusMessageAccessor;
     private static readonly Func<object, bool> s_statusMessageVisibilityAccessor;
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
@@ -39,6 +40,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_isAvailableAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsAvailable), false);
         s_hasSuggestionsAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(HasSuggestions), false);
         s_isInProgressAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsInProgress), false);
+        s_isPreemptedAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsPreempted), false);
         s_statusMessageAccessor = LightupHelpers.CreatePropertyAccessor<object, string>(s_wrappedType, nameof(StatusMessage), "");
         s_statusMessageVisibilityAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(StatusMessageVisibility), false);
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
@@ -56,6 +58,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     public bool IsAvailable => s_isAvailableAccessor(_instance);
     public bool HasSuggestions => s_hasSuggestionsAccessor(_instance);
     public bool IsInProgress => s_isInProgressAccessor(_instance);
+    public bool IsPreempted => s_isPreemptedAccessor(_instance);
     public string StatusMessage => s_statusMessageAccessor(_instance);
     public bool StatusMessageVisibility => s_statusMessageVisibilityAccessor(_instance);
     public IReadOnlyList<string> SuggestedNames => s_suggestedNamesAccessor(_instance);
