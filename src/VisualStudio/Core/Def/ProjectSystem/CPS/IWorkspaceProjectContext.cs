@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -23,10 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     {
         // Project properties.
         string DisplayName { get; set; }
-        string ProjectFilePath { get; set; }
+        string? ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         bool LastDesignTimeBuildSucceeded { get; set; }
-        string BinOutputPath { get; set; }
+        string? BinOutputPath { get; set; }
 
         /// <summary>
         /// When this project is one of a multi-targeting group of projects, this value indicates whether or not this
@@ -55,11 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveAnalyzerReference(string referencePath);
 
         // Files.
-        void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
+        void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
-        void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
+        void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null);
         void RemoveDynamicFile(string filePath);
 
         /// <summary>
