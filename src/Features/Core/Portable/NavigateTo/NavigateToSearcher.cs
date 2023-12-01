@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                                   .WhereAsArray(d => d != _activeDocument);
         }
 
-
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Creates a searcher using the default host.
