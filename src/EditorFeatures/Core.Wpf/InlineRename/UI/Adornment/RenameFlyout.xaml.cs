@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
         }
 
-        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        private void IdentifierTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // When smart rename is available, allow the user choose the suggestions using the up/down keys.
             _threadingContext.ThrowIfNotOnUIThread();
@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         e.Handled = true;
                     }
                 }
+                // When user starts typing, stop to ask advice
+                smartRenameViewModel.Cancel();
             }
         }
     }

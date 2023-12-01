@@ -44,7 +44,7 @@
                     Text="{Binding IdentifierText, UpdateSourceTrigger=PropertyChanged}" 
                     GotFocus="IdentifierTextBox_GotFocus"
                     HorizontalAlignment="Stretch" 
-                    PreviewKeyDown="IdentifierTextBox_KeyDown"/>
+                    PreviewKeyDown="IdentifierTextBox_PreviewKeyDown"/>
 
                 <!-- Expand/Collapse button and glyph -->
                 <Button 
