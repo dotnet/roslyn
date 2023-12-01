@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,7 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 internal sealed partial class SearchGraphQuery(
     string searchPattern,
     NavigateToSearchScope searchScope,
-    IThreadingContext threadingContext,
     IAsynchronousOperationListener asyncListener) : IGraphQuery
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
@@ -39,7 +37,6 @@ internal sealed partial class SearchGraphQuery(
             callback,
             searchPattern,
             NavigateToUtilities.GetKindsProvided(solution),
-            threadingContext.DisposalToken,
             host);
 
         await searcher.SearchAsync(searchCurrentDocument: false, searchScope, cancellationToken).ConfigureAwait(false);
