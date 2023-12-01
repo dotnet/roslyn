@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
                 // When user starts typing, stop to ask advice
-                smartRenameViewModel.Cancel();
+                smartRenameViewModel.StopRequestNameSuggestions();
             }
         }
     }
