@@ -196,6 +196,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             foreach (var provider in persisterProviders)
             {
                 var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+
+                // Initialize the PackageSettingsPersister to allow it to listen to analysis scope changed
+                // events from this package.
                 if (persister is PackageSettingsPersister packageSettingsPersister)
                     packageSettingsPersister.Initialize(this);
             }
