@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -87,11 +88,12 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     {
     }
 
-    protected abstract ISyntaxFacts GetSyntaxFacts();
+    protected abstract ISyntaxFacts SyntaxFacts { get; }
 
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
-    protected abstract bool CanUseCollectionExpression(SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken);
+    protected abstract bool CanUseCollectionExpression(
+        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, CancellationToken cancellationToken);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -103,30 +105,34 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (!AreCollectionInitializersSupported(context.Compilation))
             return;
 
-        var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
-        if (ienumerableType != null)
-        {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+        var ienumerableType = context.Compilation.IEnumerableType();
+        if (ienumerableType is null)
+            return;
 
-            using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
-            matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
-            if (syntaxKinds.ImplicitObjectCreationExpression != null)
-                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
-            var matchKindsArray = matchKinds.ToImmutableAndClear();
+        var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
 
-            // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
-            // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
-            // and eventually report fading diagnostics with location outside this node.
-            // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
-            // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
+        using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+        matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+        if (syntaxKinds.ImplicitObjectCreationExpression != null)
+            matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+        var matchKindsArray = matchKinds.ToImmutableAndClear();
+
+        // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+        // get callbacks for object creation expression nodes, but analyze nodes across the entire code block
+        // and eventually report fading diagnostics with location outside this node.
+        // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+        // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+        var expressionType = context.Compilation.ExpressionOfTType();
+        context.RegisterCodeBlockStartAction<TSyntaxKind>(blockStartContext =>
                 blockStartContext.RegisterSyntaxNodeAction(
-                    nodeContext => AnalyzeNode(nodeContext, ienumerableType),
+                    nodeContext => AnalyzeNode(nodeContext, ienumerableType, expressionType),
                     matchKindsArray));
-        }
     }
 
-    private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
+    private void AnalyzeNode(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol ienumerableType,
+        INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
@@ -153,7 +159,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         // Analyze the surrounding statements. First, try a broader set of statements if the language supports
         // collection expressions. 
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
         using var analyzer = GetAnalyzer();
 
         var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
@@ -228,7 +234,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, cancellationToken))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, cancellationToken))
                 return null;
 
             return (matches, shouldUseCollectionExpression: true);
@@ -241,7 +247,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
 
         foreach (var match in matches)
         {

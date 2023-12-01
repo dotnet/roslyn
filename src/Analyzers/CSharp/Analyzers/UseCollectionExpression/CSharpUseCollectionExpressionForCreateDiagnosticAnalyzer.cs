@@ -28,10 +28,10 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
     {
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
-    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -47,7 +47,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
-        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+        if (!CanReplaceWithCollectionExpression(semanticModel, invocationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());

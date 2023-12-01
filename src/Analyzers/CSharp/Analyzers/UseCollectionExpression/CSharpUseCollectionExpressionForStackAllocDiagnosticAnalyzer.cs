@@ -28,13 +28,13 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         return compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes);
     }
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
     {
-        context.RegisterSyntaxNodeAction(AnalyzeExplicitStackAllocExpression, SyntaxKind.StackAllocArrayCreationExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeImplicitStackAllocExpression, SyntaxKind.ImplicitStackAllocArrayCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeExplicitStackAllocExpression(context, expressionType), SyntaxKind.StackAllocArrayCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeImplicitStackAllocExpression(context, expressionType), SyntaxKind.ImplicitStackAllocArrayCreationExpression);
     }
 
-    private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeImplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -47,7 +47,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             return;
 
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }
@@ -73,7 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
-    private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var syntaxTree = semanticModel.SyntaxTree;
@@ -85,7 +85,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var matches = TryGetMatches(semanticModel, expression, cancellationToken);
+        var matches = TryGetMatches(semanticModel, expression, expressionType, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -113,11 +113,13 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            expressionType,
             static e => e.Type,
             static e => e.Initializer,
             cancellationToken);
