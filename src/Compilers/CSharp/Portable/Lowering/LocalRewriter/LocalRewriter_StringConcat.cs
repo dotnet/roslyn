@@ -324,13 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftIsChar = leftType?.IsCharType() == true;
             var rightIsChar = rightType?.IsCharType() == true;
 
-            // One of args is a char. We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call.
-            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
             if ((leftIsChar || rightIsChar) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
             {
+                // One of args is a char. We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call.
+                // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
@@ -370,13 +370,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var secondIsChar = secondType?.IsCharType() == true;
             var thirdIsChar = thirdType?.IsCharType() == true;
 
-            // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
-            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
             if ((firstIsChar || secondIsChar || thirdIsChar || firstType.IsReadOnlySpanChar() || secondType.IsReadOnlySpanChar() || thirdType.IsReadOnlySpanChar()) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
             {
+                // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
+                // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
@@ -427,13 +427,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var thirdIsChar = thirdType?.IsCharType() == true;
             var fourthIsChar = fourthType?.IsCharType() == true;
 
-            // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
-            // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
             if ((firstIsChar || secondIsChar || thirdIsChar || fourthIsChar || firstType.IsReadOnlySpanChar() || secondType.IsReadOnlySpanChar() || thirdType.IsReadOnlySpanChar() || fourthType.IsReadOnlySpanChar()) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__Concat_ReadOnlySpanReadOnlySpanReadOnlySpanReadOnlySpan, out MethodSymbol stringConcatSpans, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_String__op_Implicit_ToReadOnlySpanOfChar, out MethodSymbol stringImplicitConversionToReadOnlySpan, isOptional: true) &&
                 TryGetWellKnownTypeMember(syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Reference, out MethodSymbol readOnlySpanWrappingCtorGeneric, isOptional: true))
             {
+                // One of args is a char or a ReadOnlySpan<char> (e.g. from previous rewrite). We can use span-based concatenation, which takes a bit more IL, but avoids allocation of a string from ToString call in case of char.
+                // And since implicit conversion from string to span is a JIT intrinsic, the resulting code ends up being faster than the one generated from the "naive" case with ToString call
                 var readOnlySpanOfChar = readOnlySpanWrappingCtorGeneric.ContainingType.Construct(_compilation.GetSpecialType(SpecialType.System_Char));
                 var readOnlySpanWrappingCtorChar = readOnlySpanWrappingCtorGeneric.AsMember(readOnlySpanOfChar);
 
