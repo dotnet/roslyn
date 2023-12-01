@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
+                if (_obsoleteAttributeData is { Kind: ObsoleteAttributeKind.Obsolete }) return;
+
                 _obsoleteAttributeData = value;
                 SetDataStored();
             }

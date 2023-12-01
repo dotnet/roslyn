@@ -2262,21 +2262,41 @@ class D
             ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
             : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
 
-        if (inSource)
-        {
-            comp.VerifyDiagnostics(
-                // 0.cs(3,12): error DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
-                //     void M(C c)
-                Diagnostic("DiagID1", "C").WithArguments("C").WithLocation(3, 12).WithWarningAsError(true)
-                );
-        }
-        else
-        {
-            comp.VerifyDiagnostics(
-                // (3,12): error CS0619: 'C' is obsolete: 'error'
-                //     void M(C c)
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
-                );
-        }
+        comp.VerifyDiagnostics(
+            // (3,12): error CS0619: 'C' is obsolete: 'error'
+            //     void M(C c)
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
+            );
+    }
+
+    [Theory, CombinatorialData]
+    public void WithObsolete_ReverseOrder(bool inSource)
+    {
+        var libSrc = """
+[System.Diagnostics.CodeAnalysis.Experimental("DiagID1")]
+[System.Obsolete("error", true)]
+public class C
+{
+}
+""";
+
+        var src = """
+class D
+{
+    void M(C c)
+    {
+    }
+}
+""";
+
+        var comp = inSource
+            ? CreateCompilation(new[] { src, libSrc, experimentalAttributeSrc })
+            : CreateCompilation(src, references: new[] { CreateCompilation(new[] { libSrc, experimentalAttributeSrc }).EmitToImageReference() });
+
+        comp.VerifyDiagnostics(
+            // (3,12): error CS0619: 'C' is obsolete: 'error'
+            //     void M(C c)
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C").WithArguments("C", "error").WithLocation(3, 12)
+            );
     }
 }
