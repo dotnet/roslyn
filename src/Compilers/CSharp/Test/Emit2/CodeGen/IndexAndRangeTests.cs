@@ -372,6 +372,93 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_FieldLikeEventInitializerWithEmptyInitializer()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    public event System.Action F;
+    static Buffer10 M() { return new Buffer10() { [Id(^1)] = { F = { } } }; }
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+struct Buffer10
+{
+    public Buffer10() { }
+
+    public int Length => throw null;
+    public Program this[int x] => throw null;
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics(
+                // (5,32): warning CS0067: The event 'Program.F' is never used
+                //     public event System.Action F;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("Program.F").WithLocation(5, 32)
+                );
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  newobj     "Buffer10..ctor()"
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  newobj     "System.Index..ctor(int, bool)"
+  IL_000c:  call       "System.Index Program.Id(System.Index)"
+  IL_0011:  pop
+  IL_0012:  ret
+}
+""");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new Buffer1 ... F = { } } }')
+              Value:
+                IObjectCreationOperation (Constructor: Buffer10..ctor()) (OperationKind.ObjectCreation, Type: Buffer10) (Syntax: 'new Buffer1 ... F = { } } }')
+                  Arguments(0)
+                  Initializer:
+                    null
+            IInvocationOperation (System.Index Program.Id(System.Index i)) (OperationKind.Invocation, Type: System.Index) (Syntax: 'Id(^1)')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '^1')
+                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^1')
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Return) Block[B2]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10, IsImplicit) (Syntax: 'new Buffer1 ... F = { } } }')
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""",
+                graph, symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
         public void InObjectInitializer_Index_PropertyInitializerWithEmptyInitializer()
         {
             string source = """

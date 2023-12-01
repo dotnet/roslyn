@@ -6213,6 +6213,7 @@ oneMoreTime:
                     or IArrayElementReferenceOperation
                     or IDynamicIndexerAccessOperation
                     or IFieldReferenceOperation
+                    or IEventReferenceOperation
                     || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _])
                 {
                     // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
@@ -6270,7 +6271,7 @@ oneMoreTime:
                     // Proper pointer element access support tracked by https://github.com/dotnet/roslyn/issues/21295
                     AddStatement(Visit(index));
                 }
-                else if (lhs is not FieldReferenceOperation)
+                else if (lhs is not (FieldReferenceOperation or EventReferenceOperation))
                 {
                     throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
                 }
