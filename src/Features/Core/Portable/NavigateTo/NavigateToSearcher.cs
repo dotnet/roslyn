@@ -74,16 +74,29 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                                   .WhereAsArray(d => d != _activeDocument);
         }
 
+        /// <summary>
+        /// Creates a searcher using the default host.
+        /// </summary>
         public static NavigateToSearcher Create(
             Solution solution,
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             IImmutableSet<string> kinds,
-            CancellationToken disposalToken,
-            INavigateToSearcherHost? host = null)
+            CancellationToken disposalToken)
         {
-            host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
+            var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
+            return Create(solution, asyncListener, callback, searchPattern, kinds, host);
+        }
+
+        public static NavigateToSearcher Create(
+            Solution solution,
+            IAsynchronousOperationListener asyncListener,
+            INavigateToSearchCallback callback,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            INavigateToSearcherHost host)
+        {
             return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
         }
 

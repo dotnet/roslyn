@@ -39,7 +39,6 @@ internal sealed partial class SearchGraphQuery(
             callback,
             searchPattern,
             NavigateToUtilities.GetKindsProvided(solution),
-            threadingContext.DisposalToken,
             host);
 
         await searcher.SearchAsync(searchCurrentDocument: false, searchScope, cancellationToken).ConfigureAwait(false);
