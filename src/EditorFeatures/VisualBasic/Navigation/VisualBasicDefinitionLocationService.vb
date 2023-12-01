@@ -6,14 +6,13 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Navigation
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-    <ExportLanguageService(GetType(IAsyncGoToDefinitionService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAsyncGoToDefinitionService
-        Inherits AbstractAsyncGoToDefinitionService
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Navigation
+    <ExportLanguageService(GetType(IDefinitionLocationService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicDefinitionLocationService
+        Inherits AbstractDefinitionLocationService
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>

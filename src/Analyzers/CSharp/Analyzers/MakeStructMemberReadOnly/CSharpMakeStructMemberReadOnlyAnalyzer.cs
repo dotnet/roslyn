@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
         EnforceOnBuildValues.MakeStructMemberReadOnly,
         CSharpCodeStyleOptions.PreferReadOnlyStructMember,
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -39,8 +43,13 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 if (!ShouldAnalyze(context, out var option))
                     return;
 
+                var methodToDiagnostic = PooledDictionary<IMethodSymbol, Diagnostic>.GetInstance();
+
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification));
+                    context => AnalyzeBlock(context, option.Notification, methodToDiagnostic));
+
+                context.RegisterSymbolEndAction(
+                    context => ProcessResults(context, option.Notification.Severity, methodToDiagnostic));
             }, SymbolKind.NamedType);
 
             bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
@@ -88,11 +97,42 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
 
                 return true;
             }
+
+            void ProcessResults(
+                SymbolAnalysisContext context, ReportDiagnostic severity, PooledDictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
+            {
+                var cancellationToken = context.CancellationToken;
+
+                // No need to lock the dictionary here.  Processing only is called once, after all mutation work is done.
+                foreach (var (method, diagnostic) in methodToDiagnostic)
+                {
+                    if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
+                    {
+                        // Iff we have an init method that we want to mark as readonly, we can only do so if there is no
+                        // `get` accessor, or if the `get` method is already `readonly` or would determined we want to
+                        // mark as `readonly`.
+                        var getMethodIsReadOnly =
+                            owningProperty.GetMethod is null ||
+                            owningProperty.GetMethod.IsReadOnly ||
+                            methodToDiagnostic.ContainsKey(owningProperty.GetMethod);
+
+                        // Skip marking this property as readonly for this init method if it would conflict with the get method.
+                        if (!getMethodIsReadOnly)
+                            continue;
+                    }
+
+                    // normal case
+                    context.ReportDiagnostic(diagnostic);
+                }
+
+                methodToDiagnostic.Free();
+            }
         });
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        NotificationOption2 notificationOption)
+        NotificationOption2 notificationOption,
+        Dictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -115,12 +155,16 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 return;
         }
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            location,
-            notificationOption,
-            additionalLocations: ImmutableArray.Create(additionalLocation),
-            properties: null));
+        // Called concurrently.  Make sure we write to this dictionary safely.
+        lock (methodToDiagnostic)
+        {
+            methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
+                Descriptor,
+                location,
+                notificationOption,
+                additionalLocations: ImmutableArray.Create(additionalLocation),
+                properties: null);
+        }
     }
 
     private static (Location? location, Location? additionalLocation) GetDiagnosticLocation(
@@ -133,7 +177,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             || owningMethod.IsStatic
             || owningMethod.IsImplicitlyDeclared)
         {
-            return (null, null);
+            return default;
+        }
+
+        // An init accessor in a readonly property is already readonly.  No need to analyze it.  Note: there is no way
+        // to tell this symbolically.  We have to check to the syntax here.
+        if (owningMethod.IsInitOnly &&
+            owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
+            reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
+            property.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+        {
+            return default;
         }
 
         var methodReference = owningMethod.DeclaringSyntaxReferences[0];
@@ -153,7 +207,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
-            return (null, null);
+            return default;
 
         return (nameToken.Value.GetLocation(), declaration.GetLocation());
     }
