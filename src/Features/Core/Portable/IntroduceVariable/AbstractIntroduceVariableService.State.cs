@@ -80,15 +80,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (expressionType is IErrorTypeSymbol)
                     return false;
 
-                if (this.IsInAttributeContext())
+                // Inside an attribute we can only extract out constant values (so no arrays or 'System.Type's).
+                if (this.IsInAttributeContext() &&
+                    !Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue)
                 {
-                    // Can't introduce a constant/static for the arrays in an attribute.
-                    if (expressionType is IArrayTypeSymbol)
-                        return false;
-
-                    // Can't introduce a constant/static for a `typeof` in an attribute.
-                    if (expressionType is INamedTypeSymbol { ContainingNamespace.Name: nameof(System), Name: nameof(System.Type) })
-                        return false;
+                    return false;
                 }
 
                 var containingType = Expression.AncestorsAndSelf()
