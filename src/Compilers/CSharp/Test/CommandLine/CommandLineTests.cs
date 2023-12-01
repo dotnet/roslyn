@@ -2622,7 +2622,7 @@ print Goodbye, World";
             // TODO: multiple files, quotes, etc.
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71022")]
         public void ParseReferencesAlias()
         {
             Assert.True(parseRef(@"/r:a=util.dll") is

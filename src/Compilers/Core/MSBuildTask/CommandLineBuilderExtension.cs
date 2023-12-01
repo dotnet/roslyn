@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     {
         private bool _isQuotingRequired;
 
-        protected override bool IsQuotingRequired(string parameter) => 
-            _isQuotingRequired
-            ? true
-            : base.IsQuotingRequired(parameter);
+        protected override bool IsQuotingRequired(string parameter)
+            => _isQuotingRequired || base.IsQuotingRequired(parameter);
 
         /// <summary>
         /// Set a boolean switch iff its value exists and its value is 'true'.
