@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentCache)), Shared]
-    internal class DocumentCacheFactory : ILspServiceFactory
+    internal sealed class DocumentCacheFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new DocumentCache();
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new DocumentCache();
     }
 }

@@ -515,7 +515,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true, bool requireDocumentPresentAndClosed = true)
+        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        private protected void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             OnAdditionalOrAnalyzerConfigDocumentOpened(
                 documentId,
@@ -529,7 +532,10 @@ namespace Microsoft.CodeAnalysis
                 onDocumentTextChanged: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
         }
 
-        protected internal void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true, bool requireDocumentPresentAndClosed = true)
+        protected internal void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+            => OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext, requireDocumentPresentAndClosed: true);
+
+        private protected void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext, bool requireDocumentPresentAndClosed)
         {
             OnAdditionalOrAnalyzerConfigDocumentOpened(
                 documentId,
@@ -710,7 +716,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen = true)
+        protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
+            => OnAdditionalDocumentClosed(documentId, reloader, requireDocumentPresentAndOpen: true);
+
+        private protected void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             OnAdditionalOrAnalyzerConfigDocumentClosed(
                 documentId,
@@ -721,7 +730,10 @@ namespace Microsoft.CodeAnalysis
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode));
         }
 
-        protected internal void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen = true)
+        protected internal void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader)
+            => OnAnalyzerConfigDocumentClosed(documentId, reloader, requireDocumentPresentAndOpen: true);
+
+        private protected void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader, bool requireDocumentPresentAndOpen)
         {
             OnAdditionalOrAnalyzerConfigDocumentClosed(
                 documentId,

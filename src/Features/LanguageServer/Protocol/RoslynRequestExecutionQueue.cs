@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
-        private readonly Dictionary<RequestHandlerMetadata, IMethodHandler> _handlerCache = new();
+        private readonly ConcurrentDictionary<RequestHandlerMetadata, IMethodHandler> _handlerCache = new();
         private readonly IInitializeManager _initializeManager;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// </summary>
         private CultureInfo? _cultureInfo;
 
-        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
             : base(languageServer, logger, handlerProvider)
         {
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
@@ -48,13 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <inheritdoc/>
         protected override IMethodHandler GetHandlerForRequest(IQueueItem<RequestContext> work)
         {
-            var defaultHandlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, LanguageNames.CSharp);
-            if (!_handlerCache.TryGetValue(defaultHandlerMetadata, out var defaultHandler))
-            {
-                defaultHandler = _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, LanguageNames.CSharp);
-                _handlerCache.Add(defaultHandlerMetadata, defaultHandler);
-            }
-
+            var defaultHandlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, LanguageServerConstants.DefaultLanguageName);
+            var defaultHandler = _handlerCache.GetOrAdd(defaultHandlerMetadata, metadata => _handlerProvider.GetMethodHandler(metadata.MethodName, metadata.RequestType, metadata.ResponseType, metadata.Language));
             var identifier = RoslynRequestExecutionQueue.GetTextDocumentIdentifier(work, defaultHandler);
             if (identifier is null)
             {
@@ -62,22 +57,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             var language = _lspWorkspaceManager.GetLanguageForUri(identifier.Uri);
+            if (language is null || language == LanguageServerConstants.DefaultLanguageName)
+            {
+                return defaultHandler;
+            }
+
             var handlerMetadata = new RequestHandlerMetadata(work.MethodName, work.RequestType, work.ResponseType, language);
-            if (_handlerCache.TryGetValue(handlerMetadata, out var handler))
-            {
-                return handler;
-            }
-
-            try
-            {
-                handler = _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, language);
-            }
-            catch
-            {
-                handler = defaultHandler;
-            }
-
-            _handlerCache.Add(handlerMetadata, handler);
+            var handler = _handlerCache.GetOrAdd(handlerMetadata, metadata => _handlerProvider.GetMethodHandler(metadata.MethodName, metadata.RequestType, metadata.ResponseType, metadata.Language));
 
             return handler;
         }

@@ -24,6 +24,19 @@ internal struct XamlRequestContext
 
     public LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
 
-    public T GetRequiredLspService<T>() where T : class, ILspService
-        => _context.GetRequiredLspService<T>();
+    public object ToCachedResolveData(object data, LSP.TextDocumentIdentifier document)
+    {
+        var resolveDataCache = _context.GetRequiredLspService<ResolveDataCache>();
+        var documentCache = _context.GetRequiredLspService<DocumentCache>();
+
+        return ResolveDataConversions.ToCachedResolveData(data, document, resolveDataCache, documentCache);
+    }
+
+    public (object? data, LSP.TextDocumentIdentifier? document) FromCachedResolveData(object? lspData)
+    {
+        var resolveDataCache = _context.GetRequiredLspService<ResolveDataCache>();
+        var documentCache = _context.GetRequiredLspService<DocumentCache>();
+
+        return ResolveDataConversions.FromCachedResolveData(lspData, resolveDataCache, documentCache);
+    }
 }

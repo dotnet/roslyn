@@ -12,7 +12,7 @@ using System.Threading;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <inheritdoc/>
-internal class HandlerProvider : IHandlerProvider
+internal class HandlerProvider : AbstractHandlerProvider, IHandlerProvider
 {
     private readonly ILspServices _lspServices;
     private ImmutableDictionary<RequestHandlerMetadata, Lazy<IMethodHandler>>? _requestHandlers;
@@ -22,19 +22,17 @@ internal class HandlerProvider : IHandlerProvider
         _lspServices = lspServices;
     }
 
-    /// <summary>
-    /// Get the <see cref="IMethodHandler"/>s for a particular request.
-    /// </summary>
-    /// <param name="method">The method name being made.</param>
-    /// <param name="requestType">The requestType for this method.</param>
-    /// <param name="responseType">The responseType for this method.</param>
-    /// <returns>The handler for this request.</returns>
-    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string? language = null)
+    public IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType)
+        => GetMethodHandler(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
+
+    public override IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string language)
     {
-        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, language ?? string.Empty);
+        var requestHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, language);
+        var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestType, responseType, LanguageServerConstants.DefaultLanguageName);
 
         var requestHandlers = GetRequestHandlers();
-        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler))
+        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler) &&
+            !requestHandlers.TryGetValue(defaultHandlerMetadata, out lazyHandler))
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }
@@ -42,7 +40,7 @@ internal class HandlerProvider : IHandlerProvider
         return lazyHandler.Value;
     }
 
-    public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
+    public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
     {
         var requestHandlers = GetRequestHandlers();
         return requestHandlers.Keys.ToImmutableArray();
@@ -55,7 +53,7 @@ internal class HandlerProvider : IHandlerProvider
     {
         var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IMethodHandler>>();
 
-        var methodHash = new HashSet<string>();
+        var methodHash = new HashSet<(string methodName, string language)>();
 
         if (lspServices.SupportsGetRegisteredServices())
         {
@@ -112,9 +110,9 @@ internal class HandlerProvider : IHandlerProvider
 
         return requestHandlerDictionary.ToImmutable();
 
-        static void CheckForDuplicates(string methodName, string language, HashSet<string> existingMethods)
+        static void CheckForDuplicates(string methodName, string language, HashSet<(string methodName, string language)> existingMethods)
         {
-            if (!existingMethods.Add(methodName + language))
+            if (!existingMethods.Add((methodName, language)))
             {
                 throw new InvalidOperationException($"Method {methodName} was implemented more than once.");
             }
@@ -134,13 +132,7 @@ internal class HandlerProvider : IHandlerProvider
                 }
             }
 
-            var languages = methodAttribute.Languages;
-            if (languages.Length == 0)
-            {
-                languages = new string[] { string.Empty };
-            }
-
-            return (methodAttribute.Method, languages);
+            return (methodAttribute.Method, methodAttribute.Languages);
 
             static LanguageServerEndpointAttribute? GetMethodAttributeFromHandlerMethod(Type handlerType, Type? requestType, Type contextType, Type? responseType)
             {

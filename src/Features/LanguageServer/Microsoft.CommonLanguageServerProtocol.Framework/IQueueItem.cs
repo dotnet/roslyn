@@ -58,5 +58,5 @@ public interface IQueueItem<TRequestContext>
     /// <summary>
     /// The handler which will run this operation. It is initialized during <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/>.
     /// </summary>
-    IMethodHandler? MethodHandler { get; }
+    IMethodHandler MethodHandler { get; }
 }

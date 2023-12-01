@@ -14,5 +14,5 @@ public interface IHandlerProvider
 {
     ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods();
 
-    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType, string? language = null);
+    IMethodHandler GetMethodHandler(string method, Type? requestType, Type? responseType);
 }

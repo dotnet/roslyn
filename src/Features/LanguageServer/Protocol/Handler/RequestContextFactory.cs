@@ -33,7 +33,7 @@ internal class RequestContextFactory : IRequestContextFactory<RequestContext>, I
         }
 
         TextDocumentIdentifier? textDocumentIdentifier;
-        var handler = queueItem.MethodHandler ?? throw new InvalidOperationException($"No handler available for method: {queueItem.MethodName}");
+        var handler = queueItem.MethodHandler;
         var textDocumentIdentifierHandler = handler as ITextDocumentIdentifierHandler;
         if (textDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestParam, TextDocumentIdentifier> tHandler)
         {

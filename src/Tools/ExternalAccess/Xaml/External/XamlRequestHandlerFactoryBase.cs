@@ -29,7 +29,7 @@ internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILs
         return CreateHandler(_xamlRequestHandler, resolveDataService);
     }
 
-    private class ResolveCachedDataService : IResolveCachedDataService
+    private sealed class ResolveCachedDataService : IResolveCachedDataService
     {
         private readonly ResolveDataCache _resolveDataCache;
         private readonly DocumentCache _documentCache;

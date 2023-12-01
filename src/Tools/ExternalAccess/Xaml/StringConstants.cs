@@ -12,8 +12,6 @@ internal static class StringConstants
 
     public const string XamlFileExtension = ".xaml";
 
-    public const string XamlLspLanguagesContract = "XamlLspLanguages";
-
     public const string ImportingConstructorMessage = MefConstruction.ImportingConstructorMessage;
     public const string FactoryMethodMessage = MefConstruction.FactoryMethodMessage;
 }

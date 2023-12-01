@@ -55,14 +55,12 @@ internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeAc
 
     public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.TextDocument;
-        Contract.ThrowIfNull(document);
-
+        var document = context.GetRequiredTextDocument();
         var options = _globalOptions.GetCodeActionOptionsProvider();
         var clientCapability = context.GetRequiredClientCapabilities();
-
         var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
             request, document, options, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
+
         return codeActions;
     }
 }

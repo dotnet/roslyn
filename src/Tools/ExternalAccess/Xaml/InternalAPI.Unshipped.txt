@@ -74,12 +74,14 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlMethodAttribute
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlMethodAttribute.XamlMethodAttribute(string! method) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ClientCapabilities.get -> Microsoft.VisualStudio.LanguageServer.Protocol.ClientCapabilities!
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.GetRequiredLspService<T>() -> T!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.FromCachedResolveData(object? lspData) -> (object? data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier? document)
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument?
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.ToCachedResolveData(object! data, Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier! document) -> object!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext.XamlRequestContext() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.HandleRequestAsync(TRequest request, Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.MutatesSolutionState.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.RequiresLSPSolution.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.XamlRequestHandlerBase(Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>? xamlRequestHandler) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerFactoryBase<TRequest, TResponse>
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerFactoryBase<TRequest, TResponse>.CreateILspService(Microsoft.CodeAnalysis.LanguageServer.LspServices! lspServices, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> Microsoft.CodeAnalysis.LanguageServer.ILspService!
@@ -130,5 +132,4 @@ static Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.operator !=(M
 static Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.operator ==(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? left, Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? right) -> bool
 virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataIdResolveData? other) -> bool
 virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataResolveData.Equals(Microsoft.CodeAnalysis.ExternalAccess.Xaml.DataResolveData? other) -> bool
-virtual Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.RequiresLSPSolution.get -> bool
 virtual Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData.Equals(Microsoft.VisualStudio.DesignTools.Xaml.Handler.ResolveData? other) -> bool

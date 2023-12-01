@@ -22,18 +22,29 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     private readonly ILspLogger _logger;
 
     private readonly TRequest _request;
-
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
     /// This is the task that the client is waiting on.
     /// </summary>
     private readonly TaskCompletionSource<TResponse> _completionSource = new();
 
+    private IMethodHandler? _methodHandler;
+
     public ILspServices LspServices { get; }
 
     public string MethodName { get; }
 
-    public IMethodHandler? MethodHandler { get; private set; }
+    public IMethodHandler MethodHandler
+    {
+        get
+        {
+            return _methodHandler ?? throw new InvalidOperationException($"The {nameof(MethodHandler)} property cannot be accessed before {nameof(CreateRequestContextAsync)} has been called.");
+        }
+        private set
+        {
+            _methodHandler = value;
+        }
+    }
 
     public Type? RequestType => typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
 
@@ -109,10 +120,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 // what to do.
                 _logger.LogWarning($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
-            }
-            else if (MethodHandler is null)
-            {
-                throw new NotImplementedException($"No {nameof(IMethodHandler)} implementation for  {MethodName}.");
             }
             else if (MethodHandler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
             {

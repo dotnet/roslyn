@@ -410,6 +410,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
     #endregion
 
+    /// <summary>
+    /// Returns a Roslyn language name for the given URI.
+    /// </summary>
     internal string? GetLanguageForUri(Uri uri)
     {
         string? languageId = null;

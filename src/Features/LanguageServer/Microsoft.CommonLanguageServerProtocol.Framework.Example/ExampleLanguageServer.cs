@@ -28,7 +28,7 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
         var _ = AddHandlers(serviceCollection)
             .AddSingleton<ILspLogger>(_logger)
             .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
-            .AddSingleton<IHandlerProvider>(s => GetHandlerProvider())
+            .AddSingleton<AbstractHandlerProvider>(s => HandlerProvider)
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton(this);
 

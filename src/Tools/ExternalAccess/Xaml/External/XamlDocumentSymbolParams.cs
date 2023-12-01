@@ -7,6 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 /// <inheritdoc/>
-internal class XamlDocumentSymbolParams : RoslynDocumentSymbolParams
+internal sealed class XamlDocumentSymbolParams : RoslynDocumentSymbolParams
 {
 }

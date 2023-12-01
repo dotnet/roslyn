@@ -153,7 +153,7 @@ public class RequestExecutionQueueTests
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 
-        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
+        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
             : base(languageServer, logger, handlerProvider)
         {
             _cancelInProgressWorkUponMutatingRequest = cancelInProgressWorkUponMutatingRequest;

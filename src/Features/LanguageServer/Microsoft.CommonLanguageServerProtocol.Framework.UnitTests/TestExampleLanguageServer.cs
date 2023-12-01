@@ -160,7 +160,7 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
     }
 }
 
-[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
 public class ExtraDidOpenHandler :
     IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>
 {

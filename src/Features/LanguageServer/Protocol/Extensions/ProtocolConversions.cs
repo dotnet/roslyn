@@ -7,9 +7,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,9 +23,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -973,16 +969,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Start = LinePositionToPosition(mappedSpanResult.LinePositionSpan.Start),
                 End = LinePositionToPosition(mappedSpanResult.LinePositionSpan.End)
             };
-        }
-
-        /// <summary>
-        /// Retrieves the <see cref="LSP.TextDocumentIdentifier"/> from the request data.
-        /// </summary>
-        public static LSP.TextDocumentIdentifier? GetTextDocument(object? requestData)
-        {
-            Contract.ThrowIfNull(requestData);
-            var resolveData = ((JToken)requestData).ToObject<DocumentResolveData>();
-            return resolveData?.TextDocument;
         }
     }
 }

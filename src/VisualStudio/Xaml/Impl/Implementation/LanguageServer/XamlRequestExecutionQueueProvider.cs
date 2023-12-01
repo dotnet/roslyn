@@ -24,7 +24,7 @@ internal sealed class XamlRequestExecutionQueueProvider : IRequestExecutionQueue
         _projectService = projectService;
     }
 
-    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
         var queue = new XamlRequestExecutionQueue(_projectService, languageServer, logger, handlerProvider);
         queue.Start();

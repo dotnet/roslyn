@@ -102,26 +102,12 @@ internal readonly struct RequestContext
     {
         get
         {
-            if (_lspSolution is null)
-            {
-                // This request context never had a solution instance
-                return null;
-            }
-
-            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
-            // Document being null for this check, because it is not always provided as part of the solution context.
-            if (_lspSolution.Value.Workspace is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (_lspSolution.Value.Document is null)
+            if (this.TextDocument is null)
             {
                 return null;
             }
 
-            if (_lspSolution.Value.Document is Document document)
+            if (this.TextDocument is Document document)
             {
                 return document;
             }
@@ -228,6 +214,13 @@ internal readonly struct RequestContext
         return Document is null
             ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
             : Document;
+    }
+
+    public TextDocument GetRequiredTextDocument()
+    {
+        return TextDocument is null
+            ? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}")
+            : TextDocument;
     }
 
     public static async Task<RequestContext> CreateAsync(

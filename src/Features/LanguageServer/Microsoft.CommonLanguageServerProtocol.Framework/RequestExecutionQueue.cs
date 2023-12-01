@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -52,7 +49,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     protected readonly ILspLogger _logger;
-    protected readonly IHandlerProvider _handlerProvider;
+    protected readonly AbstractHandlerProvider _handlerProvider;
     private readonly AbstractLanguageServer<TRequestContext> _languageServer;
 
     /// <summary>
@@ -70,7 +67,20 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
+    [Obsolete($"Use constructor with {nameof(AbstractHandlerProvider)} instead.", error: false)]
     public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+    {
+        _languageServer = languageServer;
+        _logger = logger;
+        if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
+        {
+            _handlerProvider = abstractHandlerProvider;
+        }
+
+        _handlerProvider = new WrappedHandlerProvider(handlerProvider);
+    }
+
+    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
         _languageServer = languageServer;
         _logger = logger;
@@ -282,10 +292,10 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     /// <summary>
-    /// Choose the method handler for the given request. By default this uses the <see cref="IHandlerProvider"/>.
+    /// Choose the method handler for the given request. By default this uses the <see cref="AbstractHandlerProvider"/> with <see cref="LanguageServerConstants.DefaultLanguageName"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
-        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType);
+        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, LanguageServerConstants.DefaultLanguageName);
 
     /// <summary>
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,
@@ -325,7 +335,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         public TestAccessor(RequestExecutionQueue<TRequestContext> queue)
             => _queue = queue;
 
-        public IHandlerProvider GetHandlerProvider() => _queue._handlerProvider;
+        public AbstractHandlerProvider GetHandlerProvider() => _queue._handlerProvider;
 
         public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 

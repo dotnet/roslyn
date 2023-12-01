@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             XamlProjectService projectService,
             AbstractLanguageServer<RequestContext> languageServer,
             ILspLogger logger,
-            IHandlerProvider handlerProvider) : base(languageServer, logger, handlerProvider)
+            AbstractHandlerProvider handlerProvider) : base(languageServer, logger, handlerProvider)
         {
             _projectService = projectService;
         }

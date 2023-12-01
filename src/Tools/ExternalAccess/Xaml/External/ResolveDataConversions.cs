@@ -24,23 +24,7 @@ internal static class ResolveDataConversions
         return (resolveData?.Data, resolveData?.Document);
     }
 
-    public static object ToCachedResolveData(XamlRequestContext context, object data, LSP.TextDocumentIdentifier document)
-    {
-        var resolveDataCache = context.GetRequiredLspService<ResolveDataCache>();
-        var documentCache = context.GetRequiredLspService<DocumentCache>();
-
-        return ResolveDataConversions.ToCachedResolveData(data, document, resolveDataCache, documentCache);
-    }
-
-    public static (object? data, LSP.TextDocumentIdentifier? document) FromCachedResolveData(XamlRequestContext context, object? lspData)
-    {
-        var resolveDataCache = context.GetRequiredLspService<ResolveDataCache>();
-        var documentCache = context.GetRequiredLspService<DocumentCache>();
-
-        return ResolveDataConversions.FromCachedResolveData(lspData, resolveDataCache, documentCache);
-    }
-
-    public static object ToCachedResolveData(object data, LSP.TextDocumentIdentifier document, ResolveDataCache resolveDataCache, DocumentCache documentCache)
+    internal static object ToCachedResolveData(object data, LSP.TextDocumentIdentifier document, ResolveDataCache resolveDataCache, DocumentCache documentCache)
     {
         var dataId = resolveDataCache.UpdateCache(data);
         var documentId = documentCache.UpdateCache(document);
@@ -48,7 +32,7 @@ internal static class ResolveDataConversions
         return new DataIdResolveData(dataId, documentId);
     }
 
-    public static (object? data, LSP.TextDocumentIdentifier? document) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache, DocumentCache documentCache)
+    internal static (object? data, LSP.TextDocumentIdentifier? document) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache, DocumentCache documentCache)
     {
         DataIdResolveData? resolveData;
         if (lspData is JToken token)

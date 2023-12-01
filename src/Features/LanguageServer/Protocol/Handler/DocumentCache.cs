@@ -6,6 +6,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
+/// <summary>
+/// Caches text document identifiers in between calls to Handler and
+/// ResolveHandler. Used to minimize passing around request resolve data.
+/// </summary>
 internal sealed class DocumentCache : ResolveCache<TextDocumentIdentifier>
 {
     public DocumentCache() : base(maxCacheSize: 3)

@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal class LanguageInfoProvider : ILanguageInfoProvider
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
+        private static readonly LanguageInformation s_fsharpLanguageInformation = new(LanguageNames.FSharp, ".fsx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
         private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", string.Empty);
 
@@ -18,23 +19,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             { ".cs", s_csharpLanguageInformation },
             { ".csx", s_csharpLanguageInformation },
+            { ".fs", s_fsharpLanguageInformation },
+            { ".fsx", s_fsharpLanguageInformation },
             { ".vb", s_vbLanguageInformation },
             { ".vbx", s_vbLanguageInformation },
             { ".xaml", s_xamlLanguageInformation },
         };
 
-        public LanguageInformation? GetLanguageInformation(string documentPath, string? languageId)
+        public LanguageInformation? GetLanguageInformation(string documentPath, string? lspLanguageId)
         {
             if (s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(documentPath), out var languageInformation))
             {
                 return languageInformation;
             }
 
-            // It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
-            // In that case, we use the languageId that the client gave us.
-            return languageId switch
+            return lspLanguageId switch
             {
                 "csharp" => s_csharpLanguageInformation,
+                "fsharp" => s_csharpLanguageInformation,
                 "vb" => s_vbLanguageInformation,
                 "xaml" => s_xamlLanguageInformation,
                 _ => null,

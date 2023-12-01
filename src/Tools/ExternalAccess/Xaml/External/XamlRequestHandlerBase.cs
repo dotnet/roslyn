@@ -21,7 +21,7 @@ internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServic
 
     public bool MutatesSolutionState => _xamlRequestHandler?.MutatesSolutionState ?? false;
 
-    public virtual bool RequiresLSPSolution => true;
+    public bool RequiresLSPSolution => true;
 
     public abstract LSP.TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request);
 

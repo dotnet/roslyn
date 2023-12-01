@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, _logger, GetHandlerProvider());
+            return provider.CreateRequestExecutionQueue(this, _logger, HandlerProvider);
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>((lspServices) => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
+                AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
 
             return baseServices.ToImmutableDictionary();
 

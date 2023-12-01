@@ -12,9 +12,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 /// Defines an easy to use subclass for <see cref="ExportLspServiceFactoryAttribute"/> with the Roslyn languages contract name.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-internal class ExportXamlLspServiceFactoryAttribute : ExportLspServiceFactoryAttribute
+internal sealed class ExportXamlLspServiceFactoryAttribute : ExportLspServiceFactoryAttribute
 {
-    public ExportXamlLspServiceFactoryAttribute(Type type, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(type, ProtocolConstants.RoslynLspLanguagesContract, serverKind)
+    public ExportXamlLspServiceFactoryAttribute(Type type, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+        : base(type, ProtocolConstants.RoslynLspLanguagesContract, serverKind)
     {
     }
 }
