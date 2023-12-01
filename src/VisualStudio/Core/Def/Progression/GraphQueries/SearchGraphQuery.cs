@@ -14,25 +14,12 @@ using Microsoft.VisualStudio.GraphModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
-internal sealed partial class SearchGraphQuery : IGraphQuery
+internal sealed partial class SearchGraphQuery(
+    string searchPattern,
+    NavigateToSearchScope searchScope,
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListener asyncListener) : IGraphQuery
 {
-    private readonly string _searchPattern;
-    private readonly NavigateToSearchScope _searchScope;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IAsynchronousOperationListener _asyncListener;
-
-    public SearchGraphQuery(
-        string searchPattern,
-        NavigateToSearchScope searchScope,
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListener asyncListener)
-    {
-        _threadingContext = threadingContext;
-        _asyncListener = asyncListener;
-        _searchPattern = searchPattern;
-        _searchScope = searchScope;
-    }
-
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
         var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
@@ -48,14 +35,14 @@ internal sealed partial class SearchGraphQuery : IGraphQuery
 
         var searcher = NavigateToSearcher.Create(
             solution,
-            _asyncListener,
+            asyncListener,
             callback,
-            _searchPattern,
+            searchPattern,
             NavigateToUtilities.GetKindsProvided(solution),
-            _threadingContext.DisposalToken,
+            threadingContext.DisposalToken,
             host);
 
-        await searcher.SearchAsync(searchCurrentDocument: false, _searchScope, cancellationToken).ConfigureAwait(false);
+        await searcher.SearchAsync(searchCurrentDocument: false, searchScope, cancellationToken).ConfigureAwait(false);
 
         return graphBuilder;
     }
