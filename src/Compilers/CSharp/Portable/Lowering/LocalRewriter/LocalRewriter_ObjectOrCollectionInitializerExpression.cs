@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right = assignment.Right;
             bool isRhsNestedInitializer = right.Kind is BoundKind.ObjectInitializerExpression or BoundKind.CollectionInitializerExpression;
 
-            if (isRhsNestedInitializer && onlyContainsEmptyLeafNestedInitializers(right))
+            if (isRhsNestedInitializer && onlyContainsEmptyLeafNestedInitializers(assignment))
             {
                 // If we only have nested object initializers and the leaves are empty initializers,
                 // then we optimize, skip calling the indexers and properties in the chain, and only evaluate the indexes
@@ -507,10 +507,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenAccess, right);
             return;
 
-            static bool onlyContainsEmptyLeafNestedInitializers(BoundExpression expression)
+            static bool onlyContainsEmptyLeafNestedInitializers(BoundAssignmentOperator assignment)
             {
-                return expression is BoundObjectInitializerExpression initializer
-                    && initializer.Initializers.All(e => e is BoundAssignmentOperator assignment && onlyContainsEmptyLeafNestedInitializers(assignment.Right));
+                // Guard on the cases understood by addIndexes below
+                if (assignment.Left is BoundObjectInitializerMember
+                    or BoundImplicitIndexerAccess
+                    or BoundArrayAccess
+                    or BoundPointerElementAccess)
+                {
+                    return assignment.Right is BoundObjectInitializerExpression initializer
+                        && initializer.Initializers.All(e => e is BoundAssignmentOperator nestedAssignment && onlyContainsEmptyLeafNestedInitializers(nestedAssignment));
+                }
+
+                return false;
             }
 
             void addIndexes(ArrayBuilder<BoundExpression> result, BoundAssignmentOperator assignment)

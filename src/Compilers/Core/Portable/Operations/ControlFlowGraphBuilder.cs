@@ -6207,16 +6207,20 @@ oneMoreTime:
 
             static bool onlyContainsEmptyLeafNestedInitializers(IMemberInitializerOperation memberInitializer)
             {
-                Debug.Assert(memberInitializer.InitializedMember is IPropertyReferenceOperation
+                // Guard on the cases understood by addIndexes below
+                if (memberInitializer.InitializedMember is IPropertyReferenceOperation
                     or IImplicitIndexerReferenceOperation
                     or IArrayElementReferenceOperation
                     or IDynamicIndexerAccessOperation
                     or IFieldReferenceOperation
-                    || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _]);
+                    || memberInitializer.InitializedMember is NoneOperation { ChildOperations: var children } && children.ToImmutableArray() is [IInstanceReferenceOperation, _])
+                {
+                    // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
+                    return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
+                        && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                }
 
-                // Since there are no empty collection initializers, we don't need to differentiate object vs. collection initializers
-                return memberInitializer.Initializer is IObjectOrCollectionInitializerOperation initializer
-                    && initializer.Initializers.All(e => e is IMemberInitializerOperation assignment && onlyContainsEmptyLeafNestedInitializers(assignment));
+                return false;
             }
 
             void addIndexes(IMemberInitializerOperation memberInitializer)
