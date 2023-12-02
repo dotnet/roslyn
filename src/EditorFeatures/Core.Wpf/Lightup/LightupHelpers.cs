@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -311,11 +312,11 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Type '{type}' is not assignable to type '{typeof(T)}'");
         }
 
-        var method = type.GetTypeInfo().GetDeclaredMethod(methodName);
-        if (method == null)
+        var method= type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method =>
         {
-            return CreateFallbackFunction<T, TArg, TResult>(defaultValue);
-        }
+            var parameters = method.GetParameters();
+            return method.GetParameters().Length == 1 && parameters[0].ParameterType == argType;
+        });
 
         var parameters = method.GetParameters();
         if (argType != parameters[0].ParameterType)
@@ -328,12 +329,12 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Method '{method}' produces a value of type '{method.ReturnType}', which is not assignable to type '{typeof(TResult)}'");
         }
 
-        var parameter = Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
-        var argument = Expression.Parameter(typeof(TArg), parameters[0].Name);
-        var instance =
+        var instanceParameter =
             type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-            ? (Expression)parameter
-            : Expression.Convert(parameter, type);
+                ? Expression.Parameter(type, GenerateParameterName(type))
+                : Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
+
+        var argument = Expression.Parameter(typeof(TArg), parameters[0].Name);
         var convertedArgument =
             argType.GetTypeInfo().IsAssignableFrom(typeof(TArg).GetTypeInfo())
             ? (Expression)argument
@@ -341,8 +342,13 @@ internal static class LightupHelpers
 
         var expression =
             Expression.Lambda<Func<T, TArg, TResult>>(
-                Expression.Convert(Expression.Call(instance, method, convertedArgument), typeof(TResult)),
-                parameter);
+                Expression.Convert(
+                    Expression.Call(
+                        Expression.Convert(instanceParameter, type),
+                        method,
+                        convertedArgument), typeof(TResult)),
+                instanceParameter,
+                argument);
         return expression.Compile();
     }
 

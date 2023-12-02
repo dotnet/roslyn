@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -23,7 +24,6 @@ internal readonly struct ISmartRenameSessionFactoryWrapper
     static ISmartRenameSessionFactoryWrapper()
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
-
         s_createSmartRenameSession = LightupHelpers.CreateFunctionAccessor<object, SnapshotSpan, object?>(s_wrappedType, nameof(CreateSmartRenameSession), typeof(SnapshotSpan), SpecializedTasks.Null<object>());
     }
 
@@ -58,6 +58,6 @@ internal readonly struct ISmartRenameSessionFactoryWrapper
         if (!ISmartRenameSessionWrapper.IsInstance(session))
             return null;
 
-        return (ISmartRenameSessionWrapper)session;
+        return ISmartRenameSessionWrapper.FromInstance(session);
     }
 }
