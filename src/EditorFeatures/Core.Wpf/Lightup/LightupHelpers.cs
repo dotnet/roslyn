@@ -312,7 +312,7 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Type '{type}' is not assignable to type '{typeof(T)}'");
         }
 
-        var method= type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method =>
+        var method = type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method =>
         {
             var parameters = method.GetParameters();
             return method.GetParameters().Length == 1 && parameters[0].ParameterType == argType;
