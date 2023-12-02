@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
             builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();
             builder.Add<IfDirectiveTriviaSyntax, IfDirectiveTriviaStructureProvider>();
+            builder.Add<ArgumentListSyntax, ArgumentListStructureProvider>();
 
             return builder.ToImmutable();
         }
