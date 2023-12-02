@@ -48,8 +48,8 @@ jobs:
     - group: AzureDevOps-Artifact-Feeds-Pats
     - name: runCodesignValidationInjection
       value: false
-    - ${{ if eq(parameters.publishAssetsImmediately, 'true') }}:
-      - template: /eng/common/templates/post-build/common-variables.yml
+    # unconditional - needed for logs publishing (redactor tool version)
+    - template: /eng/common/templates/post-build/common-variables.yml
 
   pool:
     # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
