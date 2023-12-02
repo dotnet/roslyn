@@ -23,5 +23,5 @@ internal sealed class WrappedHandlerProvider : AbstractHandlerProvider
         => _handlerProvider.GetMethodHandler(method, requestType, responseType);
 
     public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
-        =>_handlerProvider.GetRegisteredMethods();
+        => _handlerProvider.GetRegisteredMethods();
 }

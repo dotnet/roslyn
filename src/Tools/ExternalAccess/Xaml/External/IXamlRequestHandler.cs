@@ -6,7 +6,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
-internal interface IXamlRequestHandler<TRequest, TResponse> :
-    IRequestHandler<TRequest, TResponse, XamlRequestContext>
+internal interface IXamlRequestHandler<TRequest, TResponse>
+    : IRequestHandler<TRequest, TResponse, XamlRequestContext>
 {
 }
