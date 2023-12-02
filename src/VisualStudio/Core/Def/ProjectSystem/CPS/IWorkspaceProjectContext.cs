@@ -54,7 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         // Files.
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
+        [Obsolete($"Call the {nameof(AddAdditionalFile)} method that takes folder names.")]
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
+        void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
         void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null);
         void RemoveDynamicFile(string filePath);
