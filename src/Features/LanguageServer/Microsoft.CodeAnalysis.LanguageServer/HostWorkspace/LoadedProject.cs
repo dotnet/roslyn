@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -163,7 +161,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments,
             _mostRecentFileInfo?.AdditionalDocuments,
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddAdditionalFile(document.FilePath),
+            document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: document.Folders),
             document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
             "Project {0} now has {1} additional file(s).");
 
