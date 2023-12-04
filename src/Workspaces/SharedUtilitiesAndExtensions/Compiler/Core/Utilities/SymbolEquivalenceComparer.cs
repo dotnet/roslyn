@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -196,17 +198,21 @@ internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
         return true;
     }
 
-    private static IEnumerable<INamedTypeSymbol> Unwrap(INamedTypeSymbol namedType)
+    private static OneOrMany<INamedTypeSymbol> Unwrap(INamedTypeSymbol namedType)
     {
-        yield return namedType;
+        if (namedType is not IErrorTypeSymbol errorType)
+            return OneOrMany.Create(namedType);
 
-        if (namedType is IErrorTypeSymbol errorType)
+        using var builder = TemporaryArray<INamedTypeSymbol>.Empty;
+        builder.Add(namedType);
+
+        foreach (var candidate in errorType.CandidateSymbols)
         {
-            foreach (var type in errorType.CandidateSymbols.OfType<INamedTypeSymbol>())
-            {
-                yield return type;
-            }
+            if (candidate is INamedTypeSymbol candidateType)
+                builder.Add(candidateType);
         }
+
+        return OneOrMany.Create(builder.ToImmutableAndClear());
     }
 
     private static bool IsPartialMethodDefinitionPart(IMethodSymbol symbol)
