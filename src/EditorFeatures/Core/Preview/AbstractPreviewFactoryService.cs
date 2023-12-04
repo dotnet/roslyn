@@ -279,11 +279,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
             var rightWorkspace = new PreviewWorkspace(document.Project.Solution);
-            rightWorkspace.OpenDocument(document.Id, newBuffer.AsTextContainer());
+            try
+            {
+                rightWorkspace.OpenDocument(document.Id, newBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            return await CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+                return await CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            }
+            catch
+            {
+                rightWorkspace.Dispose();
+                throw;
+            }
         }
 
         public Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -361,11 +369,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
             var leftWorkspace = new PreviewWorkspace(document.Project.Solution);
-            leftWorkspace.OpenDocument(document.Id, oldBuffer.AsTextContainer());
+            try
+            {
+                leftWorkspace.OpenDocument(document.Id, oldBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            return await CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, document, zoomLevel, cancellationToken);
+                return await CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, document, zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            }
+            catch
+            {
+                leftWorkspace.Dispose();
+                throw;
+            }
         }
 
         public Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -469,16 +485,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // Create PreviewWorkspaces around the buffers to be displayed on the left and right
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
             var leftWorkspace = new PreviewWorkspace(oldDocument.Project.Solution);
-            leftWorkspace.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
+            try
+            {
+                leftWorkspace.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
 
-            var rightWorkspace = new PreviewWorkspace(newDocument.Project.Solution);
-            rightWorkspace.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
+                var rightWorkspace = new PreviewWorkspace(newDocument.Project.Solution);
+                try
+                {
+                    rightWorkspace.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            return await CreateChangedDocumentViewAsync(
-                oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
-                leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
+                    return await CreateChangedDocumentViewAsync(
+                        oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
+                        leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                }
+                catch
+                {
+                    rightWorkspace.Dispose();
+                    throw;
+                }
+            }
+            catch
+            {
+                leftWorkspace.Dispose();
+                throw;
+            }
         }
 
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
@@ -526,16 +558,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // Create PreviewWorkspaces around the buffers to be displayed on the left and right
             // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
             var leftWorkspace = new PreviewWorkspace(oldDocument.Project.Solution);
-            leftWorkspace.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
+            try
+            {
+                leftWorkspace.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
 
-            var rightWorkspace = new PreviewWorkspace(newDocument.Project.Solution);
-            rightWorkspace.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
+                var rightWorkspace = new PreviewWorkspace(newDocument.Project.Solution);
+                try
+                {
+                    rightWorkspace.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            return await CreateChangedDocumentViewAsync(
-                oldBuffer, newBuffer, description: null, originalLineSpans, changedLineSpans,
-                leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
+                    return await CreateChangedDocumentViewAsync(
+                        oldBuffer, newBuffer, description: null, originalLineSpans, changedLineSpans,
+                        leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                }
+                catch
+                {
+                    rightWorkspace.Dispose();
+                    throw;
+                }
+            }
+            catch
+            {
+                leftWorkspace.Dispose();
+                throw;
+            }
         }
 
         public Task<IDifferenceViewerPreview<TDifferenceViewer>?> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
