@@ -38,17 +38,13 @@ internal sealed class RazorCohostLanguageClient(
     [Import(AllowDefault = true)] IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService = null)
     : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer: null)
 {
-    private readonly IRazorCohostLanguageClientActivationService? _razorCohostLanguageClientActivationService = razorCohostLanguageClientActivationService;
-    private readonly IRazorCohostCapabilitiesProvider? _razorCapabilitiesProvider = razorCapabilitiesProvider;
-    private readonly IRazorCustomMessageTarget? _razorCustomMessageTarget = razorCustomMessageTarget;
-
     protected override ImmutableArray<string> SupportedLanguages => Constants.RazorLanguage;
 
-    public override object? CustomMessageTarget => _razorCustomMessageTarget;
+    public override object? CustomMessageTarget => razorCustomMessageTarget;
 
     public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
-        if (_razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
+        if (razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
         {
             // A default return would still opt us in to TextDocumentSync for open files, but even that's
             // wasteful if we don't want to handle anything, as we'd track document content.
@@ -58,11 +54,11 @@ internal sealed class RazorCohostLanguageClient(
             };
         }
 
-        Contract.ThrowIfNull(_razorCapabilitiesProvider);
+        Contract.ThrowIfNull(razorCapabilitiesProvider);
 
         // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
         var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
-        var serializedServerCapabilities = _razorCapabilitiesProvider.GetCapabilities(serializedClientCapabilities);
+        var serializedServerCapabilities = razorCapabilitiesProvider.GetCapabilities(serializedClientCapabilities);
         var razorCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
         Contract.ThrowIfNull(razorCapabilities);
 
@@ -80,7 +76,7 @@ internal sealed class RazorCohostLanguageClient(
     /// <summary>
     /// If the cohost server is expected to activate then any failures are catastrophic as no razor features will work.
     /// </summary>
-    public override bool ShowNotificationOnInitializeFailed => _razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() == true;
+    public override bool ShowNotificationOnInitializeFailed => razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() == true;
 
     public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorCohostServer;
 }
