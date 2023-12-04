@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// equivalent only if they come from the same assembly or different assemblies of the same simple name.
 /// However, one can ask if two symbols are equivalent even if their assemblies differ.
 /// </summary>
-internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
+internal partial sealed class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
 {
     private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
     private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
