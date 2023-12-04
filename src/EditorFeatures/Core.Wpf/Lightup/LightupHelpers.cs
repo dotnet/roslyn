@@ -315,7 +315,7 @@ internal static class LightupHelpers
         var method = type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method =>
         {
             var parameters = method.GetParameters();
-            return method.GetParameters().Length == 1 && parameters[0].ParameterType == argType;
+            return parameters is [{ ParameterType: var parameterType }] && parameterType == argType;
         });
 
         var parameters = method.GetParameters();
@@ -329,10 +329,7 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Method '{method}' produces a value of type '{method.ReturnType}', which is not assignable to type '{typeof(TResult)}'");
         }
 
-        var instanceParameter =
-            type.GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo())
-                ? Expression.Parameter(type, GenerateParameterName(type))
-                : Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
+        var instanceParameter = Expression.Parameter(type, GenerateParameterName(type));
 
         var argument = Expression.Parameter(typeof(TArg), parameters[0].Name);
         var convertedArgument =
