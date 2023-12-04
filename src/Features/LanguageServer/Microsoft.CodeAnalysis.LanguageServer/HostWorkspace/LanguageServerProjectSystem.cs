@@ -149,12 +149,12 @@ internal sealed class LanguageServerProjectSystem
         {
             var tasks = new List<Task>();
 
-            var projectsWithUnresolvedDependencies = new ConcurrentSet<string>();
+            var projectsThatNeedRestore = new ConcurrentSet<string>();
             foreach (var projectToLoad in projectPathsToLoadOrReload)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    var (errorKind, preferredBuildHostKind, hasUnresolvedDependencies) = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
+                    var (errorKind, preferredBuildHostKind, projectNeedsRestore) = await LoadOrReloadProjectAsync(projectToLoad, buildHostProcessManager, cancellationToken);
                     if (errorKind is LSP.MessageType.Error)
                     {
                         // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
@@ -174,23 +174,23 @@ internal sealed class LanguageServerProjectSystem
                         }
                     }
 
-                    if (hasUnresolvedDependencies)
+                    if (projectNeedsRestore)
                     {
-                        projectsWithUnresolvedDependencies.Add(projectToLoad.Path);
+                        projectsThatNeedRestore.Add(projectToLoad.Path);
                     }
                 }, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
 
-            if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsWithUnresolvedDependencies.Any())
+            if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
             {
                 // Tell the client to restore any projects with unresolved dependencies.
                 // This should eventually move entirely server side once we have a mechanism for reporting generic project load progress.
                 // Tracking: https://github.com/dotnet/vscode-csharp/issues/6675
                 //
                 // The request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsWithUnresolvedDependencies.ToImmutableHashSet(), cancellationToken);
+                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore.ToImmutableHashSet(), cancellationToken);
             }
         }
         finally

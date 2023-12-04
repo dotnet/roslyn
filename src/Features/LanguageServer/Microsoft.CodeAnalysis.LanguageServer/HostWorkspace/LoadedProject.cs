@@ -185,13 +185,13 @@ internal sealed class LoadedProject : IDisposable
 
         WatchProjectAssetsFile(newProjectInfo, _fileChangeContext);
 
-        var hasUnresolvedDependencies = ProjectDependencyHelper.HasUnresolvedDependencies(newProjectInfo, _mostRecentFileInfo, logger);
+        var needsRestore = ProjectDependencyHelper.NeedsRestore(newProjectInfo, _mostRecentFileInfo, logger);
 
         _mostRecentFileInfo = newProjectInfo;
 
         Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
         var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
-        return (metadataReferences, outputKind, hasUnresolvedDependencies);
+        return (metadataReferences, outputKind, needsRestore);
 
         // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
         void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
