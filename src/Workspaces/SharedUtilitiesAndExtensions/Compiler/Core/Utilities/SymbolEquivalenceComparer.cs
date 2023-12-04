@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
@@ -67,19 +68,24 @@ internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
 
         // There are only so many EquivalenceVisitors and GetHashCodeVisitors we can have.
         // Create them all up front.
-        var equivalenceVisitorsBuilder = ImmutableArray.CreateBuilder<EquivalenceVisitor>();
-        equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
-        equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
-        equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
-        equivalenceVisitorsBuilder.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-        _equivalenceVisitors = equivalenceVisitorsBuilder.ToImmutable();
+        using var _1 = ArrayBuilder<EquivalenceVisitor>.GetInstance(capacity: 4, out var equivalenceVisitors);
+        using var _2 = ArrayBuilder<GetHashCodeVisitor>.GetInstance(capacity: 4, out var getHashCodeVisitors);
 
-        var getHashCodeVisitorsBuilder = ImmutableArray.CreateBuilder<GetHashCodeVisitor>();
-        getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true));
-        getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false));
-        getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true));
-        getHashCodeVisitorsBuilder.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false));
-        _getHashCodeVisitors = getHashCodeVisitorsBuilder.ToImmutable();
+        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true);
+        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false);
+        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true);
+        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false);
+
+        _equivalenceVisitors = equivalenceVisitors.ToImmutableAndClear();
+        _getHashCodeVisitors = getHashCodeVisitors.ToImmutableAndClear();
+
+        return;
+
+        void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+        {
+            equivalenceVisitors.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            getHashCodeVisitors.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+        }
     }
 
     public static SymbolEquivalenceComparer Create(
