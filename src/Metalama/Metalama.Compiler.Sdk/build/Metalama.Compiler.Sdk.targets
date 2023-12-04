@@ -105,9 +105,6 @@
       <MetalamaSdkPackageReplacement Include="Metalama.Compiler.Sdk" ReplacedBy="Metalama.Compiler"/>
     </ItemGroup>
 
-    <Message Text="NuspecFileAbsolutePaths.Identity: %(NuspecFileAbsolutePaths.Identity)" Importance="High" />
-    <Message Text="MetalamaSdkPackageReplacement: @(MetalamaSdkPackageReplacement)" Importance="High" />
-
     <RewriteMetalamaSdkNuspec File="%(NuspecFileAbsolutePaths.Identity)" Replacements="@(MetalamaSdkPackageReplacement)"/>
 
   </Target>
