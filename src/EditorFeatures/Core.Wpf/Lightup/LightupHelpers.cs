@@ -329,8 +329,8 @@ internal static class LightupHelpers
             throw new InvalidOperationException($"Method '{method}' produces a value of type '{method.ReturnType}', which is not assignable to type '{typeof(TResult)}'");
         }
 
-        var instanceParameter = Expression.Parameter(type, GenerateParameterName(type));
         var argument = Expression.Parameter(typeof(TArg), parameters[0].Name);
+        var instance = Expression.Parameter(type, GenerateParameterName(type));
         var convertedArgument =
             argType.GetTypeInfo().IsAssignableFrom(typeof(TArg).GetTypeInfo())
             ? (Expression)argument
@@ -340,10 +340,10 @@ internal static class LightupHelpers
             Expression.Lambda<Func<T, TArg, TResult>>(
                 Expression.Convert(
                     Expression.Call(
-                        instanceParameter,
+                        instance,
                         method,
                         convertedArgument), typeof(TResult)),
-                instanceParameter,
+                instance,
                 argument);
         return expression.Compile();
     }
