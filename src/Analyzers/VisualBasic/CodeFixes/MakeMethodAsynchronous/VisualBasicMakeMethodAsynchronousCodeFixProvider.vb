@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTypes) As Boolean
+        Protected Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTypes As KnownTaskTypes) As Boolean
             Return knownTypes.IsTaskLike(type)
         End Function
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
                 keepVoid As Boolean,
                 methodSymbolOpt As IMethodSymbol,
                 node As SyntaxNode,
-                knownTypes As KnownTypes,
+                knownTypes As KnownTaskTypes,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End If
         End Function
 
-        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTaskTypes) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 

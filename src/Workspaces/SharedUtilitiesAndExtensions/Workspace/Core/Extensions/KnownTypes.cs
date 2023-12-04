@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal readonly struct KnownTypes(Compilation compilation)
+internal readonly struct KnownTaskTypes(Compilation compilation)
 {
     public readonly INamedTypeSymbol? TaskType = compilation.TaskType();
     public readonly INamedTypeSymbol? TaskOfTType = compilation.TaskOfTType();

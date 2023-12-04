@@ -100,7 +100,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 isUnsafe = returnType.RequiresUnsafeModifier() || parameters.Any(static p => p.Type.RequiresUnsafeModifier());
             }
 
-            var knownTypes = new KnownTypes(Document.SemanticModel.Compilation);
+            var knownTypes = new KnownTaskTypes(Document.SemanticModel.Compilation);
 
             var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,

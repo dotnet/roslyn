@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract string GetMakeAsyncTaskFunctionResource();
         protected abstract string GetMakeAsyncVoidFunctionResource();
 
-        protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
+        protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTypes);
 
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
-            bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes, CancellationToken cancellationToken);
+            bool keepVoid, IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes, CancellationToken cancellationToken);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // method if we convert it.  The last is optional.  It is only needed to know
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
-            var knownTypes = new KnownTypes(compilation);
+            var knownTypes = new KnownTaskTypes(compilation);
             if (knownTypes.TaskType == null || knownTypes.TaskOfTType == null)
                 return;
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var methodSymbol = GetMethodSymbol(semanticModel, node, cancellationToken);
             Contract.ThrowIfNull(methodSymbol);
 
-            var knownTypes = new KnownTypes(semanticModel.Compilation);
+            var knownTypes = new KnownTaskTypes(semanticModel.Compilation);
 
             return NeedsRename()
                 ? await RenameThenAddAsyncTokenAsync(keepVoid, document, node, methodSymbol, knownTypes, cancellationToken).ConfigureAwait(false)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             Document document,
             SyntaxNode node,
             IMethodSymbol methodSymbol,
-            KnownTypes knownTypes,
+            KnownTaskTypes knownTypes,
             CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             bool keepVoid,
             Document document,
             IMethodSymbol methodSymbol,
-            KnownTypes knownTypes,
+            KnownTaskTypes knownTypes,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {

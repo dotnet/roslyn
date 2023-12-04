@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var knownTypes = new KnownTypes(compilation);
+            var knownTypes = new KnownTaskTypes(compilation);
 
             var diagnostic = context.Diagnostics.First();
             var token = diagnostic.Location.FindToken(cancellationToken);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var compilation = semanticModel.Compilation;
-            var knownTypes = new KnownTypes(compilation);
+            var knownTypes = new KnownTaskTypes(compilation);
 
             // For fix all we need to do nested locals or lambdas first, so order the diagnostics by location descending
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             => semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as IMethodSymbol ??
                semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
 
-        private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
+        private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTaskTypes knownTypes)
             => IsTaskType(returnType, knownTypes)
                 || returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType)
                 || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTType);
 
-        private static bool IsTaskType(ITypeSymbol returnType, KnownTypes knownTypes)
+        private static bool IsTaskType(ITypeSymbol returnType, KnownTaskTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.TaskType)
                 || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskType);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             SyntaxGenerator generator,
             SyntaxNode node,
             ITypeSymbol returnType,
-            KnownTypes knownTypes,
+            KnownTaskTypes knownTypes,
             bool needsReturnStatementAdded)
         {
             node = RemoveAsyncModifier(generator, node);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             SyntaxGenerator generator,
             SyntaxNode node,
             ITypeSymbol returnType,
-            KnownTypes knownTypes)
+            KnownTaskTypes knownTypes)
         {
             var editor = new SyntaxEditor(node, solutionServices);
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             return editor.GetChangedRoot();
         }
 
-        private static SyntaxNode GetReturnTaskCompletedTaskStatement(SyntaxGenerator generator, ITypeSymbol returnType, KnownTypes knownTypes)
+        private static SyntaxNode GetReturnTaskCompletedTaskStatement(SyntaxGenerator generator, ITypeSymbol returnType, KnownTaskTypes knownTypes)
         {
             SyntaxNode invocation;
             if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             return statement;
         }
 
-        private static SyntaxNode WrapExpressionWithTaskFromResult(SyntaxGenerator generator, SyntaxNode expression, ITypeSymbol returnType, KnownTypes knownTypes)
+        private static SyntaxNode WrapExpressionWithTaskFromResult(SyntaxGenerator generator, SyntaxNode expression, ITypeSymbol returnType, KnownTaskTypes knownTypes)
         {
             if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
             {

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTypes knownTypes)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbol, SyntaxNode node, KnownTaskTypes knownTypes)
         {
             switch (node)
             {
@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
                 default: return node;
             }
         }
-        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
+        private static SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTaskTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
             return RemoveAsyncModifierHelpers.WithoutAsyncModifier(method, newReturnType);
         }
 
-        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
+        private static SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTaskTypes knownTypes)
         {
             var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
             return RemoveAsyncModifierHelpers.WithoutAsyncModifier(localFunction, newReturnType);
         }
 
-        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTypes knownTypes)
+        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTaskTypes knownTypes)
         {
             var newReturnType = returnTypeSyntax;
 
