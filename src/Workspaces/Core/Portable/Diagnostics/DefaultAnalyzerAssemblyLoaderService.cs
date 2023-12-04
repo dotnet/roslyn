@@ -17,7 +17,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory() : IWorkspace
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default");
 
-    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string kind) : IAnalyzerAssemblyLoaderProvider
+    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind) : IAnalyzerAssemblyLoaderProvider
     {
         private readonly DefaultAnalyzerAssemblyLoader _loader = new();
 
@@ -29,7 +29,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory() : IWorkspace
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", kind));
+            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind));
 
         public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
             => options.ShadowCopy ? _shadowCopyLoader : _loader;
