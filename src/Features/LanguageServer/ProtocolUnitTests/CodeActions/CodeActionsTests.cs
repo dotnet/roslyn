@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,296 +10,345 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
+
+public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    public class CodeActionsTests : AbstractLanguageServerProtocolTests
+    [WpfTheory, CombinatorialData]
+    public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
     {
-        [WpfFact]
-        public async Task TestCodeActionHandlerAsync()
-        {
-            var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}int i = 1;
-    }
-}";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
-
-            var caretLocation = testLspServer.GetLocations("caret").Single();
-            var expected = CreateCodeAction(
-                title: CSharpAnalyzersResources.Use_implicit_type,
-                kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(
-                    CSharpAnalyzersResources.Use_implicit_type,
-                    caretLocation,
-                    customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
-                priority: VSInternalPriorityLevel.Low,
-                groupName: "Roslyn1",
-                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
-                diagnostics: null);
-
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
-            var useImplicitType = results.FirstOrDefault(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
-
-            AssertJsonEquals(expected, useImplicitType);
-        }
-
-        [WpfFact]
-        public async Task TestCodeActionHandlerAsync_NestedAction()
-        {
-            var markup =
-@"class A
-{
-    void M()
-    {
-        int {|caret:|}i = 1;
-    }
-}";
-            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
-
-            var caretLocation = testLspServer.GetLocations("caret").Single();
-            var expected = CreateCodeAction(
-                title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                kind: CodeActionKind.Refactor,
-                children: Array.Empty<LSP.VSInternalCodeAction>(),
-                data: CreateCodeActionResolveData(
-                    FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
-                    caretLocation),
-                priority: VSInternalPriorityLevel.Normal,
-                groupName: "Roslyn3",
-                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
-                diagnostics: null);
-
-            var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
-
-            var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
-            var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
-            var introduceConstant = topLevelAction.Children.FirstOrDefault(
-                r => ((JObject)r.Data).ToObject<CodeActionResolveData>().UniqueIdentifier == expectedChildActionTitle);
-
-            AssertJsonEquals(expected, introduceConstant);
-        }
-
-        [WpfFact]
-        public async Task TestCodeActionsCacheAsync()
-        {
-            var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}int i = 1;
-    }
-}";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
-            var cache = GetCodeActionsCache(testLspServer);
-            var testAccessor = cache.GetTestAccessor();
-
-            // This test assumes that the maximum cache size is 3, and will have to modified if this number changes.
-            Assert.True(CodeActionsCache.TestAccessor.MaximumCacheSize == 3);
-
-            var caretLocation = testLspServer.GetLocations("caret").Single();
-            var document = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
-
-            // 1. Invoking code actions on document with empty cache.
-            await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, document);
-
-            // Ensuring contents of cache are as expected.
-            var docAndRange = testAccessor.GetDocumentsAndRangesInCache().Single();
-            AssertRangeAndDocEqual(caretLocation.Range, document, docAndRange);
-
-            // 2. Invoking code actions on the same unmodified document and range should use the existing cached item
-            // instead of generating a new cached item.
-            await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, document);
-
-            // Ensuring contents of cache are as expected.
-            docAndRange = testAccessor.GetDocumentsAndRangesInCache().Single();
-            AssertRangeAndDocEqual(caretLocation.Range, document, docAndRange);
-
-            var originalRange = caretLocation.Range;
-
-            // 3. Invoking code actions on a different range should generate a new cached item.
-            caretLocation.Range = new LSP.Range
+        var markup =
+            """
+            class A
             {
-                Start = new LSP.Position() { Line = 0, Character = 0 },
-                End = new LSP.Position() { Line = 0, Character = 0 }
-            };
-
-            await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, document);
-
-            // Ensuring contents of cache are as expected.
-            var docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
-            Assert.True(docsAndRanges.Count == 2);
-            AssertRangeAndDocEqual(originalRange, document, docsAndRanges[0]);
-            AssertRangeAndDocEqual(caretLocation.Range, document, docsAndRanges[1]);
-
-            // 4. Changing the document should generate a new cached item.
-            var currentDocText = await document.GetTextAsync();
-            var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
-            testLspServer.TestWorkspace.TryApplyChanges(document.WithText(changedSourceText).Project.Solution);
-
-            var docId = testLspServer.TestWorkspace.Documents.First().Id;
-            await testLspServer.TestWorkspace.ChangeDocumentAsync(docId, changedSourceText);
-
-            var updatedDocument = GetDocument(testLspServer.TestWorkspace, CreateTextDocumentIdentifier(caretLocation.Uri));
-
-            await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, updatedDocument);
-
-            // Ensuring contents of cache are as expected.
-            docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
-            AssertRangeAndDocEqual(originalRange, document, docsAndRanges[0]);
-            AssertRangeAndDocEqual(caretLocation.Range, document, docsAndRanges[1]);
-            AssertRangeAndDocEqual(caretLocation.Range, updatedDocument, docsAndRanges[2]);
-
-            var updatedRange = caretLocation.Range;
-
-            // 5. The current cache size is 3. Adding a 4th item to the cache should still keep the cache size the same,
-            // and boot out the oldest item in the cache.
-            caretLocation.Range = new LSP.Range
-            {
-                Start = new LSP.Position() { Line = 0, Character = 0 },
-                End = new LSP.Position() { Line = 0, Character = 1 }
-            };
-
-            await RunCodeActionsAndAssertActionsInCacheAsync(testLspServer, cache, caretLocation, updatedDocument);
-
-            // Ensuring contents of cache are as expected.
-            docsAndRanges = testAccessor.GetDocumentsAndRangesInCache();
-            AssertRangeAndDocEqual(updatedRange, document, docsAndRanges[0]);
-            AssertRangeAndDocEqual(updatedRange, updatedDocument, docsAndRanges[1]);
-            AssertRangeAndDocEqual(caretLocation.Range, updatedDocument, docsAndRanges[2]);
-        }
-
-        [WpfFact]
-        public async Task TestCodeActionHasCorrectDiagnostics()
-        {
-            var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}Task.Delay(1);
-    }
-}";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
-
-            var caret = testLspServer.GetLocations("caret").Single();
-            var codeActionParams = new LSP.CodeActionParams
-            {
-                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
-                Range = caret.Range,
-                Context = new LSP.CodeActionContext
+                void M()
                 {
-                    Diagnostics = new[]
+                    {|caret:|}int i = 1;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initializationOptions: new InitializationOptions() { ClientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true } });
+
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        var expected = CreateCodeAction(
+            title: CSharpAnalyzersResources.Use_implicit_type,
+            kind: CodeActionKind.Refactor,
+            children: Array.Empty<VSInternalCodeAction>(),
+            data: CreateCodeActionResolveData(
+                CSharpAnalyzersResources.Use_implicit_type,
+                caretLocation,
+                customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
+            priority: VSInternalPriorityLevel.Low,
+            groupName: "Roslyn2",
+            applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
+            diagnostics: null);
+
+        var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+        var useImplicitType = results.FirstOrDefault(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
+
+        AssertJsonEquals(expected, useImplicitType);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestCodeActionHandlerAsync_NestedAction(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                    int {|caret:|}i = 1;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        var expected = CreateCodeAction(
+            title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+            kind: CodeActionKind.Refactor,
+            children: Array.Empty<VSInternalCodeAction>(),
+            data: CreateCodeActionResolveData(
+                FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
+                caretLocation),
+            priority: VSInternalPriorityLevel.Normal,
+            groupName: "Roslyn3",
+            applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 12 }, End = new Position { Line = 4, Character = 12 } },
+            diagnostics: null);
+
+        var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
+
+        var topLevelAction = Assert.Single(results.Where(action => action.Title == FeaturesResources.Introduce_constant));
+        var expectedChildActionTitle = FeaturesResources.Introduce_constant + '|' + string.Format(FeaturesResources.Introduce_constant_for_0, "1");
+        var introduceConstant = topLevelAction.Children.FirstOrDefault(
+            r => ((JObject)r.Data!).ToObject<CodeActionResolveData>()!.UniqueIdentifier == expectedChildActionTitle);
+
+        AssertJsonEquals(expected, introduceConstant);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestCodeActionHasCorrectDiagnostics(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}Task.Delay(1);
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+                Diagnostics =
+                [
+                    new LSP.Diagnostic
                     {
-                        new LSP.Diagnostic
-                        {
-                            Code = AddImportDiagnosticIds.CS0103
-                        },
-                        new LSP.Diagnostic
-                        {
-                            Code = "SomeCode"
-                        }
+                        Code = AddImportDiagnosticIds.CS0103
+                    },
+                    new LSP.Diagnostic
+                    {
+                        Code = "SomeCode"
                     }
-                }
-            };
+                ]
+            }
+        };
 
-            var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
-            var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
-            Assert.Equal(1, addImport.Diagnostics.Length);
-            Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code.Value);
-        }
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
+        Assert.Equal(1, addImport.Diagnostics!.Length);
+        Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
+    }
 
-        private static async Task RunCodeActionsAndAssertActionsInCacheAsync(
-            TestLspServer testLspServer,
-            CodeActionsCache cache,
-            LSP.Location caretLocation,
-            Document document)
-        {
-            await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
-            var cacheResults = await cache.GetActionSetsAsync(document, caretLocation.Range, CancellationToken.None);
-            Assert.NotNull(cacheResults);
-        }
-
-        private static void AssertRangeAndDocEqual(
-            LSP.Range range,
-            Document document,
-            (Document Document, LSP.Range Range) actualDocAndRange)
-        {
-            Assert.Equal(document, actualDocAndRange.Document);
-            Assert.Equal(range.Start, actualDocAndRange.Range.Start);
-            Assert.Equal(range.End, actualDocAndRange.Range.End);
-        }
-
-        private static async Task<LSP.VSInternalCodeAction[]> RunGetCodeActionsAsync(
-            TestLspServer testLspServer,
-            CodeActionParams codeActionParams)
-        {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
-                LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-            return result.Cast<LSP.VSInternalCodeAction>().ToArray();
-        }
-
-        internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
-            => new LSP.CodeActionParams
+    [WpfTheory, CombinatorialData]
+    public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
-                Range = caret.Range,
-                Context = new LSP.CodeActionContext
+                private static async void {|caret:XYZ|}()
                 {
-                    // TODO - Code actions should respect context.
                 }
-            };
+            }
+            """;
 
-        internal static LSP.VSInternalCodeAction CreateCodeAction(
-            string title, LSP.CodeActionKind kind, LSP.VSInternalCodeAction[] children,
-            CodeActionResolveData data, LSP.Diagnostic[] diagnostics,
-            LSP.VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
-            LSP.WorkspaceEdit edit = null, LSP.Command command = null)
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
         {
-            var action = new LSP.VSInternalCodeAction
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
             {
-                Title = title,
-                Kind = kind,
-                Children = children,
-                Data = JToken.FromObject(data),
-                Diagnostics = diagnostics,
-                Edit = edit,
-                Group = groupName,
-                Priority = priority,
-                ApplicableRange = applicableRange,
-                Command = command
-            };
+                Diagnostics =
+                [
+                    new LSP.Diagnostic
+                    {
+                        // async method lack of await.
+                        Code = "CS1998"
+                    }
+                ]
+            }
+        };
 
-            return action;
-        }
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        Assert.Equal(3, results.Length);
+        Assert.Equal("Make method synchronous", results[0].Title);
+    }
 
-        private static CodeActionsCache GetCodeActionsCache(TestLspServer testLspServer)
+    [WpfTheory, CombinatorialData]
+    public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
+            {
+                private void XYZ()
+                {
+                    var a = {|caret:A()|};
+                }
+
+                private int A() => 1;
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
         {
-            var cache = testLspServer.GetRequiredLspService<CodeActionsCache>();
-            return cache;
-        }
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+            }
+        };
 
-        private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
+        var data = GetCodeActionResolveData(inline);
+        Assert.NotNull(data);
+
+        // Asserts that there are NestedActions on Inline
+        Assert.NotNull(data!.NestedCodeActions);
+        Assert.NotEmpty(data!.NestedCodeActions);
+
+        // Asserts that there is a Command present on an action with nested actions
+        Assert.NotNull(inline.Command);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
+            {
+                private static async void {|caret:XYZ|}()
+                {
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
         {
-            return workspace.CurrentSolution.GetDocument(textDocument);
-        }
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+                Diagnostics =
+                [
+                    new LSP.Diagnostic
+                    {
+                        // async method lack of await.
+                        Code = "CS1998"
+                    }
+                ]
+            }
+        };
+
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        Assert.Equal(3, results.Length);
+        Assert.Equal("Suppress or configure issues", results[2].Title);
+        var data = GetCodeActionResolveData(results[2]);
+        Assert.NotNull(data);
+
+        // Asserts that there are NestedActions present
+        Assert.NotNull(data!.NestedCodeActions);
+
+        //Asserts that a Nested Action could be a Fix All Action
+        Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
+    }
+
+    [WpfTheory, CombinatorialData]
+    public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            class ABC
+            {
+                private void XYZ()
+                {
+                    var a = {|caret:A()|};
+                }
+
+                private int A() => 1;
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+        var codeActionParams = new CodeActionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+            }
+        };
+
+        var results = await RunGetCodeActionsAsync(testLspServer, codeActionParams);
+        // Assert that nested code actions aren't enumerated.
+        var inline = results.FirstOrDefault(r => r.Title.Contains($"Inline 'A()'"));
+        var resolvedAction = await RunGetCodeActionResolveAsync(testLspServer, inline);
+        Assert.Null(resolvedAction.Edit);
+    }
+
+    private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
+        TestLspServer testLspServer,
+        CodeActionParams codeActionParams)
+    {
+        var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
+            LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
+        return result.Cast<VSInternalCodeAction>().ToArray();
+    }
+
+    private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(
+        TestLspServer testLspServer,
+        CodeAction codeAction)
+    {
+        var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
+            LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
+        Assert.NotNull(result);
+        return (VSInternalCodeAction)result!;
+    }
+
+    private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
+    {
+        return ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
+
+    }
+
+    internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
+        => new CodeActionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            Range = caret.Range,
+            Context = new CodeActionContext
+            {
+                // TODO - Code actions should respect context.
+            }
+        };
+
+    internal static VSInternalCodeAction CreateCodeAction(
+        string title, CodeActionKind kind, VSInternalCodeAction[] children,
+        CodeActionResolveData data, LSP.Diagnostic[]? diagnostics,
+        VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
+        WorkspaceEdit? edit = null, Command? command = null)
+    {
+        var action = new VSInternalCodeAction
+        {
+            Title = title,
+            Kind = kind,
+            Children = children,
+            Data = JToken.FromObject(data),
+            Diagnostics = diagnostics,
+            Edit = edit,
+            Group = groupName,
+            Priority = priority,
+            ApplicableRange = applicableRange,
+            Command = command
+        };
+
+        return action;
     }
 }

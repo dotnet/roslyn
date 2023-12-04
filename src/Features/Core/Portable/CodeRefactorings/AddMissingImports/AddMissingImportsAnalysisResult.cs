@@ -4,19 +4,13 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddMissingImports
 {
-    internal sealed class AddMissingImportsAnalysisResult
+    internal sealed class AddMissingImportsAnalysisResult(
+        ImmutableArray<AddImportFixData> addImportFixData)
     {
-        public ImmutableArray<AddImportFixData> AddImportFixData { get; }
+        public ImmutableArray<AddImportFixData> AddImportFixData { get; } = addImportFixData;
         public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
-
-        public AddMissingImportsAnalysisResult(
-            ImmutableArray<AddImportFixData> addImportFixData)
-        {
-            AddImportFixData = addImportFixData;
-        }
     }
 }

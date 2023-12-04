@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override DocumentationProvider CreateDocumentationProvider()
             {
                 // this uses documentation provider given at the constructor
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override Metadata GetMetadataImpl()
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
-            public IEnumerable<ITemporaryStreamStorageInternal>? GetStorages()
+            public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
                 => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }

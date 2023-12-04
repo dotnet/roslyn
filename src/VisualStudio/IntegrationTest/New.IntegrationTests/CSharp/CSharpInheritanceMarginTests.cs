@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
@@ -46,10 +44,10 @@ class Implementation : IBar
             await TestServices.InheritanceMargin.ClickTheGlyphOnLine(2, HangMitigatingCancellationToken);
 
             // Move focus to menu item of 'IBar', the destination is targeting 'class Implementation'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Navigate to the destination
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"class Implementation$$", assertCaretPosition: true);
         }
 
@@ -78,12 +76,12 @@ class Implementation : IBar
 
             // The context menu contains two members, e1 and e2.
             // Move focus to menu item of 'event e1'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Expand the submenu
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
             // Navigate to the implemention
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"public event EventHandler e1$$, e2;", assertCaretPosition: true);
         }
 
@@ -110,10 +108,10 @@ class Implementation : IEnumerable
             await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
 
             // Move focus to menu item of 'class Implementation'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Navigate to 'IEnumerable'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"public interface IEnumerable$$", assertCaretPosition: true);
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
@@ -152,10 +150,10 @@ class Implementation : IBar
             await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
 
             // Move focus to menu item of 'class Implementation'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
             // Navigate to 'IBar'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.InheritanceMargin }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync(@"Public Interface IBar$$", assertCaretPosition: true);
 
             var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);

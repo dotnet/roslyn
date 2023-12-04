@@ -9,11 +9,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class ContentTypeMetadata : IContentTypeMetadata
+    internal class ContentTypeMetadata(IDictionary<string, object> data) : IContentTypeMetadata
     {
-        public IEnumerable<string> ContentTypes { get; }
-
-        public ContentTypeMetadata(IDictionary<string, object> data)
-            => this.ContentTypes = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
+        public IEnumerable<string> ContentTypes { get; } = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
     }
 }

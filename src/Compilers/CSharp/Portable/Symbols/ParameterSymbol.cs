@@ -3,16 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -156,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind;
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
-                        (refKind == RefKind.In) ||
+                        (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
                         (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
@@ -416,16 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
         /// <summary>
-        /// The declared scope. From source, this is from the <c>scope</c> keyword
-        /// and any implicit scope, ignoring any <c>UnscopedRefAttribute</c>.
-        /// </summary>
-        internal abstract DeclarationScope DeclaredScope { get; }
-
-        /// <summary>
-        /// The effective scope. This is from the declared scope and any
+        /// The effective scope. This is from the declared scope, implicit scope and any
         /// <c>UnscopedRefAttribute</c>.
         /// </summary>
-        internal abstract DeclarationScope EffectiveScope { get; }
+        internal abstract ScopedKind EffectiveScope { get; }
+
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        internal abstract bool UseUpdatedEscapeRules { get; }
 
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
@@ -443,5 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
+
+        #region IParameterSymbolInternal
+
+        ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+
+        #endregion
     }
 }

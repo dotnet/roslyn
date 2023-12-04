@@ -9,19 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 {
     internal sealed class WatchHotReloadService
     {
-        private sealed class DebuggerService : IManagedHotReloadService
+        private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
         {
-            private readonly ImmutableArray<string> _capabilities;
-
-            public DebuggerService(ImmutableArray<string> capabilities)
-                => _capabilities = capabilities;
+            private readonly ImmutableArray<string> _capabilities = capabilities;
 
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => ValueTaskFactory.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -43,26 +40,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public readonly ImmutableArray<byte> MetadataDelta;
             public readonly ImmutableArray<byte> PdbDelta;
             public readonly ImmutableArray<int> UpdatedTypes;
+            public readonly ImmutableArray<string> RequiredCapabilities;
 
-            public Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes)
+            internal Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedTypes, ImmutableArray<string> requiredCapabilities)
             {
                 ModuleId = moduleId;
                 ILDelta = ilDelta;
                 MetadataDelta = metadataDelta;
                 PdbDelta = pdbDelta;
                 UpdatedTypes = updatedTypes;
+                RequiredCapabilities = requiredCapabilities;
             }
         }
 
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private DebuggingSessionId _sessionId;
         private readonly ImmutableArray<string> _capabilities;
 
-        public WatchHotReloadService(SolutionServices services, ImmutableArray<string> capabilities)
-            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
+        public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
+            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>().Service, capabilities);
 
         /// <summary>
         /// Starts the watcher.
@@ -74,6 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new DebuggerService(_capabilities),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
+                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes, update.RequiredCapabilities));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 

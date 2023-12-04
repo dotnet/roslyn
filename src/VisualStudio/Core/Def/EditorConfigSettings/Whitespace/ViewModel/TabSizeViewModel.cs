@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 {
     internal class TabSizeViewModel : EnumSettingViewModel<TabSizeSettings>
     {
-        private readonly WhitespaceSetting _setting;
+        private readonly Setting _setting;
 
-        public TabSizeViewModel(WhitespaceSetting setting)
+        public TabSizeViewModel(Setting setting)
         {
             _setting = setting;
         }

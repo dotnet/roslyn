@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -42,33 +43,47 @@ End Class", HangMitigatingCancellationToken);
 End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileDef.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileDef.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync(@"Class SomeClass$$", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
-        public async Task ObjectBrowserNavigation()
+        [IdeTheory, CombinatorialData]
+        public async Task ObjectBrowserNavigation(bool navigateToObjectBrowser)
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
+            var project = ProjectName;
+            await TestServices.SolutionExplorer.AddFileAsync(project, "ObjBrowser.vb", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(project, "ObjBrowser.vb", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(@"", HangMitigatingCancellationToken);
+
             await SetUpEditorAsync(
-@"Class C
-    Dim i As Integer$$
-End Class", HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), true);
+                """
+                Class C
+                    Dim i As Integer$$
+                End Class
+                """, HangMitigatingCancellationToken);
+
+            globalOptions.SetGlobalOption(VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic, navigateToObjectBrowser);
+
+            // We want to make sure that if navigationToObjectBrowserEnabled = false we are navigating to a source representation; we will disable
+            // decompiled sources and embedded sources so that way the type of source (and contents within) are stable.
+            globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, false);
+            globalOptions.SetGlobalOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, false);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), false);
-            globalOptions.SetGlobalOption(new OptionKey(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, language: null), false);
-
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
-            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            Assert.Equal("Int32 [from metadata] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
-            await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
+            if (navigateToObjectBrowser)
+            {
+                Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            }
+            else
+            {
+                await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+                Assert.Contains("Int32", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+                await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
+            }
         }
 
         [IdeFact]

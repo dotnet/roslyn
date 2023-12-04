@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
     /// Specifically, this implementation satisfies the following inequality: D(x, y) + D(y, z) >= D(x, z)
     /// (where D is the edit distance).
     ///</summary> 
-    internal class EditDistance : IDisposable
+    internal readonly struct EditDistance(string text) : IDisposable
     {
         // Our edit distance algorithm makes use of an 'infinite' value.  A value so high that it 
         // could never participate in an edit distance (and effectively means the path through it
@@ -45,31 +45,24 @@ namespace Roslyn.Utilities
 
         public const int BeyondThreshold = int.MaxValue;
 
-        private string _source;
-        private char[] _sourceLowerCaseCharacters;
-
-        public EditDistance(string text)
-        {
-            _source = text ?? throw new ArgumentNullException(nameof(text));
-            _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
-        }
+        private readonly string _source = text ?? throw new ArgumentNullException(nameof(text));
+        private readonly char[] _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
         private static char[] ConvertToLowercaseArray(string text)
         {
             var array = ArrayPool<char>.GetArray(text.Length);
             for (var i = 0; i < text.Length; i++)
-            {
                 array[i] = CaseInsensitiveComparison.ToLower(text[i]);
-            }
 
             return array;
         }
 
         public void Dispose()
         {
+            if (_sourceLowerCaseCharacters == null)
+                throw new ObjectDisposedException(nameof(EditDistance));
+
             ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
-            _source = null!;
-            _sourceLowerCaseCharacters = null!;
         }
 
         public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
@@ -84,9 +77,7 @@ namespace Roslyn.Utilities
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {
             if (_sourceLowerCaseCharacters == null)
-            {
                 throw new ObjectDisposedException(nameof(EditDistance));
-            }
 
             var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
             try
@@ -189,14 +180,14 @@ namespace Roslyn.Utilities
             // consider them as they won't add anything to the edit cost.
             while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
             {
-                source = source.Slice(0, source.Length - 1);
-                target = target.Slice(0, target.Length - 1);
+                source = source[..^1];
+                target = target[..^1];
             }
 
             while (source.Length > 0 && source[0] == target[0])
             {
-                source = source.Slice(1);
-                target = target.Slice(1);
+                source = source[1..];
+                target = target[1..];
             }
 
             // 'sourceLength' and 'targetLength' are now the lengths of the substrings of our strings that we
@@ -610,14 +601,10 @@ namespace Roslyn.Utilities
         }
     }
 
-    internal class SimplePool<T> where T : class
+    internal class SimplePool<T>(Func<T> allocate) where T : class
     {
         private readonly object _gate = new();
         private readonly Stack<T> _values = new();
-        private readonly Func<T> _allocate;
-
-        public SimplePool(Func<T> allocate)
-            => _allocate = allocate;
 
         public T Allocate()
         {
@@ -628,7 +615,7 @@ namespace Roslyn.Utilities
                     return _values.Pop();
                 }
 
-                return _allocate();
+                return allocate();
             }
         }
 

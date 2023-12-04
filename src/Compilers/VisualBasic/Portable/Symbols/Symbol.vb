@@ -66,9 +66,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the token for this symbol as it appears in metadata. Most of the time this Is 0,
         ''' as it Is when the symbol Is Not loaded from metadata.
         ''' </summary>
-        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken
+        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken, ISymbolInternal.MetadataToken
             Get
                 Return 0
+            End Get
+        End Property
+
+        Public ReadOnly Property MetadataVisibility As Microsoft.Cci.TypeMemberVisibility Implements ISymbolInternal.MetadataVisibility
+            Get
+                '
+                ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                '
+                ' Top-level:
+                '   private                       -> public
+                '   family                        -> public (compiles with a warning)
+                '   public
+                '   friend                        -> public
+                '
+                ' In a nested class:
+                '
+                '   private
+                '   family
+                '   public
+                '   friend                        -> public
+                '
+                Select Case DeclaredAccessibility
+                    Case Accessibility.Public
+                        Return Microsoft.Cci.TypeMemberVisibility.Public
+
+                    Case Accessibility.Private
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Private
+                        End If
+
+                    Case Accessibility.Friend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Assembly
+                        End If
+
+                    Case Accessibility.Protected
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Family
+                        End If
+
+                    Case Accessibility.ProtectedAndFriend
+                        Debug.Assert(ContainingType.TypeKind <> TypeKind.Submission)
+                        Return Microsoft.Cci.TypeMemberVisibility.FamilyAndAssembly
+
+                    Case Accessibility.ProtectedOrFriend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.FamilyOrAssembly
+                        End If
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility)
+                End Select
             End Get
         End Property
 
@@ -446,12 +505,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
                 Select Case ObsoleteKind
-                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
+                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.WindowsExperimental, ObsoleteAttributeKind.Experimental
                         Return ThreeState.False
                     Case ObsoleteAttributeKind.Uninitialized
                         Return ThreeState.Unknown
                     Case Else
                         Return ThreeState.True
+                End Select
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if this symbol has been marked with the Experimental attribute. 
+        ''' This property returns Unknown if the Experimental attribute hasn't been cracked yet.
+        ''' </summary>
+        Friend ReadOnly Property ExperimentalState As ThreeState
+            Get
+                Select Case ObsoleteKind
+                    Case ObsoleteAttributeKind.Experimental
+                        Return ThreeState.True
+                    Case ObsoleteAttributeKind.Uninitialized
+                        Return ThreeState.Unknown
+                    Case Else
+                        Return ThreeState.False
                 End Select
             End Get
         End Property
@@ -464,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        ''' Returns data decoded from Obsolete/Experimental attribute or null if there is no Obsolete/Experimental attribute.
         ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         ''' </summary>
         Friend MustOverride ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
@@ -693,24 +769,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns true and a <see cref="String"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        ''' the string might be null or an invalid guid representation. False, 
-        ''' if there is no <see cref="GuidAttribute"/> with string argument.
-        ''' </summary>
-        Friend Function GetGuidStringDefaultImplementation(<Out> ByRef guidString As String) As Boolean
-            For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                    If attrData.TryGetGuidAttributeValue(guidString) Then
-                        Return True
-                    End If
-                End If
-            Next
-
-            guidString = Nothing
-            Return False
-        End Function
-
-        ''' <summary>
         ''' Returns the Documentation Comment ID for the symbol, or Nothing if the symbol
         ''' doesn't support documentation comments.
         ''' </summary>
@@ -820,7 +878,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return String.Format("{0} {1}", Me.Kind, Me.ToDisplayString(SymbolDisplayFormat.TestFormat))
         End Function
 
-
         ' ---- End of Public Definition ---
         ' Below here can be Friend members that are useful to the compiler, but we don't
         ' want to expose publicly. However, using a class derived from SymbolVisitor can be
@@ -835,7 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
-        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolInternal.IsDefinedInSourceTree
             Dim declaringReferences = Me.DeclaringSyntaxReferences
             If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
                 Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
@@ -994,7 +1051,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return modifiersUseSiteInfo
             End If
 
-
             Dim errorInfo = If(useSiteInfo.DiagnosticInfo, If(refModifiersUseSiteInfo.DiagnosticInfo, modifiersUseSiteInfo.DiagnosticInfo))
 
             If errorInfo IsNot Nothing Then
@@ -1043,7 +1099,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
-
 
                 If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo) Then
                     Exit For
@@ -1280,7 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Display.ToMinimalDisplayParts(Me, semanticModel, position, format)
         End Function
 
-        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern
+        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern, ISymbolInternal.IsExtern
             Get
                 Return False
             End Get

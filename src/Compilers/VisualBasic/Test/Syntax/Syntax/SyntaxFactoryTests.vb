@@ -59,7 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CheckLiteralToString(ChrW(7), "ChrW(7)")
             CheckLiteralToString(ChrW(10), "vbLf")
 
-
             '' Unsupported in VB: byte, sbyte, ushort, short
 
             ' uint
@@ -80,7 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CheckLiteralToString(Long.MinValue, "-9223372036854775808L")
             CheckLiteralToString(Long.MaxValue, "9223372036854775807L")
 
-
             ' float
             CheckLiteralToString(0.0F, "0F")
             CheckLiteralToString(0.012345F, "0.012345F")
@@ -89,7 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #Else
             CheckLiteralToString(Single.MaxValue, "3.4028235E+38F")
 #End If
-
 
             ' double
             CheckLiteralToString(0.0, "0")

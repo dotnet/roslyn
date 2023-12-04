@@ -77,7 +77,7 @@ static class MyAwaitableExtension
     }
 }";
 
-            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreAppAndCSharp);
+            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
             var tree = csCompilation.SyntaxTrees.Single();
 
             var model = csCompilation.GetSemanticModel(tree);

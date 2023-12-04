@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (_globalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
+            if (_globalOptions.IsLspPullDiagnostics())
             {
                 // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
                 // have happened to the project or closed files outside of VS.
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }
 
-        internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
+        internal void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
         private sealed class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
@@ -75,23 +75,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _service = service;
                 _workspace = workspace;
                 _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
-                _service._globalOptions.OptionChanged += OnGlobalOptionChanged;
             }
 
             public void Shutdown()
             {
-                _service._globalOptions.OptionChanged -= OnGlobalOptionChanged;
-            }
-
-            private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                if (e.Option == InternalRuntimeDiagnosticOptions.Syntax ||
-                    e.Option == InternalRuntimeDiagnosticOptions.Semantic ||
-                    e.Option == InternalRuntimeDiagnosticOptions.ScriptSemantic)
-                {
-                    var service = _workspace.Services.GetService<ISolutionCrawlerService>();
-                    service?.Reanalyze(_workspace, this, projectIds: null, documentIds: null, highPriority: false);
-                }
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -105,8 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Debug.Assert(textDocument.Project.Solution.Workspace == _workspace);
 
                 // right now, there is no way to observe diagnostics for closed file.
-                if (!_workspace.IsDocumentOpen(textDocument.Id) ||
-                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
+                if (!_workspace.IsDocumentOpen(textDocument.Id))
                 {
                     return;
                 }
@@ -129,16 +115,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // right now, there is no way to observe diagnostics for closed file.
                     if (!_workspace.IsDocumentOpen(document.Id))
-                    {
                         return false;
-                    }
 
-                    if (_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Semantic))
-                    {
-                        return true;
-                    }
+                    // Misc and cloud workspaces never supports semantics.
+                    if (_workspace.Kind is WorkspaceKind.MiscellaneousFiles or WorkspaceKind.CloudEnvironmentClientWorkspace)
+                        return false;
 
-                    return _workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.ScriptSemantic) && document.SourceCodeKind == SourceCodeKind.Script;
+                    return true;
                 }
             }
 
@@ -146,9 +129,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
-                _service.RaiseDiagnosticsUpdated(
+                // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
+                // complete quickly.
+                _service.RaiseDiagnosticsUpdated(ImmutableArray.Create(
                     DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData)));
             }
 
             /// <summary>
@@ -181,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit: false, logPerformanceInfo: true);
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)
@@ -200,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // document that doesn't support compiler diagnostics such as FSharp or TypeScript
-                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v).ToImmutableArrayOrEmpty();
+                return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectManyAsArray(v => v);
             }
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -237,8 +222,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
-                _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId));
+                // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
+                // complete quickly.
+                _service.RaiseDiagnosticsUpdated(ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId)));
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)

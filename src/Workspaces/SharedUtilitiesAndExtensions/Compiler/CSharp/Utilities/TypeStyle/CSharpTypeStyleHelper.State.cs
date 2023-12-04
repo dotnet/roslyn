@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             public readonly UseVarPreference TypeStylePreference;
 
-            private readonly ReportDiagnostic _forBuiltInTypes;
-            private readonly ReportDiagnostic _whenTypeIsApparent;
-            private readonly ReportDiagnostic _elsewhere;
+            private readonly NotificationOption2 _forBuiltInTypes;
+            private readonly NotificationOption2 _whenTypeIsApparent;
+            private readonly NotificationOption2 _elsewhere;
 
             public readonly bool IsInIntrinsicTypeContext;
             public readonly bool IsTypeApparentInContext;
@@ -38,25 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var styleForApparent = options.VarWhenTypeIsApparent;
                 var styleForElsewhere = options.VarElsewhere;
 
-                _forBuiltInTypes = styleForIntrinsicTypes.Notification.Severity;
-                _whenTypeIsApparent = styleForApparent.Notification.Severity;
-                _elsewhere = styleForElsewhere.Notification.Severity;
+                _forBuiltInTypes = styleForIntrinsicTypes.Notification;
+                _whenTypeIsApparent = styleForApparent.Notification;
+                _elsewhere = styleForElsewhere.Notification;
 
-                var stylePreferences = UseVarPreference.None;
-
-                if (styleForIntrinsicTypes.Value)
-                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
-
-                if (styleForApparent.Value)
-                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
-
-                if (styleForElsewhere.Value)
-                    stylePreferences |= UseVarPreference.Elsewhere;
-
-                this.TypeStylePreference = stylePreferences;
+                this.TypeStylePreference = options.GetUseVarPreference();
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl)
+                        declaration is VariableDeclarationSyntax varDecl
                      && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
@@ -64,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                      || IsInferredPredefinedType(declaration, semanticModel);
             }
 
-            public ReportDiagnostic GetDiagnosticSeverityPreference()
+            public NotificationOption2 GetDiagnosticSeverityPreference()
                 => IsInIntrinsicTypeContext ? _forBuiltInTypes :
                    IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
 
@@ -122,15 +112,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 {
                     type = type.RemoveNullableIfPresent();
 
-                    if (type.IsArrayType())
+                    if (type is IArrayTypeSymbol arrayType)
                     {
-                        type = ((IArrayTypeSymbol)type).ElementType;
+                        type = arrayType.ElementType;
                         continue;
                     }
 
-                    if (type.IsPointerType())
+                    if (type is IPointerTypeSymbol pointerType)
                     {
-                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        type = pointerType.PointedAtType;
                         continue;
                     }
 

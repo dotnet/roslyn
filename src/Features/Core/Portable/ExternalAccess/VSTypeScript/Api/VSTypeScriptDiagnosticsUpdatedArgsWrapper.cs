@@ -6,12 +6,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal readonly struct VSTypeScriptDiagnosticsUpdatedArgsWrapper
+    internal readonly struct VSTypeScriptDiagnosticsUpdatedArgsWrapper(DiagnosticsUpdatedArgs underlyingObject)
     {
-        internal readonly DiagnosticsUpdatedArgs UnderlyingObject;
-
-        public VSTypeScriptDiagnosticsUpdatedArgsWrapper(DiagnosticsUpdatedArgs underlyingObject)
-            => UnderlyingObject = underlyingObject;
+        internal readonly DiagnosticsUpdatedArgs UnderlyingObject = underlyingObject;
 
         public Solution? Solution
             => UnderlyingObject.Solution;

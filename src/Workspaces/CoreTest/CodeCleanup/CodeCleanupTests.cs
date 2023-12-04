@@ -267,9 +267,8 @@ End Class", LanguageNames.VisualBasic);
         public void MultipleRanges()
             => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
-        [Fact]
-        [WorkItem(12848, "DevDiv_Projects/Roslyn")]
-        public void DontCrash_VB()
+        [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
+        public void DoNotCrash_VB()
         {
             var code = @"#If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
@@ -288,9 +287,8 @@ Imports System.Diagnostics
             VerifyRange(code, LanguageNames.VisualBasic);
         }
 
-        [Fact]
-        [WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
-        public async Task DontCrash_VB_2()
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
+        public async Task DoNotCrash_VB_2()
         {
             var code = @"
 Public Class Class1
@@ -327,8 +325,7 @@ End Class
             Assert.Equal(document, cleanDocument);
         }
 
-        [Fact]
-        [WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"
@@ -381,7 +378,7 @@ End Module";
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
 
-            var expectedResult = namedSpans.ContainsKey("r") ? namedSpans["r"] as IEnumerable<TextSpan> : SpecializedCollections.EmptyEnumerable<TextSpan>();
+            var expectedResult = namedSpans.TryGetValue("r", out var spans) ? spans : SpecializedCollections.EmptyEnumerable<TextSpan>();
 
             VerifyRange(codeWithoutMarker, ImmutableArray<ICodeCleanupProvider>.Empty, namedSpans["b"], ref expectedResult, language);
         }

@@ -20,29 +20,28 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(INavigationBarItemService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigationBarItemService : INavigationBarItemService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class VSTypeScriptNavigationBarItemService(
+        IThreadingContext threadingContext,
+        IVSTypeScriptNavigationBarItemService service) : INavigationBarItemService
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IVSTypeScriptNavigationBarItemService _service;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptNavigationBarItemService(
-            IThreadingContext threadingContext,
-            IVSTypeScriptNavigationBarItemService service)
-        {
-            _threadingContext = threadingContext;
-            _service = service;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IVSTypeScriptNavigationBarItemService _service = service;
 
         public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
             Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
-            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+            return ((INavigationBarItemService)this).GetItemsAsync(
+                document, workspaceSupportsDocumentChanges: true, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
         }
 
         async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
-            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
+            Document document,
+            bool workspaceSupportsDocumentChanges,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
+            ITextVersion textVersion,
+            CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return ConvertItems(items, textVersion);

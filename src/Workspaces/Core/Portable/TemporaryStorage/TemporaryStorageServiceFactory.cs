@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Temporarily stores text and streams in memory mapped files.
     /// </summary>
+#if NETCOREAPP
+    [SupportedOSPlatform("windows")]
+#endif
     internal partial class TemporaryStorageService : ITemporaryStorageService2
     {
         /// <summary>
@@ -190,11 +194,11 @@ namespace Microsoft.CodeAnalysis.Host
             public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
             public Encoding? Encoding => _encoding;
 
-            public ImmutableArray<byte> GetChecksum()
+            public ImmutableArray<byte> GetContentHash()
             {
                 if (_checksum.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetChecksum());
+                    ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetContentHash());
                 }
 
                 return _checksum;
@@ -224,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using var reader = CreateTextReaderFromTemporaryStorage(stream);
 
                     // we pass in encoding we got from original source text even if it is null.
-                    return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
+                    return _service._textFactory.CreateText(reader, _encoding, _checksumAlgorithm, cancellationToken);
                 }
             }
 

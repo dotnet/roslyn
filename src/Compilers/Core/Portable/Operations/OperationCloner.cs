@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
     {
-        [return: NotNullIfNotNull("operation")]
+        [return: NotNullIfNotNull(nameof(operation))]
         public IOperation? Visit(IOperation? operation)
         {
             return Visit(operation, argument: null);
@@ -49,22 +49,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override IOperation VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object? argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

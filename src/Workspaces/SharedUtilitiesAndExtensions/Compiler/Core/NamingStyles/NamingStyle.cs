@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
     [DataContract]
-    internal readonly partial record struct NamingStyle : IObjectWritable
+    internal readonly partial record struct NamingStyle
     {
         [DataMember(Order = 0)]
         public Guid ID { get; init; }
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 // name started with specified prefix, but has at least one additional common prefix 
                 // Example: specified prefix "test_", actual prefix "test_m_"
-                failureReason = Prefix == string.Empty ?
-                    string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix) :
-                    string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
+                failureReason = Prefix == string.Empty
+                    ? string.Format(CompilerExtensionsResources.Prefix_0_is_not_expected, prefix)
+                    : string.Format(CompilerExtensionsResources.Prefix_0_does_not_match_expected_prefix_1, prefix, Prefix);
                 return false;
             }
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         {
             // Example: for specified prefix = "Test_" and name = "Test_m_BaseName", we remove "Test_m_"
             // "Test_" will be added back later in this method
-            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name.Substring(Prefix.Length) : name, out _);
+            name = StripCommonPrefixes(name.StartsWith(Prefix) ? name[Prefix.Length..] : name, out _);
 
             var addPrefix = !name.StartsWith(Prefix);
             var addSuffix = !name.EndsWith(Suffix);
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 return name;
             }
 
-            name = name.Substring(Prefix.Length, name.Length - Suffix.Length - Prefix.Length);
+            name = name[Prefix.Length..^Suffix.Length];
             IEnumerable<string> words = new[] { name };
 
             if (!string.IsNullOrEmpty(WordSeparator))
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     var newWords = new string[parts.Count];
                     for (var i = 0; i < parts.Count; i++)
                     {
-                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
+                        newWords[i] = name[parts[i].Start..parts[i].End];
                     }
 
                     words = newWords;
@@ -468,8 +468,6 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
-
-        public bool ShouldReuseInSerialization => false;
 
         public void WriteTo(ObjectWriter writer)
         {

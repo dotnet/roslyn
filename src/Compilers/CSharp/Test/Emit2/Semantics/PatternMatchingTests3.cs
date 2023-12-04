@@ -5873,9 +5873,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
-                // (5,18): error CS0150: A constant value is expected
+                // (5,18): error CS9133: A constant value of type 'int' is expected
                 //         if (a is a is > 0 and < 500) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a").WithArguments("int").WithLocation(5, 18),
                 // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (a is a is > 0 and < 500) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
@@ -5891,7 +5891,7 @@ class C
                 // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //         if (true is 0) { }
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
-                );
+            );
         }
 
         [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
@@ -6726,6 +6726,117 @@ class C
                 //     int M1(string? s) => s switch { string => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(4, 28)
                 );
+        }
+
+        [Theory]
+        [InlineData("  2 and int t")]
+        [InlineData("<=2 and int t")]
+        [InlineData(">=2 and int t")]
+        [InlineData(" <3 and int t")]
+        [InlineData(" >1 and int t")]
+        public void IsNot_17(string pattern)
+        {
+            var source = $$"""
+using static System.Console;
+class C
+{
+    const int i = 2;
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        if (!(i is {{pattern}})) return;
+        Write(t.ToString());
+    }
+    static void M2()
+    {
+        if (i is not ({{pattern}})) return;
+        Write(t.ToString());
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8793: The given expression always matches the provided pattern.
+                //         if (!(i is 2 and int t)) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, $"i is {pattern}").WithLocation(12, 15),
+                // (17,13): warning CS8519: The given expression never matches the provided pattern.
+                //         if (i is not (2 and int t)) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13)
+                );
+            var verifier = CompileAndVerify(source, expectedOutput: "22");
+            var expectedIL =
+"""
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int V_0) //t
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       "string int.ToString()"
+  IL_0009:  call       "void System.Console.Write(string)"
+  IL_000e:  ret
+ }
+""";
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Theory]
+        [InlineData("  3 and int t")]
+        [InlineData("<=1 and int t")]
+        [InlineData(">=3 and int t")]
+        [InlineData(" <2 and int t")]
+        [InlineData(" >2 and int t")]
+        public void IsNot_18(string pattern)
+        {
+            var source = $$"""
+using static System.Console;
+class C
+{
+    const int i = 2;
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        if (!(i is {{pattern}})) return;
+        Write(t.ToString());
+    }
+    static void M2()
+    {
+        if (i is not ({{pattern}})) return;
+        Write(t.ToString());
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8793: The given expression always matches the provided pattern.
+                //         if (!(i is 2 and int t)) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, $"i is {pattern}").WithLocation(12, 15),
+                // (17,13): warning CS8519: The given expression never matches the provided pattern.
+                //         if (i is not (2 and int t)) return;
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, $"i is not ({pattern})").WithLocation(17, 13)
+            );
+            var verifier = CompileAndVerify(comp, expectedOutput: "");
+            var expectedIL =
+"""
+{
+  // Code size        1 (0x1)
+  .maxstack  1
+  .locals init (int V_0) //t
+  IL_0000:  ret
+}
+""";
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
         }
 
         [Fact]

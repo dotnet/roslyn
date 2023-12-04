@@ -24,5 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         UInt32 = 1 << 14,
         UInt64 = 1 << 15,
         Void = 1 << 16,
+        IntPtr = 1 << 17,
+        UIntPtr = 1 << 18,
     }
 }

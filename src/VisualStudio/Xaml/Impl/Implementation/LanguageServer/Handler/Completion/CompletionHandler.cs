@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportStatelessXamlLspService(typeof(CompletionHandler)), Shared]
     [Method(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
+    internal class CompletionHandler : ILspServiceDocumentRequestHandler<CompletionParams, CompletionList?>
     {
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var completionService = document.Project.Services.GetRequiredService<IXamlCompletionService>();
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
             var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context?.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionResult?.Completions == null)
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 item.Command = new Command()
                 {
                     CommandIdentifier = StringConstants.CreateEventHandlerCommand,
-                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Arguments = [textDocument, xamlCompletion.EventDescription],
                     Title = CreateEventHandlerCommandTitle
                 };
             }

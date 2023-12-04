@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CSharpCodeFixesResources.Place_colon_on_following_line,
+                    CSharpCodeFixesResources.Place_token_on_following_line,
                     c => UpdateDocumentAsync(document, ImmutableArray.Create(diagnostic), c),
-                    nameof(CSharpCodeFixesResources.Place_colon_on_following_line)),
+                    nameof(CSharpCodeFixesResources.Place_token_on_following_line)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
         private static async Task<Document> UpdateDocumentAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var replacementMap);
 

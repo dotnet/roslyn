@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -128,10 +129,10 @@ struct S
         public async Task VerifyOption()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp), false);
+            globalOptions.SetGlobalOption(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp, false);
             Assert.False(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
 
-            globalOptions.SetGlobalOption(new OptionKey(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp), true);
+            globalOptions.SetGlobalOption(NavigationBarViewOptionsStorage.ShowNavigationBar, LanguageNames.CSharp, true);
             Assert.True(await TestServices.Editor.IsNavigationBarEnabledAsync(HangMitigatingCancellationToken));
         }
     }

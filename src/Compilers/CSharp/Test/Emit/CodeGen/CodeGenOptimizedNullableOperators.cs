@@ -744,8 +744,6 @@ class Program
             comp.VerifyIL("Program.M4", expectedIL4);
         }
 
-
-
         [Fact]
         public void TestNullableComparisonOpsBothAlwaysNull()
         {
@@ -1301,7 +1299,6 @@ Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < N4()").WithArguments("S?"
             comp.VerifyIL("Program.M6", expectedIL6);
         }
 
-
         [Fact]
         public void TestNullableComparisonOpsOneNonNullOneUnknown()
         {
@@ -1529,7 +1526,6 @@ class Program
             // And the int? t3 disappears entirely. 
             //
             // This optimization has the nice property that it composes well with itself. 
-
 
             string source = @"
 struct S
@@ -2161,7 +2157,6 @@ class Program
   IL_002d:  ret
 }";
 
-
             // TODO: Roslyn does a slightly worse job here than the native compiler does.
             // TODO: The native compiler knows that the constant need not be stored in a temporary.
             // TODO: We will clean this up in a later checkin.
@@ -2219,7 +2214,6 @@ class Program
     }
 }
 ";
-
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 42
@@ -2376,7 +2370,6 @@ class Program
     }
 }
 ";
-
 
             var comp = CompileAndVerify(source, expectedOutput: @"
 42

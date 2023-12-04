@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
         public object? Title { get; }
 
-        public UnifiedSuggestedActionSetPriority Priority { get; }
+        public CodeActionPriority Priority { get; }
 
         public TextSpan? ApplicableToSpan { get; }
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             string? categoryName,
             ImmutableArray<IUnifiedSuggestedAction> actions,
             object? title,
-            UnifiedSuggestedActionSetPriority priority,
+            CodeActionPriority priority,
             TextSpan? applicableToSpan)
         {
             OriginalSolution = originalSolution;

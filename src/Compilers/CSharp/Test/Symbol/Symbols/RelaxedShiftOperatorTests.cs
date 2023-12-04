@@ -56,7 +56,6 @@ class C
 
             CompileAndVerify(compilation2, expectedOutput: op).VerifyDiagnostics();
 
-
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugExe, references: new[] { compilation0.EmitToImageReference() },
                                                  parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(compilation3, expectedOutput: op).VerifyDiagnostics();

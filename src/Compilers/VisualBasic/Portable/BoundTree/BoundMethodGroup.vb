@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 Imports System.Threading
 
-
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class BoundMethodGroup

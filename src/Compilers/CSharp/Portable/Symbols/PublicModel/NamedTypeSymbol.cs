@@ -194,7 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
-        bool INamedTypeSymbol.IsFileLocal => UnderlyingNamedTypeSymbol.AssociatedSyntaxTree is not null;
+        bool INamedTypeSymbol.IsFileLocal =>
+            // Internally we can treat a metadata type as being a file-local type for EE.
+            // For public API, only source types are considered file-local types.
+            UnderlyingNamedTypeSymbol.OriginalDefinition is SourceMemberContainerTypeSymbol
+                && UnderlyingNamedTypeSymbol.IsFileLocal;
 
         INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
 

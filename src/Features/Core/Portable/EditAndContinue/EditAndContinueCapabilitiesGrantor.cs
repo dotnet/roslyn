@@ -7,17 +7,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// <summary>
     /// Grants capabilities. 
     /// </summary>
-    internal sealed class EditAndContinueCapabilitiesGrantor
+    internal sealed class EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
     {
-        private readonly EditAndContinueCapabilities _availableCapabilities;
+        private readonly EditAndContinueCapabilities _availableCapabilities = availableCapabilities;
 
-        public EditAndContinueCapabilities GrantedCapabilities { get; private set; }
-
-        public EditAndContinueCapabilitiesGrantor(EditAndContinueCapabilities availableCapabilities)
-        {
-            _availableCapabilities = availableCapabilities;
-            GrantedCapabilities = 0;
-        }
+        public EditAndContinueCapabilities GrantedCapabilities { get; private set; } = 0;
 
         public bool Grant(EditAndContinueCapabilities capabilities)
         {

@@ -28,16 +28,10 @@ namespace Microsoft.SourceLink.Tools
             _entries = mappings;
         }
 
-        public readonly struct Entry
+        public readonly struct Entry(FilePathPattern filePath, UriPattern uri)
         {
-            public readonly FilePathPattern FilePath;
-            public readonly UriPattern Uri;
-
-            public Entry(FilePathPattern filePath, UriPattern uri)
-            {
-                FilePath = filePath;
-                Uri = uri;
-            }
+            public readonly FilePathPattern FilePath = filePath;
+            public readonly UriPattern Uri = uri;
 
             public void Deconstruct(out FilePathPattern filePath, out UriPattern uri)
             {
@@ -46,28 +40,16 @@ namespace Microsoft.SourceLink.Tools
             }
         }
 
-        public readonly struct FilePathPattern
+        public readonly struct FilePathPattern(string path, bool isPrefix)
         {
-            public readonly string Path;
-            public readonly bool IsPrefix;
-
-            public FilePathPattern(string path, bool isPrefix)
-            {
-                Path = path;
-                IsPrefix = isPrefix;
-            }
+            public readonly string Path = path;
+            public readonly bool IsPrefix = isPrefix;
         }
 
-        public readonly struct UriPattern
+        public readonly struct UriPattern(string prefix, string suffix)
         {
-            public readonly string Prefix;
-            public readonly string Suffix;
-
-            public UriPattern(string prefix, string suffix)
-            {
-                Prefix = prefix;
-                Suffix = suffix;
-            }
+            public readonly string Prefix = prefix;
+            public readonly string Suffix = suffix;
         }
 
         public IReadOnlyList<Entry> Entries => _entries;
@@ -142,7 +124,7 @@ namespace Microsoft.SourceLink.Tools
             var filePathStar = key.IndexOf('*');
             if (filePathStar == key.Length - 1)
             {
-                key = key.Substring(0, filePathStar);
+                key = key[..filePathStar];
             }
             else if (filePathStar >= 0)
             {
@@ -158,8 +140,8 @@ namespace Microsoft.SourceLink.Tools
                     return false;
                 }
 
-                uriPrefix = value.Substring(0, uriStar);
-                uriSuffix = value.Substring(uriStar + 1);
+                uriPrefix = value[..uriStar];
+                uriSuffix = value[(uriStar + 1)..];
 
                 if (uriSuffix.IndexOf('*') >= 0)
                 {
@@ -209,7 +191,7 @@ namespace Microsoft.SourceLink.Tools
                 {
                     if (path.StartsWith(file.Path, StringComparison.OrdinalIgnoreCase))
                     {
-                        var escapedPath = string.Join("/", path.Substring(file.Path.Length).Split(new[] { '/', '\\' }).Select(Uri.EscapeDataString));
+                        var escapedPath = string.Join("/", path[file.Path.Length..].Split(['/', '\\']).Select(Uri.EscapeDataString));
                         uri = mappedUri.Prefix + escapedPath + mappedUri.Suffix;
                         return true;
                     }

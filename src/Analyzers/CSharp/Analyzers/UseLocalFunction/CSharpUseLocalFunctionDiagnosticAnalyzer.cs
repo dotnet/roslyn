@@ -62,53 +62,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     return;
 
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
-                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionType),
-                    SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
+
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for lambda expression nodes, but analyze nodes across the entire code block
+                // and eventually report a diagnostic on the local declaration node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                context.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionType),
+                        SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression));
             });
         }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext, INamedTypeSymbol? expressionType)
         {
             var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferLocalOverAnonymousFunction;
-            if (!styleOption.Value)
-            {
-                // Bail immediately if the user has disabled this feature.
+            // Bail immediately if the user has disabled this feature.
+            if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
                 return;
-            }
 
-            var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
             if (!CheckForPattern(anonymousFunction, out var localDeclaration))
-            {
                 return;
-            }
 
             if (localDeclaration.Declaration.Variables.Count != 1)
-            {
                 return;
-            }
 
             if (localDeclaration.Parent is not BlockSyntax block)
-            {
                 return;
-            }
 
             // If there are compiler error on the declaration we can't reliably
             // tell that the refactoring will be accurate, so don't provide any
             // code diagnostics
             if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            {
                 return;
-            }
+
+            // Bail out if none of possible diagnostic locations are within the analysis span
+            var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
+            var shouldReportOnAnonymousFunctionStatement = anonymousFunctionStatement != null
+                && localDeclaration != anonymousFunctionStatement;
+            if (!IsInAnalysisSpan(syntaxContext, localDeclaration, anonymousFunctionStatement, shouldReportOnAnonymousFunctionStatement))
+                return;
 
             var cancellationToken = syntaxContext.CancellationToken;
             var local = semanticModel.GetDeclaredSymbol(localDeclaration.Declaration.Variables[0], cancellationToken);
             if (local == null)
-            {
                 return;
-            }
 
             var delegateType = semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (!delegateType.IsDelegateType() ||
@@ -121,6 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
                 return;
 
+            if (localDeclaration.Declaration.Type.IsVar)
+            {
+                var options = semanticModel.SyntaxTree.Options;
+                if (options.LanguageVersion() < LanguageVersion.CSharp10)
+                    return;
+            }
+
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 localDeclaration.GetLocation(),
@@ -128,14 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             additionalLocations = additionalLocations.AddRange(referenceLocations);
 
-            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
+            if (styleOption.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    severity,
+                    styleOption.Notification,
                     additionalLocations,
                     properties: null));
             }
@@ -145,20 +153,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localDeclaration.GetLocation(),
-                    severity,
+                    styleOption.Notification,
                     additionalLocations,
                     properties: null));
 
-                var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
-                if (anonymousFunctionStatement != null && localDeclaration != anonymousFunctionStatement)
+                if (shouldReportOnAnonymousFunctionStatement)
                 {
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        anonymousFunctionStatement.GetLocation(),
-                        severity,
+                        anonymousFunctionStatement!.GetLocation(),
+                        styleOption.Notification,
                         additionalLocations,
                         properties: null));
                 }
+            }
+
+            static bool IsInAnalysisSpan(
+                SyntaxNodeAnalysisContext context,
+                LocalDeclarationStatementSyntax localDeclaration,
+                StatementSyntax? anonymousFunctionStatement,
+                bool shouldReportOnAnonymousFunctionStatement)
+            {
+                if (context.ShouldAnalyzeSpan(localDeclaration.Span))
+                    return true;
+
+                if (shouldReportOnAnonymousFunctionStatement
+                    && context.ShouldAnalyzeSpan(anonymousFunctionStatement!.Span))
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -183,15 +208,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclaration)
         {
             // Type t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.EqualsValueClause) &&
-                anonymousFunction.Parent.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                anonymousFunction.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                anonymousFunction.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, out localDeclaration))
-            {
-                if (!localDeclaration.Declaration.Type.IsVar)
+            if (anonymousFunction is
                 {
-                    return true;
-                }
+                    Parent: EqualsValueClauseSyntax
+                    {
+                        Parent: VariableDeclaratorSyntax
+                        {
+                            Parent: VariableDeclarationSyntax
+                            {
+                                Parent: LocalDeclarationStatementSyntax declaration,
+                            }
+                        }
+                    }
+                })
+            {
+                localDeclaration = declaration;
+                return true;
             }
 
             localDeclaration = null;
@@ -204,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            var references = ArrayBuilder<Location>.GetInstance();
+            using var _ = ArrayBuilder<Location>.GetInstance(out var references);
             referenceLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
@@ -217,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
@@ -278,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            referenceLocations = references.ToImmutableAndFree();
+            referenceLocations = references.ToImmutableAndClear();
             return true;
         }
 
@@ -315,9 +347,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Type t = null;
             // t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
-                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement) &&
-                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax? block))
+            if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
+                assignment.Parent is ExpressionStatementSyntax expressionStatement &&
+                expressionStatement.Parent is BlockSyntax block)
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {
@@ -330,10 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             var variableDeclarator = localDeclaration.Declaration.Variables[0];
                             if (variableDeclarator.Initializer == null ||
-                                variableDeclarator.Initializer.Value.IsKind(
-                                    SyntaxKind.NullLiteralExpression,
-                                    SyntaxKind.DefaultLiteralExpression,
-                                    SyntaxKind.DefaultExpression))
+                                variableDeclarator.Initializer.Value.Kind() is
+                                    SyntaxKind.NullLiteralExpression or
+                                    SyntaxKind.DefaultLiteralExpression or
+                                    SyntaxKind.DefaultExpression)
                             {
                                 var identifierName = (IdentifierNameSyntax)assignment.Left;
                                 if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)

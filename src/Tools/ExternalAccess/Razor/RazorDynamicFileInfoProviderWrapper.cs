@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider ?? throw new ArgumentNullException(nameof(innerDynamicFileInfoProvider));
         }
 
-        public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+        public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
         {
             // We lazily attach to the dynamic file info provider in order to ensure that Razor assemblies are not loaded in non-Razor contexts.
             if (!EnsureAttached())
@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             var result = await _innerDynamicFileInfoProvider.Value.GetDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+            // This might not be a file/project Razor is interested in
+            if (result is null)
+            {
+                return null;
+            }
+
             var serviceProvider = new RazorDocumentServiceProviderWrapper(result.DocumentServiceProvider);
             var razorDocumentPropertiesService = result.DocumentServiceProvider.GetService<IRazorDocumentPropertiesService>();
             var designTimeOnly = razorDocumentPropertiesService?.DesignTimeOnly ?? false;
@@ -48,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return dynamicFileInfo;
         }
 
-        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
+        public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
         {
             if (_innerDynamicFileInfoProvider == null)
             {
@@ -59,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return _innerDynamicFileInfoProvider.Value.RemoveDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken);
         }
 
-        private void InnerDynamiFileInfoProvider_Updated(object sender, string e)
+        private void InnerDynamicFileInfoProvider_Updated(object? sender, string e)
         {
             Updated?.Invoke(this, e);
         }
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
 
                 _attached = true;
-                _innerDynamicFileInfoProvider.Value.Updated += InnerDynamiFileInfoProvider_Updated;
+                _innerDynamicFileInfoProvider.Value.Updated += InnerDynamicFileInfoProvider_Updated;
 
                 return true;
             }

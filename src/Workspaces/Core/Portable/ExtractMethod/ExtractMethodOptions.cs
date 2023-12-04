@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 [DataContract]
 internal readonly record struct ExtractMethodOptions
 {
-    [DataMember] public bool DontPutOutOrRefOnStruct { get; init; } = true;
+    [DataMember] public bool DoNotPutOutOrRefOnStruct { get; init; } = true;
 
     public ExtractMethodOptions()
     {
@@ -31,15 +31,25 @@ internal readonly record struct ExtractMethodOptions
 /// Combines global <see cref="ExtractOptions"/> with document specific code generation options.
 /// </summary>
 [DataContract]
-internal readonly record struct ExtractMethodGenerationOptions(
-    [property: DataMember] CodeGenerationOptions CodeGenerationOptions)
+internal readonly record struct ExtractMethodGenerationOptions
 {
+    [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
+    [DataMember] public required CodeCleanupOptions CodeCleanupOptions { get; init; }
     [DataMember] public ExtractMethodOptions ExtractOptions { get; init; } = ExtractMethodOptions.Default;
-    [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
-    [DataMember] public LineFormattingOptions LineFormattingOptions { get; init; } = LineFormattingOptions.Default;
 
     public static ExtractMethodGenerationOptions GetDefault(LanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices));
+        => new()
+        {
+            CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            CodeCleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
+        };
+
+    public ExtractMethodGenerationOptions()
+    {
+    }
+
+    public AddImportPlacementOptions AddImportOptions => CodeCleanupOptions.AddImportOptions;
+    public LineFormattingOptions LineFormattingOptions => CodeCleanupOptions.FormattingOptions.LineFormatting;
 }
 
 internal static class ExtractMethodGenerationOptionsProviders
@@ -48,16 +58,11 @@ internal static class ExtractMethodGenerationOptionsProviders
     {
         fallbackOptions ??= ExtractMethodGenerationOptions.GetDefault(document.Project.Services);
 
-        var extractOptions = fallbackOptions.Value.ExtractOptions;
-        var codeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false);
-        var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions.Value.AddImportOptions, cancellationToken).ConfigureAwait(false);
-        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions.Value.LineFormattingOptions, cancellationToken).ConfigureAwait(false);
-
-        return new ExtractMethodGenerationOptions(codeGenerationOptions)
+        return new ExtractMethodGenerationOptions()
         {
-            ExtractOptions = extractOptions,
-            AddImportOptions = addImportOptions,
-            LineFormattingOptions = lineFormattingOptions,
+            CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(fallbackOptions.Value.CodeGenerationOptions, cancellationToken).ConfigureAwait(false),
+            ExtractOptions = fallbackOptions.Value.ExtractOptions,
+            CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions.Value.CodeCleanupOptions, cancellationToken).ConfigureAwait(false),
         };
     }
 

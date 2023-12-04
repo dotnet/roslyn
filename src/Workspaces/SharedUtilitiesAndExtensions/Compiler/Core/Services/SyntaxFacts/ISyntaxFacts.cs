@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -106,6 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool SupportsTargetTypedConditionalExpression(ParseOptions options);
         bool SupportsIsNotTypeExpression(ParseOptions options);
         bool SupportsConstantInterpolatedStrings(ParseOptions options);
+        bool SupportsTupleDeconstruction(ParseOptions options);
+        bool SupportsCollectionExpressionNaturalType(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -198,12 +199,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode statement);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
 
-        bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
+        bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         /// of qualified names and member access expressions are not language expressions, yet the
         /// containing qualified names or member access expressions are indeed expressions.
         /// </summary>
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? GetStandaloneExpression(SyntaxNode? node);
 
         /// <summary>
@@ -358,6 +359,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
         SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
         SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -403,7 +405,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
         // Violation.  This is a feature level API.
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
         // Violation.  This is a feature level API.
@@ -465,6 +467,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
+        void GetPartsOfRelationalPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode expression);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
         bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
@@ -472,7 +475,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
         // Violation.  WithXXX methods should not be here, but should be in SyntaxGenerator.
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers);
 
         // Violation.  This is a feature level API.
@@ -494,10 +497,12 @@ namespace Microsoft.CodeAnalysis.LanguageService
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node);
+
         bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
         bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node);
 
@@ -535,11 +540,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
         // ISyntaxFacts should have a GetPartsOfXXX helper instead, and GetXXXOfYYY should be built off of that
         // inside ISyntaxFactsExtensions
 
+        SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node);
+
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfRefExpression(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
+        SyntaxNode? GetExpressionOfThrowStatement(SyntaxNode node);
 
         bool IsEqualsValueOfPropertyDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);

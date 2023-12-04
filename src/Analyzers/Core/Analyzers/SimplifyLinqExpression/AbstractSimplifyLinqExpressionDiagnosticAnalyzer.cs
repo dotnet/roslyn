@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 {
                     var parameters = whereMethodSymbol.Parameters;
 
-                    if (parameters.Length == 2 &&
-                        parameters.Last().Type is INamedTypeSymbol systemFunc &&
-                        systemFunc.Arity == 2)
+                    if (parameters is [_, { Type: INamedTypeSymbol { Arity: 2 } }])
                     {
                         // This is the where overload that does not take and index (i.e. Where(source, Func<T, bool>) vs Where(source, Func<T, int, bool>))
                         whereMethod = whereMethodSymbol;
@@ -114,6 +112,9 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         public void AnalyzeInvocationOperation(OperationAnalysisContext context, INamedTypeSymbol enumerableType, IMethodSymbol whereMethod, ImmutableArray<IMethodSymbol> linqMethods)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             if (context.Operation.Syntax.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
                 // Do not analyze linq methods that contain diagnostics.
@@ -148,13 +149,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return;
             }
 
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(
-                    Descriptor,
-                    nextInvocation.Syntax.GetLocation(),
-                    Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                    additionalLocations: null,
-                    properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, nextInvocation.Syntax.GetLocation()));
 
             return;
 

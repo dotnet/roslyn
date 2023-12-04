@@ -593,8 +593,8 @@ class C
 }
 ";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
+                // (9,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
                 Diagnostic(ErrorCode.ERR_PtrExpected, "*d"),
                 // (11,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -1057,7 +1057,6 @@ remove_Event
 ");
         }
 
-
         #endregion
 
         #region Conditional, Coalescing Expression
@@ -1406,7 +1405,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
+                // CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.Goo(int, int)'
                 //         /*<bind>*/c.Goo(d)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("y", "C.Goo(int, int)").WithLocation(8, 21)
             };
@@ -1509,6 +1508,210 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Method([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                GetS(ref s).M(d);
+                System.Console.Write(s.X);
+
+                static ref S GetS(ref S s) => ref s;
+
+                struct S
+                {
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(source, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Property([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                s.Self.M(d);
+                System.Console.Write(s.X);
+
+                struct S
+                {
+                    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+                    public ref S Self => ref this;
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Indexer([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                s[0].M(d);
+                System.Console.Write(s.X);
+
+                struct S
+                {
+                    [System.Diagnostics.CodeAnalysis.UnscopedRef]
+                    public ref S this[int _] => ref this;
+                    public int X { get; private set; }
+
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: "1", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Local([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                ref S r = ref s;
+                r.M(d);
+                System.Console.Write(s.X);
+
+                struct S
+                {
+                    public int X { get; private set; }
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void RefReturn_Field([CombinatorialValues("int", "dynamic")] string type)
+        {
+            var source = $$"""
+                {{type}} d = 1;
+                S s = default;
+                P p = new P(ref s);
+                p.S.M(d);
+                System.Console.Write(s.X);
+
+                ref struct P(ref S s)
+                {
+                    public ref S S = ref s;
+                }
+
+                struct S
+                {
+                    public int X { get; private set; }
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.Net70,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void StructReceiver_Field([CombinatorialValues("int", "dynamic")] string type, bool ro)
+        {
+            var source = $$"""
+                new C(default).Run();
+
+                class C(S s)
+                {
+                    private {{(ro ? "readonly" : "")}} S s = s;
+
+                    public void Run()
+                    {
+                        {{type}} d = 1;
+                        s.M(d);
+                        System.Console.Write(s.X);
+                    }
+                }
+
+                struct S
+                {
+                    public int X { get; private set; }
+                    public void M(int x) => X = x;
+                }
+                """;
+            CompileAndVerify(new[] { source, UnscopedRefAttributeDefinition }, new[] { CSharpRef },
+                expectedOutput: ro ? "0" : "1", verify: ro ? Verification.FailsPEVerify : default).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68063")]
+        public void StructReceiver_Rvalue()
+        {
+            var source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        dynamic d = 1;
+                        GetS().M(d);
+                    }
+                
+                    static S GetS() => default;
+                }
+
+                struct S
+                {
+                    public int X { get; private set; }
+                    public void M(int x) => X = x;
+                }
+                """;
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size      103 (0x67)
+                  .maxstack  9
+                  .locals init (object V_0) //d
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  box        "int"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>> Program.<>o__0.<>p__0"
+                  IL_000c:  brtrue.s   IL_004c
+                  IL_000e:  ldc.i4     0x100
+                  IL_0013:  ldstr      "M"
+                  IL_0018:  ldnull
+                  IL_0019:  ldtoken    "Program"
+                  IL_001e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0023:  ldc.i4.2
+                  IL_0024:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+                  IL_0029:  dup
+                  IL_002a:  ldc.i4.0
+                  IL_002b:  ldc.i4.1
+                  IL_002c:  ldnull
+                  IL_002d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_0032:  stelem.ref
+                  IL_0033:  dup
+                  IL_0034:  ldc.i4.1
+                  IL_0035:  ldc.i4.0
+                  IL_0036:  ldnull
+                  IL_0037:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+                  IL_003c:  stelem.ref
+                  IL_003d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+                  IL_0042:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0047:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>> Program.<>o__0.<>p__0"
+                  IL_004c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>> Program.<>o__0.<>p__0"
+                  IL_0051:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target"
+                  IL_0056:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>> Program.<>o__0.<>p__0"
+                  IL_005b:  call       "S Program.GetS()"
+                  IL_0060:  ldloc.0
+                  IL_0061:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, S, dynamic)"
+                  IL_0066:  ret
+                }
+                """);
         }
 
         #endregion
@@ -2606,9 +2809,9 @@ unsafe class X
                 // (17,17): error CS0029: Cannot implicitly convert type 'int*' to 'dynamic'
                 //             B = ptr,
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("int*", "dynamic").WithLocation(17, 17),
-                // (18,17): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
+                // (18,20): error CS1660: Cannot convert lambda expression to type 'dynamic' because it is not a delegate type
                 //             C = () => {},
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => {}").WithArguments("lambda expression", "dynamic").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "dynamic").WithLocation(18, 20),
                 // (19,17): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'dynamic'
                 //             D = default(TypedReference)
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(TypedReference)").WithArguments("System.TypedReference", "dynamic").WithLocation(19, 17)
@@ -3142,7 +3345,7 @@ class C : B
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (16,5): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.this[int, Func<int, int>, object]'
+                // (16,5): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.this[int, Func<int, int>, object]'
                 //     c[d, d] = 1; 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[d, d]").WithArguments("c", "C.this[int, System.Func<int, int>, object]").WithLocation(16, 5),
                 // (22,10): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
@@ -3378,7 +3581,7 @@ class C
             TestOperatorKinds(source);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (8,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.C(string, string)'
+                // (8,16): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'C.C(string, string)'
                 //     return new C(d);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("y", "C.C(string, string)").WithLocation(8, 16));
         }

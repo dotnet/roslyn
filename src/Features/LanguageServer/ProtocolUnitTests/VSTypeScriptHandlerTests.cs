@@ -3,33 +3,36 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using System.ServiceModel.Syndication;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
+    public VSTypeScriptHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerFactory));
 
     [Fact]
@@ -42,7 +45,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var request = new TSRequest(document.GetURI(), ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id));
@@ -61,8 +64,12 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
-        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
+        var options = new InitializationOptions()
+        {
+            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.LspPull)
+        };
+
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, options);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var documentPullRequest = new VSInternalDocumentDiagnosticsParams
@@ -74,10 +81,28 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Empty(response);
     }
 
-    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml)
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1901118")]
+    public async Task TestGetSimplifierOptionsOnTypeScriptDocument()
+    {
+        var workspaceXml =
+@$"<Workspace>
+    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
+        <Document FilePath=""C:\T.ts""></Document>
+    </Project>
+</Workspace>";
+
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+        var simplifierOptions = testLspServer.TestWorkspace.GlobalOptions.GetSimplifierOptions(document.Project.Services, fallbackOptions: null);
+        Assert.Same(SimplifierOptions.CommonDefaults, simplifierOptions);
+    }
+
+    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        var testWorkspace = TestWorkspace.Create(workspaceXml, composition: Composition);
+
+        var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
+        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
         await WaitForWorkspaceOperationsAsync(testWorkspace);
@@ -86,9 +111,8 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
-        var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
@@ -97,11 +121,13 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
 
-        var languageServer = new LanguageServerTarget(
+        var logger = NoOpLspLogger.Instance;
+
+        var languageServer = new RoslynLanguageServer(
             servicesProvider, jsonRpc,
             capabilitiesProvider,
-            listenerProvider,
-            NoOpLspLogger.Instance,
+            logger,
+            workspace.Services.HostServices,
             ImmutableArray.Create(InternalLanguageNames.TypeScript),
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 

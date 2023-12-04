@@ -84,6 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function SupportsTupleDeconstruction(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsTupleDeconstruction
+            Return False
+        End Function
+
+        Public Function SupportsCollectionExpressionNaturalType(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsCollectionExpressionNaturalType
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
@@ -1106,7 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return constructors
         End Function
 
-        Private Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
+        Private Shared Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
             For Each member As StatementSyntax In members
                 cancellationToken.ThrowIfCancellationRequested()
 
@@ -1420,10 +1428,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
-        Public Function GetExpressionOfForeachStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
-            Return DirectCast(node, ForEachStatementSyntax).Expression
-        End Function
-
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
@@ -1477,6 +1481,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfVariableDeclarator
             Return DirectCast(node, VariableDeclaratorSyntax).Initializer
+        End Function
+
+        Public Function GetInitializerOfPropertyDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfPropertyDeclaration
+            Return DirectCast(node, PropertyBlockSyntax).PropertyStatement.Initializer
         End Function
 
         Public Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfVariableDeclarator
@@ -1690,6 +1698,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
 
+        Public Sub GetPartsOfRelationalPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRelationalPattern
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Sub
+
         Public Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfDeclarationPattern
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
@@ -1734,6 +1746,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax
+        End Function
+
+        Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodDeclaration
+            Return TypeOf node Is MethodBlockSyntax
         End Function
 
         Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
@@ -1800,6 +1816,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             whenTrue = conditionalExpression.WhenTrue
             whenFalse = conditionalExpression.WhenFalse
         End Sub
+
+        Public Function GetExpressionOfForeachStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
+            Return DirectCast(statement, ForEachStatementSyntax).Expression
+        End Function
 
         Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
             Dim interpolatedStringExpression = DirectCast(node, InterpolatedStringExpressionSyntax)
@@ -1877,13 +1897,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 #Region "GetXXXOfYYY members"
 
+        Public Function GetArgumentListOfImplicitElementAccess(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfImplicitElementAccess
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Function
+
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
         Public Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
-            ' ThrowExpression doesn't exist in VB
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Function
+
+        Public Function GetExpressionOfThrowStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowStatement
+            Return DirectCast(node, ThrowStatementSyntax).Expression
         End Function
 
         Public Function GetInitializersOfObjectMemberInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetInitializersOfObjectMemberInitializer

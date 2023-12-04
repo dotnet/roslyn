@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.Shell.TableManager;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
 {
     internal partial class WhitespaceViewModel : SettingsViewModelBase<
-        WhitespaceSetting,
+        Setting,
         WhitespaceViewModel.SettingsSnapshotFactory,
         WhitespaceViewModel.SettingsEntriesSnapshot>
     {
-        public WhitespaceViewModel(ISettingsProvider<WhitespaceSetting> data,
+        public WhitespaceViewModel(ISettingsProvider<Setting> data,
                                    IWpfTableControlProvider controlProvider,
                                    ITableManagerProvider tableMangerProvider)
             : base(data, controlProvider, tableMangerProvider)
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         public override string Identifier => "Whitespace";
 
-        protected override SettingsSnapshotFactory CreateSnapshotFactory(ISettingsProvider<WhitespaceSetting> data)
+        protected override SettingsSnapshotFactory CreateSnapshotFactory(ISettingsProvider<Setting> data)
             => new(data);
 
         protected override IEnumerable<ColumnState2> GetInitialColumnStates()

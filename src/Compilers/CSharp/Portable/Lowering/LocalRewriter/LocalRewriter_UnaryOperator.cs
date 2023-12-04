@@ -113,7 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(type, method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
-                    return BoundCall.Synthesized(syntax, receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt), method, loweredOperand);
+                    return BoundCall.Synthesized(
+                        syntax,
+                        receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        method,
+                        loweredOperand);
                 }
             }
             else if (kind.Operator() == UnaryOperatorKind.UnaryPlus)
@@ -130,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
                     _compilation.GetSpecialType(upconvertSpecialType);
-
 
                 var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
                 if (!_inExpressionLambda)
                 {
-                    return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredOperand);
                 }
             }
 
@@ -203,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
 
             // new R?(temp.GetValueOrDefault())
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, constrainedToTypeOpt, type, call_GetValueOrDefault);
@@ -277,6 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: result,
                     whenNullOpt: null,
                     id: conditionalLeft.Id,
+                    forceCopyOfNullableValueType: conditionalLeft.ForceCopyOfNullableValueType,
                     type: result.Type
                 );
             }
@@ -430,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, tempInitializers, tempSymbols, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
             Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
@@ -485,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
                 case BoundKind.Parameter:
+                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
                     return ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
 
                 case BoundKind.FieldAccess:
@@ -640,7 +646,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isLifted)
             {
-                return BoundCall.Synthesized(syntax, receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt), node.MethodOpt, rewrittenArgument);
+                return BoundCall.Synthesized(
+                    syntax,
+                    receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    node.MethodOpt,
+                    rewrittenArgument);
             }
 
             // S? temp = operand;
@@ -662,10 +673,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = _factory.MakeNullableHasValue(node.Syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
 
             // op_Increment(temp.GetValueOrDefault())
-            BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt), node.MethodOpt, call_GetValueOrDefault);
+            BoundExpression userDefinedCall = BoundCall.Synthesized(
+                syntax,
+                receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                node.MethodOpt,
+                call_GetValueOrDefault);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
@@ -733,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (binaryOperatorKind.IsLifted())
             {
-                binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
+                binaryOperandType = _compilation.GetOrCreateNullableType(binaryOperandType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
                 boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
             }
@@ -807,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand.Type is { SpecialType: SpecialType.System_Decimal });
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, operand);
         }
 
         private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
@@ -822,9 +838,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // x.HasValue
             BoundExpression condition = _factory.MakeNullableHasValue(syntax, operand);
             // x.GetValueOrDefault()
-            BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, getValueOrDefault);
+            BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
             // op_Inc(x.GetValueOrDefault())
-            BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, method, getValueCall);
+            BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
             // default(decimal?)
@@ -853,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)transformedExpression;
-                    return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments);
+                    return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments, indexerAccess.ArgumentRefKindsOpt);
 
                 case BoundKind.DynamicIndexerAccess:
                     var dynamicIndexerAccess = (BoundDynamicIndexerAccess)transformedExpression;

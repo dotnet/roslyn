@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        [return: NotNullIfNotNull("list1"), NotNullIfNotNull("list2")]
+        [return: NotNullIfNotNull(nameof(list1)), NotNullIfNotNull(nameof(list2))]
         public static List<T>? Combine<T>(this List<T>? list1, List<T>? list2)
         {
             if (list1 == null)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             spaceOrIndentation = text.ConvertTabToSpace(tabSize, baseToken.ToString().GetTextColumn(tabSize, initialColumn), text.Length);
         }
 
-        private static readonly char[] s_trimChars = new char[] { '\r', '\n' };
+        private static readonly char[] s_trimChars = ['\r', '\n'];
 
         public static string AdjustIndentForXmlDocExteriorTrivia(
             this string triviaText,
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (i > 0)
             {
                 span = new TextSpan(span.Start + i, span.Length - i);
-                newText = newText.Substring(i);
+                newText = newText[i..];
             }
 
             return new TextChange(span, newText);

@@ -79,12 +79,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         }
 
         private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)
-            => CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions()
+            => new CSharpSyntaxFormattingOptions()
             {
-                UseTabs = indentationOptions.UseTabs,
-                TabSize = indentationOptions.TabSize,
-                IndentationSize = indentationOptions.IndentationSize,
-                NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
-            });
+                LineFormatting = new()
+                {
+                    UseTabs = indentationOptions.UseTabs,
+                    TabSize = indentationOptions.TabSize,
+                    IndentationSize = indentationOptions.IndentationSize,
+                    NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
+                }
+            };
     }
 }

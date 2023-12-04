@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             // we'll return error if there wasn't at least an open paren...
                             if ((openParenIndex >= 0) && method != null)
                             {
-                                var methodValue = method.Invoke(RawValue, new object[] { });
+                                var methodValue = method.Invoke(RawValue, []);
                                 exprValue = new DkmClrValue(
                                     methodValue,
                                     methodValue,
@@ -683,9 +683,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var typeArgs = enumerableType.GenericArguments;
             Debug.Assert(typeArgs.Count <= 1);
-            var proxyTypeName = (typeArgs.Count == 0) ?
-                "System.Linq.SystemCore_EnumerableDebugView" :
-                "System.Linq.SystemCore_EnumerableDebugView`1";
+            var proxyTypeName = (typeArgs.Count == 0)
+                ? "System.Linq.SystemCore_EnumerableDebugView"
+                : "System.Linq.SystemCore_EnumerableDebugView`1";
             DkmClrType proxyType;
             try
             {

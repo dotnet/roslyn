@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed class DeletedMethodBody : IMethodBody
     {
-        private readonly DeletedMethodDefinition _methodDef;
+        private readonly IMethodDefinition _methodDef;
         private readonly ImmutableArray<byte> _ilBytes;
 
-        public DeletedMethodBody(DeletedMethodDefinition methodDef, EmitContext context)
+        public DeletedMethodBody(IMethodDefinition methodDef, EmitContext context)
         {
             _methodDef = methodDef;
             _ilBytes = GetIL(context);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => ImmutableArray<LambdaDebugInfo>.Empty;
 
-        public DynamicAnalysisMethodBodyData DynamicAnalysisData => null;
+        public ImmutableArray<SourceSpan> CodeCoverageSpans => ImmutableArray<SourceSpan>.Empty;
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => default;
 
@@ -81,5 +81,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
             return builder.RealizedIL;
         }
+
+        public bool IsPrimaryConstructor => false;
     }
 }

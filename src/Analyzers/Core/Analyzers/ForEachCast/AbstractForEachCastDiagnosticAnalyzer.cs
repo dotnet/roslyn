@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
             Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
+            if (ShouldSkipAnalysis(context, option.Notification))
+                return;
+
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)
                 return;
 
@@ -139,11 +142,10 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var isFixable = collectionType.SpecialType == SpecialType.System_Collections_IEnumerable || collectionType.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
-            var options = semanticModel.Compilation.Options;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: null,
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),

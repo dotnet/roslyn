@@ -186,7 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                         (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclarationStatement));
                 }
 
-                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                // The above code handled the moving of trivia.  So remove the node, keeping around no trivia from it.
+                editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
             else
             {

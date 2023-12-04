@@ -18,21 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Allows asking semantic questions about a TypeSyntax (or its descendants) within a member, that did not appear in the original source code.
         /// Typically, an instance is obtained by a call to SemanticModel.TryGetSpeculativeSemanticModel. 
         /// </summary>
-        private sealed class SpeculativeMemberSemanticModel : MemberSemanticModel
+        internal sealed class SpeculativeMemberSemanticModel : MemberSemanticModel
         {
             /// <summary>
             /// Creates a speculative SemanticModel for a TypeSyntax node at a position within an existing MemberSemanticModel.
             /// </summary>
-            public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
-                : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition: position)
+            public SpeculativeMemberSemanticModel(
+                PublicSemanticModel containingPublicSemanticModel,
+                Symbol owner,
+                TypeSyntax root,
+                Binder rootBinder,
+                ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
+                : base(root, owner, rootBinder, containingPublicSemanticModel: containingPublicSemanticModel, parentRemappedSymbolsOpt)
             {
-                Debug.Assert(parentSemanticModel is not null);
+                Debug.Assert(containingPublicSemanticModel is not null);
             }
 
             protected override NullableWalker.SnapshotManager GetSnapshotManager()
             {
                 // In this override, current nullability state cannot influence anything of speculatively bound expressions.
-                return _parentSnapshotManagerOpt;
+                return ((SpeculativeSemanticModelWithMemberModel)_containingPublicSemanticModel).ParentSnapshotManagerOpt;
             }
 
             protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
@@ -54,42 +59,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool IsNullableAnalysisEnabled()
             {
-                return _parentSemanticModelOpt.IsNullableAnalysisEnabledAtSpeculativePosition(OriginalPositionForSpeculation, Root);
+                return ((SyntaxTreeSemanticModel)_containingPublicSemanticModel.ParentModel).IsNullableAnalysisEnabledAtSpeculativePosition(_containingPublicSemanticModel.OriginalPositionForSpeculation, Root);
             }
 
-            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
-            internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
+            internal override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

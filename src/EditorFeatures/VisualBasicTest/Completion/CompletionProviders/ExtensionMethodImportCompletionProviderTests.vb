@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestExtensionAttribute(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -114,7 +115,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestCaseMismatchInTargetType(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -152,7 +153,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestCaseMismatchInNamespaceImport(refType As ReferenceType) As Task
 
             ' attribute suffix isn't capitalized
@@ -191,7 +192,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestImplicitTarget1(refType As ReferenceType) As Task
 
             Dim file1 = <Text><![CDATA[
@@ -226,7 +227,7 @@ End Class]]></Text>.Value
 
         <InlineData(ReferenceType.None)>
         <InlineData(ReferenceType.Project)>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestImplicitTarget2(refType As ReferenceType) As Task
 
             Dim file1 = <Text><![CDATA[
@@ -267,7 +268,7 @@ End Class]]></Text>.Value
         <InlineData(ReferenceType.None, "()()", "ExtentionMethod3")>
         <InlineData(ReferenceType.None, "(,)", "ExtentionMethod4")>
         <InlineData(ReferenceType.None, "()(,)", "ExtentionMethod5")>
-        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Theory>
         Public Async Function TestExtensionMethodsForArrayType(refType As ReferenceType, rank As String, expectedName As String) As Task
 
             Dim file1 = <Text><![CDATA[

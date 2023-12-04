@@ -345,7 +345,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetParameters(symbol As ISymbol) As ImmutableArray(Of IParameterSymbol)
-            Return symbol.GetParameters()
+            Dim declaredParameters = symbol.GetParameters()
+            Dim namedTypeSymbol = TryCast(symbol, INamedTypeSymbol)
+            If namedTypeSymbol IsNot Nothing Then
+                If namedTypeSymbol.DelegateInvokeMethod IsNot Nothing Then
+                    declaredParameters = namedTypeSymbol.DelegateInvokeMethod.Parameters
+                End If
+            End If
+
+            Return declaredParameters
         End Function
 
         Private Shared ReadOnly s_defaultRules As CompletionItemRules =

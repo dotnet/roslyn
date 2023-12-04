@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
-#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
-#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             CancellationToken cancellationToken,
             out int positionBeforeModifiers)
@@ -30,45 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
-            while (true)
+            while (token.IsPotentialModifier(out var modifierKind))
             {
-                switch (token.Kind())
-                {
-                    case SyntaxKind.PublicKeyword:
-                    case SyntaxKind.InternalKeyword:
-                    case SyntaxKind.ProtectedKeyword:
-                    case SyntaxKind.PrivateKeyword:
-                    case SyntaxKind.SealedKeyword:
-                    case SyntaxKind.AbstractKeyword:
-                    case SyntaxKind.StaticKeyword:
-                    case SyntaxKind.VirtualKeyword:
-                    case SyntaxKind.ExternKeyword:
-                    case SyntaxKind.NewKeyword:
-                    case SyntaxKind.OverrideKeyword:
-                    case SyntaxKind.ReadOnlyKeyword:
-                    case SyntaxKind.VolatileKeyword:
-                    case SyntaxKind.UnsafeKeyword:
-                    case SyntaxKind.AsyncKeyword:
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.InKeyword:
-                        result.Add(token.Kind());
-                        positionBeforeModifiers = token.FullSpan.Start;
-                        token = token.GetPreviousToken(includeSkipped: true);
-                        continue;
-                    case SyntaxKind.IdentifierToken:
-                        if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
-                        {
-                            result.Add(SyntaxKind.AsyncKeyword);
-                            positionBeforeModifiers = token.FullSpan.Start;
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-
-                        break;
-                }
-
-                break;
+                result.Add(modifierKind);
+                positionBeforeModifiers = token.FullSpan.Start;
+                token = token.GetPreviousToken(includeSkipped: true);
             }
 
             return result;
@@ -353,19 +317,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (!token.IsKind(
-                    SyntaxKind.StringLiteralToken,
-                    SyntaxKind.CharacterLiteralToken,
-                    SyntaxKind.SingleLineRawStringLiteralToken,
-                    SyntaxKind.MultiLineRawStringLiteralToken))
+            var kind = token.Kind();
+            if (kind is not (
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.CharacterLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
+            }
+
+            // A UTF8 string literal must end with `"u8` and is thus never incomplete.
+            if (kind is
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            {
+                return false;
             }
 
             if (position != token.Span.End)
                 return false;
 
-            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.MultiLineRawStringLiteralToken))
+            if (kind is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var sourceText = token.SyntaxTree!.GetText(cancellationToken);
                 var startDelimeterLength = 0;
@@ -405,24 +382,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsEntirelyWithinCharLiteral(position, cancellationToken);
         }
 
+        public static bool IsEntirelyWithinStringLiteral(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => IsEntirelyWithinStringLiteral(syntaxTree, position, out _, cancellationToken);
+
         public static bool IsEntirelyWithinStringLiteral(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
         {
             var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
-            if (token.IsKind(SyntaxKind.EndOfDirectiveToken, SyntaxKind.EndOfFileToken))
-            {
+            if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
-            }
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken,
-                             SyntaxKind.SingleLineRawStringLiteralToken,
-                             SyntaxKind.MultiLineRawStringLiteralToken,
-                             SyntaxKind.Utf8StringLiteralToken,
-                             SyntaxKind.Utf8SingleLineRawStringLiteralToken,
-                             SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+            stringLiteral = token;
+            if (token.Kind() is
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -433,13 +413,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.IsKind(
-                    SyntaxKind.InterpolatedStringStartToken,
-                    SyntaxKind.InterpolatedStringTextToken,
-                    SyntaxKind.InterpolatedStringEndToken,
-                    SyntaxKind.InterpolatedRawStringEndToken,
-                    SyntaxKind.InterpolatedSingleLineRawStringStartToken,
-                    SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            if (token.Kind() is
+                    SyntaxKind.InterpolatedStringStartToken or
+                    SyntaxKind.InterpolatedStringTextToken or
+                    SyntaxKind.InterpolatedStringEndToken or
+                    SyntaxKind.InterpolatedRawStringEndToken or
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
             }

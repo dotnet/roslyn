@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
-                    IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId),
+                    IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_tuple_name_preferences,

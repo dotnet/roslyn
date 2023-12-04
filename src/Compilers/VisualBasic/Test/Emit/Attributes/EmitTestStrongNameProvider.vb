@@ -20,7 +20,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Public Sub BadInputStream()
         SigningTestHelpers.InstallKey()
         Dim thrownException = New IOException("This is a test IOException")
-        Dim testFileSystem = New TestStrongNameFileSystem() With {
+        Dim testFileSystem = New TestStrongNameFileSystem(Temp.CreateDirectory().Path) With {
             .CreateFileStreamFunc = Function(filePath As String, fileMode As FileMode, fileAccess As FileAccess, fileShare As FileShare) As FileStream
                                         Throw thrownException
                                     End Function

@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -135,17 +137,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
             Solution? solution = null;
-            var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
-            {
-                solution = _threadingContext.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
-            });
+            var status = _threadOperationExecutor.Execute(
+                ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true,
+                operationContext =>
+                {
+                    solution = _threadingContext.JoinableTaskFactory.Run(
+                        () => syncService.SyncNamespacesAsync(projects, options, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
+                });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)
             {
                 if (_workspace.CurrentSolution.GetChanges(solution).GetProjectChanges().Any())
                 {
-                    _workspace.TryApplyChanges(solution);
-                    MessageDialog.Show(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Namespaces_have_been_updated, MessageDialogCommandSet.Ok);
+                    var previewChangeService = _workspace.Services.GetRequiredService<IPreviewDialogService>();
+                    var newSolution = previewChangeService.PreviewChanges(
+                        title: EditorFeaturesResources.Preview_Changes,
+                        helpString: "vs.csharp.refactoring.preview",
+                        description: ServicesVSResources.Sync_Namespaces,
+                        topLevelName: ServicesVSResources.Sync_namespaces_changes,
+                        topLevelGlyph: Glyph.OpenFolder,
+                        newSolution: solution,
+                        oldSolution: _workspace.CurrentSolution,
+                        showCheckBoxes: false);
+
+                    // If user clicks cancel, this would be null
+                    if (newSolution != null)
+                    {
+                        _workspace.TryApplyChanges(newSolution);
+                    }
                 }
                 else
                 {

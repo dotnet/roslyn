@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Roslyn.Utilities;
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -29,26 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.TextField = text;
                 this.ValueField = value;
-            }
-
-            internal SyntaxTokenWithValue(ObjectReader reader)
-                : base(reader)
-            {
-                this.TextField = reader.ReadString();
-                this.FullWidth = this.TextField.Length;
-                this.ValueField = (T)reader.ReadValue();
-            }
-
-            static SyntaxTokenWithValue()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxTokenWithValue<T>), r => new SyntaxTokenWithValue<T>(r));
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteString(this.TextField);
-                writer.WriteValue(this.ValueField);
             }
 
             public override string Text

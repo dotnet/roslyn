@@ -14,12 +14,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective
 {
-    internal sealed class NullableImpactingSpanWalker : CSharpSyntaxWalker, IDisposable
+    internal sealed class NullableImpactingSpanWalker(
+        SemanticModel semanticModel,
+        int positionOfFirstReducingNullableDirective,
+        TextSpanIntervalTree? ignoredSpans,
+        CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
     {
-        private readonly SemanticModel _semanticModel;
-        private readonly int _positionOfFirstReducingNullableDirective;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
-        private readonly CancellationToken _cancellationToken;
+        private readonly SemanticModel _semanticModel = semanticModel;
+        private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
+        private readonly TextSpanIntervalTree? _ignoredSpans = ignoredSpans;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private ImmutableArray<TextSpan>.Builder? _spans;
 
@@ -36,19 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
                 return _spans;
             }
-        }
-
-        public NullableImpactingSpanWalker(
-            SemanticModel semanticModel,
-            int positionOfFirstReducingNullableDirective,
-            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans,
-            CancellationToken cancellationToken)
-            : base(SyntaxWalkerDepth.StructuredTrivia)
-        {
-            _semanticModel = semanticModel;
-            _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
-            _ignoredSpans = ignoredSpans;
-            _cancellationToken = cancellationToken;
         }
 
         private bool IsIgnored(SyntaxNode node)
@@ -72,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // Simplify syntax checks by walking up qualified names to an equivalent parent node.
             node = WalkUpCurrentQualifiedName(node);
 
-            if (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+            if (node?.Parent is QualifiedNameSyntax qualifiedName
                 && qualifiedName.Left == node)
             {
                 // Cannot dot off a nullable reference type
@@ -91,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 return true;
             }
 
-            if (node.IsParentKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
+            if (node?.Parent is BaseNamespaceDeclarationSyntax)
             {
                 // Namespace names cannot be nullable reference types
                 return true;
@@ -111,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // If this is Y in X.Y, walk up to X.Y
             static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
             {
-                while (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+                while (node.Parent is QualifiedNameSyntax qualifiedName
                     && qualifiedName.Right == node)
                 {
                     node = qualifiedName;
@@ -136,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 if (typeSyntax.IsVar)
                     return;
 
-                if (typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
+                if (typeSyntax is PredefinedTypeSyntax predefinedType
                     && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
                 {
                     if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)

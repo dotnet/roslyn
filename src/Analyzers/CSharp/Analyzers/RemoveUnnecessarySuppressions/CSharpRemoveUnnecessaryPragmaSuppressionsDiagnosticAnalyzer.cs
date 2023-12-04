@@ -22,5 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
         protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
         protected override (Assembly assembly, string typeName) GetCompilerDiagnosticAnalyzerInfo()
             => (typeof(SyntaxKind).Assembly, CompilerDiagnosticAnalyzerNames.CSharpCompilerAnalyzerTypeName);
+        protected override bool ContainsPragmaDirective(SyntaxNode root)
+            => root.ContainsDirective(SyntaxKind.PragmaWarningDirectiveTrivia);
     }
 }

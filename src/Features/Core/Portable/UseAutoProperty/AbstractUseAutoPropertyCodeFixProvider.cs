@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             {
                 var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
                     ? CodeActionPriority.Low
-                    : CodeActionPriority.Medium;
+                    : CodeActionPriority.Default;
 
-                context.RegisterCodeFix(
-                    new UseAutoPropertyCodeAction(
+                context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                         AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
+                        equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                         priority),
                     diagnostic);
             }
@@ -133,8 +133,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var filteredLocations = fieldLocations.Filter(
                 (documentId, span) =>
-                    fieldDocument.Id == documentId &&
-                    !span.IntersectsWith(declaratorLocation.SourceSpan) &&
+                    fieldDocument.Id == documentId ? !span.IntersectsWith(declaratorLocation.SourceSpan) : true && // The span check only makes sense if we are in the same file
                     CanEditDocument(solution, documentId, linkedFiles, canEdit));
 
             var resolution = await filteredLocations.ResolveConflictsAsync(
@@ -268,13 +267,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             HashSet<DocumentId> linkedDocuments,
             Dictionary<DocumentId, bool> canEdit)
         {
-            if (!canEdit.ContainsKey(documentId))
+            if (!canEdit.TryGetValue(documentId, out var canEditDocument))
             {
                 var document = solution.GetDocument(documentId);
-                canEdit[documentId] = document != null && !linkedDocuments.Contains(document.Id);
+                canEditDocument = document != null && !linkedDocuments.Contains(document.Id);
+                canEdit[documentId] = canEditDocument;
             }
 
-            return canEdit[documentId];
+            return canEditDocument;
         }
 
         private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
@@ -292,23 +292,24 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
             IFieldSymbol field, LightweightRenameLocations renameLocations, TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken)
         {
-            var constructorNodes = field.ContainingType.GetMembers()
+            var constructorSpans = field.ContainingType.GetMembers()
                                                        .Where(m => m.IsConstructor())
                                                        .SelectMany(c => c.DeclaringSyntaxReferences)
                                                        .Select(s => s.GetSyntax(cancellationToken))
                                                        .Select(n => n.FirstAncestorOrSelf<TConstructorDeclaration>())
                                                        .WhereNotNull()
+                                                       .Select(d => (d.SyntaxTree.FilePath, d.Span))
                                                        .ToSet();
             return renameLocations.Locations.Any(
                 loc => IsWrittenToOutsideOfConstructorOrProperty(
-                    renameLocations.Solution, loc, propertyDeclaration, constructorNodes, cancellationToken));
+                    renameLocations.Solution, loc, propertyDeclaration, constructorSpans, cancellationToken));
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
             Solution solution,
             RenameLocation location,
             TPropertyDeclaration propertyDeclaration,
-            ISet<TConstructorDeclaration> constructorNodes,
+            ISet<(string filePath, TextSpan span)> constructorSpans,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                     return false;
                 }
 
-                if (constructorNodes.Contains(node))
+                if (constructorSpans.Contains((node.SyntaxTree.FilePath, node.Span)))
                 {
                     // Not a write outside a constructor of the field's class
                     return false;
@@ -341,25 +342,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // We do need a setter
             return true;
-        }
-
-        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                , CodeActionPriority priority
-#endif
-                )
-                : base(title, createChangedSolution, title)
-            {
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-                Priority = priority;
-#endif
-            }
-
-#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
-            internal override CodeActionPriority Priority { get; }
-#endif
         }
     }
 }

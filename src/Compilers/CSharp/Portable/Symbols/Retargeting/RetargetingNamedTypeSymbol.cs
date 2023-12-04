@@ -8,13 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -206,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers());
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers(name));
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers(name, arity));
         }
@@ -250,10 +245,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override NamedTypeSymbol LookupMetadataType(ref MetadataTypeName typeName)
+#nullable enable
+
+        internal override NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName typeName)
         {
-            return this.RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(ref typeName), RetargetOptions.RetargetPrimitiveTypesByName);
+            NamedTypeSymbol? underlyingResult = _underlyingType.LookupMetadataType(ref typeName);
+
+            if (underlyingResult is null)
+            {
+                return null;
+            }
+
+            Debug.Assert(!underlyingResult.IsErrorType());
+            Debug.Assert((object)_underlyingType == underlyingResult.ContainingSymbol);
+
+            return this.RetargetingTranslator.Retarget(underlyingResult, RetargetOptions.RetargetPrimitiveTypesByName);
         }
+
+#nullable disable
 
         private static ExtendedErrorTypeSymbol CyclicInheritanceError(TypeSymbol declaredBase)
         {
@@ -372,10 +381,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public sealed override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsFileLocal => _underlyingType.IsFileLocal;
+        internal override FileIdentifier AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
@@ -396,5 +408,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
             }
         }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
+        }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            bool result = _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+            if (builderType is { })
+            {
+                builderType = this.RetargetingTranslator.Retarget(builderType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            }
+            return result;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            if (_underlyingType.HasAsyncMethodBuilderAttribute(out builderArgument))
+            {
+                builderArgument = this.RetargetingTranslator.Retarget(builderArgument, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
+        }
+#nullable disable
     }
 }

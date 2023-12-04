@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
+        private static readonly ConditionalWeakTable<ProjectState, StringTable> s_projectStringTable = new();
 
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken _)
+            ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsGlobalSuppressMessageAttribute = false;
                 var containsConversion = false;
                 var containsGlobalKeyword = false;
+                var containsCollectionInitializer = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
                             containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node);
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
-                            containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
+                            containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);
 
                             containsDeconstruction = containsDeconstruction || syntaxFacts.IsDeconstructionAssignment(node)
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
+                            containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
 
                             TryAddGlobalAliasInfo(syntaxFacts, ref globalAliasInfo, node);
                         }
@@ -170,23 +172,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
                     new ContextInfo(
-                            predefinedTypes,
-                            predefinedOperators,
-                            containsForEachStatement,
-                            containsLockStatement,
-                            containsUsingStatement,
-                            containsQueryExpression,
-                            containsThisConstructorInitializer,
-                            containsBaseConstructorInitializer,
-                            containsElementAccess,
-                            containsIndexerMemberCref,
-                            containsDeconstruction,
-                            containsAwait,
-                            containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation,
-                            containsGlobalSuppressMessageAttribute,
-                            containsConversion,
-                            containsGlobalKeyword),
+                        predefinedTypes,
+                        predefinedOperators,
+                        containsForEachStatement,
+                        containsLockStatement,
+                        containsUsingStatement,
+                        containsQueryExpression,
+                        containsThisConstructorInitializer,
+                        containsBaseConstructorInitializer,
+                        containsElementAccess,
+                        containsIndexerMemberCref,
+                        containsDeconstruction,
+                        containsAwait,
+                        containsTupleExpressionOrTupleType,
+                        containsImplicitObjectCreation,
+                        containsGlobalSuppressMessageAttribute,
+                        containsConversion,
+                        containsGlobalKeyword,
+                        containsCollectionInitializer),
                     globalAliasInfo);
             }
             finally
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static StringTable GetStringTable(Project project)
+        public static StringTable GetStringTable(ProjectState project)
             => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)

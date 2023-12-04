@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class Builder : ISyntaxInputBuilder
         {
-            private readonly SyntaxReceiverStrategy<T> _owner;
             private readonly object _key;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
@@ -40,7 +39,6 @@ namespace Microsoft.CodeAnalysis
 
             public Builder(SyntaxReceiverStrategy<T> owner, object key, StateTableStore driverStateTable, bool trackIncrementalSteps)
             {
-                _owner = owner;
                 _key = key;
                 _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_key).ToBuilder(stepName: null, trackIncrementalSteps);
                 try

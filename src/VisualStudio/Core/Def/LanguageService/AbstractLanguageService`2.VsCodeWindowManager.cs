@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -11,7 +12,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,8 +23,11 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
@@ -39,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private IDisposable? _navigationBarController;
             private IVsDropdownBarClient? _dropdownBarClient;
             private ElementHost? _documentOutlineViewHost;
-            private DocumentOutlineControl? _documentOutlineControl;
+            private DocumentOutlineView? _documentOutlineView;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
@@ -49,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-                _globalOptions.OptionChanged += GlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
             }
 
             private void SetupView(IVsTextView view)
@@ -222,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
-                _globalOptions.OptionChanged -= GlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
 
                 if (_codeWindow is IVsDropdownBarManager dropdownManager)
                 {
@@ -234,35 +240,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             // GetOutline is called every time a new code window is created. Whenever we switch to a different window, it is guaranteed
             // that ReleaseOutline will be called on the old window before GetOutline is called for the new window. 
-            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? ppCmdTarget)
+            int IVsDocOutlineProvider.GetOutline(out IntPtr phwnd, out IOleCommandTarget? pCmdTarget)
             {
-                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
+                pCmdTarget = null;
+                GetOutline(out phwnd);
+                return VSConstants.S_OK;
+            }
+
+            private void GetOutline(out IntPtr phwnd)
+            {
+                phwnd = default;
+
+                var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
+                    ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
+                if (!enabled)
+                    return;
+
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
+                threadingContext.ThrowIfNotOnUIThread();
+
+                var uiShell = (IVsUIShell4)_languageService.SystemServiceProvider.GetService(typeof(SVsUIShell));
+                var windowSearchHostFactory = (IVsWindowSearchHostFactory)_languageService.SystemServiceProvider.GetService(typeof(SVsWindowSearchHostFactory));
+                var languageServiceBroker = _languageService.Package.ComponentModel.GetService<ILanguageServiceBroker2>();
                 var asyncListenerProvider = _languageService.Package.ComponentModel.GetService<IAsynchronousOperationListenerProvider>();
                 var asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.DocumentOutline);
                 var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-
-                threadingContext.ThrowIfNotOnUIThread();
+                var outliningManagerService = _languageService.Package.ComponentModel.GetService<IOutliningManagerService>();
 
                 // Assert that the previous Document Outline Control and host have been freed. 
-                Contract.ThrowIfFalse(_documentOutlineControl is null);
+                Contract.ThrowIfFalse(_documentOutlineView is null);
                 Contract.ThrowIfFalse(_documentOutlineViewHost is null);
 
-                _documentOutlineControl = new DocumentOutlineControl(
-                    languageServiceBroker, threadingContext, asyncListener, editorAdaptersFactoryService, _codeWindow);
+                var viewTracker = new VsCodeWindowViewTracker(_codeWindow, threadingContext, editorAdaptersFactoryService);
+                _documentOutlineView = new DocumentOutlineView(
+                    uiShell, windowSearchHostFactory, threadingContext, _globalOptions, outliningManagerService, viewTracker,
+                    new DocumentOutlineViewModel(threadingContext, viewTracker, languageServiceBroker, asyncListener));
 
                 _documentOutlineViewHost = new ElementHost
                 {
                     Dock = DockStyle.Fill,
-                    Child = _documentOutlineControl
+                    Child = _documentOutlineView
                 };
 
                 phwnd = _documentOutlineViewHost.Handle;
-                ppCmdTarget = null;
 
-                Logger.Log(FunctionId.DocumentOutline_WindowOpen);
-
-                return VSConstants.S_OK;
+                Logger.Log(FunctionId.DocumentOutline_WindowOpen, logLevel: LogLevel.Information);
             }
 
             int IVsDocOutlineProvider.ReleaseOutline(IntPtr hwnd, IOleCommandTarget pCmdTarget)
@@ -270,17 +292,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
                 threadingContext.ThrowIfNotOnUIThread();
 
-                // Assert that we are not attempting to double free the Document Outline Control and host.
-                Contract.ThrowIfNull(_documentOutlineViewHost);
-                Contract.ThrowIfNull(_documentOutlineControl);
-
-                _documentOutlineViewHost.SuspendLayout();
-                _documentOutlineControl.Dispose();
-                _documentOutlineControl = null;
-                _documentOutlineViewHost.Child = null;
-                _documentOutlineViewHost.Parent = null;
-                _documentOutlineViewHost.Dispose();
-                _documentOutlineViewHost = null;
+                if (_documentOutlineView is not null &&
+                    _documentOutlineViewHost is not null)
+                {
+                    _documentOutlineViewHost.SuspendLayout();
+                    _documentOutlineView.Dispose();
+                    _documentOutlineView = null;
+                    _documentOutlineViewHost.Child = null;
+                    _documentOutlineViewHost.Parent = null;
+                    _documentOutlineViewHost.Dispose();
+                    _documentOutlineViewHost = null;
+                }
 
                 return VSConstants.S_OK;
             }

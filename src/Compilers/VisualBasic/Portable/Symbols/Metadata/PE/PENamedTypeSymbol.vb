@@ -20,6 +20,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports TypeAttributes = System.Reflection.TypeAttributes
 Imports FieldAttributes = System.Reflection.FieldAttributes
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -219,7 +220,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsSerializable As Boolean
             Get
+#Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
                 Return (_flags And TypeAttributes.Serializable) <> 0
+#Enable Warning SYSLIB0050
             End Get
         End Property
 
@@ -432,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCustomAttributes
         End Function
 
-        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
             For Each attribute In GetAttributes()
                 Yield attribute
             Next
@@ -754,7 +757,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return True
         End Function
-
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             EnsureNestedTypesAreLoaded()
@@ -1114,9 +1116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each nestedTypeDef In [module].GetNestedTypeDefsOrThrow(_handle)
-                    If [module].ShouldImportNestedType(nestedTypeDef) Then
-                        members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
-                    End If
+                    members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
                 Next
             Catch mrEx As BadImageFormatException
             End Try
@@ -1212,7 +1212,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 For Each propertyDef In [module].GetPropertiesOfTypeOrThrow(_handle)
                     Try
                         Dim methods = [module].GetPropertyMethodsOrThrow(propertyDef)
-
 
                         Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Getter)
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Setter)
@@ -1339,7 +1338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
 
-            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.RefStructs, decoder)
 
             If diagnostic IsNot Nothing Then
                 Return diagnostic
@@ -1445,14 +1444,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function DecodeAttributeUsageInfo() As AttributeUsageInfo
-            Dim attributeUsageHandle = Me.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle)
-            If Not attributeUsageHandle.IsNil Then
-                Dim decoder = New MetadataDecoder(ContainingPEModule)
-                Dim positionalArgs As TypedConstant() = Nothing
-                Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing
-                If decoder.GetCustomAttribute(attributeUsageHandle, positionalArgs, namedArgs) Then
-                    Return AttributeData.DecodeAttributeUsageAttribute(positionalArgs(0), namedArgs.AsImmutableOrNull())
-                End If
+            Dim result As AttributeUsageInfo = Nothing
+
+            If Me.ContainingPEModule.Module.HasAttributeUsageAttribute(_handle, New MetadataDecoder(ContainingPEModule), result) Then
+                Return result
             End If
 
             Dim baseType = Me.BaseTypeNoUseSiteDiagnostics
@@ -1559,6 +1554,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
+
+        Friend Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return ContainingPEModule.Module.HasAttribute(Handle, AttributeDescription.RequiredMemberAttribute)
+            End Get
+        End Property
     End Class
 
 End Namespace

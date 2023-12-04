@@ -23,23 +23,23 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.VSConstants;
 using IVsContainedLanguageHost = Microsoft.VisualStudio.TextManager.Interop.IVsContainedLanguageHost;
 using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-#pragma warning disable CS0618 // Type or member is obsolete
-    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IVisualStudioHostDocument, IContainedDocument
-#pragma warning restore CS0618 // Type or member is obsolete
+    internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IContainedDocument
     {
         private const string ReturnReplacementString = @"{|r|}";
         private const string NewLineReplacementString = @"{|n|}";
@@ -87,9 +87,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
-        private readonly VisualStudioProject _project;
+        private readonly ProjectSystemProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return false; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             ITextBuffer dataBuffer,
             IVsTextBufferCoordinator bufferCoordinator,
             Workspace workspace,
-            VisualStudioProject project,
+            ProjectSystemProject project,
             IComponentModel componentModel,
             AbstractFormattingRule vbHelperFormattingRule)
             : base(threadingContext)
@@ -125,24 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _hostType = GetHostType();
             s_containedDocuments.TryAdd(documentId, this);
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractProject Project
-        {
-            get
-            {
-                return _componentModel.GetService<VisualStudioWorkspaceImpl>().GetProjectTrackerAndInitializeIfNecessary().GetProject(_project.Id);
-            }
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal AbstractContainedLanguage ContainedLanguage
-        {
-            get
-            {
-                return new AbstractContainedLanguage(ContainedLanguageHost);
-            }
         }
 
         private HostType GetHostType()
@@ -177,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -194,6 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
+            var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
+            if (containingDocumentItemid == itemidInsertionPoint)
+            {
+                // No need to walk project documents if requesting containing document's id
+                return this.Id;
+            }
+
             foreach (var document in _workspace.CurrentSolution.GetProject(_project.Id).Documents)
             {
                 if (document.FilePath != null && hierarchy.TryGetItemId(document.FilePath) == itemidInsertionPoint)
@@ -209,6 +199,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
             var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
+
+            if (document.Id == this.Id)
+            {
+                return GetContainingDocumentItemId(hierarchy);
+            }
+
             return hierarchy.TryGetItemId(_workspace.CurrentSolution.GetDocument(document.Id).FilePath);
         }
 
@@ -220,6 +216,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes)
             => ApplyChanges(SubjectBuffer.CurrentSnapshot.AsText(), changes);
+
+        private uint GetContainingDocumentItemId(IVsHierarchy hierarchy)
+        {
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            Marshal.ThrowExceptionForHR(BufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
+
+            var primaryBufferDocumentBuffer = editorAdaptersFactoryService.GetDocumentBuffer(primaryTextLines)!;
+
+            var textDocumentFactoryService = _componentModel.GetService<ITextDocumentFactoryService>();
+            textDocumentFactoryService.TryGetTextDocument(primaryBufferDocumentBuffer, out var textDocument);
+            var documentPath = textDocument.FilePath;
+
+            var itemId = hierarchy.TryGetItemId(documentPath);
+
+            return itemId;
+        }
 
         private ITextSnapshot ApplyChanges(SourceText originalText, IEnumerable<TextChange> changes)
         {
@@ -558,7 +570,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(visibleFirstLineInOriginalText.EndIncludingLineBreak, spanInOriginalText.End),
-                        snippetInRightText.Substring(firstLineOfRightTextSnippet.Length));
+                        snippetInRightText[firstLineOfRightTextSnippet.Length..]);
                     return true;
                 }
 
@@ -575,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 {
                     textChange = new TextChange(
                         TextSpan.FromBounds(spanInOriginalText.Start, visibleLastLineInOriginalText.Start),
-                        snippetInRightText.Substring(0, snippetInRightText.Length - lastLineOfRightTextSnippet.Length));
+                        snippetInRightText[..^lastLineOfRightTextSnippet.Length]);
                     return true;
                 }
 
@@ -586,7 +598,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)

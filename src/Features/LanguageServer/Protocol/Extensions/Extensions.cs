@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,16 +27,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
-                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
-                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
+                ? ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath)
+                : ProtocolConversions.CreateAbsoluteUri(document.FilePath);
         }
 
-        public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
-            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
+        /// <summary>
+        /// Generate the Uri of a document by replace the name in file path using the document's name.
+        /// Used to generate the correct Uri when rename a document, because calling <seealso cref="Document.WithName(string)"/> doesn't update the file path.
+        /// </summary>
+        public static Uri GetUriForRenamedDocument(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.FilePath);
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfTrue(document is SourceGeneratedDocument);
+            var directoryName = Path.GetDirectoryName(document.FilePath);
+
+            Contract.ThrowIfNull(directoryName);
+            var path = Path.Combine(directoryName, document.Name);
+            return ProtocolConversions.CreateAbsoluteUri(path);
+        }
+
+        public static Uri CreateUriForDocumentWithoutFilePath(this TextDocument document)
+        {
+            Contract.ThrowIfNull(document.Name);
+            Contract.ThrowIfNull(document.Project.FilePath);
+
+            var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
+            Contract.ThrowIfNull(projectDirectoryName);
+
+            using var _ = ArrayBuilder<string>.GetInstance(capacity: 2 + document.Folders.Count, out var pathBuilder);
+            pathBuilder.Add(projectDirectoryName);
+            pathBuilder.AddRange(document.Folders);
+            pathBuilder.Add(document.Name);
+
+            var path = Path.Combine(pathBuilder.ToArray());
+            return ProtocolConversions.CreateAbsoluteUri(path);
+        }
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+            => GetDocuments(solution, ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, string documentPath)
         {
-            var documentIds = GetDocumentIds(solution, documentUri);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentPath);
 
             // We don't call GetRequiredDocument here as the id could be referring to an additional document.
             var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
@@ -43,78 +77,83 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
-        {
-            // TODO: we need to normalize this. but for now, we check both absolute and local path
-            //       right now, based on who calls this, solution might has "/" or "\\" as directory
-            //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
-
-            if (!documentIds.Any())
-            {
-                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
-            }
-
-            return documentIds;
-        }
+            => solution.GetDocumentIdsWithFilePath(ProtocolConversions.GetDocumentFilePathFromUri(documentUri));
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documents = solution.GetDocuments(documentIdentifier.Uri);
-            if (documents.Length == 0)
-            {
-                return null;
-            }
-
-            return documents.FindDocumentInProjectContext(documentIdentifier);
+            return documents.Length == 0
+                ? null
+                : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
         }
 
-        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
+        private static T FindItemInProjectContext<T>(
+            ImmutableArray<T> items,
+            TextDocumentIdentifier itemIdentifier,
+            Func<T, ProjectId> projectIdGetter,
+            Func<T> defaultGetter)
         {
-            if (documents.Length > 1)
+            if (items.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
+                if (itemIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
                 {
                     var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+                    var matchingItem = items.FirstOrDefault(d => projectIdGetter(d) == projectId);
 
-                    if (matchingDocument != null)
+                    if (matchingItem != null)
                     {
-                        return matchingDocument;
+                        return matchingItem;
                     }
                 }
                 else
                 {
-                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
-                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
-
-                    var solution = documents.First().Project.Solution;
-                    // Lookup which of the linked documents is currently active in the workspace.
-                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredDocument(documentIdInCurrentContext);
+                    return defaultGetter();
                 }
             }
 
-            // We either have only one document or have multiple, but none of them  matched our context. In the
+            // We either have only one item or have multiple, but none of them  matched our context. In the
             // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
             // of client and server state.
-            return documents[0];
+            return items[0];
+        }
+
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier, Func<Solution, DocumentId, T> documentGetter) where T : TextDocument
+        {
+            return FindItemInProjectContext(documents, documentIdentifier, projectIdGetter: (item) => item.Project.Id, defaultGetter: () =>
+            {
+                // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
+                // This branch should be removed when we're using the LSP based navbar in all scenarios.
+
+                var solution = documents.First().Project.Solution;
+                // Lookup which of the linked documents is currently active in the workspace.
+                var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                return documentGetter(solution, documentIdInCurrentContext);
+            });
         }
 
         public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
-            => solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).SingleOrDefault();
+        {
+            var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).ToImmutableArray();
+            return !projects.Any()
+                ? null
+                : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
+        }
 
         public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
             var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
 
             // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
-            return documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().SingleOrDefault();
+            var additionalDocuments = documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().ToImmutableArray();
+            return !additionalDocuments.Any()
+                ? null
+                : additionalDocuments.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredAdditionalDocument(id));
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
         }
 

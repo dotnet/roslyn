@@ -304,23 +304,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
-                private readonly struct Data
+                private readonly struct Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
                 {
-                    private readonly DocumentId _documentId;
-                    private readonly Document? _document;
+                    private readonly DocumentId _documentId = documentId;
+                    private readonly Document? _document = document;
 
-                    public readonly Project Project;
-                    public readonly SyntaxPath? ChangedMember;
-                    public readonly IAsyncToken AsyncToken;
-
-                    public Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
-                    {
-                        _documentId = documentId;
-                        _document = document;
-                        Project = project;
-                        ChangedMember = changedMember;
-                        AsyncToken = asyncToken;
-                    }
+                    public readonly Project Project = project;
+                    public readonly SyntaxPath? ChangedMember = changedMember;
+                    public readonly IAsyncToken AsyncToken = asyncToken;
 
                     public Document GetRequiredDocument()
                         => WorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
@@ -444,18 +435,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await EnqueueWorkItemAsync(project, documentId, document: null).ConfigureAwait(false);
                     }
 
-                    private readonly struct Data
+                    private readonly struct Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
                     {
-                        public readonly IAsyncToken AsyncToken;
-                        public readonly ProjectId ProjectId;
-                        public readonly bool NeedDependencyTracking;
-
-                        public Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
-                        {
-                            AsyncToken = asyncToken;
-                            ProjectId = projectId;
-                            NeedDependencyTracking = needDependencyTracking;
-                        }
+                        public readonly IAsyncToken AsyncToken = asyncToken;
+                        public readonly ProjectId ProjectId = projectId;
+                        public readonly bool NeedDependencyTracking = needDependencyTracking;
                     }
                 }
             }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
-        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+        private static readonly ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
             ImmutableArray.Create(
                 CodeGenerationOperatorKind.LessThan,
                 CodeGenerationOperatorKind.LessThanOrEqual,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             var (document, textSpan, cancellationToken) = context;
 
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                     nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
             }
 
-            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
+            context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Generate_comparison_operators,
                 nestedActions.ToImmutable(),
                 isInlinable: false));
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => generator.LessThanOrEqualExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThan => generator.GreaterThanExpression(compareToCall, zero),
                 CodeGenerationOperatorKind.GreaterThanOrEqual => generator.GreaterThanOrEqualExpression(compareToCall, zero),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             return generator.ReturnStatement(comparison);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 CodeGenerationOperatorKind.LessThanOrEqual => WellKnownMemberNames.LessThanOrEqualOperatorName,
                 CodeGenerationOperatorKind.GreaterThan => WellKnownMemberNames.GreaterThanOperatorName,
                 CodeGenerationOperatorKind.GreaterThanOrEqual => WellKnownMemberNames.GreaterThanOrEqualOperatorName,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
     }
 }

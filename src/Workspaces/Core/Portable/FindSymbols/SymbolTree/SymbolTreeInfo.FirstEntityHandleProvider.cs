@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return new SignatureDecoder<EntityHandle, object?>(this, reader, genericContext: null).DecodeType(ref sigReader);
             }
 
-            public EntityHandle GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind) =>
-                GetTypeFromSpecification(reader, handle);
+            public EntityHandle GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+                => GetTypeFromSpecification(reader, handle);
 
             public EntityHandle GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => handle;
             public EntityHandle GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => handle;

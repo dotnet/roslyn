@@ -1912,7 +1912,7 @@ class Test
         }
 
         [Fact]
-        public void Record_1()
+        public void LiftedPrimaryParameter_Record()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -1947,9 +1947,9 @@ record D(int X)
           </customDebugInfo>
           <sequencePoints>
             <entry offset=""0x0"" hidden=""true"" document=""1"" />
-            <entry offset=""0xd"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
+            <entry offset=""0xd"" hidden=""true"" document=""1"" />
             <entry offset=""0x19"" startLine=""5"" startColumn=""34"" endLine=""5"" endColumn=""74"" document=""1"" />
-            <entry offset=""0x31"" startLine=""3"" startColumn=""1"" endLine=""6"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x31"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0x39"">
             <namespace name=""System"" />
@@ -1976,6 +1976,15 @@ record D(int X)
             <entry offset=""0x0"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""29"" document=""1"" />
           </sequencePoints>
         </method>
+        <method containingType=""D"" name="".ctor"" parameterNames=""original"">
+          <customDebugInfo>
+        <forward declaringType=""D"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""9"" document=""1"" />
+          </sequencePoints>
+        </method>
         <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"" parameterNames=""a"">
           <customDebugInfo>
             <forward declaringType=""D"" methodName="".ctor"" parameterNames=""X"" />
@@ -1989,7 +1998,7 @@ record D(int X)
         }
 
         [Fact]
-        public void Record_2()
+        public void PrimaryBaseInitializer()
         {
             var source = WithWindowsLineBreaks(@"
 using System;
@@ -2028,8 +2037,8 @@ record D(int X) : C(F(X, out int z), () => z)
             </using>
           </customDebugInfo>
           <sequencePoints>
-            <entry offset=""0x0"" startLine=""3"" startColumn=""10"" endLine=""3"" endColumn=""15"" document=""1"" />
-            <entry offset=""0x7"" startLine=""3"" startColumn=""1"" endLine=""9"" endColumn=""2"" document=""1"" />
+            <entry offset=""0x0"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""16"" document=""1"" />
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0xf"">
             <namespace name=""System"" />
@@ -2053,6 +2062,15 @@ record D(int X) : C(F(X, out int z), () => z)
             <entry offset=""0x0"" startLine=""6"" startColumn=""11"" endLine=""6"" endColumn=""18"" document=""1"" />
             <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
             <entry offset=""0x9"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+        </method>
+        <method containingType=""C"" name="".ctor"" parameterNames=""original"">
+          <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
+          </customDebugInfo>
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13"" startLine=""3"" startColumn=""8"" endLine=""3"" endColumn=""9"" document=""1"" />
           </sequencePoints>
         </method>
         <method containingType=""D"" name="".ctor"" parameterNames=""X"">
@@ -2089,6 +2107,12 @@ record D(int X) : C(F(X, out int z), () => z)
             <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
           </sequencePoints>
         </method>
+        <method containingType=""D"" name="".ctor"" parameterNames=""original"">
+          <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""8"" endLine=""11"" endColumn=""9"" document=""1"" />
+          </sequencePoints>
+        </method>
         <method containingType=""D+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"">
           <customDebugInfo>
             <forward declaringType=""C"" methodName="".ctor"" parameterNames=""X"" />
@@ -2099,6 +2123,78 @@ record D(int X) : C(F(X, out int z), () => z)
         </method>
       </methods>
     </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
+        }
+
+        [Fact]
+        [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
+        public void ClosureAllocationSequencePoints()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void F(bool outer)
+    {
+        if (outer) 
+        {
+            var inner = false;
+            var f = new Func<bool>(() => inner & outer);
+        }
+    }
+}";
+            var c = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/32352
+            // The inner closure allocation on IL_0018 should be within the sequence point associated with opening brace of the if statement.
+            // This sequence point is currently on  IL_0025, which causes NRE when the instruction pointer is moved to the opening brace.
+
+            c.VerifyIL("C.F", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                bool V_1,
+                C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                System.Func<bool> V_3) //f
+  // sequence point: <hidden>
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""bool C.<>c__DisplayClass0_0.outer""
+  // sequence point: {
+  IL_000d:  nop
+  // sequence point: if (outer)
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""bool C.<>c__DisplayClass0_0.outer""
+  IL_0014:  stloc.1
+  // sequence point: <hidden>
+  IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_003b
+  // sequence point: <hidden>
+  IL_0018:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+  IL_001d:  stloc.2
+  IL_001e:  ldloc.2
+  IL_001f:  ldloc.0
+  IL_0020:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  // sequence point: {
+  IL_0025:  nop
+  // sequence point: var inner = false;
+  IL_0026:  ldloc.2
+  IL_0027:  ldc.i4.0
+  IL_0028:  stfld      ""bool C.<>c__DisplayClass0_1.inner""
+  // sequence point: var f = new Func<bool>(() => inner & outer);
+  IL_002d:  ldloc.2
+  IL_002e:  ldftn      ""bool C.<>c__DisplayClass0_1.<F>b__0()""
+  IL_0034:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+  IL_0039:  stloc.3
+  // sequence point: }
+  IL_003a:  nop
+  // sequence point: }
+  IL_003b:  ret
+}
+", sequencePoints: "C.F", source: source);
         }
     }
 }

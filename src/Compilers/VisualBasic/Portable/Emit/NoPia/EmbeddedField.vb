@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingField.AdaptedFieldSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingField.AdaptedFieldSymbol.GetCustomAttributesToEmit(moduleBuilder)
         End Function
 
         Protected Overrides Function GetCompileTimeValue(context As EmitContext) As MetadataConstant
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingField.AdaptedFieldSymbol)
+                Return UnderlyingField.AdaptedFieldSymbol.MetadataVisibility
             End Get
         End Property
 

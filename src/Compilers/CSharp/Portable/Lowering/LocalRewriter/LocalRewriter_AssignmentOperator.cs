@@ -118,11 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(eventAccess.IsUsableAsField);
                     if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                     {
-                        const bool isDynamic = false;
                         return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
                                                                             eventAccess.EventSymbol,
                                                                             EventAssignmentKind.Assignment,
-                                                                            isDynamic,
                                                                             eventAccess.ReceiverOpt,
                                                                             rewrittenRight);
                     }
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - Assignment operation is not supported for custom (non-field like) events.
                     // - Access to regular field-like events is expected to be lowered to at least a field access
                     //   when we reach here.
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
                     return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, type: type, used: used);
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess indexerAccess,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -225,12 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     {
                         Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            isRef,
-                            type);
+                            type,
+                            isRef);
                     }
 
                 case BoundKind.DiscardExpression:
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     {
                         Debug.Assert(!isRef);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
@@ -302,16 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            arguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+            arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+                storesOpt: null,
+                ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,
@@ -343,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rhsAssignment));
 
@@ -358,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rewrittenRight));
 

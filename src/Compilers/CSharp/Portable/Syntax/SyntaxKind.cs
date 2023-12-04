@@ -907,5 +907,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
         InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
         InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
+
+        ScopedType = 9075,
+
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
     }
 }

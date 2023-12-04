@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.Services));
+                return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.Services));
             }
 
             public async Task<MetadataAsSourceFile> GenerateSourceAsync(
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 }
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, signaturesOnly, options);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, options);
 
                 return result;
             }
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                             --lastDotIndex;
                         }
 
-                        var memberSymbolName = symbolMetadataName.Substring(lastDotIndex + 1);
-                        var namedTypeName = symbolMetadataName.Substring(0, lastDotIndex);
+                        var memberSymbolName = symbolMetadataName[(lastDotIndex + 1)..];
+                        var namedTypeName = symbolMetadataName[..lastDotIndex];
 
                         namedTypeSymbol = assemblySymbol.GetTypeByMetadataName(namedTypeName);
                         if (namedTypeSymbol != null)

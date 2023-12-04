@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         // Parts of the name `disposedValue`.  Used so we can generate a field correctly with 
         // the naming style that the user has specified.
-        private static ImmutableArray<string> s_disposedValueNameParts =
+        private static readonly ImmutableArray<string> s_disposedValueNameParts =
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
@@ -86,19 +86,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
-        private sealed class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private sealed class ImplementInterfaceWithDisposePatternCodeAction(
+            AbstractImplementInterfaceService service,
+            Document document,
+            ImplementTypeGenerationOptions options,
+            State state,
+            bool explicitly,
+            bool abstractly,
+            ISymbol? throughMember) : ImplementInterfaceCodeAction(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
         {
-            public ImplementInterfaceWithDisposePatternCodeAction(
-                AbstractImplementInterfaceService service,
-                Document document,
-                ImplementTypeGenerationOptions options,
-                State state,
-                bool explicitly,
-                bool abstractly,
-                ISymbol? throughMember) : base(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
-            {
-            }
-
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
@@ -153,19 +149,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-
                 var context = new CodeGenerationContext(
                     addImports: false,
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var options = await document.GetCodeGenerationOptionsAsync(Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+                var info = await document.GetCodeGenerationInfoAsync(context, Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
+                var typeDeclarationWithAllMembers = info.Service.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    options.GetInfo(context, document.Project),
+                    info,
                     cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(

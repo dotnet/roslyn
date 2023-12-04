@@ -122,7 +122,6 @@ Public Class ParseVarDecl
         ]]>)
     End Sub
 
-
     <Fact>
     Public Sub Bug869104()
         ' Custom Keyword should be contextual (only preceding Event keyword)

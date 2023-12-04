@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // The return parameter must use ref readonly, like regular methods.
                 RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
                 RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
+                RefKind.RefReadOnlyParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
 
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         public override SyntaxNode IsNotTypeExpression(SyntaxNode expression, SyntaxNode type)
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         #region Patterns
 
@@ -156,6 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
                 (PatternSyntax)pattern);
 
+        public override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
+            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+
         public override SyntaxNode ConstantPattern(SyntaxNode expression)
             => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
 
@@ -164,8 +168,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 type.GenerateTypeSyntax(),
                 SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
 
-        public override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
-            => SyntaxFactory.BinaryPattern(SyntaxKind.AndPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));
+        public override SyntaxNode LessThanRelationalPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode LessThanEqualsRelationalPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanEqualsToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode GreaterThanRelationalPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode GreaterThanEqualsRelationalPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanEqualsToken), (ExpressionSyntax)expression);
 
         public override SyntaxNode NotPattern(SyntaxNode pattern)
             => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));

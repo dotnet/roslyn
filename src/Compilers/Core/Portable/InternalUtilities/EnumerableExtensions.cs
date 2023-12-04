@@ -171,6 +171,27 @@ namespace Roslyn.Utilities
         public static IReadOnlyCollection<T> ToCollection<T>(this IEnumerable<T> sequence)
             => (sequence is IReadOnlyCollection<T> collection) ? collection : sequence.ToList();
 
+        public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return item;
+            }
+
+            return default;
+        }
+
         public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
@@ -190,7 +211,28 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            return source.Cast<T?>().FirstOrDefault(static (v, predicate) => predicate(v!.Value), predicate);
+        }
+
+        public static T? FirstOrNull<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+            where T : struct
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            return source.Cast<T?>().FirstOrDefault(static (v, arg) => arg.predicate(v!.Value, arg.arg), (predicate, arg));
         }
 
         public static T? LastOrNull<T>(this IEnumerable<T> source)
@@ -311,6 +353,23 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            int index = 0;
+            foreach (var element in source)
+            {
+                builder.Add(selector(element, index));
+                index++;
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
         {
             if (source == null)
@@ -319,6 +378,56 @@ namespace Roslyn.Utilities
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.Add(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item, arg));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, IEnumerable<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            // Basic heuristic. Assume each element in the source adds one item to the result.
+            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            foreach (var item in source)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            // Basic heuristic. Assume each element in the source adds one item to the result.
+            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            foreach (var item in source)
+                builder.AddRange(selector(item, arg));
 
             return builder.ToImmutableAndFree();
         }
@@ -333,6 +442,21 @@ namespace Roslyn.Utilities
             foreach (var item in source)
             {
                 builder.Add(await selector(item).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTask, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this IEnumerable<TItem> source, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance();
+
+            foreach (var item in source)
+            {
+                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
             }
 
             return builder.ToImmutableAndFree();
@@ -469,9 +593,13 @@ namespace Roslyn.Utilities
             return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
+#if NET7_0_OR_GREATER
+        public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
+#else
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
+#endif
         {
-            return source.OrderBy(Comparisons<T>.Comparer);
+            return source.OrderBy(Comparer<T>.Default);
         }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
@@ -486,23 +614,18 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
         {
-            return source.ThenBy(Comparisons<T>.Comparer);
+            return source.ThenBy(Comparer<T>.Default);
         }
 
-        private static class Comparisons<T> where T : IComparable<T>
-        {
-            public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
-
-            public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
-        }
-
-        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
+        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T>? comparer = null)
         {
             using var e = enumerable.GetEnumerator();
             if (!e.MoveNext())
             {
                 return true;
             }
+
+            comparer ??= Comparer<T>.Default;
 
             var previous = e.Current;
             while (e.MoveNext())
@@ -618,7 +741,7 @@ namespace Roslyn.Utilities
         }
 #nullable enable
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToMultiDictionary<K, T>(this IEnumerable<T> data, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
             var dictionary = new Dictionary<K, ImmutableArray<T>>(comparer);

@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct ArgumentAnalysisResult
+    internal readonly struct ArgumentAnalysisResult
     {
         public readonly ImmutableArray<int> ArgsToParamsOpt;
         public readonly int ArgumentPosition;

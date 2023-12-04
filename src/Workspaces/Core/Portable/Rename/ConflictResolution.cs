@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Rename
         [MemberNotNullWhen(true, nameof(_renamedDocument))]
         [MemberNotNullWhen(true, nameof(OldSolution))]
         [MemberNotNullWhen(true, nameof(NewSolution))]
-        [MemberNotNullWhen(true, nameof(ReplacementTextValid))]
         public bool IsSuccessful { get; }
 
         public readonly string? ErrorMessage;
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// </summary>
         public readonly Solution? NewSolution;
 
-        public readonly bool? ReplacementTextValid;
+        public readonly bool ReplacementTextValid;
 
         /// <summary>
         /// The list of all document ids of documents that have been touched for this rename operation.
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _renamedDocument = null;
             OldSolution = null;
             NewSolution = null;
-            ReplacementTextValid = null;
+            ReplacementTextValid = false;
             DocumentIds = ImmutableArray<DocumentId>.Empty;
             RelatedLocations = ImmutableArray<RelatedLocation>.Empty;
             _documentToModifiedSpansMap = ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>.Empty;

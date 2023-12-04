@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -25,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public TestHostDocument CurrentDocument => _currentDocument ?? _workspace.Documents.Single();
 
-        public TestWorkspace GetWorkspace(ExportProvider exportProvider = null)
+        public TestWorkspace GetWorkspace(TestComposition composition = null)
         {
-            _workspace = _workspace ?? CreateWorkspace(exportProvider);
+            _workspace ??= CreateWorkspace(composition);
             return _workspace;
         }
 
-        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null, string workspaceKind = null)
+        public TestWorkspace GetWorkspace(string markup, TestComposition composition = null, string workspaceKind = null)
         {
             // If it looks like XML, we'll treat it as XML; any parse error would be rejected and will throw.
             // We'll do a case insensitive search here so if somebody has a lowercase W it'll be tried (and
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 CloseTextView();
                 _workspace?.Dispose();
 
-                _workspace = TestWorkspace.CreateWorkspace(XElement.Parse(markup), exportProvider: exportProvider, workspaceKind: workspaceKind);
+                _workspace = TestWorkspace.CreateWorkspace(XElement.Parse(markup), composition: composition, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
                 Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
@@ -50,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             else
             {
                 MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out Code, out Position);
-                var workspace = GetWorkspace(exportProvider);
+                var workspace = GetWorkspace(composition);
                 _currentDocument = workspace.Documents.Single();
                 return workspace;
             }
         }
 
-        protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
+        protected abstract TestWorkspace CreateWorkspace(TestComposition composition);
 
         public void Dispose()
         {

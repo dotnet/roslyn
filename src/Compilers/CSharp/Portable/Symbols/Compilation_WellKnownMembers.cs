@@ -145,11 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = this.Assembly.GetTypeByMetadataName(
                         mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
+                    Debug.Assert(result?.IsErrorType() != true);
                 }
 
                 if (result is null)
                 {
-                    // TODO: should GetTypeByMetadataName rather return a missing symbol?
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())
                     {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedStringArguments = builder.ToImmutableAndFree();
             }
 
-            return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+            return SynthesizedAttributeData.Create(this, ctorSymbol, arguments, namedStringArguments);
         }
 
         internal SynthesizedAttributeData? TrySynthesizeAttribute(
@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return new SynthesizedAttributeData(
+            return SynthesizedAttributeData.Create(
+                this,
                 ctorSymbol,
                 arguments: ImmutableArray<TypedConstant>.Empty,
                 namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
@@ -470,6 +471,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, mid),
                     new TypedConstant(systemUnit32, TypedConstantKind.Primitive, low)
                 ));
+        }
+
+        internal SynthesizedAttributeData? SynthesizeDateTimeConstantAttribute(DateTime value)
+        {
+            var ticks = new TypedConstant(GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, value.Ticks);
+
+            return TrySynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
+                ImmutableArray.Create(ticks));
         }
 
         internal SynthesizedAttributeData? SynthesizeDebuggerBrowsableNeverAttribute()
@@ -515,6 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureIsReadOnlyAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal void EnsureRequiresLocationAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
@@ -612,6 +627,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
+
+                case EmbeddableAttributes.RefSafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
+
+                case EmbeddableAttributes.RequiresLocationAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);

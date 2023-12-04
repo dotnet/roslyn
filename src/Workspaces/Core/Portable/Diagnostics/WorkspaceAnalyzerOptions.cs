@@ -17,20 +17,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Analyzer options with workspace.
     /// These are used to fetch the workspace options by our internal analyzers (e.g. simplification analyzer).
     /// </summary>
-    internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
+    internal sealed class WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions) : AnalyzerOptions(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
     {
-        private readonly Solution _solution;
-
-        public IdeAnalyzerOptions IdeOptions { get; }
-
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution, IdeAnalyzerOptions ideOptions)
-            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
-        {
-            _solution = solution;
-            IdeOptions = ideOptions;
-        }
-
-        public SolutionServices Services => _solution.Services;
+        public IdeAnalyzerOptions IdeOptions { get; } = ideOptions;
 
         public override bool Equals(object obj)
         {
@@ -40,13 +29,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return obj is WorkspaceAnalyzerOptions other &&
-                _solution.WorkspaceVersion == other._solution.WorkspaceVersion &&
-                _solution.Workspace == other._solution.Workspace &&
+                IdeOptions == other.IdeOptions &&
                 base.Equals(other);
         }
 
         public override int GetHashCode()
-            => Hash.Combine(_solution.Workspace,
-               Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
+            => Hash.Combine(IdeOptions.GetHashCode(), base.GetHashCode());
     }
 }

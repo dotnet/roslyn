@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class StaticAbstractMembersInInterfacesTests : CSharpTestBase
     {
-        private const TargetFramework _supportingFramework = TargetFramework.Net60;
+        internal const TargetFramework _supportingFramework = TargetFramework.Net60;
 
         [Fact]
         public void MethodModifiers_01()
@@ -5301,6 +5301,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5335,6 +5337,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5375,6 +5379,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5388,6 +5394,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Fact]
@@ -5412,6 +5420,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5425,6 +5435,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Theory]
@@ -9671,7 +9683,6 @@ class C<T>
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
@@ -12060,7 +12071,6 @@ class Test
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
@@ -13092,18 +13102,6 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
@@ -13974,18 +13972,6 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
@@ -14839,13 +14825,6 @@ class Test
 
         private static bool Execute(bool isVirtual)
         {
-#if !NET7_0_OR_GREATER
-            if (isVirtual)
-            {
-                return false;
-            }
-#endif
-
             return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
@@ -16935,8 +16914,6 @@ public class C1<T> : I1<T>
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
-
-
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -19753,7 +19730,6 @@ partial " + typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
@@ -19842,7 +19818,6 @@ partial " + typeKeyword + @"
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -21364,7 +21339,6 @@ public class C3 : C2, I1
 {
 }
 ";
-
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -24724,7 +24698,6 @@ class C3 : I2
                 Assert.Equal("System.Int32 modopt(I2) C3.I2.M01.get", c3M01Get.ToTestDisplayString());
                 Assert.Same(m01.GetMethod, c3M01Get.ExplicitInterfaceImplementations.Single());
                 Assert.Same(c3M01Get, c3.FindImplementationForInterfaceMember(m01.GetMethod));
-
 
                 Assert.True(c3M01Set.IsStatic);
                 Assert.False(c3M01Set.IsAbstract);
@@ -30428,7 +30401,6 @@ class C<T>
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
@@ -33345,6 +33317,528 @@ public class C5 : I1<C5>
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Implicit(C5)").WithLocation(17, 19)
                     );
             }
+        }
+
+        [Fact, WorkItem(65685, "https://github.com/dotnet/roslyn/issues/65685")]
+        public void NoDuplicateConversionForImplicitAndExplicitImplementations()
+        {
+            CreateCompilation("""
+                interface I1<T> where T : I1<T>
+                {
+                    static abstract T operator +(T a, T b);
+                    static abstract T operator +(T a);
+                }
+
+                interface I2<T> where T : I2<T>
+                {
+                    static abstract implicit operator int(T t);
+                }
+
+                interface I3<T> where T : I3<T>
+                {
+                    static abstract explicit operator int(T t);
+                    static abstract explicit operator checked int(T t);
+                }
+
+                class C12_1 : I1<C12_1>, I2<C12_1>
+                {
+                    static C12_1 I1<C12_1>.operator +(C12_1 a, C12_1 b) => a + b;
+                    public static C12_1 operator +(C12_1 a, C12_1 b) => a;
+
+                    static C12_1 I1<C12_1>.operator +(C12_1 a) => a;
+                    public static C12_1 operator +(C12_1 a) => a;
+
+                    static implicit I2<C12_1>.operator int(C12_1 t) => 1;
+                    public static implicit operator int(C12_1 t) => 42;
+                }
+
+                class C12_2 : I1<C12_2>, I2<C12_2>
+                {
+                    public static C12_2 operator +(C12_2 a, C12_2 b) => a;
+                    static C12_2 I1<C12_2>.operator +(C12_2 a, C12_2 b) => a + b;
+
+                    public static C12_2 operator +(C12_2 a) => a;
+                    static C12_2 I1<C12_2>.operator +(C12_2 a) => a;
+
+                    public static implicit operator int(C12_2 t) => 42;
+                    static implicit I2<C12_2>.operator int(C12_2 t) => 1;
+                }
+
+                class C3_1 : I3<C3_1>
+                {
+                    static explicit I3<C3_1>.operator int(C3_1 t) => 1;
+                    public static explicit operator int(C3_1 t) => 1;
+
+                    static explicit I3<C3_1>.operator checked int(C3_1 t) => 1;
+                    public static explicit operator checked int(C3_1 t) => 1;
+                }
+
+                class C3_2 : I3<C3_2>
+                {
+                    public static explicit operator int(C3_2 t) => 1;
+                    static explicit I3<C3_2>.operator int(C3_2 t) => 1;
+
+                    public static explicit operator checked int(C3_2 t) => 1;
+                    static explicit I3<C3_2>.operator checked int(C3_2 t) => 1;
+                }
+
+                class C23_1 : I2<C23_1>, I3<C23_1>
+                {
+                    static implicit I2<C23_1>.operator int(C23_1 t) => 1;
+                    public static implicit operator int(C23_1 t) => 42;
+
+                    static explicit I3<C23_1>.operator int(C23_1 t) => 1;
+                    public static explicit operator int(C23_1 t) => 1;
+
+                    static explicit I3<C23_1>.operator checked int(C23_1 t) => 1;
+                    public static explicit operator checked int(C23_1 t) => 1;
+                }
+
+                class C23_2 : I2<C23_2>, I3<C23_2>
+                {
+                    public static implicit operator int(C23_2 t) => 42;
+                    static implicit I2<C23_2>.operator int(C23_2 t) => 1;
+
+                    public static explicit operator int(C23_2 t) => 1;
+                    static explicit I3<C23_2>.operator int(C23_2 t) => 1;
+
+                    public static explicit operator checked int(C23_2 t) => 1;
+                    static explicit I3<C23_2>.operator checked int(C23_2 t) => 1;
+                }
+                """, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // (66,37): error CS0557: Duplicate user-defined conversion in type 'C23_1'
+                    //     public static explicit operator int(C23_1 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_1").WithLocation(66, 37),
+                    // (69,45): error CS0557: Duplicate user-defined conversion in type 'C23_1'
+                    //     public static explicit operator checked int(C23_1 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_1").WithLocation(69, 45),
+                    // (77,37): error CS0557: Duplicate user-defined conversion in type 'C23_2'
+                    //     public static explicit operator int(C23_2 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_2").WithLocation(77, 37),
+                    // (80,45): error CS0557: Duplicate user-defined conversion in type 'C23_2'
+                    //     public static explicit operator checked int(C23_2 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_2").WithLocation(80, 45)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPoint()
+        {
+            CreateCompilation("""
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPoint()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1", "+", "(in I1 x)")]
+        [InlineData("I1", "-", "(in I1 x)")]
+        [InlineData("I1", "!", "(in I1 x)")]
+        [InlineData("I1", "~", "(in I1 x)")]
+        [InlineData("I1", "++", "(in I1 x)")]
+        [InlineData("I1", "--", "(in I1 x)")]
+        [InlineData("I1", "+", "(in I1 x, I1 y)")]
+        [InlineData("I1", "-", "(in I1 x, I1 y)")]
+        [InlineData("I1", "*", "(in I1 x, I1 y)")]
+        [InlineData("I1", "/", "(in I1 x, I1 y)")]
+        [InlineData("I1", "%", "(in I1 x, I1 y)")]
+        [InlineData("I1", "&", "(in I1 x, I1 y)")]
+        [InlineData("I1", "|", "(in I1 x, I1 y)")]
+        [InlineData("I1", "^", "(in I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(in I1 x, int y)")]
+        [InlineData("I1", ">>", "(in I1 x, int y)")]
+        [InlineData("I1", ">>>", "(in I1 x, int y)")]
+        [InlineData("I1", "checked -", "(in I1 x)")]
+        [InlineData("I1", "checked ++", "(in I1 x)")]
+        [InlineData("I1", "checked --", "(in I1 x)")]
+        [InlineData("I1", "checked +", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(in I1 x, I1 y)")]
+        public void InParameters_01(string type, string op, string paramList)
+        {
+            string source2 = InParameter_01_Source2(type, op, paramList);
+            InParameter_01_Validate(InParameter_01_Source1_Abstract(type, op, paramList), source2);
+            InParameter_01_Validate(InParameter_01_Source1_Virtual(type, op, paramList), source2);
+        }
+
+        private static string InParameter_01_Source1_Abstract(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static " + type + " operator " + op + " " + paramList + @";
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    abstract static " + type + " operator " + op.Substring(8) + " " + paramList + @";
+}
+";
+            }
+
+            return source1;
+        }
+
+        private static string InParameter_01_Source1_Virtual(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    virtual static " + type + " operator " + op + " " + paramList + @" => throw null;
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    virtual static " + type + " operator " + op.Substring(8) + " " + paramList + @" => throw null;
+}
+";
+            }
+
+            return source1;
+        }
+
+        private static string InParameter_01_Source2(string type, string op, string paramList)
+        {
+            var source2 =
+@"
+partial class C1 : I1
+{
+    static " + type + " I1.operator " + op + " " + paramList + @" => throw null;
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source2 +=
+@"
+partial class C1
+{
+    static " + type + " I1.operator " + op.Substring(8) + " " + paramList + @" => throw null;
+}
+";
+            }
+
+            return source2;
+        }
+
+        private void InParameter_01_Validate(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.ToMetadataReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation2, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.EmitToImageReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation3, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    var modifier = m01.Parameters.First().RefCustomModifiers.Single();
+                    Assert.Equal("System.Runtime.InteropServices.InAttribute", modifier.Modifier.ToTestDisplayString());
+                    Assert.False(modifier.IsOptional);
+
+                    if (m01.ParameterCount > 1)
+                    {
+                        Assert.Empty(m01.Parameters.Last().RefCustomModifiers);
+                    }
+                }
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1", "+", "(I1 x, in I1 y)")]
+        [InlineData("I1", "-", "(I1 x, in I1 y)")]
+        [InlineData("I1", "*", "(I1 x, in I1 y)")]
+        [InlineData("I1", "/", "(I1 x, in I1 y)")]
+        [InlineData("I1", "%", "(I1 x, in I1 y)")]
+        [InlineData("I1", "&", "(I1 x, in I1 y)")]
+        [InlineData("I1", "|", "(I1 x, in I1 y)")]
+        [InlineData("I1", "^", "(I1 x, in I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, in int y)")]
+        [InlineData("I1", ">>", "(I1 x, in int y)")]
+        [InlineData("I1", ">>>", "(I1 x, in int y)")]
+        [InlineData("I1", "checked +", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, in I1 y)")]
+        public void InParameters_02(string type, string op, string paramList)
+        {
+            string source2 = InParameter_01_Source2(type, op, paramList);
+            InParameter_02_Validate(InParameter_01_Source1_Abstract(type, op, paramList), source2);
+            InParameter_02_Validate(InParameter_01_Source1_Virtual(type, op, paramList), source2);
+        }
+
+        private void InParameter_02_Validate(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.ToMetadataReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation2, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.EmitToImageReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation3, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    var modifier = m01.Parameters.Last().RefCustomModifiers.Single();
+                    Assert.Equal("System.Runtime.InteropServices.InAttribute", modifier.Modifier.ToTestDisplayString());
+                    Assert.False(modifier.IsOptional);
+
+                    Assert.Empty(m01.Parameters.First().RefCustomModifiers);
+                }
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("bool", "true", "false", "(in I1<T> x)")]
+        [InlineData("I1<T>", ">", "<", "(in I1<T> x, I1<T> y)")]
+        [InlineData("I1<T>", ">=", "<=", "(in I1<T> x, I1<T> y)")]
+        [InlineData("T", "==", "!=", "(in T x, T y)")]
+        public void InParameters_03(string type, string op1, string op2, string paramList)
+        {
+            string source2 = InParameter_03_Source2(type, op1, op2, paramList);
+            InParameter_01_Validate(InParameter_03_Source1_Abstract(type, op1, op2, paramList), source2);
+            InParameter_01_Validate(InParameter_03_Source1_Virtual(type, op1, op2, paramList), source2);
+        }
+
+        private static string InParameter_03_Source1_Abstract(string type, string op1, string op2, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + type + " operator " + op1 + " " + paramList + @";
+    abstract static " + type + " operator " + op2 + " " + paramList + @";
+}
+";
+
+            return source1;
+        }
+
+        private static string InParameter_03_Source1_Virtual(string type, string op1, string op2, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    virtual static " + type + " operator " + op1 + " " + paramList + @" => throw null;
+    virtual static " + type + " operator " + op2 + " " + paramList + @" => throw null;
+}
+";
+
+            return source1;
+        }
+
+        private static string InParameter_03_Source2(string type, string op1, string op2, string paramList)
+        {
+            var source2 =
+@"
+partial class C1 : I1<C1>
+{
+    static " + type + " I1<C1>.operator " + op1 + " " + paramList + @" => throw null;
+    static " + type + " I1<C1>.operator " + op2 + " " + paramList + @" => throw null;
+}
+";
+
+            return source2.Replace("T", "C1");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1<T>", ">", "<", "(I1<T> x, in I1<T> y)")]
+        [InlineData("I1<T>", ">=", "<=", "(I1<T> x, in I1<T> y)")]
+        [InlineData("T", "==", "!=", "(T x, in T y)")]
+        public void InParameters_04(string type, string op1, string op2, string paramList)
+        {
+            string source2 = InParameter_03_Source2(type, op1, op2, paramList);
+            InParameter_02_Validate(InParameter_03_Source1_Abstract(type, op1, op2, paramList), source2);
+            InParameter_02_Validate(InParameter_03_Source1_Virtual(type, op1, op2, paramList), source2);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Fact]
+        public void InParameters_05()
+        {
+            var source1_Abstract =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator int(in T x);
+    abstract static explicit operator T(in int x);
+    abstract static explicit operator checked T(in int x);
+}
+";
+            var source1_Virtual =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static implicit operator int(in T x) => throw null;
+    virtual static explicit operator T(in int x) => throw null;
+    virtual static explicit operator checked T(in int x) => throw null;
+}
+";
+
+            var source2 =
+@"
+partial class C1 : I1<C1>
+{
+    static implicit I1<C1>.operator int(in C1 x) => throw null;
+    static explicit I1<C1>.operator C1(in int x) => throw null;
+    static explicit I1<C1>.operator checked C1(in int x) => throw null;
+}
+";
+
+            InParameter_01_Validate(source1_Abstract, source2);
+            InParameter_01_Validate(source1_Virtual, source2);
         }
     }
 }

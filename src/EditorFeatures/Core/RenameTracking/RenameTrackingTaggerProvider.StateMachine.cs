@@ -6,14 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 ThreadingContext.ThrowIfNotOnUIThread();
 
-                if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.RenameTracking))
+                if (!GlobalOptions.GetOption(RenameTrackingOptionsStorage.RenameTracking))
                 {
                     // When disabled, ignore all text buffer changes and do not trigger retagging
                     return;
@@ -244,7 +242,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                         _diagnosticAnalyzerService?.Reanalyze(
                             document.Project.Solution.Workspace,
-                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
+                            projectIds: null,
+                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id),
+                            highPriority: true);
                     }
 
                     // Disallow the existing TrackingSession from triggering IdentifierFound.
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

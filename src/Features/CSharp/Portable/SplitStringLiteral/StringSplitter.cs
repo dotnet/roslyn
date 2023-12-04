@@ -9,61 +9,47 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
-    internal abstract partial class StringSplitter
+    internal abstract partial class StringSplitter(
+        ParsedDocument document, int position,
+        in IndentationOptions indentationOptions,
+        CancellationToken cancellationToken)
     {
-        protected static readonly SyntaxAnnotation RightNodeAnnotation = new();
+        protected readonly SyntaxAnnotation RightNodeAnnotation = new();
 
-        protected static readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
-            leading: default,
-            SyntaxKind.PlusToken,
-            SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+        protected readonly ParsedDocument Document = document;
+        protected readonly int CursorPosition = position;
+        protected readonly IndentationOptions IndentationOptions = indentationOptions;
+        protected readonly CancellationToken CancellationToken = cancellationToken;
+        protected readonly SyntaxToken PlusNewLineToken = SyntaxFactory.Token(
+                leading: default,
+                SyntaxKind.PlusToken,
+                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(
+                    indentationOptions.FormattingOptions.NewLine)));
 
-        protected readonly ParsedDocument Document;
-        protected readonly int CursorPosition;
-        protected readonly IndentationOptions Options;
-        protected readonly CancellationToken CancellationToken;
-
-        public StringSplitter(
-            ParsedDocument document, int position,
-            in IndentationOptions options,
-            CancellationToken cancellationToken)
-        {
-            Document = document;
-            CursorPosition = position;
-            Options = options;
-            CancellationToken = cancellationToken;
-        }
-
-        protected int TabSize => Options.FormattingOptions.TabSize;
-        protected bool UseTabs => Options.FormattingOptions.UseTabs;
+        protected int TabSize => IndentationOptions.FormattingOptions.TabSize;
+        protected bool UseTabs => IndentationOptions.FormattingOptions.UseTabs;
 
         public static StringSplitter? TryCreate(
             ParsedDocument document, int position,
-            in IndentationOptions options,
+            in IndentationOptions indentationOptions,
             CancellationToken cancellationToken)
         {
             var token = document.Root.FindToken(position);
 
-            if (token.IsKind(SyntaxKind.StringLiteralToken) ||
-                token.IsKind(SyntaxKind.Utf8StringLiteralToken))
+            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken)
             {
                 return new SimpleStringSplitter(
-                    document, position,
-                    token, options,
-                    cancellationToken);
+                    document, position, token, indentationOptions, cancellationToken);
             }
 
             var interpolatedStringExpression = TryGetInterpolatedStringExpression(token, position);
             if (interpolatedStringExpression != null)
             {
                 return new InterpolatedStringSplitter(
-                    document, position,
-                    interpolatedStringExpression,
-                    options, cancellationToken);
+                    document, position, interpolatedStringExpression, indentationOptions, cancellationToken);
             }
 
             return null;
@@ -72,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
         private static InterpolatedStringExpressionSyntax? TryGetInterpolatedStringExpression(
             SyntaxToken token, int position)
         {
-            if (token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+            if (token.Kind() is SyntaxKind.InterpolatedStringTextToken or SyntaxKind.InterpolatedStringEndToken ||
                 IsInterpolationOpenBrace(token, position))
             {
                 return token.GetAncestor<InterpolatedStringExpressionSyntax>();
@@ -141,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 
             var newDocument = Document.WithChangedRoot(newRoot, CancellationToken);
             var desiredIndentation = indentationService.GetIndentation(
-                newDocument, originalLineNumber + 1, Options, CancellationToken);
+                newDocument, originalLineNumber + 1, IndentationOptions, CancellationToken);
 
             var newSourceText = newDocument.Text;
             var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);

@@ -22,40 +22,44 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Snippets)>
     Public Class CSharpSnippetExpansionClientTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_EmptyDocument() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"System"}
             Dim expectedUpdatedCode = "using System;
+
 "
 
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_EmptyDocument_SystemAtTop() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = "using System.Bar;
 using First.Alphabetically;
+
 "
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_EmptyDocument_SystemNotSortedToTop() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = "using First.Alphabetically;
 using System.Bar;
+
 "
 
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_AddsOnlyNewNamespaces() As Task
             Dim originalCode = "using A.B.C;
 using D.E.F;
@@ -68,8 +72,8 @@ using G.H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WorkItem(4457, "https://github.com/dotnet/roslyn/issues/4457")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4457")>
+        <WpfFact>
         Public Async Function TestAddImport_InsideNamespace() As Task
             Dim originalCode = "
 using A;
@@ -100,7 +104,7 @@ namespace N
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_AddsOnlyNewAliasAndNamespacePairs() As Task
             Dim originalCode = "using A = B.C;
 using D = E.F;
@@ -117,7 +121,7 @@ using J = K.L;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_DuplicateNamespaceDetectionDoesNotIgnoreCase() As Task
             Dim originalCode = "using A.b.C;
 "
@@ -129,7 +133,7 @@ using A.B.c;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace1() As Task
             Dim originalCode = "using A = B.C;
 "
@@ -139,7 +143,7 @@ using A.B.c;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace2() As Task
             Dim originalCode = "using A     =  B.C;
 "
@@ -149,7 +153,7 @@ using A.B.c;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_DuplicateAliasNamespacePairDetectionDoesNotIgnoreCase() As Task
             Dim originalCode = "using A = B.C;
 "
@@ -160,7 +164,7 @@ using A = B.C;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function TestAddImport_OnlyFormatNewImports() As Task
             Dim originalCode = "using A     =  B.C;
 using G=   H.I;
@@ -173,17 +177,17 @@ using G=   H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        <WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}
             Dim expectedUpdatedCode = "using $system;
+
 "
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -213,7 +217,7 @@ using G=   H.I;
             TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Sub TestSnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -243,7 +247,7 @@ using G=   H.I;
             TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Sub TestSnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -277,8 +281,7 @@ using G=   H.I;
             TestFormattingWithTabSize(3)
         End Sub
 
-        <WpfTheory, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
-        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/4652")>
         <InlineData(3)>
         <InlineData(4)>
         <InlineData(5)>
@@ -412,7 +415,7 @@ using G=   H.I;
                     snippetNode,
                     CancellationToken.None)
 
-                Assert.Equal(expectedUpdatedCode,
+                AssertEx.EqualOrDiff(expectedUpdatedCode,
                              (Await updatedDocument.GetTextAsync()).ToString())
             End Using
         End Function

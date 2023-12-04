@@ -80,15 +80,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 }
                 else
                 {
-                    AddTriviaClassifications(child.Token, context);
+                    AddTokenClassifications(child.Token, context);
                 }
             }
         }
 
-        private static void AddTriviaClassifications(JsonToken token, EmbeddedLanguageClassificationContext context)
+        private static void AddTokenClassifications(JsonToken token, EmbeddedLanguageClassificationContext context)
         {
             foreach (var trivia in token.LeadingTrivia)
                 AddTriviaClassifications(trivia, context);
+
+            if (!token.IsMissing)
+            {
+                switch (token.Kind)
+                {
+                    case JsonKind.CommaToken:
+                        context.AddClassification(ClassificationTypeNames.JsonPunctuation, token.GetSpan());
+                        break;
+                }
+            }
 
             foreach (var trivia in token.TrailingTrivia)
                 AddTriviaClassifications(trivia, context);
@@ -187,7 +197,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
             public void Visit(JsonCommaValueNode node)
             {
-                AddClassification(node.CommaToken, ClassificationTypeNames.JsonPunctuation);
+                // Already handled when we recurse in AddTokenClassifications.  Specifically, commas show up both as
+                // nodes (with tokens in them) in error recovery scenarios, and also just as tokens in a separated list.
+                // So, to handle both, we just handle the token case in AddTokenClassifications.
             }
         }
     }

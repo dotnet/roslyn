@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     [UseExportProvider]
     public class ActiveStatementTrackingServiceTests : EditingTestBase
     {
-        [Fact, WorkItem(846042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846042")]
         public void MovedOutsideOfMethod1()
         {
             var src1 = @"
@@ -172,7 +172,7 @@ class C
                     new ActiveStatementSpan(0, span21, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
                     new ActiveStatementSpan(1, span22, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)),
                 "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
 
             var testDocument1 = new TestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
@@ -196,7 +196,7 @@ class C
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution);
 
                 var spans1 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]
@@ -223,7 +223,7 @@ class C
 
             if (!scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution);
 
                 var spans5 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]

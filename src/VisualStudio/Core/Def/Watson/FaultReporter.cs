@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -27,8 +29,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
         }
 
         private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
@@ -76,6 +79,22 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
+        /// The bucket parameter for the blamed module.
+        /// </summary>
+        private const int P4ModuleNameDefaultIndex = 4;
+
+        /// <summary>
+        /// The bucket parameter for the blamed method.
+        /// </summary>
+        private const int P5MethodNameDefaultIndex = 5;
+
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create(
+            "Microsoft.CodeAnalysis.Shared.Extensions.ISolutionExtensions.GetRequired", // Covers GetRequiredDocument, GetRequiredProject, and similar methods
+            "Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService",
+            "Roslyn.Utilities.Contract.",
+            "System.Linq.");
+
+        /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
@@ -85,6 +104,12 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
+                if (exception is OperationCanceledException { InnerException: { } oceInnerException })
+                {
+                    ReportFault(oceInnerException, severity, forceDump);
+                    return;
+                }
+
                 if (exception is AggregateException aggregateException)
                 {
                     // We (potentially) have multiple exceptions; let's just report each of them
@@ -117,12 +142,19 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                                 faultUtility.AddProcessDump(currentProcess.Id);
                         }
 
+                        UpdateBlamedMethod(faultUtility, exception);
+
                         if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                         {
                             // add ServiceHub log files:
                             foreach (var path in CollectServiceHubLogFilePaths())
                             {
                                 faultUtility.AddFile(path);
+                            }
+
+                            foreach (var loghubPath in CollectLogHubFilePaths())
+                            {
+                                faultUtility.AddFile(loghubPath);
                             }
                         }
 
@@ -146,6 +178,39 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 FailFast.OnFatalException(e);
             }
+        }
+
+        private static void UpdateBlamedMethod(IFaultUtility faultUtility, Exception exception)
+        {
+            var blamedMethod = faultUtility.GetBucketParameter(P5MethodNameDefaultIndex);
+
+            // We'll only override anything if the default logic blamed something we didn't want
+            if (!UnblameableMethodPrefixes.Any(p => blamedMethod.StartsWith(p)))
+            {
+                return;
+            }
+
+            // If anything fails here, we'll just keep the failure as is rather than potentially losing it
+            try
+            {
+                var stackTrace = new StackTrace(exception);
+                foreach (var stackFrame in stackTrace.GetFrames())
+                {
+                    var method = stackFrame.GetMethod();
+                    if (method != null && method.DeclaringType != null)
+                    {
+                        // Get the full name of the method, without parameters
+                        var methodName = method.DeclaringType.FullName + "." + method.Name;
+                        if (!UnblameableMethodPrefixes.Any(p => methodName.StartsWith(p)))
+                        {
+                            faultUtility.SetBucketParameter(P4ModuleNameDefaultIndex, method.DeclaringType.Assembly.GetName().Name);
+                            faultUtility.SetBucketParameter(P5MethodNameDefaultIndex, methodName);
+                            return;
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         private static string GetDescription(Exception exception)
@@ -189,57 +254,81 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return exception.Message;
         }
 
-        private static List<string> CollectServiceHubLogFilePaths()
+        private static IList<string> CollectLogHubFilePaths()
         {
-            var paths = new List<string>();
-
             try
             {
-                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
-                if (!Directory.Exists(logPath))
-                {
-                    return paths;
-                }
-
-                // attach all log files that are modified less than 1 day before.
-                var now = DateTime.UtcNow;
-                var oneDay = TimeSpan.FromDays(1);
-
-                foreach (var path in Directory.EnumerateFiles(logPath, "*.log"))
-                {
-                    try
-                    {
-                        var name = Path.GetFileNameWithoutExtension(path);
-
-                        // TODO: https://github.com/dotnet/roslyn/issues/42582 
-                        // name our services more consistently to simplify filtering
-
-                        // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
-                            !name.Contains("-CodeLens") &&
-                            !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
-                            !name.Contains("-hub"))
-                        {
-                            continue;
-                        }
-
-                        var lastWrite = File.GetLastWriteTimeUtc(path);
-                        if (now - lastWrite > oneDay)
-                        {
-                            continue;
-                        }
-
-                        paths.Add(path);
-                    }
-                    catch
-                    {
-                        // ignore file that can't be accessed
-                    }
-                }
+                var logPath = Path.Combine(Path.GetTempPath(), "VSLogs");
+                var logs = CollectFilePaths(logPath, "*.svclog", shouldExcludeLogFile: (name) => !name.Contains("Roslyn") && !name.Contains("LSPClient"));
+                return logs;
             }
             catch (Exception)
             {
                 // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static IList<string> CollectServiceHubLogFilePaths()
+        {
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+
+                // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                // name our services more consistently to simplify filtering
+                var logs = CollectFilePaths(logPath, "*.log", shouldExcludeLogFile: (name) => !name.Contains("-" + ServiceDescriptor.ServiceNameTopLevelPrefix) &&
+                        !name.Contains("-CodeLens") &&
+                        !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
+                        !name.Contains("-hub"));
+                return logs;
+            }
+            catch (Exception)
+            {
+                // ignore failures
+            }
+
+            return SpecializedCollections.EmptyList<string>();
+        }
+
+        private static List<string> CollectFilePaths(string logDirectoryPath, string logFileExtension, Func<string, bool> shouldExcludeLogFile)
+        {
+            var paths = new List<string>();
+
+            if (!Directory.Exists(logDirectoryPath))
+            {
+                return paths;
+            }
+
+            // attach all log files that are modified less than 1 day before.
+            var now = DateTime.UtcNow;
+            var oneDay = TimeSpan.FromDays(1);
+
+            foreach (var path in Directory.EnumerateFiles(logDirectoryPath, logFileExtension))
+            {
+                try
+                {
+                    var name = Path.GetFileNameWithoutExtension(path);
+
+                    // filter logs that are not relevant to Roslyn investigation
+                    if (shouldExcludeLogFile(name))
+                    {
+                        continue;
+                    }
+
+                    var lastWrite = File.GetLastWriteTimeUtc(path);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    paths.Add(path);
+                }
+                catch
+                {
+                    // ignore file that can't be accessed
+                }
             }
 
             return paths;

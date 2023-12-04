@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,24 +41,26 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
-        private const string RazorSourceGeneratorAssemblyName = "Microsoft.NET.Sdk.Razor.SourceGenerators";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-        private static readonly string s_razorSourceGeneratorFileNamePrefix = Path.Combine(RazorSourceGeneratorAssemblyName, RazorSourceGeneratorTypeName);
-
-        private readonly Workspace _workspace;
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+            "Microsoft.NET.Sdk.Razor.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
+            "Microsoft.CodeAnalysis.Razor.Compiler");
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
+            .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 
         private readonly object _gate = new();
 
         /// <summary>
-        /// Cached compile time solution corresponding to the <see cref="Workspace.PrimaryBranchId"/>
+        /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
-        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _primaryBranchCompileTimeCache;
+#if NETCOREAPP
+        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
+#else
+        private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
+#endif
 
-        /// <summary>
-        /// Cached compile time solution for a forked branch.  This is used primarily by LSP cases where
-        /// we fork the workspace solution and request diagnostics for the forked solution.
-        /// </summary>
-        private (int DesignTimeSolutionVersion, BranchId DesignTimeSolutionBranch, Solution CompileTimeSolution)? _forkedBranchCompileTimeCache;
+        private Solution? _lastCompileTimeSolution;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
@@ -67,12 +70,15 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     lock (_gate)
                     {
-                        _primaryBranchCompileTimeCache = null;
-                        _forkedBranchCompileTimeCache = null;
+#if NETCOREAPP
+                        _designTimeToCompileTimeSolution.Clear();
+#else
+                        _designTimeToCompileTimeSolution = new();
+#endif
+                        _lastCompileTimeSolution = null;
                     }
                 }
             };
-            _workspace = workspace;
         }
 
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
@@ -82,14 +88,13 @@ namespace Microsoft.CodeAnalysis.Host
         {
             lock (_gate)
             {
-                var (cachedCompileTimeSolution, staleSolution) = GetCachedCompileTimeSolution(designTimeSolution);
+                _designTimeToCompileTimeSolution.TryGetValue(designTimeSolution, out var cachedCompileTimeSolution);
 
                 // Design time solution hasn't changed since we calculated the last compile-time solution:
                 if (cachedCompileTimeSolution != null)
-                {
                     return cachedCompileTimeSolution;
-                }
 
+                var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
                 foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
-                            if (documentState.Attributes.DesignTimeOnly)
+                            if (documentState.Attributes.DesignTimeOnly || IsRazorDesignTimeDocument(documentState))
                             {
                                 documentIdsToRemove.Add(documentState.Id);
                             }
@@ -129,41 +134,10 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                UpdateCachedCompileTimeSolution(designTimeSolution, compileTimeSolution);
+                compileTimeSolution = _designTimeToCompileTimeSolution.GetValue(designTimeSolution, _ => compileTimeSolution);
+                _lastCompileTimeSolution = compileTimeSolution;
 
                 return compileTimeSolution;
-            }
-        }
-
-        private (Solution? correctSolution, Solution? staleSolution) GetCachedCompileTimeSolution(Solution designTimeSolution)
-        {
-            // If the design time solution is for the primary branch, retrieve the last cached solution for it.
-            // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
-            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeCache : _forkedBranchCompileTimeCache;
-
-            // Verify that the design time solution has not changed since the last calculated compile time solution and that
-            // the design time solution branch matches the branch of the design time solution we calculated the compile time solution for.
-            if (cachedCompileTimeSolution != null
-                    && designTimeSolution.WorkspaceVersion == cachedCompileTimeSolution.Value.DesignTimeSolutionVersion
-                    && designTimeSolution.BranchId == cachedCompileTimeSolution.Value.DesignTimeSolutionBranch)
-            {
-                var solution = cachedCompileTimeSolution.Value.CompileTimeSolution;
-                return (solution, solution);
-            }
-
-            // We don't have a correct solution, but return the most likely thing we had to help caching when we recreate a new one.
-            return (null, cachedCompileTimeSolution?.CompileTimeSolution);
-        }
-
-        private void UpdateCachedCompileTimeSolution(Solution designTimeSolution, Solution compileTimeSolution)
-        {
-            if (designTimeSolution.BranchId == _workspace.PrimaryBranchId)
-            {
-                _primaryBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
-            }
-            else
-            {
-                _forkedBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, designTimeSolution.BranchId, compileTimeSolution);
             }
         }
 
@@ -191,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private static bool IsRazorDesignTimeDocument(DocumentState documentState)
-            => documentState.Attributes.DesignTimeOnly && (documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true);
+            => documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true;
 
         internal static async Task<Document?> TryGetCompileTimeDocumentAsync(
             Document designTimeDocument,
@@ -212,27 +186,36 @@ namespace Microsoft.CodeAnalysis.Host
 
             var designTimeProjectDirectoryName = PathUtilities.GetDirectoryName(designTimeDocument.Project.FilePath)!;
 
-            var generatedDocumentPath = BuildGeneratedDocumentPath(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
+            var generatedDocumentPaths = BuildGeneratedDocumentPaths(designTimeProjectDirectoryName, designTimeDocument.FilePath!, generatedDocumentPathPrefix);
 
             var sourceGeneratedDocuments = await compileTimeSolution.GetRequiredProject(designTimeDocument.Project.Id).GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath == generatedDocumentPath);
+            return sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath != null && generatedDocumentPaths.Contains(d.FilePath));
         }
 
         /// <summary>
         /// Note that in .NET 6 Preview 7 the source generator changed to passing in the relative doc path without a leading \ to GetIdentifierFromPath
         /// which caused the source generated file name to no longer be prefixed by an _.  Additionally, the file extension was changed to .g.cs
         /// </summary>
-        private static string BuildGeneratedDocumentPath(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
+        private static OneOrMany<string> BuildGeneratedDocumentPaths(string designTimeProjectDirectoryName, string designTimeDocumentFilePath, string? generatedDocumentPathPrefix)
         {
             var relativeDocumentPath = GetRelativeDocumentPath(designTimeProjectDirectoryName, designTimeDocumentFilePath);
-            return GetGeneratedDocumentPathWithoutExtension(relativeDocumentPath, generatedDocumentPathPrefix) + ".g.cs";
+
+            if (generatedDocumentPathPrefix is not null)
+            {
+                return OneOrMany.Create(GetGeneratedDocumentPath(generatedDocumentPathPrefix, relativeDocumentPath));
+            }
+
+            return OneOrMany.Create(s_razorSourceGeneratorFileNamePrefixes.SelectAsArray(
+                static (prefix, relativeDocumentPath) => GetGeneratedDocumentPath(prefix, relativeDocumentPath), relativeDocumentPath));
+
+            static string GetGeneratedDocumentPath(string prefix, string relativeDocumentPath)
+            {
+                return Path.Combine(prefix, GetIdentifierFromPath(relativeDocumentPath)) + ".g.cs";
+            }
         }
 
         private static string GetRelativeDocumentPath(string projectDirectory, string designTimeDocumentFilePath)
             => PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length];
-
-        private static string GetGeneratedDocumentPathWithoutExtension(string relativeDocumentPath, string? generatedDocumentPathPrefix)
-            => Path.Combine(generatedDocumentPathPrefix ?? s_razorSourceGeneratorFileNamePrefix, GetIdentifierFromPath(relativeDocumentPath));
 
         private static bool HasMatchingFilePath(string designTimeDocumentFilePath, string designTimeProjectDirectory, string compileTimeFilePath)
         {
@@ -256,8 +239,6 @@ namespace Microsoft.CodeAnalysis.Host
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var result);
             using var _2 = PooledDictionary<ProjectId, ArrayBuilder<string>>.GetInstance(out var compileTimeFilePathsByProject);
 
-            generatedDocumentPathPrefix ??= s_razorSourceGeneratorFileNamePrefix;
-
             foreach (var compileTimeDocumentId in compileTimeDocumentIds)
             {
                 if (designTimeSolution.ContainsDocument(compileTimeDocumentId))
@@ -268,7 +249,9 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     var compileTimeDocument = await compileTimeSolution.GetTextDocumentAsync(compileTimeDocumentId, cancellationToken).ConfigureAwait(false);
                     var filePath = compileTimeDocument?.State.FilePath;
-                    if (filePath?.StartsWith(generatedDocumentPathPrefix) == true)
+                    if (filePath != null && (generatedDocumentPathPrefix != null
+                        ? filePath.StartsWith(generatedDocumentPathPrefix)
+                        : s_razorSourceGeneratorFileNamePrefixes.Any(static (prefix, filePath) => filePath.StartsWith(prefix), filePath)))
                     {
                         compileTimeFilePathsByProject.MultiAdd(compileTimeDocumentId.ProjectId, filePath);
                     }

@@ -14,11 +14,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             ISymbol containingSymbol,
+            out bool isRef,
             [NotNullWhen(true)] out IOperation? trueStatement,
             [NotNullWhen(true)] out IOperation? falseStatement,
             out IReturnOperation? trueReturn,
             out IReturnOperation? falseReturn)
         {
+            isRef = false;
+
             trueReturn = null;
             falseReturn = null;
 
@@ -116,6 +119,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            isRef = anyReturn.GetRefKind(containingSymbol) != RefKind.None;
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
         }

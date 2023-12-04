@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public override int GetHashCode()
-            => Hash.Combine(Node, Hash.Combine(ParentNode, Type.GetHashCode()));
+            => Hash.Combine(Node, Hash.Combine(ParentNode, ((int)Type).GetHashCode()));
 
         public override bool Equals(object obj)
             => Equals(obj as CodeModelEvent);

@@ -10,20 +10,13 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -34,10 +27,10 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(MiscellaneousFilesWorkspace))]
-    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
+    internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenTextBufferEventListener
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
+        private readonly IVsService<IVsTextManager> _textManagerService;
+        private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
@@ -59,48 +52,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         private IVsTextManager _textManager;
-        private RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
             IThreadingContext threadingContext,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IVsService<SVsTextManager, IVsTextManager> textManagerService,
+            OpenTextBufferProvider openTextBufferProvider,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             VisualStudioWorkspace visualStudioWorkspace)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
-            _threadingContext = threadingContext;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _textManagerService = textManagerService;
+            _openTextBufferProvider = openTextBufferProvider;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+
+            _openTextBufferProvider.AddListener(this);
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+        public async Task InitializeAsync()
         {
             await TaskScheduler.Default;
-            _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-            var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
-                _threadingContext, _editorAdaptersFactoryService, runningDocumentTable, this);
+            _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
+        void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
-        void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
+        void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
 
         /// <summary>
         /// File hierarchy events are not relevant to the misc workspace.
         /// </summary>
-        void IRunningDocumentTableEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
+        void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
         {
         }
 
-        void IRunningDocumentTableEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
+        void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
         {
             // We want to consider this file to be added in one of two situations:
             //
@@ -192,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // It's also theoretically possible that we are getting notified about a workspace change to a document that has
             // been simultaneously removed from the RDT but we haven't gotten the notification. In that case, also bail.
-            if (!_runningDocumentTableEventTracker.IsFileOpen(moniker))
+            if (!_openTextBufferProvider.IsFileOpen(moniker))
             {
                 return;
             }
@@ -214,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // the moniker. Once we observe the rename later in OnAfterAttributeChangeEx we'll completely disconnect.
                     if (TryGetLanguageInformation(moniker) != null)
                     {
-                        if (_runningDocumentTableEventTracker.TryGetBufferFromMoniker(moniker, out var buffer))
+                        if (_openTextBufferProvider.TryGetBufferFromFilePath(moniker, out var buffer))
                         {
                             AttachToDocument(moniker, buffer);
                         }
@@ -292,7 +284,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, new FileTextLoader(filePath, defaultEncoding: null), languageInformation, Services.SolutionServices, _metadataReferences);
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
+            var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                this, filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
         }
 
         private void DetachFromDocument(string moniker)
@@ -305,11 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (_monikersToProjectIdAndContainer.TryGetValue(moniker, out var projectIdAndContainer))
             {
-                var document = this.CurrentSolution.GetProject(projectIdAndContainer.projectId).Documents.Single();
-
-                // We must close the document prior to deleting the project
-                OnDocumentClosed(document.Id, new FileTextLoader(document.FilePath, defaultEncoding: null));
-                OnProjectRemoved(document.Project.Id);
+                OnProjectRemoved(projectIdAndContainer.projectId);
 
                 _monikersToProjectIdAndContainer.Remove(moniker);
 

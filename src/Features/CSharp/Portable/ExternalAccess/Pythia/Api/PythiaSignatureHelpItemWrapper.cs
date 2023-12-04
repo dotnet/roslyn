@@ -8,12 +8,9 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal readonly struct PythiaSignatureHelpItemWrapper
+    internal readonly struct PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
     {
-        internal readonly SignatureHelpItem UnderlyingObject;
-
-        public PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
-            => UnderlyingObject = underlyingObject;
+        internal readonly SignatureHelpItem UnderlyingObject = underlyingObject;
 
         public static SymbolDisplayPart CreateTextDisplayPart(string text)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);

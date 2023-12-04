@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public MetadataConstant CompileTimeValue
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public ImmutableArray<bool> DynamicTransformFlags
@@ -54,17 +54,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsPinned
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsReference
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public LocalSlotConstraints Constraints
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public Location Location => Location.None;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference Type
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public byte[] Signature => _signature;

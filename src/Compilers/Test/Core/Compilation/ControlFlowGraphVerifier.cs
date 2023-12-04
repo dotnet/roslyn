@@ -315,7 +315,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, nextBranch);
                 }
 
-
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
                     leaveRegions(block.EnclosingRegion, block.Ordinal);
@@ -1144,6 +1143,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.CollectionExpression:
+                                    if (((CSharp.Syntax.CollectionExpressionSyntax)syntax).Elements.Any())
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
 
                             if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
@@ -1187,35 +1192,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
 
                                 case CSharp.SyntaxKind.LockStatement:
-                                    if (((LockStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((LockStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.UsingStatement:
-                                    if (((CSharp.Syntax.UsingStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.UsingStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchStatement:
-                                    if (((CSharp.Syntax.SwitchStatementSyntax)syntax.Parent).Expression == syntax)
+                                    if (((CSharp.Syntax.SwitchStatementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.SwitchExpression:
-                                    if (((CSharp.Syntax.SwitchExpressionSyntax)syntax.Parent).GoverningExpression == syntax)
+                                    if (((CSharp.Syntax.SwitchExpressionSyntax)parent).GoverningExpression == syntax)
                                     {
                                         return true;
                                     }
                                     break;
 
                                 case CSharp.SyntaxKind.CoalesceAssignmentExpression:
-                                    if (((AssignmentExpressionSyntax)syntax.Parent).Left == syntax)
+                                    if (((AssignmentExpressionSyntax)parent).Left == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
+
+                                case CSharp.SyntaxKind.SpreadElement:
+                                    if (((SpreadElementSyntax)parent).Expression == syntax)
                                     {
                                         return true;
                                     }
@@ -2002,6 +2014,9 @@ endRegion:
                 case OperationKind.ListPattern:
                 case OperationKind.ImplicitIndexerReference:
                 case OperationKind.Attribute:
+                case OperationKind.InlineArrayAccess:
+                case OperationKind.CollectionExpression:
+                case OperationKind.Spread:
                     return true;
             }
 

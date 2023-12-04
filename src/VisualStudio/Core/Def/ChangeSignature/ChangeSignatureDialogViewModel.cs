@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ExistingParameterViewModel? _paramsParameter;
         private readonly HashSet<ParameterViewModel> _disabledParameters = new();
 
-        private ImmutableArray<SymbolDisplayPart> _declarationParts;
+        private readonly ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
         /// <summary>
@@ -241,11 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 var parameterToRemove = AllParameters[_selectedIndex!.Value];
 
-                if (_parametersWithoutDefaultValues.Contains(parameterToRemove))
-                {
-                    _parametersWithoutDefaultValues.Remove(parameterToRemove);
-                }
-                else
+                if (!_parametersWithoutDefaultValues.Remove(parameterToRemove))
                 {
                     _parametersWithDefaultValues.Remove(parameterToRemove);
                 }

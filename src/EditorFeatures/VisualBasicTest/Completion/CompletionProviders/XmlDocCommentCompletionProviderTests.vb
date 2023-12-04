@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Tests
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class XmlDocCommentCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -41,7 +42,7 @@ Namespace Tests
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAnyLevelTags1() As Task
             Dim text = "
 Class C
@@ -54,7 +55,7 @@ End Class
             Await VerifyItemsExistAsync(text, "see", "seealso", "![CDATA[", "!--")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAnyLevelTags2() As Task
             Dim text = "
 Class C
@@ -69,7 +70,7 @@ End Class
             Await VerifyItemsExistAsync(text, "see", "seealso", "![CDATA[", "!--")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAnyLevelTags3() As Task
             Dim text = "
 Class C
@@ -85,7 +86,7 @@ End Class
             Await VerifyItemsExistAsync(text, "see", "seealso", "![CDATA[", "!--")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestRepeatableNestedTags1() As Task
             Dim text = "
 Class C
@@ -98,7 +99,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "code", "list", "para", "paramref", "typeparamref")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestRepeatableNestedTags2() As Task
             Dim text = "
 Class C
@@ -113,8 +114,7 @@ End Class
             Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
-        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -136,7 +136,7 @@ End Class
                 "typeparamref name=""TMethod""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestRepeatableNestedTypeParamRefTagOnClass() As Task
             Dim text = "
 ''' <summary>
@@ -149,7 +149,29 @@ End Class
             Await VerifyItemsExistAsync(text, "typeparamref name=""T""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69293")>
+        Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnDelegate() As Task
+            Dim text = "
+Class Outer(Of TOuter)
+    Class Inner(Of TInner)
+        ''' <summary>
+        ''' $$
+        ''' </summary>
+        Delegate Sub Goo(Of TMethod)(i as Integer)
+    End Class
+End Class
+"
+
+            Await VerifyItemsExistAsync(
+                text,
+                "paramref name=""i""",
+                "typeparamref name=""TOuter""",
+                "typeparamref name=""TInner""",
+                "typeparamref name=""TMethod""")
+        End Function
+
+        <Fact>
         Public Async Function TestRepeatableTopLevelOnlyTags1() As Task
             Dim text = "
 Class C
@@ -164,7 +186,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "exception", "include", "permission")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestRepeatableTopLevelOnlyTags2() As Task
             Dim text = "
 Class C
@@ -177,7 +199,7 @@ End Class
             Await VerifyItemsExistAsync(text, "exception", "include", "permission")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTopLevelOnlyTags1() As Task
             Dim text = "
 Class C
@@ -192,7 +214,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "example", "remarks", "summary", "value")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTopLevelOnlyTags2() As Task
             Dim text = "
 Class C
@@ -205,7 +227,7 @@ End Class
             Await VerifyItemsExistAsync(text, "example", "remarks", "summary")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTopLevelOnlyTags3() As Task
             Dim text = "
 Class C
@@ -219,7 +241,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "example", "remarks", "summary", "value")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestListOnlyTags() As Task
             Dim text = "
 Class C
@@ -232,7 +254,7 @@ End Class
             Await VerifyItemsExistAsync(text, "listheader", "item", "term", "description")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestListHeaderTags() As Task
             Dim text = "
 Class C
@@ -245,7 +267,7 @@ End Class
             Await VerifyItemsExistAsync(text, "term", "description")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestMethodParamTypeParam() As Task
             Dim text = "
 Class C(Of TClass)
@@ -259,7 +281,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "typeparam name=""TClass""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestIndexerParamTypeParam() As Task
             Dim text = "
 Class C(Of T)
@@ -276,7 +298,7 @@ End Property
             Await VerifyItemsExistAsync(text, "param name=""bar""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTypeTypeParam() As Task
             Dim text = "
     ''' <$$
@@ -289,7 +311,7 @@ End Class
             Await VerifyItemsExistAsync(text, "typeparam name=""T""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNoRepeatParam() As Task
             Dim text = "
 Class C(Of T)
@@ -303,8 +325,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
         End Function
 
-        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoRepeatTypeParam() As Task
             Dim text = "
 Class C(Of T)
@@ -318,8 +339,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "typeparam name=""T""")
         End Function
 
-        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoNestedParam() As Task
             Dim text = "
 Class C(Of T)
@@ -334,8 +354,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
         End Function
 
-        <WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoNestedTypeParam() As Task
             Dim text = "
 Class C(Of T)
@@ -350,7 +369,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "typeparam name=""T""")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterTagNameInIncompleteTag() As Task
             Dim text = "
 Class C(Of T)
@@ -363,7 +382,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterTagNameInElementStartTag() As Task
             Dim text = "
 Class C(Of T)
@@ -376,7 +395,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterTagNameInEmptyElement() As Task
             Dim text = "
 Class C(Of T)
@@ -389,7 +408,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterTagNamePartiallyTyped() As Task
             Dim text = "
 Class C(Of T)
@@ -402,7 +421,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterSpecialCrefAttribute() As Task
             Dim text = "
 Class C(Of T)
@@ -417,7 +436,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterSpecialNameAttributeNonEmpty() As Task
             Dim text = "
 Class C(Of T)
@@ -432,7 +451,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestAttributeNameAfterTextAttribute() As Task
             Dim text = "
 Class C(Of T)
@@ -447,8 +466,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type")
         End Function
 
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeNameInWrongTagTypeEmptyElement() As Task
             Dim text = "
 Class C
@@ -462,8 +480,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeNameInWrongTagTypeElementStartTag() As Task
             Dim text = "
 Class C
@@ -477,8 +494,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeValueOnQuote() As Task
             Dim text = "
 Class C
@@ -492,8 +508,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
-        <WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeValueOnStartOfWord() As Task
             Dim text = "
 Class C
@@ -507,7 +522,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestParameterNameInsideAttribute() As Task
             Dim text = "
 Class C(Of T)
@@ -520,8 +535,7 @@ End Class
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <WorkItem(623158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
         Public Async Function TestCloseTag() As Task
             Dim text = "
 Class C
@@ -536,8 +550,7 @@ End Class
                 usePreviousCharAsTrigger:=True)
         End Function
 
-        <WorkItem(638805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
         Public Async Function TestNoParentElement() As Task
             Dim text = "
 ''' <summary>
@@ -550,7 +563,7 @@ End Module
             Await VerifyItemsExistAsync(text, "see", "seealso", "![CDATA[", "!--")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNestedTagsOnSameLineAsCompletedTag() As Task
             Dim text = "
 ''' <summary>
@@ -564,7 +577,7 @@ End Module
             Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestNotInCref() As Task
             Dim text = "
 ''' <summary>
@@ -577,7 +590,7 @@ End Module
             Await VerifyNoItemsExistAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestCompletionList() As Task
             Dim text = "
 Class C
@@ -590,8 +603,7 @@ End Class
             Await VerifyItemsExistAsync(text, "completionlist")
         End Function
 
-        <WorkItem(8546, "https://github.com/dotnet/roslyn/issues/8546")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8546")>
         Public Async Function TestReturnsOnMethod() As Task
             Dim text = "
 Class C
@@ -604,7 +616,7 @@ End Class
             Await VerifyItemsExistAsync(text, "returns")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestReturnsAlreadyOnMethod() As Task
             Dim text = "
 Class C
@@ -618,8 +630,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "returns")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadWritePropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -636,8 +647,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadWritePropertyValue() As Task
             Dim text = "
 Class C
@@ -654,8 +664,7 @@ End Class
             Await VerifyItemExistsAsync(text, "value")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadOnlyPropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -670,8 +679,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadOnlyPropertyValue() As Task
             Dim text = "
 Class C
@@ -686,8 +694,7 @@ End Class
             Await VerifyItemExistsAsync(text, "value")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function WriteOnlyPropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -702,8 +709,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function WriteOnlyPropertyValue() As Task
             Dim text = "
 Class C
@@ -718,7 +724,7 @@ End Class
             Await VerifyItemExistsAsync(text, "value")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestValueAlreadyOnProperty() As Task
             Dim text = "
 Class C
@@ -732,7 +738,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "value")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestListAttributeNames() As Task
             Dim text = "
 Class C
@@ -746,7 +752,7 @@ End Class
             Await VerifyItemsExistAsync(text, "type")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestListTypeAttributeValue() As Task
             Dim text = "
 Class C
@@ -760,8 +766,7 @@ End Class
             Await VerifyItemsExistAsync(text, "number", "bullet", "table")
         End Function
 
-        <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11490")>
         Public Async Function TestSeeAttributeNames() As Task
             Dim text = "
 Class C
@@ -775,8 +780,7 @@ End Class
             Await VerifyItemsExistAsync(text, "cref", "langword")
         End Function
 
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function TestLangwordCompletionInPlainText() As Task
             Dim text = "
 Class C
@@ -790,8 +794,7 @@ End Class
             Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket1() As Task
             Dim text = "
 Class C
@@ -805,8 +808,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket2() As Task
             Dim text = "
 Class C
@@ -820,8 +822,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket3() As Task
             Dim text = "
 Class C
@@ -835,8 +836,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11490")>
         Public Async Function TestSeeLangwordAttributeValue() As Task
             Dim text = "
 Class C
@@ -850,7 +850,7 @@ End Class
             Await VerifyItemsExistAsync(text, "Nothing", "True", "False", "Await")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestParamNames() As Task
             Dim text = "
 Class C
@@ -863,7 +863,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "T")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestParamRefNames() As Task
             Dim text = "
 Class C
@@ -878,7 +878,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "T")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTypeParamNames() As Task
             Dim text = "
 Class C(Of TClass)
@@ -891,7 +891,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "TClass", "i")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact>
         Public Async Function TestTypeParamNamesPartiallyTyped() As Task
             Dim text = "
 Class C(Of TClass)
@@ -904,8 +904,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "TClass", "i")
         End Function
 
-        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestTypeParamRefNames() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -922,8 +921,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
-        <WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestTypeParamRefNamesPartiallyTyped() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -940,8 +938,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
-        <WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/757")>
         Public Async Function TermAndDescriptionInsideItem() As Task
             Dim text = "
 class C

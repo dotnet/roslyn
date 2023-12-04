@@ -29,21 +29,16 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     [Export(typeof(ICommandHandler))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.CommentSelection)]
-    internal class CommentUncommentSelectionCommandHandler :
-        AbstractCommentSelectionBase<Operation>,
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal class CommentUncommentSelectionCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService) :
+        AbstractCommentSelectionBase<Operation>(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService),
         ICommandHandler<CommentSelectionCommandArgs>,
         ICommandHandler<UncommentSelectionCommandArgs>
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CommentUncommentSelectionCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            EditorOptionsService editorOptionsService)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
-        {
-        }
-
         public CommandState GetCommandState(CommentSelectionCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
@@ -64,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
-        protected override string GetTitle(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetTitle(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Comment_Selection
                 : EditorFeaturesResources.Uncomment_Selection;
 
-        protected override string GetMessage(Operation operation) =>
-            operation == Operation.Comment
+        protected override string GetMessage(Operation operation)
+            => operation == Operation.Comment
                 ? EditorFeaturesResources.Commenting_currently_selected_text
                 : EditorFeaturesResources.Uncommenting_currently_selected_text;
 

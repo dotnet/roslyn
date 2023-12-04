@@ -106,12 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
 
-            Location? location = null;
-
-            if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
-            {
-                location = localFuncSymbol.Locations[0];
-            }
+            Location? location = localFuncSymbol.TryGetFirstLocation();
 
             LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);
 

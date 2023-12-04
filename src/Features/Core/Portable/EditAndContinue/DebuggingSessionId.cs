@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -14,3 +12,5 @@ internal readonly record struct DebuggingSessionId([property: DataMember] int Or
     public override string ToString()
         => Ordinal.ToString();
 }
+
+internal readonly record struct UpdateId(DebuggingSessionId SessionId, int Ordinal);

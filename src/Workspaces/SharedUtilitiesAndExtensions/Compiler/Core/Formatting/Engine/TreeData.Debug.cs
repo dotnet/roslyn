@@ -9,15 +9,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract partial class TreeData
     {
-        private class Debug : NodeAndText
+        private class Debug(SyntaxNode root, SourceText text) : NodeAndText(root, text)
         {
-            private readonly TreeData _debugNodeData;
-
-            public Debug(SyntaxNode root, SourceText text)
-                : base(root, text)
-            {
-                _debugNodeData = new Node(root);
-            }
+            private readonly TreeData _debugNodeData = new Node(root);
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
             {

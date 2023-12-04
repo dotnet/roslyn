@@ -82,6 +82,11 @@
         <target state="translated">Всегда использовать серверы символов по умолчанию для навигации</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Анализ сгенерированного исходного файла</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Значения по умолчанию для анализатора</target>
@@ -242,6 +247,11 @@
         <target state="translated">Анализ кода прерван до завершения решения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">Сворачивать файлы подписей метаданных в определения при открытии файлов</target>
@@ -280,11 +290,6 @@
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Комментарии</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">Асинхронное вычисление быстрых действий (экспериментальная функция, требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -359,37 +364,12 @@
       </trans-unit>
       <trans-unit id="Document_Outline">
         <source>Document Outline</source>
-        <target state="new">Document Outline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Collapse_All">
-        <source>Collapse All</source>
-        <target state="new">Collapse All</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Expand_All">
-        <source>Expand All</source>
-        <target state="new">Expand All</target>
+        <target state="translated">Структура документа</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Outline_Search">
         <source>Search Document Outline</source>
-        <target state="new">Search Document Outline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Name">
-        <source>Sort By Name</source>
-        <target state="new">Sort By Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Order">
-        <source>Sort By Order</source>
-        <target state="new">Sort By Order</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_Outline_Sort_Type">
-        <source>Sort By Type</source>
-        <target state="new">Sort By Type</target>
+        <target state="translated">Поиск структуры документа</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -427,6 +407,11 @@
         <target state="translated">Включить все функции в открытых файлах из генераторов источника (экспериментальная версия)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">Включить структуру документа (экспериментальная функция, требуется перезапуск)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Включить ведение журнала файлов для диагностики (в папке "%Temp%\Roslyn")</target>
@@ -434,7 +419,7 @@
       </trans-unit>
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
-        <target state="new">Enable navigation to Source Link and Embedded sources</target>
+        <target state="translated">Включить навигацию для ссылки на источник и внедренных источников</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
@@ -496,6 +481,11 @@
         <source>Extract Base Class</source>
         <target state="translated">Извлечь базовый класс</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Extract_Base_Record">
+        <source>Extract Base Record</source>
+        <target state="translated">Извлечь базовый объект Record</target>
+        <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
@@ -767,11 +757,6 @@
         <target state="translated">Объявления пространства имен</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Пространства имен обновлены.</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -982,6 +967,11 @@
         <target state="translated">NONE</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_applicable">
+        <source>Not applicable</source>
+        <target state="translated">Неприменимо</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
         <target state="translated">Пропустить, если по умолчанию</target>
@@ -1088,8 +1078,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="translated">Вставьте трассировку стека для просмотра ее значений и перехода к ним.</target>
+        <source>Paste a stack trace to view and navigate it's values.</source>
+        <target state="translated">Вставьте трассировку стека, чтобы просмотреть ее значения и перемещаться между ними.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1112,6 +1102,11 @@
         <target state="translated">Предпочитать строковые литералы UTF-8</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="translated">Предпочитать выражение коллекции</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Предпочитать составные назначения</target>
@@ -1132,9 +1127,24 @@
         <target state="translated">Предпочитать пространство имен и структуру совпадений папок</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">Предпочитать основные конструкторы</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Предпочитать оператор range</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="translated">Предпочитать структуру только для чтения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">Предпочитать элемент структуры только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1229,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
         <source>Rename asynchronously (experimental)</source>
-        <target state="needs-review-translation">Асинхронное переименование (экспериментальная функция)</target>
+        <target state="translated">Асинхронное переименование (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1290,6 +1300,11 @@
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
         <target state="translated">Запуск анализа кода в отдельном процессе (требуется перезапуск)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
+        <source>Run code analysis on latest .NET (requires restart)</source>
+        <target state="translated">Выполнить анализ кода на последней версии .NET (требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1361,6 +1376,16 @@
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="translated">Показать команду "Удалить неиспользуемые ссылки" в Обозревателе решений (экспериментальная версия)</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">Показывать пользовательский интерфейс как информационную панель в правом верхнем углу</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">Показывать встроенный пользовательский интерфейс</target>
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
@@ -1466,6 +1491,16 @@
         <source>Sync Namespaces</source>
         <target state="translated">Синхронизация пространства имен</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">Синхронизация изменений пространств имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="translated">'System.Void' не является допустимым типом для параметра</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1646,6 +1681,11 @@
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Эта рабочая область не поддерживает обновление параметров компиляции Visual Basic.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">Где следует показывать пользовательский интерфейс переименования?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

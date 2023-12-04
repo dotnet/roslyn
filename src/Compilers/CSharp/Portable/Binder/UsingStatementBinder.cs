@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable, hasScopedModifier: false)); // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable, allowScoped: true));
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
                     ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsingDeclaration)
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUsingDeclarations, diagnostics, usingKeyword.GetLocation());
+                CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations, diagnostics);
             }
             else if (hasAwait)
             {
-                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureAsyncUsing, diagnostics, awaitKeyword.GetLocation());
+                CheckFeatureAvailability(awaitKeyword, MessageID.IDS_FeatureAsyncUsing, diagnostics);
             }
 
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
@@ -116,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expressionOpt = usingBinderOpt!.BindTargetExpression(diagnostics, originalBinder);
                 hasErrors |= !bindDisposable(fromExpression: true, out patternDisposeInfo, out awaitableTypeOpt);
+                Debug.Assert(expressionOpt is not null);
+                if (expressionOpt.Type is not null)
+                {
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, forUsingExpression: true);
+                }
             }
             else
             {
@@ -141,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasAwait)
             {
                 // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                originalBinder.ReportBadAwaitDiagnostics(awaitKeyword, diagnostics, ref hasErrors);
 
                 if (awaitableTypeOpt is null)
                 {
@@ -150,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors |= ReportUseSite(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, valEscape: originalBinder.LocalScopeDepth, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
             }
@@ -220,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
                         bool expanded = disposeMethod.HasParamsParameter();
-                        originalBinder.BindDefaultArguments(
+                        originalBinder.BindDefaultArgumentsAndParamsArray(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
                             // at the end of the using statement, is on the whole using statement, not on the current expression.
@@ -228,13 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             disposeMethod.Parameters,
                             argumentsBuilder,
                             argumentRefKindsBuilder: null,
+                            namesBuilder: null,
                             ref argsToParams,
                             out BitVector defaultArguments,
                             expanded,
                             enableCallerInfo: true,
                             patternDiagnostics);
 
-                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                        Debug.Assert(argsToParams.IsDefault);
+                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
                         if (hasAwait)
                         {
                             awaitableType = disposeMethod.ReturnType;
@@ -297,12 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

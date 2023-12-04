@@ -1716,7 +1716,6 @@ aeu";
 
             var node = Parse(text);
             TestRoundTripping(node, text, false);
-            VerifyErrorCode(node, (int)ErrorCode.ERR_NamespaceUnexpected);
             VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
         }
 
@@ -3223,9 +3222,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (11.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (11.0)")]
-        [InlineData(LanguageVersion.Default, "default (11.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (12.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (12.0)")]
+        [InlineData(LanguageVersion.Default, "default (12.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {

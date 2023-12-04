@@ -18,6 +18,7 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
     Public Class MoveStaticMembersViewModelTest
         Private Shared Async Function GetViewModelAsync(xmlElement As XElement) As Task(Of MoveStaticMembersDialogViewModel)
             Dim workspaceXml = xmlElement.Value
@@ -70,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         End Sub
 
 #Region "C#"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function CSTestBasicSubmit() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -109,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function CSTestInvalidNames() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -223,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.SearchText = destinationName
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function CSTestMemberSelection() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -312,7 +313,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function CSTestTypeSelection() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -428,7 +429,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 #End Region
 
 #Region "VB"
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function VBTestBasicSubmit() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -464,7 +465,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function VBTestNameConflicts() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -564,7 +565,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function VBTestRootNamespace() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -604,7 +605,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.ShowMessage)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function VBTestMemberSelection() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -686,7 +687,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        <Fact>
         Public Async Function VBTestTypeSelection() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>

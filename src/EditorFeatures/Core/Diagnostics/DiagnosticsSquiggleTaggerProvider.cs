@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -25,32 +26,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed partial class DiagnosticsSquiggleTaggerProvider(
+        IThreadingContext threadingContext,
+        IDiagnosticService diagnosticService,
+        IDiagnosticAnalyzerService analyzerService,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListenerProvider listenerProvider) : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
+        protected override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(DiagnosticsOptionsStorage.Squiggles);
 
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticsSquiggleTaggerProvider(
-            IThreadingContext threadingContext,
-            IDiagnosticService diagnosticService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
+        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
         {
+            // We only support solution crawler push diagnostics.  When lsp pull diagnostics are on, squiggles
+            // are handled by the lsp client.
+            return mode == DiagnosticMode.SolutionCrawlerPush;
         }
 
-        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
-        {
-            // We only support push diagnostics.  When pull diagnostics are on, squiggles are handled by the lsp client.
-            return mode == DiagnosticMode.Push;
-        }
-
-        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -59,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected sealed override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -72,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
+            return new RoslynErrorTag(errorType, workspace, diagnostic);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
@@ -113,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         // This ensures that we have an 'invisible' squiggle (which will in turn
                         // display Quick Info on mouse hover) for the hidden diagnostics that we
-                        // report for 'Remove Unnecessary Usings' and 'Simplify Type Name'. The
+                        // report for 'Remove unnecessary usings' and 'Simplify Type Name'. The
                         // presence of Quick Info pane for such squiggles allows platform
                         // to display Light Bulb for the corresponding fixes (per their current
                         // design platform can only display light bulb if Quick Info pane is present).
@@ -124,6 +119,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 default:
                     return PredefinedErrorTypeNames.OtherError;
             }
+        }
+
+        protected sealed override bool TagEquals(IErrorTag tag1, IErrorTag tag2)
+        {
+            Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
+            Contract.ThrowIfFalse(tag2 is RoslynErrorTag);
+            return tag1.Equals(tag2);
         }
     }
 }

@@ -37,14 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             SyntaxTreeAnalysisContext context,
             CodeStyleOption2<AccessibilityModifiersRequired> option, MemberDeclarationSyntax member)
         {
+            if (!context.ShouldAnalyzeSpan(member.Span))
+                return;
+
             if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 ProcessMembers(context, option, namespaceDeclaration.Members);
 
             // If we have a class or struct, recurse inwards.
-            if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
+            if (member is TypeDeclarationSyntax(
+                    SyntaxKind.ClassDeclaration or
+                    SyntaxKind.StructDeclaration or
+                    SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration) typeDeclaration)
             {
                 ProcessMembers(context, option, typeDeclaration.Members);
             }
@@ -60,17 +64,20 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             }
 #endif
 
-            if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, member, option.Value, out var name))
+            if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(
+                    CSharpAccessibilityFacts.Instance, member, option.Value, out var name, out var modifiersAdded))
+            {
                 return;
+            }
 
             // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: additionalLocations,
-                properties: null));
+                modifiersAdded ? ModifiersAddedProperties : null));
         }
     }
 }

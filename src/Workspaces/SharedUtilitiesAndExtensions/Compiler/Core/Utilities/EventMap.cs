@@ -94,13 +94,10 @@ namespace Roslyn.Utilities
             _eventNameToRegistries[eventName] = registries;
         }
 
-        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>?>
+        internal class Registry<TEventHandler>(TEventHandler handler) : IEquatable<Registry<TEventHandler>?>
             where TEventHandler : class
         {
-            private TEventHandler? _handler;
-
-            public Registry(TEventHandler handler)
-                => _handler = handler;
+            private TEventHandler? _handler = handler;
 
             public void Unregister()
                 => _handler = null;
@@ -147,17 +144,17 @@ namespace Roslyn.Utilities
         internal struct EventHandlerSet<TEventHandler>
             where TEventHandler : class
         {
-            private ImmutableArray<Registry<TEventHandler>> _registries;
+            private readonly ImmutableArray<Registry<TEventHandler>> _registries;
 
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
                 => _registries = registries;
 
-            public bool HasHandlers
+            public readonly bool HasHandlers
             {
                 get { return _registries != null && _registries.Length > 0; }
             }
 
-            public void RaiseEvent<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
+            public readonly void RaiseEvent<TArg>(Action<TEventHandler, TArg> invoker, TArg arg)
             {
                 // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/.
                 // We've realized there's a problem with our eventing, where if an exception is encountered while calling into subscribers to Workspace events,
@@ -177,7 +174,7 @@ namespace Roslyn.Utilities
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

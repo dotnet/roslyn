@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var items = new List<CompletionItem>();
 
-                if (token.Parent.IsKind(SyntaxKind.XmlEmptyElement) || token.Parent.IsKind(SyntaxKind.XmlText) ||
+                if (token.Parent?.Kind() is SyntaxKind.XmlEmptyElement or SyntaxKind.XmlText ||
                     (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
                     (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
                 {
@@ -205,9 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent!);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax? attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
+            else if (token.Parent is XmlAttributeSyntax(
+                        SyntaxKind.XmlCrefAttribute or
+                        SyntaxKind.XmlNameAttribute or
+                        SyntaxKind.XmlTextAttribute) attributeSyntax)
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return elementName != null;
         }
 
-        private (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
+        private static (string? name, SyntaxList<XmlAttributeSyntax> attributes) GetElementNameAndAttributes(SyntaxNode node)
         {
             XmlNameSyntax? nameSyntax;
             SyntaxList<XmlAttributeSyntax> attributes;
@@ -261,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             XmlAttributeSyntax? attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax? xmlName))
+                token.Parent?.Parent is XmlNameAttributeSyntax xmlName)
             {
                 // Handle the special 'name' attributes: name="bar$$
                 attributeSyntax = xmlName;
             }
             else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax? xmlText))
+                     token.Parent is XmlTextAttributeSyntax xmlText)
             {
                 // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = xmlText;
@@ -323,8 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             yield return SyntaxFacts.GetText(SyntaxKind.AwaitKeyword);
         }
 
-        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax) =>
-            syntax.Content.Select(GetElementName).WhereNotNull();
+        protected override IEnumerable<string> GetExistingTopLevelElementNames(DocumentationCommentTriviaSyntax syntax)
+            => syntax.Content.Select(GetElementName).WhereNotNull();
 
         protected override IEnumerable<string?> GetExistingTopLevelAttributeValues(DocumentationCommentTriviaSyntax syntax, string elementName, string attributeName)
         {
@@ -368,10 +369,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol)
             {
-                declaredParameters = primaryConstructor.Parameters;
+                if (namedTypeSymbol.TryGetPrimaryConstructor(out var primaryConstructor))
+                {
+                    declaredParameters = primaryConstructor.Parameters;
+                }
+                else if (namedTypeSymbol is { DelegateInvokeMethod.Parameters: var delegateInvokeParameters })
+                {
+                    declaredParameters = delegateInvokeParameters;
+                }
             }
 
             return declaredParameters;

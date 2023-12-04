@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements IDiagnosticInfoWithSymbols
 
         ' not serialized:
-        Private _symbols As ImmutableArray(Of Symbol)
+        Private ReadOnly _symbols As ImmutableArray(Of Symbol)
 
         ' Create a new ambiguous symbol diagnostic with the give error id and error arguments.
         Friend Sub New(errid As ERRID, symbols As ImmutableArray(Of Symbol), ParamArray args As Object())

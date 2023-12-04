@@ -15,9 +15,10 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_HandleNonRoslynCompletionSources
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function SingleItemFromNonRoslynSourceOnly() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -42,7 +43,7 @@ public class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function HandleMultipleItemsFromBothSources() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>

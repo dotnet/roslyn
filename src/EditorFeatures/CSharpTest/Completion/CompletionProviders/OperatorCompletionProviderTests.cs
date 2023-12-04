@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
@@ -68,50 +69,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public static IEnumerable<object[]> UnaryOperators()
             => PostfixOperators().Union(PrefixOperators());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotOfferedAfterNumberLiteral()
         {
             // User may want to type a floating point literal.
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        1.$$
-    }
-}
-", SourceCodeKind.Regular);
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        1.$$
+                    }
+                }
+                """, SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsSuggestedAfterDot()
         {
-            await VerifyItemExistsAsync(@"
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+            await VerifyItemExistsAsync("""
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$;
-    }
-}
-", "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$;
+                    }
+                }
+                """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$", true)]
         [InlineData("c.$$;", true)]
         [InlineData("c.a$$", true)]
@@ -144,90 +142,87 @@ public class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotSuggestedOnStaticAccess()
         {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C.$$
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorIsNotSuggestedInNameoOfContext()
         {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        var name = nameof(c.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        var name = nameof(c.$$
+                    }
+                }
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorsAreSortedByImporttanceAndGroupedByTopic()
         {
-            var items = await GetCompletionItemsAsync(@"
-public class C
-{
-    public static C operator +(C a, C b) => null;
-    public static C operator -(C a, C b) => null;
-    public static C operator *(C a, C b) => null;
-    public static C operator /(C a, C b) => null;
-    public static C operator %(C a, C b) => null;
-    public static bool operator ==(C a, C b) => true;
-    public static bool operator !=(C a, C b) => false;
-    public static bool operator <(C a, C b) => true;
-    public static bool operator >(C a, C b) => false;
-    public static bool operator <=(C a, C b) => true;
-    public static bool operator >=(C a, C b) => false;
-    public static C operator +(C a) => null;
-    public static C operator -(C a) => null;
-    public static C operator ++(C a) => null;
-    public static C operator --(C a) => null;
-    public static bool operator true(C w) => true;
-    public static bool operator false(C w) => false;
-    public static bool operator &(C a, C b) => true;
-    public static bool operator |(C a, C b) => true;
-    public static C operator !(C a) => null;
-    public static C operator ^(C a, C b) => null;
-    public static C operator <<(C a, int b) => null;
-    public static C operator >>(C a, int b) => null;
-    public static C operator >>>(C a, int b) => null;
-    public static C operator ~(C a) => null;
-}
+            var items = await GetCompletionItemsAsync("""
+                public class C
+                {
+                    public static C operator +(C a, C b) => null;
+                    public static C operator -(C a, C b) => null;
+                    public static C operator *(C a, C b) => null;
+                    public static C operator /(C a, C b) => null;
+                    public static C operator %(C a, C b) => null;
+                    public static bool operator ==(C a, C b) => true;
+                    public static bool operator !=(C a, C b) => false;
+                    public static bool operator <(C a, C b) => true;
+                    public static bool operator >(C a, C b) => false;
+                    public static bool operator <=(C a, C b) => true;
+                    public static bool operator >=(C a, C b) => false;
+                    public static C operator +(C a) => null;
+                    public static C operator -(C a) => null;
+                    public static C operator ++(C a) => null;
+                    public static C operator --(C a) => null;
+                    public static bool operator true(C w) => true;
+                    public static bool operator false(C w) => false;
+                    public static bool operator &(C a, C b) => true;
+                    public static bool operator |(C a, C b) => true;
+                    public static C operator !(C a) => null;
+                    public static C operator ^(C a, C b) => null;
+                    public static C operator <<(C a, int b) => null;
+                    public static C operator >>(C a, int b) => null;
+                    public static C operator >>>(C a, int b) => null;
+                    public static C operator ~(C a) => null;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$;
-    }
-}
-", SourceCodeKind.Regular);
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$;
+                    }
+                }
+                """, SourceCodeKind.Regular);
             // true and false operators are not listed
             Assert.Collection(items,
                 i => Assert.Equal("==", i.DisplayText),
@@ -256,8 +251,7 @@ public class Program
             );
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("bool", 0)]
         [InlineData("System.Boolean", 0)]
         [InlineData("char", 0)]
@@ -308,33 +302,31 @@ public class Program
 ", SourceCodeKind.Regular);
             Assert.Equal(
                 numberOfSuggestions,
-                completionItems.Count(c => c.Properties[UnnamedSymbolCompletionProvider.KindName] == UnnamedSymbolCompletionProvider.OperatorKindName));
+                completionItems.Count(c => c.GetProperty(UnnamedSymbolCompletionProvider.KindName) == UnnamedSymbolCompletionProvider.OperatorKindName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorNoSuggestionForTrueAndFalse()
         {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public static bool operator true(C _) => true;
-    public static bool operator false(C _) => true;
-}
+            await VerifyNoItemsExistAsync("""
+                public class C
+                {
+                    public static bool operator true(C _) => true;
+                    public static bool operator false(C _) => true;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+                """);
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryOperators))]
         public async Task OperatorBinaryIsCompleted(string binaryOperator)
         {
@@ -369,8 +361,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(PostfixOperators))]
         public async Task OperatorPostfixIsCompleted(string postfixOperator)
         {
@@ -405,8 +396,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(PrefixOperators))]
         public async Task OperatorPrefixIsCompleted(string prefixOperator)
         {
@@ -441,8 +431,7 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorDuplicateOperatorsAreListedBoth()
         {
             var items = await GetCompletionItemsAsync($@"
@@ -474,8 +463,7 @@ public class Program
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorDuplicateOperatorsAreCompleted()
         {
             await VerifyCustomCommitProviderAsync($@"
@@ -511,8 +499,7 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("c.$$",
                     "c + $$")]
         [InlineData("c. $$",
@@ -592,25 +579,25 @@ public class Program
 ");
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(UnaryOperators))]
         public async Task OperatorLiftingUnary(string operatorSign)
         {
-            const string template = @"
-public struct S
-{{
-    {0} => default;
-}}
+            const string template = """
+                public struct S
+                {{
+                    {0} => default;
+                }}
 
-public class Program
-{{
-    public static void Main()
-    {{
-        S? s = null;
-        s.$$
-    }}
-}}";
+                public class Program
+                {{
+                    public static void Main()
+                    {{
+                        S? s = null;
+                        s.$$
+                    }}
+                }}
+                """;
             var inlineDescription = operatorSign.Length == 1
                 ? $"{operatorSign}x"
                 : $"x{operatorSign}";
@@ -620,25 +607,25 @@ public class Program
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryArithmeticAndLogicalOperators))]
         public async Task OperatorLiftingBinary(string operatorSign)
         {
-            const string template = @"
-public struct S
-{{
-    {0} => default;
-}}
+            const string template = """
+                public struct S
+                {{
+                    {0} => default;
+                }}
 
-public class Program
-{{
-    public static void Main()
-    {{
-        S? s = null;
-        s.$$
-    }}
-}}";
+                public class Program
+                {{
+                    public static void Main()
+                    {{
+                        S? s = null;
+                        s.$$
+                    }}
+                }}
+                """;
             var inlineDescription = $"x {operatorSign} y";
             await VerifyItemExistsAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: inlineDescription);
             await VerifyItemExistsAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: inlineDescription);
@@ -647,133 +634,133 @@ public class Program
             await VerifyNoItemsExistAsync(string.Format(template, $"public static S operator {operatorSign}(S a, S b, S c)"));
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         [MemberData(nameof(BinaryEqualityAndRelationalOperators))]
         public async Task OperatorLiftingEqualityRelational(string operatorSign)
         {
-            const string template = @"
-public struct S
-{{
-    {0} => default;
-}}
+            const string template = """
+                public struct S
+                {{
+                    {0} => default;
+                }}
 
-public class Program
-{{
-    public static void Main()
-    {{
-        S? s = null;
-        s.$$
-    }}
-}}";
+                public class Program
+                {{
+                    public static void Main()
+                    {{
+                        S? s = null;
+                        s.$$
+                    }}
+                }}
+                """;
             await VerifyItemExistsAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b)"), operatorSign, inlineDescription: $"x {operatorSign} y");
             await VerifyNoItemsExistAsync(string.Format(template, $"public static int operator {operatorSign}(S a, S b)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, S b, S c)"));
             await VerifyNoItemsExistAsync(string.Format(template, $"public static bool operator {operatorSign}(S a, object b)"));
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorLiftingIsApplied()
         {
-            await VerifyCustomCommitProviderAsync(@"
-public struct S
-{
-    public static bool operator ==(S a, S b) => default;
-}
+            await VerifyCustomCommitProviderAsync("""
+                public struct S
+                {
+                    public static bool operator ==(S a, S b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        S? s = null;
-        s.$$
-    }
-}", "==", @"
-public struct S
-{
-    public static bool operator ==(S a, S b) => default;
-}
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        S? s = null;
+                        s.$$
+                    }
+                }
+                """, "==", """
+                public struct S
+                {
+                    public static bool operator ==(S a, S b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        S? s = null;
-        s == $$
-    }
-}");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        S? s = null;
+                        s == $$
+                    }
+                }
+                """);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorOfBaseTypeIsSuggested()
         {
-            await VerifyItemExistsAsync(@"
-public class Base {
-    public static int operator +(Base b, int a)=>0;
-}
-public class Derived: Base
-{
-}
+            await VerifyItemExistsAsync("""
+                public class Base {
+                    public static int operator +(Base b, int a)=>0;
+                }
+                public class Derived: Base
+                {
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var d = new Derived();
-        d.$$
-    }
-}", "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var d = new Derived();
+                        d.$$
+                    }
+                }
+                """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorForRecordsAreSuggested()
         {
-            await VerifyItemExistsAsync(@"
-public record R {
-}
+            await VerifyItemExistsAsync("""
+                public record R {
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        var r = new R();
-        r.$$
-    }
-}", "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var r = new R();
+                        r.$$
+                    }
+                }
+                """, "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateNever()
         {
-            var markup = @"
-namespace N
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+            var markup = """
+                namespace N
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var c = new C();
+                            c.$$
+                        }
+                    }
+                }
+                """;
+            var referencedCode = """
+                using System.ComponentModel;
 
-namespace N
-{
-    public class C
-    {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static C operator -(C a, C b) => default;
-    }
-}
-";
+                namespace N
+                {
+                    public class C
+                    {
+                        [EditorBrowsable(EditorBrowsableState.Never)]
+                        public static C operator -(C a, C b) => default;
+                    }
+                }
+                """;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -785,35 +772,34 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateAdvanced()
         {
-            var markup = @"
-namespace N
-{
-    public class Program
-    {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+            var markup = """
+                namespace N
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var c = new C();
+                            c.$$
+                        }
+                    }
+                }
+                """;
+            var referencedCode = """
+                using System.ComponentModel;
 
-namespace N
-{
-    public class C
-    {
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static C operator -(C a, C b) => default;
-    }
-}
-";
+                namespace N
+                {
+                    public class C
+                    {
+                        [EditorBrowsable(EditorBrowsableState.Advanced)]
+                        public static C operator -(C a, C b) => default;
+                    }
+                }
+                """;
 
             HideAdvancedMembers = false;
 
@@ -838,43 +824,42 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
         public async Task OperatorBinaryNullForgivingHandling()
         {
-            await VerifyCustomCommitProviderAsync(@"
-#nullable enable
+            await VerifyCustomCommitProviderAsync("""
+                #nullable enable
 
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var _ = c!.$$
-    }
-}
-", "+", @"
-#nullable enable
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C? c = null;
+                        var _ = c!.$$
+                    }
+                }
+                """, "+", """
+                #nullable enable
 
-public class C
-{
-    public static C operator +(C a, C b) => default;
-}
+                public class C
+                {
+                    public static C operator +(C a, C b) => default;
+                }
 
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var _ = c! + $$
-    }
-}
-");
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        C? c = null;
+                        var _ = c! + $$
+                    }
+                }
+                """);
         }
     }
 }

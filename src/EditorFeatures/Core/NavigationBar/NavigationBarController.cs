@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 asyncListener,
                 _cancellationTokenSource.Token);
 
-            presenter.CaretMoved += OnCaretMoved;
-            presenter.ViewFocused += OnViewFocused;
+            presenter.CaretMovedOrActiveViewChanged += OnCaretMovedOrActiveViewChanged;
 
             presenter.ItemSelected += OnItemSelected;
 
@@ -150,8 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, _onVisibilityChanged);
 
-            _presenter.CaretMoved -= OnCaretMoved;
-            _presenter.ViewFocused -= OnViewFocused;
+            _presenter.CaretMovedOrActiveViewChanged -= OnCaretMovedOrActiveViewChanged;
 
             _presenter.ItemSelected -= OnItemSelected;
 
@@ -203,13 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _computeModelQueue.AddWork(true);
         }
 
-        private void OnCaretMoved(object? sender, EventArgs e)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            StartSelectedItemUpdateTask();
-        }
-
-        private void OnViewFocused(object? sender, EventArgs e)
+        private void OnCaretMovedOrActiveViewChanged(object? sender, EventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             StartSelectedItemUpdateTask();
@@ -305,14 +297,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public struct TestAccessor
+        public readonly struct TestAccessor(NavigationBarController navigationBarController)
         {
-            private readonly NavigationBarController _navigationBarController;
-
-            public TestAccessor(NavigationBarController navigationBarController)
-            {
-                _navigationBarController = navigationBarController;
-            }
+            private readonly NavigationBarController _navigationBarController = navigationBarController;
 
             public Task<NavigationBarModel?> GetModelAsync()
                 => _navigationBarController._computeModelQueue.WaitUntilCurrentBatchCompletesAsync();

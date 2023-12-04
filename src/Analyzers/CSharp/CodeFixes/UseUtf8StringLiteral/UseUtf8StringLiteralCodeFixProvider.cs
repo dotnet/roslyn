@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
 
             var operationLocationString = diagnostic.Properties[nameof(UseUtf8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation)];
             if (!Enum.TryParse(operationLocationString, out UseUtf8StringLiteralDiagnosticAnalyzer.ArrayCreationOperationLocation operationLocation))
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
 
             // Because we get the location from an IOperation.Syntax, sometimes we have to look a
             // little harder to get back from syntax to the operation that triggered the diagnostic
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
                     operation = operation.Parent!;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

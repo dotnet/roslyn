@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
         Private Shared ReadOnly s_formatter As ObjectFormatter = New TestVisualBasicObjectFormatter()
 
-        <Fact()>
+        <Fact>
         Public Sub InlineCharacters()
             Assert.Equal("ChrW(20)", s_formatter.FormatObject(ChrW(20), SingleLineOptions))
             Assert.Equal("vbBack", s_formatter.FormatObject(ChrW(&H8), SingleLineOptions))

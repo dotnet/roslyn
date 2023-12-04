@@ -151,6 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'b':
                     ch = '\u0008';
                     break;
+                case 'e':
+                    var info = MessageID.IDS_StringEscapeCharacter.GetFeatureAvailabilityDiagnosticInfo(this.Options);
+                    if (info != null)
+                        this.AddError(start, TextWindow.Position - start, info.Code, info.Arguments);
+
+                    ch = '\u001b';
+                    break;
                 case 'f':
                     ch = '\u000c';
                     break;
@@ -171,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'U':
                     TextWindow.Reset(start);
                     SyntaxDiagnosticInfo? error;
-                    ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
+                    ch = NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
                     AddError(error);
                     break;
                 default:

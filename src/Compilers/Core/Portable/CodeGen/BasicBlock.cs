@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //reachability analysis uses this flag to indicate that the block is reachable.
             internal Reachability Reachability;
 
-
             //nearest enclosing exception handler if any
             public virtual ExceptionHandlerScope EnclosingHandler => null;
 

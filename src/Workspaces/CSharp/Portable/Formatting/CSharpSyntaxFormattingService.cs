@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var token = documentSyntax.Root.FindToken(Math.Max(0, caretPosition - 1), findInsideTrivia: true);
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
-                token.IsKind(SyntaxKind.EndOfFileToken, SyntaxKind.None) ||
+                token.Kind() is SyntaxKind.EndOfFileToken or SyntaxKind.None ||
                 documentSyntax.SyntaxTree.IsInNonUserCode(caretPosition, cancellationToken))
             {
                 return false;
@@ -309,9 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsInvalidTokenKind(SyntaxToken token)
         {
             // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
+            return token.Kind()
+                    is SyntaxKind.None
+                    or SyntaxKind.EndOfDirectiveToken
+                    or SyntaxKind.EndOfFileToken;
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(ParsedDocument document, int position, SyntaxToken tokenBeforeCaret)

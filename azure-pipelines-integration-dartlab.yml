@@ -15,9 +15,9 @@ resources:
   - repository: DartLabTemplates
     type: git
     name: DartLab.Templates
-    ref: refs/heads/dev/bradwhit/RemoveCheckoutNone
+    ref: main
   - repository: RoslynMirror
-    endpoint: dnceng/internal dotnet-roslyn
+    endpoint: dnceng/internal
     type: git
     name: internal/dotnet-roslyn
     ref: $(Build.SourceBranch)

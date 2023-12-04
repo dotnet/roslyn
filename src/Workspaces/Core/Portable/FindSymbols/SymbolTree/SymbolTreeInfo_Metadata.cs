@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -26,6 +27,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        /// <summary>
+        /// Cache the symbol tree infos for assembly symbols produced from a particular <see
+        /// cref="PortableExecutableReference"/>. Generating symbol trees for metadata can be expensive (in large
+        /// metadata cases).  And it's common for us to have many threads to want to search the same metadata
+        /// simultaneously. As such, we use an AsyncLazy to compute the value that can be shared among all callers.
+        /// <para>
+        /// We store this keyed off of the <see cref="Checksum"/> produced by <see cref="GetMetadataChecksum"/>.  This
+        /// ensures that 
+        /// </para>
+        /// </summary>
+        private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<SymbolTreeInfo>> s_peReferenceToInfo = new();
+
+        /// <summary>
+        /// Similar to <see cref="s_peReferenceToInfo"/> except that this caches based on metadata id.  The primary
+        /// difference here is that you can have the same MetadataId from two different <see
+        /// cref="PortableExecutableReference"/>s, while having different checksums.  For example, if the aliases of a
+        /// <see cref="PortableExecutableReference"/> are changed (see <see
+        /// cref="PortableExecutableReference.WithAliases(IEnumerable{string})"/>, then it will have a different
+        /// checksum, but same metadata ID.  As such, we can use this table to ensure we only do the expensive
+        /// computation of the <see cref="SymbolTreeInfo"/> once per <see cref="MetadataId"/>, but we may then have to
+        /// make a copy of it with a new <see cref="Checksum"/> if the checksums differ.
+        /// </summary>
+        private static readonly ConditionalWeakTable<MetadataId, AsyncLazy<SymbolTreeInfo>> s_metadataIdToSymbolTreeInfo = new();
+
         private static string GetMetadataNameWithoutBackticks(MetadataReader reader, StringHandle name)
         {
             var blobReader = reader.GetBlobReader(name);
@@ -66,156 +91,168 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
-            Solution solution, PortableExecutableReference reference,
-            bool loadOnly, CancellationToken cancellationToken)
+        /// <summary>
+        /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
+        /// Note:  will never return null;
+        /// </summary>
+        /// <param name="checksum">Optional checksum for the <paramref name="reference"/> (produced by <see
+        /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
+        /// and used for the <see cref="SymbolTreeInfo"/>.</param>
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            Solution solution,
+            PortableExecutableReference reference,
+            Checksum? checksum,
+            CancellationToken cancellationToken)
         {
-            var checksum = GetMetadataChecksum(solution, reference, cancellationToken);
             return GetInfoForMetadataReferenceAsync(
-                solution, reference, checksum,
-                loadOnly, cancellationToken);
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                reference,
+                checksum,
+                cancellationToken);
         }
 
         /// <summary>
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
+        /// <param name="checksum">Optional checksum for the <paramref name="reference"/> (produced by <see
+        /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
+        /// and used for the <see cref="SymbolTreeInfo"/>.</param>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static async ValueTask<SymbolTreeInfo?> GetInfoForMetadataReferenceAsync(
-            Solution solution,
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+            SolutionServices solutionServices,
+            SolutionKey solutionKey,
             PortableExecutableReference reference,
-            Checksum checksum,
-            bool loadOnly,
+            Checksum? checksum,
             CancellationToken cancellationToken)
         {
-            var metadataId = GetMetadataIdNoThrow(reference);
-            if (metadataId == null)
-                return CreateEmpty(checksum);
+            checksum ??= GetMetadataChecksum(solutionServices, reference, cancellationToken);
 
-            if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+            if (s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
             {
                 var info = await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (info.Checksum == checksum)
-                    return info;
+                Contract.ThrowIfTrue(info.Checksum != checksum, "How could the info stored for a particular PEReference now have a different checksum?");
+                return info;
             }
 
-            var metadata = GetMetadataNoThrow(reference);
-            if (metadata == null)
-                return CreateEmpty(checksum);
-
-            // If the data isn't in the table, and the client only wants the data if already loaded, then bail out as we
-            // have no results to give.  The data will eventually populate in memory due to
-            // SymbolTreeInfoIncrementalAnalyzer eventually getting around to loading it.
-            if (loadOnly)
-                return null;
-
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, metadata, cancellationToken).ConfigureAwait(false);
+                solutionServices, solutionKey, reference, checksum.Value, cancellationToken).ConfigureAwait(false);
+
+            static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
+                SolutionServices services,
+                SolutionKey solutionKey,
+                PortableExecutableReference reference,
+                Checksum checksum,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Important: this captured async lazy may live a long time *without* computing the final results. As
+                // such, it is important that it not capture any large state.  For example, it should not hold onto a
+                // Solution instance.
+                //
+                // this is keyed per reference, so that have unique SymbolTreeInfo's per reference with their own
+                // correct checksum.  Ensuring we only compute this once per *Metadata* instance though is handled below in 
+                // CreateMetadataSymbolTreeInfoAsync
+                var asyncLazy = s_peReferenceToInfo.GetValue(
+                    reference,
+                    id => AsyncLazy.Create(
+                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c)));
+
+                return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static async Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
+                SolutionServices services,
+                SolutionKey solutionKey,
+                PortableExecutableReference reference,
+                Checksum checksum,
+                CancellationToken cancellationToken)
+            {
+                var metadataId = GetMetadataIdNoThrow(reference);
+                if (metadataId == null)
+                    return CreateEmpty(checksum);
+
+                var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
+                    metadataId,
+                    metadataId => AsyncLazy.Create(
+                        cancellationToken => LoadOrCreateAsync(
+                            services,
+                            solutionKey,
+                            checksum,
+                            createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(reference)).Create()),
+                            keySuffix: GetMetadataKeySuffix(reference),
+                            cancellationToken)));
+
+                var metadataIdSymbolTreeInfo = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                // we got the info that was originally computed against this particular metadata-id.  However, the same
+                // ID could be reused across different PEReferences/checksums (for example, a PEReference whose aliases
+                // were changed).  As such, if this doesn't correspond to the same checksum, make a copy of this tree
+                // specific to the checksum we were asked for.
+                return metadataIdSymbolTreeInfo.WithChecksum(checksum);
+            }
         }
 
         public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var metadataId = GetMetadataIdNoThrow(reference);
-            if (metadataId == null || !s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+            if (!s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
                 return null;
 
             return await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
-            SolutionServices services,
-            SolutionKey solutionKey,
-            PortableExecutableReference reference,
-            Checksum checksum,
-            Metadata metadata,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Important: this captured async lazy may live a long time *without* computing the final results. As such,
-            // it is important that it note capture any large state.  For example, it should not hold onto a Solution
-            // instance.
-            var asyncLazy = s_metadataIdToInfo.GetValue(
-                metadata.Id,
-                id => new AsyncLazy<SymbolTreeInfo>(
-                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
-                    cacheResult: true));
-
-            return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        }
-
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
-            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+            SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
-            // First see if the value is already in the cache, to avoid an allocation if possible.
-            if (ChecksumCache.TryGetValue(reference, out var cached))
+            return ChecksumCache.GetOrCreate(reference, static (reference, tuple) =>
             {
-                return cached;
-            }
-
-            // Break things up to the fast path above and this slow path where we allocate a closure.
-            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
-        }
-
-        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
-        {
-            return ChecksumCache.GetOrCreate(reference, _ =>
-            {
-                var serializer = solution.Services.GetRequiredService<ISerializerService>();
+                var (services, cancellationToken) = tuple;
+                var serializer = services.GetRequiredService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
                 // Include serialization format version in our checksum.  That way if the 
                 // version ever changes, all persisted data won't match the current checksum
                 // we expect, and we'll recompute things.
                 return Checksum.Create(checksum, SerializationFormatChecksum);
-            });
+            }, (services, cancellationToken));
         }
 
-        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            SolutionServices services,
-            SolutionKey solutionKey,
+        private static string GetMetadataKeySuffix(PortableExecutableReference reference)
+            => "_Metadata_" + reference.FilePath;
+
+        /// <summary>
+        /// Loads any info we have for this reference from our persistence store.  Will succeed regardless of the
+        /// checksum of the <paramref name="reference"/>.  Should only be used by clients that are ok with potentially
+        /// stale data.
+        /// </summary>
+        public static Task<SymbolTreeInfo?> LoadAnyInfoForMetadataReferenceAsync(
+            Solution solution,
             PortableExecutableReference reference,
-            Checksum checksum,
             CancellationToken cancellationToken)
         {
-            var filePath = reference.FilePath ?? "";
-
-            var result = TryLoadOrCreateAsync(
-                services,
-                solutionKey,
-                checksum,
-                loadOnly: false,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, checksum, reference),
-                keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, filePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result);
-            return result;
+            return LoadAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                checksum: GetMetadataChecksum(solution.Services, reference, cancellationToken),
+                checksumMustMatch: false,
+                keySuffix: GetMetadataKeySuffix(reference),
+                cancellationToken);
         }
 
-        private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
-            SolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
-        {
-            var creator = new MetadataInfoCreator(services, solutionKey, checksum, reference);
-            return Task.FromResult(creator.Create());
-        }
-
-        private struct MetadataInfoCreator : IDisposable
+        private struct MetadataInfoCreator(
+            Checksum checksum, Metadata? metadata) : IDisposable
         {
             private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
             private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
-
-            private readonly SolutionServices _services;
-            private readonly SolutionKey _solutionKey;
-            private readonly Checksum _checksum;
-            private readonly PortableExecutableReference _reference;
-
-            private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
-            private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren;
-            private readonly MetadataNode _rootNode;
+            private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
+            private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
+            private readonly MetadataNode _rootNode = MetadataNode.Allocate(name: "");
 
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions = new();
@@ -228,21 +265,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
             private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = new();
-            private bool _containsExtensionsMethod;
-
-            public MetadataInfoCreator(
-                SolutionServices services, SolutionKey solutionKey, Checksum checksum, PortableExecutableReference reference)
-            {
-                _services = services;
-                _solutionKey = solutionKey;
-                _checksum = checksum;
-                _reference = reference;
-                _containsExtensionsMethod = false;
-
-                _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
-                _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
-                _rootNode = MetadataNode.Allocate(name: "");
-            }
+            private bool _containsExtensionsMethod = false;
 
             private static ImmutableArray<ModuleMetadata> GetModuleMetadata(Metadata? metadata)
             {
@@ -269,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             internal SymbolTreeInfo Create()
             {
-                foreach (var moduleMetadata in GetModuleMetadata(GetMetadataNoThrow(_reference)))
+                foreach (var moduleMetadata in GetModuleMetadata(metadata))
                 {
                     try
                     {
@@ -299,10 +322,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    _services, _solutionKey, _checksum, _reference.FilePath ?? "", unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
@@ -455,7 +478,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void LookupMetadataDefinitions(
+            private readonly void LookupMetadataDefinitions(
                 MetadataReader metadataReader,
                 NamespaceDefinition namespaceDefinition,
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
@@ -520,7 +543,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void PopulateInheritance(
+            private readonly void PopulateInheritance(
                 MetadataReader metadataReader,
                 string derivedTypeSimpleName,
                 EntityHandle baseTypeOrInterfaceHandle)
@@ -556,7 +579,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddBaseTypeNameParts(
+            private static void AddBaseTypeNameParts(
                 MetadataReader metadataReader,
                 EntityHandle baseTypeOrInterfaceHandle,
                 List<string> simpleNames)
@@ -572,7 +595,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddTypeDefinitionNameParts(
+            private static void AddTypeDefinitionNameParts(
                 MetadataReader metadataReader,
                 TypeDefinitionHandle handle,
                 List<string> simpleNames)
@@ -629,7 +652,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void AddNamespaceParts(
+            private static void AddNamespaceParts(
                 MetadataReader metadataReader,
                 NamespaceDefinitionHandle namespaceHandle,
                 List<string> simpleNames)
@@ -671,7 +694,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private void EnsureParentsAndChildren(List<string> simpleNames)
+            private readonly void EnsureParentsAndChildren(List<string> simpleNames)
             {
                 var currentNode = _rootNode;
 
@@ -682,7 +705,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            private MetadataNode GetOrCreateChildNode(
+            private readonly MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
                 if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
@@ -699,7 +722,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
+            private readonly ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
@@ -708,7 +731,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return unsortedNodes.ToImmutableAndFree();
             }
 
-            private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
+            private readonly void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
                 MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,
@@ -742,7 +765,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
                 }
 
-                [return: NotNullIfNotNull("containerName")]
+                [return: NotNullIfNotNull(nameof(containerName))]
                 static string? Concat(string? containerName, string name)
                 {
                     if (containerName == null)
@@ -760,7 +783,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private class MetadataNode
+        private sealed class MetadataNode
         {
             private static readonly ObjectPool<MetadataNode> s_pool = SharedPools.Default<MetadataNode>();
 
@@ -793,32 +816,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Member,
         }
 
-        private readonly struct MetadataDefinition
+        private readonly struct MetadataDefinition(
+            MetadataDefinitionKind kind,
+            string name,
+            ParameterTypeInfo receiverTypeInfo = default,
+            NamespaceDefinition @namespace = default,
+            TypeDefinition type = default)
         {
-            public string Name { get; }
-            public MetadataDefinitionKind Kind { get; }
+            public string Name { get; } = name;
+            public MetadataDefinitionKind Kind { get; } = kind;
 
             /// <summary>
             /// Only applies to member kind. Represents the type info of the first parameter.
             /// </summary>
-            public ParameterTypeInfo ReceiverTypeInfo { get; }
+            public ParameterTypeInfo ReceiverTypeInfo { get; } = receiverTypeInfo;
 
-            public NamespaceDefinition Namespace { get; }
-            public TypeDefinition Type { get; }
-
-            public MetadataDefinition(
-                MetadataDefinitionKind kind,
-                string name,
-                ParameterTypeInfo receiverTypeInfo = default,
-                NamespaceDefinition @namespace = default,
-                TypeDefinition type = default)
-            {
-                Kind = kind;
-                Name = name;
-                ReceiverTypeInfo = receiverTypeInfo;
-                Namespace = @namespace;
-                Type = type;
-            }
+            public NamespaceDefinition Namespace { get; } = @namespace;
+            public TypeDefinition Type { get; } = type;
 
             public static MetadataDefinition Create(
                 MetadataReader reader, NamespaceDefinitionHandle namespaceHandle)

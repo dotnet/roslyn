@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Change the background analysis scope to OpenFiles instead of ActiveFile (default),
             // so that every diagnostic tagger test does not need to mark test files as "active" file.
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.OpenFiles);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.OpenFiles);
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.OpenFiles);
+            workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.OpenFiles);
 
             _workspace = workspace;
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
                 _workspace,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles,
                 FeatureAttribute.Classification);

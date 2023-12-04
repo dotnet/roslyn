@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
         /// <param name="option">
-        /// Code style option that can be used to configure the given <paramref name="diagnosticId"/>.
-        /// <see langword="null"/>, if there is no such unique option.
+        /// Code style editorconfig option that can be used to configure the given <paramref name="diagnosticId"/>.
+        /// <see langword="null"/>, if there is no such option that can be set in an editorconfig.
         /// </param>
         /// <param name="title">Title for the diagnostic descriptor</param>
         /// <param name="messageFormat">
@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable,
+                   hasAnyCodeStyleOption: option != null)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option);
         }
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <param name="diagnosticId">Diagnostic ID reported by this analyzer</param>
         /// <param name="enforceOnBuild">Build enforcement recommendation for this analyzer</param>
         /// <param name="options">
-        /// Set of two or more code style options that can be used to configure the diagnostic severity of the given diagnosticId.
+        /// Set of two or more code style editorconfig options that can be used to configure the diagnostic severity of the given diagnosticId.
         /// </param>
         /// <param name="title">Title for the diagnostic descriptor</param>
         /// <param name="messageFormat">
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable,
+                  hasAnyCodeStyleOption: true)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
@@ -77,17 +79,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         /// <summary>
-        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style option that can be used to configure each descriptor.
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with a code style editorconfig option that can be used to configure each descriptor.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption2> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
+            {
+                Debug.Assert(option != null == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
                 AddDiagnosticIdToOptionMapping(descriptor.Id, option);
+            }
         }
 
         /// <summary>
-        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with zero or more code style options that can be used to configure each descriptor.
+        /// Constructor for a code style analyzer with multiple diagnostic descriptors with zero or more code style editorconfig options that can be used to configure each descriptor.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, ImmutableHashSet<IOption2>> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())

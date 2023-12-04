@@ -174,7 +174,7 @@
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
@@ -183,6 +183,7 @@
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_ManagedAddr:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
@@ -289,6 +290,53 @@
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
+                case ErrorCode.WRN_OptionalParamValueMismatch:
+                case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                case ErrorCode.WRN_AddressOfInAsync:
+                case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                case ErrorCode.WRN_ByValArraySizeConstRequired:
+                case ErrorCode.WRN_InterceptorSignatureMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                case ErrorCode.WRN_InlineArraySliceNotUsed:
+                case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                case ErrorCode.WRN_BadArgRef:
+                case ErrorCode.WRN_ArgExpectedRefOrIn:
+                case ErrorCode.WRN_RefReadonlyNotVariable:
+                case ErrorCode.WRN_ArgExpectedIn:
+                case ErrorCode.WRN_OverridingDifferentRefness:
+                case ErrorCode.WRN_HidingDifferentRefness:
+                case ErrorCode.WRN_TargetDifferentRefness:
+                case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                     return true;
                 default:
                     return false;

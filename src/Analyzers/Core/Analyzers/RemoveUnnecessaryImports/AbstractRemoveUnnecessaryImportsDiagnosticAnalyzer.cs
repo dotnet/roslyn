@@ -15,16 +15,33 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
-        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSyntaxNode> :
+        AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+        where TSyntaxNode : SyntaxNode
     {
-        // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
-        internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
+        // NOTE: This is a special helper diagnostic ID which is reported when the remove unnecesssary diagnostic ID (IDE0005) is
+        // ecalated to a warning or an error, but 'GenerateDocumentationFile' is false, which leads to IDE0005 not being reported
+        // on command line builds. See https://github.com/dotnet/roslyn/issues/41640 for more details.
+        internal const string EnableGenerateDocumentationFileId = "EnableGenerateDocumentationFile";
 
         // The NotConfigurable custom tag ensures that user can't turn this diagnostic into a warning / error via
         // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
         // this diagnostic in the preview pane header.
-        private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(DiagnosticFixableId, EnforceOnBuild.Never, "", "", isConfigurable: false);
+        private static readonly DiagnosticDescriptor s_fixableIdDescriptor = CreateDescriptorWithId(
+            RemoveUnnecessaryImportsConstants.DiagnosticFixableId, EnforceOnBuild.Never, hasAnyCodeStyleOption: true, "", "", isConfigurable: false);
+
+#pragma warning disable RS0030 // Do not used banned APIs - Special diagnostic with 'Warning' default severity.
+        private static readonly DiagnosticDescriptor s_enableGenerateDocumentationFileIdDescriptor = new(
+            EnableGenerateDocumentationFileId,
+            title: AnalyzersResources.Set_MSBuild_Property_GenerateDocumentationFile_to_true,
+            messageFormat: AnalyzersResources.Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build,
+            category: DiagnosticCategory.Style,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            helpLinkUri: "https://github.com/dotnet/roslyn/issues/41640",
+            description: AnalyzersResources.Add_the_following_PropertyGroup_to_your_MSBuild_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build,
+            customTags: DiagnosticCustomTags.Microsoft.Concat(EnforceOnBuild.Never.ToCustomTag()).ToArray());
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private readonly DiagnosticDescriptor _classificationIdDescriptor;
         private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
@@ -38,15 +55,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private static ImmutableArray<DiagnosticDescriptor> GetDescriptors(LocalizableString titleAndMessage, out DiagnosticDescriptor classificationIdDescriptor, out DiagnosticDescriptor generatedCodeClassificationIdDescriptor)
         {
-            classificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, EnforceOnBuildValues.RemoveUnnecessaryImports, titleAndMessage, isUnnecessary: true);
-            generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen", EnforceOnBuild.Never, titleAndMessage, isUnnecessary: true, isConfigurable: false);
-            return ImmutableArray.Create(s_fixableIdDescriptor, classificationIdDescriptor, generatedCodeClassificationIdDescriptor);
+            classificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, EnforceOnBuildValues.RemoveUnnecessaryImports, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true);
+            generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen", EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
+            return ImmutableArray.Create(s_fixableIdDescriptor, s_enableGenerateDocumentationFileIdDescriptor, classificationIdDescriptor, generatedCodeClassificationIdDescriptor);
         }
 
         protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
+        protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<TSyntaxNode> unnecessaryImports);
         protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
-        protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
+        protected abstract IUnnecessaryImportsProvider<TSyntaxNode> UnnecessaryImportsProvider { get; }
 
         protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
 
@@ -55,15 +72,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            context.RegisterCompilationAction(AnalyzeCompilation);
         }
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var tree = context.SemanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var language = context.SemanticModel.Language;
 
-            var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
+            var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, context.FilterSpan, cancellationToken);
             if (unnecessaryImports.Any())
             {
                 // The IUnnecessaryImportsService will return individual import pieces that
@@ -71,20 +91,46 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // from VB.  However, we want to mark the entire import statement if we are
                 // going to remove all the clause.  Defer to our subclass to stitch this up
                 // for us appropriately.
-                unnecessaryImports = MergeImports(unnecessaryImports);
+                var mergedImports = MergeImports(unnecessaryImports);
 
                 var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
                     ? _generatedCodeClassificationIdDescriptor
                     : _classificationIdDescriptor;
-                var contiguousSpans = GetContiguousSpans(unnecessaryImports);
+                var contiguousSpans = GetContiguousSpans(mergedImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
-                    CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
+                    CreateFixableDiagnostics(mergedImports, tree, cancellationToken));
 
                 foreach (var diagnostic in diagnostics)
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
+            }
+        }
+
+        private void AnalyzeCompilation(CompilationAnalysisContext context)
+        {
+            // Due to https://github.com/dotnet/roslyn/issues/41640, enabling this analyzer (IDE0005) on build requires users
+            // to enable generation of XML documentation comments. We detect if generation of XML documentation comments
+            // is disabled for this tree and IDE0005 diagnostics are being reported with effective severity "Warning" or "Error".
+            // If so, we report a special diagnostic that recommends the users to set "GenerateDocumentationFile" to "true"
+            // in their project file to enable IDE0005 on build.
+
+            var compilation = context.Compilation;
+            if (!IsAnalysisLevelGreaterThanOrEquals(8, context.Options))
+                return;
+
+            var tree = compilation.SyntaxTrees.FirstOrDefault(tree => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, context.CancellationToken));
+            if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
+                return;
+
+            if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, context.CancellationToken))
+                return;
+
+            var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
+            if (effectiveSeverity is ReportDiagnostic.Warn or ReportDiagnostic.Error)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(s_enableGenerateDocumentationFileIdDescriptor, Location.None));
             }
         }
 
@@ -164,9 +210,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             var spans = GetFixableDiagnosticSpans(nodes, tree, cancellationToken);
 
             foreach (var span in spans)
-            {
                 yield return Diagnostic.Create(s_fixableIdDescriptor, tree.GetLocation(span));
-            }
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -25,7 +24,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
-Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -55,9 +54,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
-                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
                 GetType(VisualStudioProjectFactory),
+                GetType(MockVisualStudioDiagnosticAnalyzerProviderFactory),
                 GetType(MockServiceProvider),
+                GetType(StubVsServiceExporter(Of )),
+                GetType(StubVsServiceExporter(Of ,)),
                 GetType(SolutionEventsBatchScopeCreator),
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),

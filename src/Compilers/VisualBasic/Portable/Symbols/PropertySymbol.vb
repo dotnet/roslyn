@@ -219,7 +219,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
 
-
         ''' <summary>
         ''' Gets the associated "get" method for this property. If this property
         ''' has no get accessor, returns Nothing.
@@ -534,6 +533,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
 
+        Public MustOverride ReadOnly Property IsRequired As Boolean
+
 #Region "IPropertySymbol"
 
         Private ReadOnly Property IPropertySymbol_ExplicitInterfaceImplementations As ImmutableArray(Of IPropertySymbol) Implements IPropertySymbol.ExplicitInterfaceImplementations
@@ -574,7 +575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IPropertySymbol_IsRequired As Boolean Implements IPropertySymbol.IsRequired
             Get
-                Return False
+                Return Me.IsRequired
             End Get
         End Property
 

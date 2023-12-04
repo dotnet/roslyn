@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer
-        Inherits AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
+        Inherits AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(Of ImportsClauseSyntax)
 
         Public Sub New()
             MyBase.New(New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
-        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider = VisualBasicUnnecessaryImportsProvider.Instance
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider(Of ImportsClauseSyntax) = VisualBasicUnnecessaryImportsProvider.Instance
 
         Protected Overrides Function IsRegularCommentOrDocComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.IsRegularOrDocComment()
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         ''' Takes the import clauses we want to remove and returns them *or* their 
         ''' containing ImportsStatements *if* we wanted to remove all the clauses of
         ''' that ImportStatement.
-        Protected Overrides Function MergeImports(unnecessaryImports As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Function MergeImports(unnecessaryImports As ImmutableArray(Of ImportsClauseSyntax)) As ImmutableArray(Of SyntaxNode)
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()
             Dim importsClauses = unnecessaryImports.ToImmutableHashSet()
 

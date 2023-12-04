@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -507,7 +507,7 @@ class C
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
                 using var workspace = TestWorkspace.CreateCSharp(
-                    source1, parseOptions: experimental, compilationOptions: null, exportProvider: null);
+                    source1, parseOptions: experimental, compilationOptions: null);
 
                 var oldSolution = workspace.CurrentSolution;
                 var oldProject = oldSolution.Projects.Single();
@@ -553,7 +553,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             var source1 = @"
@@ -594,7 +594,7 @@ class C
             Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
-        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")]
         public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
         {
             var source1 = @"
@@ -760,11 +760,11 @@ class D
 
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, capabilities, CancellationToken.None);
 
-            var expectedDiagnostic = outOfMemory ?
-                $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}" :
+            var expectedDiagnostic = outOfMemory
+                ? $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}"
                 // Because the error message that is formatted into this template string includes a stacktrace with newlines, we need to replicate that behavior
                 // here so that any trailing punctuation is removed from the translated template string.
-                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
+                : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));

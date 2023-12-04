@@ -22,11 +22,6 @@
         <target state="translated">Tek satır denetim deyimleri için gerekli küme ayraçlarını ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Allow_unsafe_code_in_this_project">
-        <source>Allow unsafe code in this project</source>
-        <target state="translated">Bu projede güvenli olmayan koda izin ver</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Oluşturucu başlatıcı tercihlerinde iki nokta üst üste işaretinden sonra boş satır uygula (deneysel)</target>
@@ -102,6 +97,11 @@
         <target state="translated">Aralık tercihlerini uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">'Salt okunur yapı' tercihlerini uygula</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">Statik yerel işlev tercihlerini uygula</target>
@@ -122,19 +122,14 @@
         <target state="translated">'var' tercihlerini uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assign_out_parameters">
-        <source>Assign 'out' parameters</source>
-        <target state="translated">'out' parametreleri ata</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Assign_out_parameters_at_start">
-        <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">'out' parametreleri ata (başlangıçta)</target>
-        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
         <source>Autoselect disabled due to potential pattern variable declaration.</source>
         <target state="translated">Otomatik seçim, olası desen değişkeni bildirimi nedeniyle devre dışı bırakıldı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -147,6 +142,11 @@
         <target state="translated">Tür dönüştürme olarak değiştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">'{0}'i record’a dönüştür</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Yönteme dönüştür</target>
@@ -155,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Ham dizeye dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -182,14 +187,14 @@
         <target state="translated">Projedeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_solution">
+        <source>Enable nullable reference types in solution</source>
+        <target state="translated">Çözümdeki null atanabilir başvuru türlerini etkinleştir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Genel 'using' yönergeleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_temporary_variable">
-        <source>Inline temporary variable</source>
-        <target state="translated">Satır içi geçici değişken</target>
         <note />
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
@@ -202,25 +207,15 @@
         <target state="translated">Özel alanları mümkün olduğunda salt okunur yap</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_ref_struct">
-        <source>Make 'ref struct'</source>
-        <target state="translated">'ref struct' yap</target>
-        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_in_keyword">
-        <source>Remove 'in' keyword</source>
-        <target state="translated">'in' anahtar sözcüğünü kaldır</target>
-        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_new_modifier">
-        <source>Remove 'new' modifier</source>
-        <target state="translated">'New' değiştiricisini kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">'for' ifadesini tersine çevir</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Selection_cannot_be_in_constructor_initializer">
+        <source>Selection cannot be in constructor initializer</source>
+        <target state="translated">Seçim, oluşturucu başlatıcıda olamaz</target>
+        <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
@@ -260,6 +255,16 @@
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">dış diğer ad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="translated">for döngüsü</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="init_only_property">
+        <source>init-only property</source>
+        <target state="translated">yalnızca init özelliği</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -315,11 +320,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">this' nitelemesini kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">Ayıklanacak deyimlerin geçerli aralığı belirlenemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -402,11 +402,6 @@
         <target state="translated">Kullanımları Düzenle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_0_return_Task_instead_of_void">
-        <source>Make {0} return Task instead of void.</source>
-        <target state="translated">{0} öğesi boşluk yerine Görev döndürsün.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
         <source>Generate explicit conversion operator in '{0}'</source>
         <target state="translated">'{0}' içinde açık dönüşüm işleci oluştur</target>
@@ -427,6 +422,11 @@
         <target state="translated">kayıt yapısı</target>
         <note />
       </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="translated">ters for döngüsü</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">switch deyimi</target>
@@ -436,6 +436,16 @@
         <source>switch statement case clause</source>
         <target state="translated">switch deyimi case yan tümcesi</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="top_level_code">
+        <source>top-level code</source>
+        <target state="translated">üst düzey kod</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="top_level_statement">
+        <source>top-level statement</source>
+        <target state="translated">üst düzey deyim</target>
+        <note />
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
@@ -582,11 +592,6 @@
         <target state="translated">yerel ref veya ifade</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="global_statement">
-        <source>global statement</source>
-        <target state="translated">global deyimi</target>
-        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>
         <target state="translated">using yönergesi</target>
@@ -667,16 +672,6 @@
         <target state="translated">Otomatik seçim, olası ayrıştırma bildiriminden dolayı devre dışı bırakıldı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
-        <source>Upgrade this project to C# language version '{0}'</source>
-        <target state="translated">Bu projeyi C# '{0}' dil sürümüne yükselt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
-        <source>Upgrade all C# projects to language version '{0}'</source>
-        <target state="translated">Tüm C# projelerini '{0}' dil sürümüne yükselt</target>
-        <note />
-      </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
         <target state="translated">&lt;sınıf adı&gt;</target>
@@ -697,16 +692,6 @@
         <target state="translated">&lt;yapı adı&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_async">
-        <source>Make method async</source>
-        <target state="translated">Metodu asenkron yap</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_method_async_remain_void">
-        <source>Make method async (stay void)</source>
-        <target state="translated">Metodu zaman uyumsuz yap (void olarak bırak)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
         <target state="translated">&lt;ad&gt;</target>
@@ -722,16 +707,6 @@
         <target state="translated">(Önerilen ad)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_function">
-        <source>Remove unused function</source>
-        <target state="translated">Kullanılmayan işlevi kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
-        <source>Add parentheses</source>
-        <target state="translated">Parantez ekle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
         <target state="translated">'foreach' deyimine dönüştür</target>
@@ -745,11 +720,6 @@
       <trans-unit id="Invert_if">
         <source>Invert if</source>
         <target state="translated">if ifadesini tersine çevir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_0">
-        <source>Use '{0}'</source>
-        <target state="translated">'{0}' kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">

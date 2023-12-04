@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (lastNewLinePos != -1)
             {
                 var start = lastNewLinePos + NewLine.Length;
-                indent = indent.Substring(start, indent.Length - start);
+                indent = indent[start..];
             }
 
             return indent;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return string.Empty;
             }
 
-            return leading.Substring(0, lastNewLinePos);
+            return leading[..lastNewLinePos];
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsTokenInArgumentListOrPositionalPattern(SyntaxToken token)
         {
             // Argument lists
-            if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList))
+            if (token.Parent is (kind: SyntaxKind.ArgumentList or SyntaxKind.AttributeArgumentList))
             {
                 return true;
             }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.BaseList);
 
         public static bool IsCommaInArgumentOrParameterList(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList));
+            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent?.Kind() is SyntaxKind.ParameterList or SyntaxKind.FunctionPointerParameterList);
 
         public static bool IsOpenParenInParameterListOfParenthesizedLambdaExpression(this SyntaxToken token)
             => token.Kind() == SyntaxKind.OpenParenToken && token.Parent.IsKind(SyntaxKind.ParameterList) && token.Parent.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            return node.IsParentKind(SyntaxKind.SimpleLambdaExpression) || node.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression);
+            return node.Parent?.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression;
         }
 
         public static bool IsAnonymousMethodBlock(this SyntaxNode node)
@@ -318,9 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsGenericGreaterThanToken(this SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.GreaterThanToken)
-            {
-                return token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList);
-            }
+                return token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList);
 
             return false;
         }
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   token.Parent.IsParentKind(SyntaxKind.QueryExpression, out QueryExpressionSyntax? queryExpression) &&
+                   token.Parent?.Parent is QueryExpressionSyntax queryExpression &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 
@@ -429,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var parent = initializer.Parent;
                 if (parent is ArrayCreationExpressionSyntax ||
                     parent is ImplicitArrayCreationExpressionSyntax ||
+                    parent is StackAllocArrayCreationExpressionSyntax ||
+                    parent is ImplicitStackAllocArrayCreationExpressionSyntax ||
                     parent is EqualsValueClauseSyntax ||
                     parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
@@ -538,5 +538,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return currentToken.IsKind(SyntaxKind.CommaToken) &&
                 currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
         }
+
+        public static bool IsCommaInCollectionExpression(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.CollectionExpression);
     }
 }

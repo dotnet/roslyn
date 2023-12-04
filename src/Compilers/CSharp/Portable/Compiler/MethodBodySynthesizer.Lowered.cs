@@ -291,7 +291,7 @@ start:
             }
         }
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
     }
 
     internal abstract partial class MethodToClassRewriter
@@ -307,6 +307,8 @@ start:
             {
                 get { return true; }
             }
+
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             /// <summary>
             /// Given a SynthesizedSealedPropertyAccessor (an accessor with a reference to the accessor it overrides),

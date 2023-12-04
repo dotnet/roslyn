@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,30 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
-                if (programType != null)
+                var mainMethod = compilation.GetTopLevelStatementsMethod();
+                if (mainMethod is not null)
                 {
-                    if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)
+                    var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
+
+                    var classDeclaration = await GenerateProgramClassAsync(
+                        document, oldClassDeclaration, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
+
+                    var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
+                    if (oldClassDeclaration is not null)
                     {
-                        var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
-
-                        var classDeclaration = await GenerateProgramClassAsync(
-                            document, oldClassDeclaration, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
-
-                        var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
-                        if (oldClassDeclaration is not null)
-                        {
-                            Contract.ThrowIfNull(newRoot);
-                            newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
-                        }
-
                         Contract.ThrowIfNull(newRoot);
-
-                        var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
-                        newRoot = newRoot.ReplaceNode(firstGlobalStatement, classDeclaration);
-
-                        return document.WithSyntaxRoot(newRoot);
+                        newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
                     }
+
+                    Contract.ThrowIfNull(newRoot);
+
+                    var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
+                    newRoot = newRoot.ReplaceNode(firstGlobalStatement, classDeclaration);
+
+                    return document.WithSyntaxRoot(newRoot);
                 }
             }
 
@@ -73,11 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         private static async Task<ClassDeclarationSyntax> GenerateProgramClassAsync(
             Document document,
             ClassDeclarationSyntax? oldClassDeclaration,
-            INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
             CancellationToken cancellationToken)
         {
+            var programType = mainMethod.ContainingType;
+
             // Respect user settings on if they want explicit or implicit accessibility modifiers.
             var useDeclaredAccessibity = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
@@ -96,15 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
             // with string[].
-            if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
+            if (method.ParameterList.Parameters is [{ Type: ArrayTypeSyntax arrayType }])
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
-
-            ClassDeclarationSyntax? newClassDeclaration = null;
 
             if (oldClassDeclaration is null)
             {
                 // If we dodn't have any suitable class declaration in the same file then generate it
-                newClassDeclaration = FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
+                return FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
                     WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                     accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                     modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
@@ -114,14 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 // Otherwise just add new member and process leading trivia
 
-                // Old class declaration is below top-level statements and is probably separated from them with a blank line.
-                // We want to remove this line to make class declaration begin from the first line of the file in the end
+                // Old class declaration is below top-level statements and is probably separated from them with a blank line (or several ones).
+                // So we want to remove all leading line to make class declaration begin from the first line of the file after applying refactoring
                 var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
-                newClassDeclaration = oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
-                                                         .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
+                return oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
+                                          .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
             }
-
-            return newClassDeclaration;
         }
 
         private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(
@@ -141,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     first = false;
 
                     triviaToMove = statement.GetLeadingTrivia();
-                    while (triviaToMove is [.., { RawKind: (int)SyntaxKind.SingleLineCommentTrivia }, { RawKind: (int)SyntaxKind.EndOfLineTrivia }])
+                    while (triviaToMove is [.., SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia), SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
                         triviaToMove = TriviaList(triviaToMove.Take(triviaToMove.Count - 2));
 
                     var commentsToPreserve = TriviaList(statement.GetLeadingTrivia().Skip(triviaToMove.Count));

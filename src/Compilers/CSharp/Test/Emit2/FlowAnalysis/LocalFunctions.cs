@@ -428,6 +428,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
+                // (11,9): error CS0165: Use of unassigned local variable 'x'
+                //         x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 9),
                 // (12,9): error CS0165: Use of unassigned local variable 'y'
                 //         y++;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(12, 9),
@@ -732,7 +735,8 @@ struct S
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "11.0").WithLocation(12, 9),
                 // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S(int x)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S._x", "11.0").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S._x", "11.0").WithLocation(5, 12)
+                );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
@@ -1502,7 +1506,8 @@ struct S
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
                 // (14,9): error CS9015: Use of possibly unassigned field '_x'. Consider updating to language version '11.0' to auto-default the field.
                 //         Local();
-                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "11.0").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "11.0").WithLocation(14, 9)
+                );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(

@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsCommaInTupleExpression() &&
+                            !currentToken.IsCommaInCollectionExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
@@ -117,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // statement related operations
             // object and anonymous initializer "," case
             if (previousToken.IsCommaInInitializerExpression())
-            {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-            }
+
+            if (previousToken.IsCommaInCollectionExpression())
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
 
             // , * in switch expression arm
             // ```
@@ -312,10 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 // After a 'new' we almost always want a space.  only exceptions are `new()` as an implicit object 
                 // creation, or `new()` as a constructor constraint or `new[] {}` for an implicit array creation.
-                var spaces = previousToken.Parent?.Kind() is
+                var spaces = previousToken.Parent is (kind:
                     SyntaxKind.ConstructorConstraint or
                     SyntaxKind.ImplicitObjectCreationExpression or
-                    SyntaxKind.ImplicitArrayCreationExpression ? 0 : 1;
+                    SyntaxKind.ImplicitArrayCreationExpression) ? 0 : 1;
                 return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
@@ -370,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
-                !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
+                currentToken.Parent?.Kind() is not SyntaxKind.CollectionExpression and not SyntaxKind.AttributeList &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
@@ -390,14 +392,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
-                if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                               SyntaxKind.CasePatternSwitchLabel,
-                                               SyntaxKind.DefaultSwitchLabel,
-                                               SyntaxKind.LabeledStatement,
-                                               SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon,
-                                               SyntaxKind.ExpressionColon,
-                                               SyntaxKind.SwitchExpressionArm))
+                if (currentToken.Parent is (kind:
+                        SyntaxKind.CaseSwitchLabel or
+                        SyntaxKind.CasePatternSwitchLabel or
+                        SyntaxKind.DefaultSwitchLabel or
+                        SyntaxKind.LabeledStatement or
+                        SyntaxKind.AttributeTargetSpecifier or
+                        SyntaxKind.NameColon or
+                        SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // generic name
-            if (previousToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList, SyntaxKind.FunctionPointerType))
+            if (previousToken.Parent is (kind: SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList or SyntaxKind.FunctionPointerType))
             {
                 // generic name < * 
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)
@@ -428,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // generic name * < or * >
             if ((currentToken.Kind() == SyntaxKind.LessThanToken || currentToken.Kind() == SyntaxKind.GreaterThanToken) &&
-                currentToken.Parent.IsKind(SyntaxKind.TypeArgumentList, SyntaxKind.TypeParameterList))
+                currentToken.Parent is (kind: SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -455,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.IsKind(SyntaxKind.NullableType, SyntaxKind.ClassConstraint))
+                currentToken.Parent is (kind: SyntaxKind.NullableType or SyntaxKind.ClassConstraint))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

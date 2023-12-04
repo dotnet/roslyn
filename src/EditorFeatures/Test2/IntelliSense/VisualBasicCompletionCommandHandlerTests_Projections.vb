@@ -7,9 +7,10 @@ Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TestSimpleWithJustSubjectBuffer() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -43,7 +44,7 @@ End Namespace
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TestAfterDot() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -78,7 +79,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TestInObjectCreationExpression() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[

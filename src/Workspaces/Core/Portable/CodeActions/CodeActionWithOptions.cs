@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     /// <summary>
-    /// A <see cref="CodeAction"/> that can vary with user specified options.
+    /// A <see cref="CodeAction"/> that can vary with user specified options.  Override one of <see
+    /// cref="ComputeOperationsAsync(object, CancellationToken)"/> or <see cref="ComputeOperationsAsync(object,
+    /// IProgress{CodeAnalysisProgress}, CancellationToken)"/> to actually compute the operations for this action.
     /// </summary>
     public abstract class CodeActionWithOptions : CodeAction
     {
@@ -29,28 +31,33 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
+        public Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
+            => GetOperationsAsync(originalSolution: null!, options, CodeAnalysisProgress.None, cancellationToken);
+
+        internal async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
+            Solution originalSolution, object? options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             if (options == null)
             {
                 return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
             }
 
-            var operations = await this.ComputeOperationsAsync(options, cancellationToken).ConfigureAwait(false);
+            var operations = await this.ComputeOperationsAsync(options, progress, cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                operations = await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                operations = await this.PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
             }
 
             return operations;
         }
 
-        internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+        private protected sealed override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArrayOrEmpty();
+            var operations = await this.GetOperationsAsync(originalSolution, options, progress, cancellationToken).ConfigureAwait(false);
+            return operations.ToImmutableArrayOrEmpty();
         }
 
         /// <summary>
@@ -58,7 +65,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+
+        /// <summary>
+        /// Override this method to compute the operations that implement this <see cref="CodeAction"/>. Prefer
+        /// overriding this method over <see cref="ComputeOperationsAsync(object, CancellationToken)"/> when computation
+        /// is long running and progress should be shown to the user.
+        /// </summary>
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            => ComputeOperationsAsync(options, cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();

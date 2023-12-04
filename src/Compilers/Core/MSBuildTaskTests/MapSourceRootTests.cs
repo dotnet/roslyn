@@ -457,5 +457,3 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
     }
 }
 
-
-

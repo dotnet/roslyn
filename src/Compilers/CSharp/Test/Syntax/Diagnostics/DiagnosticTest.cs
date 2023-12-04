@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
             CultureInfo englishCulture = CultureHelpers.EnglishCulture;
 
             DiagnosticInfo di1 = new DiagnosticInfo(provider, 1);
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
 
             DiagnosticInfo di3 = new CustomErrorInfo(provider, "OtherSymbol", new SourceLocation(syntaxTree, new TextSpan(14, 8)));
             var d3 = new CSDiagnostic(di3, new SourceLocation(syntaxTree, new TextSpan(1, 1)));
@@ -100,6 +102,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, d3.AdditionalLocations.Count());
             Assert.Equal(new TextSpan(14, 8), d3.AdditionalLocations.First().SourceSpan);
             Assert.Equal("OtherSymbol", (d3.Info as CustomErrorInfo).OtherSymbol);
+        }
+
+        [Fact, WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        public void DiagnosticInfo_WithSeverity()
+        {
+            var comp = CreateCompilation("");
+            var args = new object[] { comp.GlobalNamespace };
+            var symbol = (Symbol)comp.GlobalNamespace;
+            var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Object));
+
+            verifyWithSeverity(new CSDiagnosticInfo(ErrorCode.ERR_AbstractField));
+            verifyWithSeverity(new DiagnosticInfoWithSymbols(ErrorCode.ERR_DuplicateTypeParameter, args,
+                ImmutableArray.Create(symbol)));
+            verifyWithSeverity(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type));
+            verifyWithSeverity(new LazyObsoleteDiagnosticInfo(symbol, symbol, BinderFlags.None));
+            verifyWithSeverity(new LazyUseSiteDiagnosticsInfoForNullableType(LanguageVersion.CSharp11, type));
+            verifyWithSeverity(new SyntaxDiagnosticInfo(1, 2, ErrorCode.ERR_DuplicateTypeParameter, args));
+            verifyWithSeverity(new XmlSyntaxDiagnosticInfo(XmlParseErrorCode.XML_EndTagExpected, args));
+
+            static void verifyWithSeverity(DiagnosticInfo diagnostic)
+            {
+                var other = diagnostic.GetInstanceWithSeverity(DiagnosticSeverity.Info);
+                Assert.NotSame(diagnostic, other);
+                Assert.Equal(DiagnosticSeverity.Info, other.Severity);
+
+                Assert.Same(diagnostic, diagnostic.GetInstanceWithSeverity(diagnostic.Severity));
+            }
         }
 
         [WorkItem(537801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537801")]
@@ -246,7 +275,7 @@ class X
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
-                        case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_WindowsExperimental:
                         case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                         case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                         case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -271,6 +300,28 @@ class X
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                         case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                        case ErrorCode.WRN_OptionalParamValueMismatch:
+                        case ErrorCode.WRN_ParamsArrayInLambdaOnly:
+                        case ErrorCode.WRN_CapturedPrimaryConstructorParameterPassedToBase:
+                        case ErrorCode.WRN_UnreadPrimaryConstructorParameter:
+                        case ErrorCode.WRN_InterceptorSignatureMismatch:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                        case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                        case ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer:
+                        case ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase:
+                        case ErrorCode.WRN_InlineArrayIndexerNotUsed:
+                        case ErrorCode.WRN_InlineArraySliceNotUsed:
+                        case ErrorCode.WRN_InlineArrayConversionOperatorNotUsed:
+                        case ErrorCode.WRN_InlineArrayNotSupportedByLanguage:
+                        case ErrorCode.WRN_BadArgRef:
+                        case ErrorCode.WRN_ArgExpectedRefOrIn:
+                        case ErrorCode.WRN_RefReadonlyNotVariable:
+                        case ErrorCode.WRN_ArgExpectedIn:
+                        case ErrorCode.WRN_OverridingDifferentRefness:
+                        case ErrorCode.WRN_HidingDifferentRefness:
+                        case ErrorCode.WRN_TargetDifferentRefness:
+                        case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
+                        case ErrorCode.WRN_Experimental:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -354,6 +405,30 @@ class X
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                         case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                        case ErrorCode.WRN_DuplicateAnalyzerReference:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                        case ErrorCode.WRN_ManagedAddr:
+                        case ErrorCode.WRN_EscapeVariable:
+                        case ErrorCode.WRN_EscapeStackAlloc:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                        case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                        case ErrorCode.WRN_RefReturnStructThis:
+                        case ErrorCode.WRN_RefAssignNarrower:
+                        case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                        case ErrorCode.WRN_RefReturnParameter:
+                        case ErrorCode.WRN_RefReturnScopedParameter:
+                        case ErrorCode.WRN_RefReturnParameter2:
+                        case ErrorCode.WRN_RefReturnScopedParameter2:
+                        case ErrorCode.WRN_RefReturnLocal:
+                        case ErrorCode.WRN_RefReturnLocal2:
+                        case ErrorCode.WRN_RefAssignReturnOnly:
+                        case ErrorCode.WRN_RefReturnOnlyParameter:
+                        case ErrorCode.WRN_RefReturnOnlyParameter2:
+                        case ErrorCode.WRN_RefAssignValEscapeWider:
+                        case ErrorCode.WRN_UseDefViolationRefField:
+                        case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                        case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -385,6 +460,11 @@ class X
                         case ErrorCode.WRN_LowerCaseTypeName:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_AddressOfInAsync:
+                        case ErrorCode.WRN_ByValArraySizeConstRequired:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
+                            Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -2876,8 +2956,24 @@ class Program
                     case ErrorCode.ERR_RefReturningCallAndAwait:
                     case ErrorCode.ERR_SpecialByRefInLambda:
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                    case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                    case ErrorCode.ERR_FileTypeNonUniquePath:
+                    case ErrorCode.ERR_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter:
+                    case ErrorCode.ERR_InterceptorMustNotHaveThisParameter:
+                    case ErrorCode.ERR_DuplicateInterceptor:
+                    case ErrorCode.WRN_InterceptorSignatureMismatch:
+                    case ErrorCode.ERR_InterceptorNotAccessible:
+                    case ErrorCode.ERR_InterceptorScopedMismatch:
+                    case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor:
+                    case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor:
+                    case ErrorCode.ERR_InterceptorCannotInterceptNameof:
+                    case ErrorCode.ERR_SymbolDefinedInAssembly:
+                    case ErrorCode.ERR_InterceptorArityNotCompatible:
+                    case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                    case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

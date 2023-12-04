@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.OrganizeImports;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
@@ -51,32 +50,27 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public const int DefaultConditionalExpressionWrappingLength = 120;
 
-#if !CODE_STYLE
-        [DataMember(Order = 0)] public CodeCleanupOptions CleanupOptions { get; init; }
-        [DataMember(Order = 1)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
-        [DataMember(Order = 2)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
-        [DataMember(Order = 3)] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
-        [DataMember(Order = 4)] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
-        [DataMember(Order = 5)] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
-        [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; } = false;
-        [DataMember(Order = 7)] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
-        [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
+        public const int DefaultCollectionExpressionWrappingLength = 120;
 
-        public CodeActionOptions(
-            CodeCleanupOptions cleanupOptions,
-            CodeGenerationOptions codeGenerationOptions,
-            IdeCodeStyleOptions codeStyleOptions)
-        {
-            CleanupOptions = cleanupOptions;
-            CodeGenerationOptions = codeGenerationOptions;
-            CodeStyleOptions = codeStyleOptions;
-        }
+#if !CODE_STYLE
+        [DataMember] public required CodeCleanupOptions CleanupOptions { get; init; }
+        [DataMember] public required CodeGenerationOptions CodeGenerationOptions { get; init; }
+        [DataMember] public required IdeCodeStyleOptions CodeStyleOptions { get; init; }
+        [DataMember] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
+        [DataMember] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
+        [DataMember] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
+        [DataMember] public bool HideAdvancedMembers { get; init; } = false;
+        [DataMember] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
+        [DataMember] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
+        [DataMember] public int CollectionExpressionWrappingLength { get; init; } = DefaultCollectionExpressionWrappingLength;
 
         public static CodeActionOptions GetDefault(LanguageServices languageServices)
-            => new(
-                CodeCleanupOptions.GetDefault(languageServices),
-                CodeGenerationOptions.GetDefault(languageServices),
-                IdeCodeStyleOptions.GetDefault(languageServices));
+            => new()
+            {
+                CleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
+                CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+                CodeStyleOptions = IdeCodeStyleOptions.GetDefault(languageServices)
+            };
 #else
         public static CodeActionOptions GetDefault(LanguageServices languageServices)
             => new();
@@ -135,26 +129,29 @@ namespace Microsoft.CodeAnalysis.CodeActions
         ValueTask<CleanCodeGenerationOptions> OptionsProvider<CleanCodeGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         {
             var codeActionOptions = GetOptions(languageServices);
-            return ValueTaskFactory.FromResult(new CleanCodeGenerationOptions(codeActionOptions.CodeGenerationOptions, codeActionOptions.CleanupOptions));
+            return ValueTaskFactory.FromResult(new CleanCodeGenerationOptions()
+            {
+                GenerationOptions = codeActionOptions.CodeGenerationOptions,
+                CleanupOptions = codeActionOptions.CleanupOptions
+            });
         }
 
         ValueTask<CodeAndImportGenerationOptions> OptionsProvider<CodeAndImportGenerationOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         {
             var codeActionOptions = GetOptions(languageServices);
-            return ValueTaskFactory.FromResult(new CodeAndImportGenerationOptions(codeActionOptions.CodeGenerationOptions, codeActionOptions.CleanupOptions.AddImportOptions));
+            return ValueTaskFactory.FromResult(new CodeAndImportGenerationOptions()
+            {
+                GenerationOptions = codeActionOptions.CodeGenerationOptions,
+                AddImportOptions = codeActionOptions.CleanupOptions.AddImportOptions
+            });
         }
 #endif
     }
 
-    internal sealed class DelegatingCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
+    internal sealed class DelegatingCodeActionOptionsProvider(Func<LanguageServices, CodeActionOptions> @delegate) : AbstractCodeActionOptionsProvider
     {
-        private readonly Func<LanguageServices, CodeActionOptions> _delegate;
-
-        public DelegatingCodeActionOptionsProvider(Func<LanguageServices, CodeActionOptions> @delegate)
-            => _delegate = @delegate;
-
         public override CodeActionOptions GetOptions(LanguageServices languageService)
-            => _delegate(languageService);
+            => @delegate(languageService);
     }
 
     internal static class CodeActionOptionsProviders
@@ -181,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, LanguageServices languageServices)
         {
             var codeActionOptions = provider.GetOptions(languageServices);
-            return new(codeActionOptions.CodeGenerationOptions)
+            return new()
             {
+                CodeGenerationOptions = codeActionOptions.CodeGenerationOptions,
+                CodeCleanupOptions = codeActionOptions.CleanupOptions,
                 ExtractOptions = codeActionOptions.ExtractMethodOptions,
-                AddImportOptions = codeActionOptions.CleanupOptions.AddImportOptions,
-                LineFormattingOptions = codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting
             };
         }
 #endif

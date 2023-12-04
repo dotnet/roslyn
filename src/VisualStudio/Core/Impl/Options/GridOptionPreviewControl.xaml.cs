@@ -5,17 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
         private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
-        private readonly ImmutableArray<(string feature, ImmutableArray<IOption> options)> _groupedEditorConfigOptions;
+        private readonly ImmutableArray<(string feature, ImmutableArray<IOption2> options)> _groupedEditorConfigOptions;
         private readonly string _language;
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
@@ -41,11 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public static string SeverityHeader => ServicesVSResources.Severity;
         public static string GenerateEditorConfigFileFromSettingsText => ServicesVSResources.Generate_dot_editorconfig_file_from_settings;
 
-        internal GridOptionPreviewControl(IServiceProvider serviceProvider,
+        internal GridOptionPreviewControl(
+            IServiceProvider serviceProvider,
             OptionStore optionStore,
             Func<OptionStore, IServiceProvider,
             AbstractOptionPreviewViewModel> createViewModel,
-            ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedEditorConfigOptions,
+            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedEditorConfigOptions,
             string language)
             : base(optionStore)
         {
@@ -55,12 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _createViewModel = createViewModel;
             _language = language;
             _groupedEditorConfigOptions = groupedEditorConfigOptions;
-        }
-
-        internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -114,8 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
 
-            var optionSet = this.OptionStore.GetOptions();
-            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, optionSet, _language);
+            var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, OptionStore, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog
             {
                 Filter = "All files (*.*)|",

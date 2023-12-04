@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
-    internal struct StatisticResult
+    internal readonly struct StatisticResult(int max, int min, double mean, int range, int? mode, int count)
     {
         public static StatisticResult FromList(List<int> values)
         {
@@ -31,60 +31,43 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 total += current;
             }
 
-            var mean = total / values.Count;
-            var median = values[values.Count / 2];
+            var mean = (double)total / values.Count;
 
             var range = max - min;
-            var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).FirstOrDefault().Key;
+            var mode = values.GroupBy(i => i).OrderByDescending(g => g.Count()).First().Key;
 
-            return new StatisticResult(max, min, median, mean, range, mode, values.Count);
+            return new StatisticResult(max, min, mean, range, mode, values.Count);
         }
 
         /// <summary>
         /// maximum value
         /// </summary>
-        public readonly int Maximum;
+        public readonly int Maximum = max;
 
         /// <summary>
         /// minimum value
         /// </summary>
-        public readonly int Minimum;
-
-        /// <summary>
-        /// middle value of the total data set
-        /// </summary>
-        public readonly int? Median;
+        public readonly int Minimum = min;
 
         /// <summary>
         /// average value of the total data set
         /// </summary>
-        public readonly int Mean;
+        public readonly double Mean = mean;
 
         /// <summary>
         /// most frequent value in the total data set
         /// </summary>
-        public readonly int? Mode;
+        public readonly int? Mode = mode;
 
         /// <summary>
         /// difference between max and min value
         /// </summary>
-        public readonly int Range;
+        public readonly int Range = range;
 
         /// <summary>
         /// number of data points in the total data set
         /// </summary>
-        public readonly int Count;
-
-        public StatisticResult(int max, int min, int? median, int mean, int range, int? mode, int count)
-        {
-            this.Maximum = max;
-            this.Minimum = min;
-            this.Median = median;
-            this.Mean = mean;
-            this.Range = range;
-            this.Mode = mode;
-            this.Count = count;
-        }
+        public readonly int Count = count;
 
         /// <summary>
         /// Writes out these statistics to a property bag for sending to telemetry.
@@ -100,9 +83,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             properties.Add(prefix + nameof(Mean), Mean);
             properties.Add(prefix + nameof(Range), Range);
             properties.Add(prefix + nameof(Count), Count);
-
-            if (Median.HasValue)
-                properties.Add(prefix + nameof(Median), Median.Value);
 
             if (Mode.HasValue)
                 properties.Add(prefix + nameof(Mode), Mode.Value);

@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.CodeDom.Compiler;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,14 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -90,9 +88,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
                 var newLine = Options.FormattingOptions.NewLine;
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
-                newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+                var newSourceText = OriginalSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End, OriginalSourceText.Length), newLine));
 
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
@@ -121,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             ///     2. Edits would change more than whitespace.
             ///     3. A previous code action was created that already had the same effect.
             /// </summary>
-            protected async Task<WrapItemsAction> TryCreateCodeActionAsync(
+            protected async Task<WrapItemsAction?> TryCreateCodeActionAsync(
                 ImmutableArray<Edit> edits, string parentTitle, string title)
             {
                 // First, rewrite the tree with the edits provided.
@@ -135,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // Now, format the part of the tree that we edited.  This will ensure we properly 
                 // respect the user preferences around things like comma/operator spacing.
                 var formattedDocument = await FormatDocumentAsync(rewrittenRoot, spanToFormat).ConfigureAwait(false);
-                var formattedRoot = await formattedDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+                var formattedRoot = await formattedDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
 
                 // Now, check if this new formatted tree matches our starting tree, or any of the
                 // trees we've already created for our other code actions.  If so, we don't want to
@@ -161,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // Store the root so we don't just end up creating this code action again.
                 _seenDocumentRoots.Add(formattedRoot);
 
-                return new WrapItemsAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
+                return new WrapItemsAction(title, parentTitle, (_, _) => Task.FromResult(formattedDocument));
             }
 
             private async Task<Document> FormatDocumentAsync(SyntaxNode rewrittenRoot, TextSpan spanToFormat)
@@ -224,13 +221,14 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 Dictionary<SyntaxToken, SyntaxTriviaList> leftTokenToTrailingTrivia,
                 Dictionary<SyntaxToken, SyntaxTriviaList> rightTokenToLeadingTrivia)
             {
-                var root = await OriginalDocument.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
+                var root = await OriginalDocument.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false);
                 var tokens = leftTokenToTrailingTrivia.Keys.Concat(rightTokenToLeadingTrivia.Keys).Distinct().ToImmutableArray();
 
                 // Find the closest node that contains all the tokens we're editing.  That's the
                 // node we'll format at the end.  This will ensure that all formattin respects
                 // user settings for things like spacing around commas/operators/etc.
                 var nodeToFormat = tokens.SelectAsArray(t => t.Parent).FindInnermostCommonNode<SyntaxNode>();
+                Contract.ThrowIfNull(nodeToFormat);
 
                 // Rewrite the tree performing the following actions:
                 //
@@ -262,6 +260,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     trivia: null,
                     computeReplacementTrivia: null);
 
+                Contract.ThrowIfNull(rewrittenRoot);
                 var trackedNode = rewrittenRoot.GetAnnotatedNodes(s_toFormatAnnotation).Single();
 
                 return (root, rewrittenRoot, trackedNode.Span);
@@ -269,41 +268,48 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             public async Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync()
             {
-                // Ask subclass to produce whole nested list of wrapping code actions
-                var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
-
-                var result = ArrayBuilder<CodeAction>.GetInstance();
-                foreach (var group in wrappingGroups)
+                try
                 {
-                    // if a group is empty just ignore it.
-                    var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
-                    if (wrappingActions.Length == 0)
+                    // Ask subclass to produce whole nested list of wrapping code actions
+                    var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
+
+                    using var result = TemporaryArray<CodeAction>.Empty;
+                    foreach (var group in wrappingGroups)
                     {
-                        continue;
+                        // if a group is empty just ignore it.
+                        var wrappingActions = group.WrappingActions.WhereNotNull().ToImmutableArray();
+                        if (wrappingActions.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        // If a group only has one item, and subclass says the item is inlinable,
+                        // then just directly return that nested item as a top level item.
+                        if (wrappingActions.Length == 1 && group.IsInlinable)
+                        {
+                            result.Add(wrappingActions[0]);
+                            continue;
+                        }
+
+                        // Otherwise, sort items and add to the resultant list
+                        var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+
+                        // Make our code action low priority.  This option will be offered *a lot*, and 
+                        // much of  the time will not be something the user particularly wants to do.  
+                        // It should be offered after all other normal refactorings.
+                        result.Add(CodeAction.Create(
+                            wrappingActions[0].ParentTitle, sorted,
+                            group.IsInlinable, CodeActionPriority.Low));
                     }
 
-                    // If a group only has one item, and subclass says the item is inlinable,
-                    // then just directly return that nested item as a top level item.
-                    if (wrappingActions.Length == 1 && group.IsInlinable)
-                    {
-                        result.Add(wrappingActions[0]);
-                        continue;
-                    }
-
-                    // Otherwise, sort items and add to the resultant list
-                    var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
-
-                    // Make our code action low priority.  This option will be offered *a lot*, and 
-                    // much of  the time will not be something the user particularly wants to do.  
-                    // It should be offered after all other normal refactorings.
-                    result.Add(CodeActionWithNestedActions.Create(
-                        wrappingActions[0].ParentTitle, sorted,
-                        group.IsInlinable, CodeActionPriority.Low));
+                    // Finally, sort the topmost list we're building and return that.  This ensures that
+                    // both the top level items and the nested items are ordered appropriate.
+                    return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndClear());
                 }
-
-                // Finally, sort the topmost list we're building and return that.  This ensures that
-                // both the top level items and the nested items are ordered appropriate.
-                return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, CancellationToken, ErrorSeverity.Diagnostic))
+                {
+                    throw;
+                }
             }
         }
     }

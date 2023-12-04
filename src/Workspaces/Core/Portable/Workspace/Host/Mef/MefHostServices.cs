@@ -15,7 +15,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
-    public class MefHostServices : HostServices, IMefHostExportProvider
+    public class MefHostServices(CompositionContext compositionContext) : HostServices, IMefHostExportProvider
     {
         internal delegate MefHostServices CreationHook(IEnumerable<Assembly> assemblies);
 
@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// </summary>
         /// <seealso cref="TestAccessor.HookServiceCreation"/>
         private static CreationHook s_creationHook;
-
-        private readonly CompositionContext _compositionContext;
-
-        public MefHostServices(CompositionContext compositionContext)
-            => _compositionContext = compositionContext;
 
         public static MefHostServices Create(CompositionContext compositionContext)
         {
@@ -61,12 +56,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             => new MefWorkspaceServices(this, workspace);
 
         IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-            => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
+            => compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
         IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
         {
             var importer = new WithMetadataImporter<TExtension, TMetadata>();
-            _compositionContext.SatisfyImports(importer);
+            compositionContext.SatisfyImports(importer);
             return importer.Exports;
         }
 
@@ -109,15 +104,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
         // updated: includes feature assemblies since they now have public API's.
-        private static readonly string[] s_defaultAssemblyNames = new string[]
-            {
+        private static readonly string[] s_defaultAssemblyNames =
+            [
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
                 "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
                 "Microsoft.CodeAnalysis.Features",
                 "Microsoft.CodeAnalysis.CSharp.Features",
                 "Microsoft.CodeAnalysis.VisualBasic.Features"
-            };
+            ];
 
         internal static bool IsDefaultAssembly(Assembly assembly)
         {

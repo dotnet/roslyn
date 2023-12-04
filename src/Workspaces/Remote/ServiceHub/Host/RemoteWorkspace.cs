@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
             return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
         }
 
+        protected internal override bool PartialSemanticsEnabled => true;
+
         /// <summary>
         /// Syncs over the solution corresponding to <paramref name="solutionChecksum"/> and sets it as the current
         /// solution for <see langword="this"/> workspace.  This will also end up updating <see
@@ -107,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<Solution, ValueTask<T>> implementation,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(solutionChecksum);
             Contract.ThrowIfTrue(solutionChecksum == Checksum.Null);
 
             // Gets or creates a solution corresponding to the requested checksum.  This will always succeed, and will
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
                 // below though no matter what happens so that other calls to OOP can properly work.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Any exception thrown in the above (including cancellation) is critical and unrecoverable.  We
                         // will have potentially started work, while also leaving ourselves in some inconsistent state.
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
             }
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -306,23 +307,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = CurrentSolution;
-                var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
-                if (addingSolution)
-                {
-                    // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
-                    // is necessary so that we clear out any open document information this workspace is tracking. Note:
-                    // this seems suspect as the remote workspace should not be tracking any open document state.
-                    ClearSolutionData();
-                }
-
-                newSolution = SetCurrentSolution(newSolution);
-
-                _ = RaiseWorkspaceChangedEventAsync(
-                    addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                // Ensure we update newSolution with the result of SetCurrentSolution.  It will be the one appropriately
+                // 'attached' to this workspace.
+                (_, newSolution) = this.SetCurrentSolution(
+                    _ => newSolution,
+                    changeKind: static (oldSolution, newSolution) =>
+                        (IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
+                    onBeforeUpdate: (oldSolution, newSolution) =>
+                    {
+                        if (IsAddingSolution(oldSolution, newSolution))
+                        {
+                            // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
+                            // is necessary so that we clear out any open document information this workspace is tracking. Note:
+                            // this seems suspect as the remote workspace should not be tracking any open document state.
+                            this.ClearSolutionData();
+                        }
+                    });
 
                 return (newSolution, updated: true);
             }
+
+            static bool IsAddingSolution(Solution oldSolution, Solution newSolution)
+                => oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
         }
 
         public TestAccessor GetTestAccessor()

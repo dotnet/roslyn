@@ -9,13 +9,14 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeGen.CompilationTestData;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class BasicCompilationUtils
     {
-        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = Verification.Passes)
+        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = default)
         {
             if (references == null)
             {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 assemblyName = TestBase.GetUniqueName();
             }
-            var tree = VisualBasicSyntaxTree.ParseText(source);
+            var tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default));
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
             return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }

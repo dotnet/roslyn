@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct ClosureDebugInfo : IEquatable<ClosureDebugInfo>
+    internal readonly struct ClosureDebugInfo : IEquatable<ClosureDebugInfo>
     {
         public readonly int SyntaxOffset;
         public readonly DebugId ClosureId;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal string GetDebuggerDisplay()
         {
-            return $"({ClosureId.GetDebuggerDisplay()} @{SyntaxOffset})";
+            return $"({ClosureId} @{SyntaxOffset})";
         }
     }
 }

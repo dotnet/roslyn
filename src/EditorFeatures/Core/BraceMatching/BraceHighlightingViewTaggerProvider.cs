@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -30,24 +31,18 @@ namespace Microsoft.CodeAnalysis.BraceMatching
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal sealed class BraceHighlightingViewTaggerProvider(
+        IThreadingContext threadingContext,
+        IBraceMatchingService braceMatcherService,
+        IGlobalOptionService globalOptions,
+        [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<BraceHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
     {
-        private readonly IBraceMatchingService _braceMatcherService;
+        private readonly IBraceMatchingService _braceMatcherService = braceMatcherService;
 
-        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public BraceHighlightingViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IBraceMatchingService braceMatcherService,
-            IGlobalOptionService globalOptions,
-            [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
-        {
-            _braceMatcherService = braceMatcherService;
-        }
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(BraceMatchingOptionsStorage.BraceMatching);
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
@@ -174,5 +169,9 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
             }
         }
+
+        // Safe to directly compare as BraceHighlightTag uses singleton instances.
+        protected override bool TagEquals(BraceHighlightTag tag1, BraceHighlightTag tag2)
+            => tag1 == tag2;
     }
 }

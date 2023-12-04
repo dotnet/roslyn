@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
 {
     internal class TestMissingMetadataReferenceResolver : MetadataReferenceResolver
     {
-        internal struct ReferenceAndIdentity
+        internal readonly struct ReferenceAndIdentity
         {
             public readonly MetadataReference Reference;
             public readonly AssemblyIdentity Identity;

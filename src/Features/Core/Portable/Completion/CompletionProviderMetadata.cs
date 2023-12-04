@@ -8,15 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal sealed class CompletionProviderMetadata : OrderableLanguageMetadata
+    internal sealed class CompletionProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
     {
-        public string[]? Roles { get; }
-
-        public CompletionProviderMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-            Roles = (string[]?)data.GetValueOrDefault("Roles")
+        public string[]? Roles { get; } = (string[]?)data.GetValueOrDefault("Roles")
                 ?? (string[]?)data.GetValueOrDefault("TextViewRoles");
-        }
     }
 }

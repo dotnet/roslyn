@@ -11,13 +11,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
-        public static Task<bool> CanNavigateToAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
-        {
-            var workspace = documentSpan.Document.Project.Solution.Workspace;
-            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            return service.CanNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
-        }
-
         private static (Workspace workspace, IDocumentNavigationService service) GetNavigationParts(DocumentSpan documentSpan)
         {
             var solution = documentSpan.Document.Project.Solution;

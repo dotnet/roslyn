@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class SingleLineIfBlockHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(SingleLineIfBlockHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIf1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -22,7 +23,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIf2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -32,7 +33,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIf3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -42,7 +43,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIfNestedInMultilineIf1() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -58,7 +59,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIfNestedInMultilineIf2() As Task
             Await TestAsync(<Text><![CDATA[
 Class C
@@ -74,7 +75,7 @@ End Sub
 End Class]]></Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestSinglelineIfNestedInMultilineIf3() As Task
             Await TestAsync(<Text><![CDATA[
 Class C

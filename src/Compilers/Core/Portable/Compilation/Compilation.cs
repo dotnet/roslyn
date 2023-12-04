@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -28,6 +29,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
         /// <summary>
-        /// This method generates a string that represents the input content to the compiler which impacts 
+        /// This method generates a string that represents the input content to the compiler which impacts
         /// the output of the build. This string is effectively a content key for a <see cref="Compilation"/>
         /// with these values that can be used to identify the outputs.
         ///
@@ -133,14 +135,14 @@ namespace Microsoft.CodeAnalysis
         /// <list type="bullet">
         /// <item>
         /// <description>
-        /// The format is undefined. Consumers should assume the format and content can change between 
+        /// The format is undefined. Consumers should assume the format and content can change between
         /// compiler versions.
         /// </description>
         /// </item>
         /// <item>
         /// <description>
         /// It is designed to be human readable and diffable. This is to help developers
-        /// understand the difference between two compilations which is impacting the deterministic 
+        /// understand the difference between two compilations which is impacting the deterministic
         /// output
         /// </description>
         /// </item>
@@ -159,23 +161,23 @@ namespace Microsoft.CodeAnalysis
         /// The set of inputs that impact deterministic output are described in the following document
         ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
         ///
-        /// There are a few dark corners of determinism that are not captured with this key as they are 
+        /// There are a few dark corners of determinism that are not captured with this key as they are
         /// considered outside the scope of this work:
         ///
         /// <list type="number">
         /// <item>
         /// <description>
-        /// Environment variables: clever developers can subvert determinism by manipulation of 
-        /// environment variables that impact program execution. For example changing normal library 
-        /// loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change 
-        /// in deterministic output of compilation by changing compiler, runtime or generator 
+        /// Environment variables: clever developers can subvert determinism by manipulation of
+        /// environment variables that impact program execution. For example changing normal library
+        /// loading by manipulating the %LIBPATH% environment variable. Doing so can cause a change
+        /// in deterministic output of compilation by changing compiler, runtime or generator
         /// dependencies.
         /// </description>
         /// </item>
         /// <item>
         /// <description>
         /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
-        /// and both normal compilation and this key can have non-deterministic output if they are 
+        /// and both normal compilation and this key can have non-deterministic output if they are
         /// manipulated at the correct point in program execution. That is an existing limitation
         /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
         /// </description>
@@ -627,6 +629,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal AsyncQueue<CompilationEvent>? EventQueue { get; }
 
+        /// <summary>
+        /// If this value is not 0, we might be about to enqueue more events into <see cref="EventQueue"/>.
+        /// In this case, we need to wait for the count to go to zero before completing the queue.
+        ///
+        /// This is necessary in cases where multi-step operations that impact the queue occur. For
+        /// example when a thread of execution is storing cached data on a symbol before pushing
+        /// an event to the queue. If another thread were to come in between those two steps, see the
+        /// cached data it could mistakenly believe the operation was complete and cause the queue
+        /// to close. This counter ensures that the queue will remain open for the duration of a
+        /// complex operation.
+        /// </summary>
+        private int _eventQueueEnqueuePendingCount;
+
         #endregion
 
         #region References
@@ -859,6 +874,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
 
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
@@ -1489,6 +1507,58 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<NullableAnnotation> memberNullableAnnotations);
 
         /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a binary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator ==(int v1, int v2)</c> which the language implicitly supports, even if such
+        /// a symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="name">The binary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
+        /// <param name="returnType">The return type of the binary operator.</param>
+        /// <param name="leftType">The type of the left operand of the binary operator.</param>
+        /// <param name="rightType">The type of the right operand of the binary operator.</param>
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType)
+        {
+            // Can't check 'name' here as VB and C# support a different subset of names.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (leftType is null)
+                throw new ArgumentNullException(nameof(leftType));
+
+            if (rightType is null)
+                throw new ArgumentNullException(nameof(rightType));
+
+            return CommonCreateBuiltinOperator(name, returnType, leftType, rightType);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType);
+
+        /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a unary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator -(int value)</c> which the language implicitly supports, even if such a
+        /// symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
+        /// <param name="returnType">The return type of the unary operator.</param>
+        /// <param name="operandType">The type the operator applies to.</param>
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType)
+        {
+            // Can't check 'name' here as VB and C# support a different subset of names.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (operandType is null)
+                throw new ArgumentNullException(nameof(operandType));
+
+            return CommonCreateBuiltinOperator(name, returnType, operandType);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType);
+
+        /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
         /// to this compilation's programming language.
         /// </summary>
@@ -1692,10 +1762,24 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Unique metadata assembly references that are considered to be used by this compilation.
-        /// For example, if a type declared in a referenced assembly is referenced in source code 
+        /// For example, if a type declared in a referenced assembly is referenced in source code
         /// within this compilation, the reference is considered to be used. Etc.
         /// The returned set is a subset of references returned by <see cref="References"/> API.
         /// The result is undefined if the compilation contains errors.
+        /// 
+        /// The effect of imported namespaces on result of this API depends on whether reporting of
+        /// unused imports is disabled for the compilation. The reporting of unused imports is disabled
+        /// if <see cref="ParseOptions.DocumentationMode"/> is set to <see cref="DocumentationMode.None"/>.
+        /// 
+        /// When unused imports reporting is disabled, all referenced assemblies containing any types
+        /// that belong to imported namespaces are included in the result. I.e. considered used.
+        /// 
+        /// When unused imports reporting is enabled, imported namespaces do not have effect on the result
+        /// of this API. Therefore, removing assembly references that aren't in the result, could potentially
+        /// cause error "CS0246: The type or namespace name could not be found (are you missing a using directive or an assembly reference?)"
+        /// on an unused namespace import. However, that import would be reported by compiler as unused
+        /// for the compilation on which this API was invoked. In order to avoid the errors, it is recommended to
+        /// remove unused assembly references and unused imports at the same time.
         /// </summary>
         public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
 
@@ -1712,9 +1796,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal void RegisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Increment(ref _eventQueueEnqueuePendingCount);
+        }
+
+        internal void UnregisterPossibleUpcomingEventEnqueue()
+        {
+            Interlocked.Decrement(ref _eventQueueEnqueuePendingCount);
+        }
+
         internal void CompleteCompilationEventQueue_NoLock()
         {
             RoslynDebug.Assert(EventQueue != null);
+
+            if (Volatile.Read(ref _eventQueueEnqueuePendingCount) != 0)
+            {
+                SpinWait.SpinUntil(() => Volatile.Read(ref _eventQueueEnqueuePendingCount) == 0);
+            }
 
             // Signal the end of compilation.
             EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
@@ -1734,9 +1833,16 @@ namespace Microsoft.CodeAnalysis
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming, cancellationToken);
             incoming.Free();
             incoming = null;
+            return result;
+        }
+
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, DiagnosticBag incoming, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(incoming is object);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             return result;
         }
 
@@ -2048,7 +2154,7 @@ namespace Microsoft.CodeAnalysis
         /// There are two ways to sign PE files
         ///   1. By directly signing the <see cref="PEBuilder"/>
         ///   2. Write the unsigned PE to disk and use CLR COM APIs to sign.
-        /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But 
+        /// The preferred method is #1 as it's more efficient and more resilient (no reliance on %TEMP%). But
         /// we must continue to support #2 as it's the only way to do the following:
         ///   - Access private keys stored in a key container
         ///   - Do proper counter signature verification for AssemblySignatureKey attributes
@@ -2350,8 +2456,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract bool CompileMethods(
             CommonPEModuleBuilder moduleBuilder,
             bool emittingPdb,
-            bool emitMetadataOnly,
-            bool emitTestCoverageData,
             DiagnosticBag diagnostics,
             Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken);
@@ -2486,8 +2590,6 @@ namespace Microsoft.CodeAnalysis
                 return CompileMethods(
                     moduleBuilder,
                     emittingPdb,
-                    emitMetadataOnly: false,
-                    emitTestCoverageData: false,
                     diagnostics: diagnostics,
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
@@ -2837,8 +2939,6 @@ namespace Microsoft.CodeAnalysis
                     success = CompileMethods(
                         moduleBeingBuilt,
                         emittingPdb: pdbStream != null || embedPdb,
-                        emitMetadataOnly: options.EmitMetadataOnly,
-                        emitTestCoverageData: options.EmitTestCoverageData,
                         diagnostics: diagnostics,
                         filterOpt: null,
                         cancellationToken: cancellationToken);
@@ -3120,10 +3220,10 @@ namespace Microsoft.CodeAnalysis
                 var signKind = IsRealSigned
                     ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
-                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitPeStream = new EmitStream(peStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
                     ? null
-                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
+                    : new EmitStream(metadataPEStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -3148,8 +3248,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
-                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
+                        emitPeStream.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -3157,7 +3257,7 @@ namespace Microsoft.CodeAnalysis
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitOptions.EmitTestCoverageData,
+                        emitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage),
                         privateKeyOpt,
                         cancellationToken))
                     {
@@ -3201,8 +3301,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return
-                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
-                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
+                    emitPeStream.Complete(MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(MessageProvider, diagnostics) ?? true);
             }
             finally
             {
@@ -3326,6 +3426,8 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
+                    moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
+
                     writer.WriteMetadataAndIL(
                         nativePdbWriter,
                         metadataStream,
@@ -3363,6 +3465,16 @@ namespace Microsoft.CodeAnalysis
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
+
+        #endregion
+
+        #region Features
+
+        /// <summary>
+        /// False when the "debug-analyzers" feature flag is set.
+        /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// </summary>
+        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
         #endregion
 
@@ -3664,5 +3776,14 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        /// <summary>
+        /// Determines whether the runtime this <see cref="Compilation"/> is targeting supports a particular capability.
+        /// </summary>
+        /// <remarks>Returns <see langword="false"/> if an unknown capability is passed in.</remarks>
+        public bool SupportsRuntimeCapability(RuntimeCapability capability)
+            => SupportsRuntimeCapabilityCore(capability);
+
+        private protected abstract bool SupportsRuntimeCapabilityCore(RuntimeCapability capability);
     }
 }

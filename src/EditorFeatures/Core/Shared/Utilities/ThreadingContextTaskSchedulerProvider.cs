@@ -14,25 +14,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Editor), Shared]
-    internal sealed class ThreadingContextTaskSchedulerProvider : ITaskSchedulerProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class ThreadingContextTaskSchedulerProvider(IThreadingContext threadingContext) : ITaskSchedulerProvider
     {
-        public TaskScheduler CurrentContextScheduler { get; }
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ThreadingContextTaskSchedulerProvider(IThreadingContext threadingContext)
-        {
-            CurrentContextScheduler = threadingContext.HasMainThread
+        public TaskScheduler CurrentContextScheduler { get; } = threadingContext.HasMainThread
                 ? new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory)
                 : TaskScheduler.Default;
-        }
 
-        private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
+        private sealed class JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory) : TaskScheduler
         {
-            private readonly JoinableTaskFactory _joinableTaskFactory;
-
-            public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
-                => _joinableTaskFactory = joinableTaskFactory;
+            private readonly JoinableTaskFactory _joinableTaskFactory = joinableTaskFactory;
 
             public override int MaximumConcurrencyLevel => 1;
 

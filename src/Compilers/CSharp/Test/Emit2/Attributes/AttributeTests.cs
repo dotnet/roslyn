@@ -39,9 +39,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
-                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // (2,55): error CS7034: The specified version string '<null>' does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithArguments("<null>").WithLocation(2, 55)
                 );
         }
 
@@ -89,7 +89,6 @@ class Program
                 return checker.AddAliasesIfAny(list);
             }
         }
-
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
@@ -589,9 +588,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -621,10 +619,9 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
-            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2).ToString());
         }
 
         [Fact]
@@ -767,6 +764,26 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
     Initializer:
       null
 ");
+        }
+
+        [Fact]
+        public void TestParseInvalidAttributeArgumentList1()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]");
+            Assert.Equal("[]", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
+        }
+
+        [Fact]
+        public void TestParseInvalidAttributeArgumentList2()
+        {
+            var result = SyntaxFactory.ParseAttributeArgumentList("[]", consumeFullText: false);
+            Assert.Equal("", result.ToFullString());
+            Assert.True(result.OpenParenToken.IsMissing);
+            Assert.Empty(result.Arguments);
+            Assert.True(result.CloseParenToken.IsMissing);
         }
 
         [Fact]
@@ -1075,6 +1092,24 @@ static class Program
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
         Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
     }
+
+    [Mark(true, ""Hello"")]
+    static void M1(){}
+
+    [Mark(false, ""World"", ""Hello"")]
+    static void M2(){}
+
+    [Mark(true)]
+    static void M3(){}
+
+    [Mark(a: true)]
+    static void M4(){}
+
+    [Mark(a: false, b: ""M5"")]
+    static void M5(){}
+
+    [Mark(b: ""M6"", a: true)]
+    static void M6(){}
 }", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
@@ -1084,9 +1119,32 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M1").GetAttributes().Single();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M2").GetAttributes().Single();
+            Assert.Equal(@"false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"""World""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M3").GetAttributes().Single();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"Mark", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M4").GetAttributes().Single();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"Mark", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M5").GetAttributes().Single();
+            Assert.Equal(@"a: false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""M5""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M6").GetAttributes().Single();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""M6""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1125,9 +1183,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1165,9 +1222,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1205,9 +1261,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1244,9 +1299,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1316,7 +1370,6 @@ public unsafe partial class A : C, I
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
-
 
         [Fact, WorkItem(545326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545326")]
         public void TestAssemblyAttributes_Bug13670()
@@ -2619,7 +2672,6 @@ public class Test
                 Assert.Equal("FF", GetSingleAttributeName(event6));
                 AssertNoAttributes(event6.AddMethod);
                 AssertNoAttributes(event6.RemoveMethod);
-
 
                 AssertNoAttributes(event7);
                 Assert.Equal("GG", GetSingleAttributeName(event7.AddMethod));
@@ -3963,7 +4015,6 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
 
-
                 property = (PropertySymbol)type.GetMember("P2");
                 var getter = property.GetMethod;
 
@@ -4518,7 +4569,6 @@ public class Program
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, cClass.AsUnboundGenericType());
             };
 
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
@@ -4559,9 +4609,262 @@ class Program
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, bClass.AsUnboundGenericType());
             };
 
-
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericTypeInParameter_Constructor()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public A(B<int>.E e) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_GenericTypeInParameter_Property()
+        {
+            var source = """
+                class A : System.Attribute
+                {
+                    public B<int>.E E { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A(E = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("E", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constructor()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Property()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public T Prop { get; set; }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<B<int>.E>(Prop = B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.ConstructorArguments);
+                var arg = attr.NamedArguments.Single();
+                Assert.Equal("Prop", arg.Key);
+                Assert.Equal(33, arg.Value.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Value.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedClass()
+        {
+            var source = """
+                class A1<T>
+                {
+                    public class A2 : System.Attribute
+                    {
+                        public A2(T t) { }
+                    }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A1<B<int>.E>.A2(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A2");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Object()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                enum E { }
+
+                [A<object>(C.X)]
+                class C
+                {
+                    public const E X = (E)33;
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_Constant()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(T t) { }
+                }
+
+                [A<int>(33)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("System.Int32", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")]
+        public void Attribute_Generic_NestedGeneric()
+        {
+            var source = """
+                class A<T> : System.Attribute
+                {
+                    public A(B<T>.E t) { }
+                }
+
+                struct B<T>
+                {
+                    public enum E { }
+                    public const E C = (E)33;
+                }
+
+                [A<int>(B<int>.C)]
+                class C { }
+                """;
+
+            var verifier = CompileAndVerify(source, symbolValidator: static module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
+                Assert.False(attr.HasErrors);
+                Assert.Empty(attr.NamedArguments);
+                var arg = attr.ConstructorArguments.Single();
+                Assert.Equal(33, arg.Value);
+                Assert.Equal("B<System.Int32>.E", arg.Type.ToTestDisplayString());
+            });
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(542223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542223")]
@@ -5006,7 +5309,6 @@ class C
                 attr = attrs.ElementAt(1);
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
-
 
                 // Verify B attributes
                 attrs = cClass.GetAttributes(attributeTypeB);
@@ -5523,7 +5825,6 @@ class C<T>
             });
         }
 
-
         #endregion
 
         #region Error Tests
@@ -5930,7 +6231,7 @@ public class Test
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(3, 39),
-                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (3,2): error CS7036: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2)
                 );
@@ -7656,12 +7957,12 @@ public class Test<U>
                 // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2()]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
-                // (9,2): error CS8958: 'U': an attribute type argument cannot use type parameters
+                // (9,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<U>]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
-                // (10,2): error CS8958: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
+                // (10,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<System.Collections.Generic.List<U>>]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("U").WithLocation(10, 2),
                 // (10,2): error CS0579: Duplicate 'Gen2<>' attribute
                 // [Gen2<System.Collections.Generic.List<U>>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Gen2<System.Collections.Generic.List<U>>").WithArguments("Gen2<>").WithLocation(10, 2),
@@ -8153,7 +8454,6 @@ public class X
 {
 }
 ";
-
 
             var source3 = @"
 namespace X
@@ -10477,37 +10777,37 @@ class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,2): error CS8960: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
+                // (10,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<dynamic>] // 1
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<dynamic>").WithArguments("dynamic").WithLocation(10, 2),
-                // (11,2): error CS8960: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // (11,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<dynamic>>] // 2
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("List<dynamic>").WithLocation(11, 2),
-                // (12,2): error CS8960: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("dynamic").WithLocation(11, 2),
+                // (12,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<nint>] // 3
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<nint>").WithArguments("nint").WithLocation(12, 2),
-                // (13,2): error CS8960: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
+                // (13,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<nint>>] // 4
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("List<nint>").WithLocation(13, 2),
-                // (14,2): error CS8960: Type 'string?' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("nint").WithLocation(13, 2),
+                // (14,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<string?>] // 5
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string?").WithLocation(14, 2),
-                // (15,2): error CS8960: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string").WithLocation(14, 2),
+                // (15,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<string?>>] // 6
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("List<string?>").WithLocation(15, 2),
-                // (16,2): error CS8960: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("string").WithLocation(15, 2),
+                // (16,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, int b)>] // 7
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, int b)>").WithArguments("(int a, int b)").WithLocation(16, 2),
-                // (17,2): error CS8960: Type 'List<(int a, int b)>' cannot be used in this context because it cannot be represented in metadata.
+                // (17,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<(int a, int b)>>] // 8
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("List<(int a, int b)>").WithLocation(17, 2),
-                // (18,2): error CS8960: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("(int a, int b)").WithLocation(17, 2),
+                // (18,2): error CS8970: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, string? b)>] // 9
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, string? b)>").WithArguments("(int a, string? b)").WithLocation(18, 2));
         }
 
         [Fact]
-        public void GenericAttributeRestrictedTypeArgument()
+        public void GenericAttributeRestrictedTypeArgument_NoUnsafeContext()
         {
             var source = @"
 using System;
@@ -10524,15 +10824,111 @@ class C3 { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7),
                 // (5,7): error CS0306: The type 'int*' may not be used as a type argument
                 // [Attr<int*>] // 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(5, 7),
+                // (8,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(8, 7),
                 // (8,7): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
                 // [Attr<delegate*<int, void>>] // 2
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(8, 7),
                 // (11,7): error CS0306: The type 'TypedReference' may not be used as a type argument
                 // [Attr<TypedReference>] // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(11, 7));
+        }
+
+        [Fact]
+        public void GenericAttributeRestrictedTypeArgument_UnsafeContext()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class Outer
+{
+    [Attr<int*>] // 1
+    class C1 { }
+
+    [Attr<delegate*<int, void>>] // 2
+    class C2 { }
+
+    [Attr<TypedReference>] // 3
+    class C3 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0306: The type 'int*' may not be used as a type argument
+                //     [Attr<int*>] // 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 11),
+                // (10,11): error CS0306: The type 'delegate*<int, void>' may not be used as a type argument
+                //     [Attr<delegate*<int, void>>] // 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, void>").WithArguments("delegate*<int, void>").WithLocation(10, 11),
+                // (13,11): error CS0306: The type 'TypedReference' may not be used as a type argument
+                //     [Attr<TypedReference>] // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(13, 11));
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [Attr<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 7));
+
+            // Legal in C#11.  Allowed for back compat
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_OnUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+[Attr<int*[]>] // 1
+unsafe class C1 { }
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttributePointerArray_InUnsafeType()
+        {
+            var source = @"
+using System;
+class Attr<T> : Attribute { }
+
+unsafe class C
+{
+    [Attr<int*[]>] // 1
+    class C1 { }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -10767,7 +11163,7 @@ class Outer<T2>
                 // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(Prop = default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -10809,7 +11205,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder
@@ -10832,21 +11228,11 @@ class Program
 } // end of class Holder
 ");
 
-            void verify(ModuleSymbol module)
+            static void verify(ModuleSymbol module)
             {
                 var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
                 var attrs = holder.GetAttributes();
                 Assert.Equal(new[] { "Attr<System.String>(\"a\")" }, GetAttributeStrings(attrs));
-            }
-
-            void verifyMetadata(ModuleSymbol module)
-            {
-                // https://github.com/dotnet/roslyn/issues/55190
-                // The compiler should be able to read this attribute argument from metadata.
-                // Once this is fixed, we should be able to use exactly the same 'verify' method for both source and metadata.
-                var holder = module.GlobalNamespace.GetMember<TypeSymbol>("Holder");
-                var attrs = holder.GetAttributes();
-                Assert.Equal(new[] { "Attr<System.String>" }, GetAttributeStrings(attrs));
             }
         }
 
@@ -10871,7 +11257,7 @@ class Outer<T2>
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -10973,6 +11359,284 @@ class C { }
             }
         }
 
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType01()
+        {
+            var source = @"
+using System;
+
+class Container<T>
+{
+    [Attr<T>]
+    class C1
+    {
+    }
+    
+    [AttrContainer<T>.Attr]
+    class C2
+    {
+    }
+    
+    [AttrContainer<T>.B.Attr]
+    class C3
+    {
+    }
+
+    [Attr<T[]>]
+    class C4
+    {
+    }
+}
+
+class Attr<T> : Attribute { }
+
+class AttrContainer<T>
+{  
+    public class Attr : Attribute
+    {
+        public T Value { get; set; }
+    }
+    
+    public class B
+    {
+        public class Attr : Attribute
+        {
+        }
+    }
+}
+
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [Attr<T>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T>").WithArguments("T").WithLocation(6, 6),
+                // (11,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.Attr").WithArguments("T").WithLocation(11, 6),
+                // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [AttrContainer<T>.B.Attr]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6),
+                // (21,6): error CS8968: 'T': an attribute type argument cannot use type parameters
+                //     [Attr<T[]>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T[]>").WithArguments("T").WithLocation(21, 6));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType02()
+        {
+            var source = @"
+using System;
+
+[A<(int A, int B)>.B]
+class C1
+{
+}
+
+[global::A<(int A, int B)>.B]
+class C2
+{
+}
+
+[A<(int A, int B)[]>.B]
+class C3
+{
+}
+
+class A<T>
+{  
+    public class B : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [global::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2),
+                // (14,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)[]>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)[]>.B").WithArguments("(int A, int B)").WithLocation(14, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType03()
+        {
+            var source = @"
+using System;
+
+[A<(int A, int B)>.B]
+class C1
+{
+}
+
+[global::A<(int A, int B)>.B]
+class C2
+{
+}
+
+class A<T>
+{  
+    public class BAttribute : Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [global::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType04()
+        {
+            var source = @"
+using System;
+using N2 = N1;
+[N2::A<(int A, int B)>.B]
+class C
+{
+}
+namespace N1
+{
+    class A<T>
+    {
+        public class BAttribute : Attribute { }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [N2::A<(int A, int B)>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "N2::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType05()
+        {
+            var source = @"
+using AB = A<(int A, int B)>.B;
+
+[AB]
+class C
+{
+}
+
+class A<T>
+{  
+    public class B : System.Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [AB]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact]
+        public void GenericAttribute_Unsafe()
+        {
+            var source = @"
+[A<int*[]>] // 1
+class C
+{
+}
+
+[A<int*[]>]
+unsafe class D
+{
+}
+
+class A<T> : System.Attribute
+{
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<int*[]>] // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 4));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68370")]
+        public void AvoidCascadingDiagnosticsOnMissingAttribute()
+        {
+            var source = """
+[assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+""";
+
+            string expectedOperationTree = """
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Inexistent( ... { _ => 1 })')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Inexistent( ... { _ => 1 })')
+    Children(3):
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'SomeProperty = 1')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'SomeProperty')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'F = null')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'F')
+              Children(0)
+          Right:
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'G = 0 switch { _ => 1 }')
+          Left:
+            IInvalidOperation (OperationKind.Invalid, Type: ?) (Syntax: 'G')
+              Children(0)
+          Right:
+            ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '0 switch { _ => 1 }')
+              Value:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Arms(1):
+                  ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 1')
+                    Pattern:
+                      IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                    Value:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+""";
+            var expectedDiagnostics = new[]
+            {
+                // (1,22): error CS0246: The type or namespace name 'InexistentAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("InexistentAttribute").WithLocation(1, 22),
+                // (1,22): error CS0246: The type or namespace name 'Inexistent' could not be found (are you missing a using directive or an assembly reference?)
+                // [assembly: /*<bind>*/Inexistent(SomeProperty = 1, F = null, G = 0 switch { _ => 1 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Inexistent").WithArguments("Inexistent").WithLocation(1, 22)
+            };
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var firstArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().First();
+            Assert.Equal("SomeProperty = 1", firstArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(firstArgument.Expression).Type.ToTestDisplayString());
+
+            var secondArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(1).First();
+            Assert.Equal("F = null", secondArgument.ToString());
+            Assert.Null(model.GetTypeInfo(secondArgument.Expression).Type);
+
+            var thirdArgument = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Skip(2).Single();
+            Assert.Equal("G = 0 switch { _ => 1 }", thirdArgument.ToString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(thirdArgument.Expression).Type.ToTestDisplayString());
+        }
         #endregion
     }
 }

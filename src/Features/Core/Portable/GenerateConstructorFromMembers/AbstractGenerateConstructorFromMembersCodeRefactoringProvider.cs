@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -57,20 +59,26 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
         protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        protected abstract IFieldSymbol? TryMapToWritableInstanceField(IPropertySymbol property, CancellationToken cancellationToken);
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            return ComputeRefactoringsAsync(context.Document, context.Span,
+            return ComputeRefactoringsAsync(
+                context.Document,
+                context.Span,
                 context.RegisterRefactoring,
-                (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null,
-                context.Options, context.CancellationToken);
+                actions => context.RegisterRefactorings(actions),
+                desiredAccessibility: null,
+                context.Options,
+                context.CancellationToken);
         }
 
-        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+            Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
         {
             var accessibility = intentDataProvider.GetIntentData<GenerateConstructorIntentData>()?.Accessibility;
 
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             await ComputeRefactoringsAsync(
                 priorDocument,
                 priorSelection,
@@ -87,18 +95,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // The refactorings returned will be in the following order (if available)
             // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
-            using var resultsBuilder = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            using var _2 = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
             foreach (var action in actions)
             {
-                var intentResult = await GetIntentProcessorResultAsync(action, priorDocument.Id, cancellationToken).ConfigureAwait(false);
+                // Intents don't current support progress.
+                var intentResult = await GetIntentProcessorResultAsync(
+                    priorDocument, action, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 results.AddIfNotNull(intentResult);
             }
 
             return results.ToImmutable();
 
-            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, DocumentId document, CancellationToken cancellationToken)
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
+                Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
-                var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
+                var operations = await GetCodeActionOperationsAsync(
+                    priorDocument.Project.Solution, codeAction, progressTracker, cancellationToken).ConfigureAwait(false);
 
                 // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
                 // We can only return edits, so we only care about the ApplyChangesOperation.
@@ -109,11 +121,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var type = codeAction.GetType();
-                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, ImmutableArray.Create(document), codeAction.Title, type.Name);
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, ImmutableArray.Create(priorDocument.Id), codeAction.Title, type.Name);
             }
 
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
+                Solution originalSolution,
                 CodeAction action,
+                IProgress<CodeAnalysisProgress> progressTracker,
                 CancellationToken cancellationToken)
             {
                 if (action is GenerateConstructorWithDialogCodeAction dialogAction)
@@ -124,12 +138,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         dialogAction.ViableMembers,
                         dialogAction.PickMembersOptions,
                         selectedAll: true);
-                    var operations = await dialogAction.GetOperationsAsync(options: options, cancellationToken).ConfigureAwait(false);
+                    var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
                     return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
                 }
                 else
                 {
-                    return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+                    return await action.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -173,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             CancellationToken cancellationToken)
         {
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
@@ -222,9 +236,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
+                // ILegacyGlobalOptionsWorkspaceService is not provided in LSP, so don't give the code action with Dialog if it is null
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                if (globalOptions == null)
+                {
+                    return null;
+                }
 
+                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
                     FeaturesResources.Add_null_checks,
@@ -246,9 +265,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
-                    {
                         return GetCodeActions(document, state, addNullChecks, fallbackOptions);
-                    }
                 }
 
                 return default;

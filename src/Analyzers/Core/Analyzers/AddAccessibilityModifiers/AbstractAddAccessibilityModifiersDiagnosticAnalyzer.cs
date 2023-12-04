@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -11,6 +12,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TCompilationUnitSyntax : SyntaxNode
     {
+        protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
+            AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
+
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
                    EnforceOnBuildValues.AddAccessibilityModifiers,
@@ -24,13 +28,17 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
-            if (option.Value == AccessibilityModifiersRequired.Never)
+            if (option.Value == AccessibilityModifiersRequired.Never
+                || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
+            {
                 return;
+            }
 
             ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
         }

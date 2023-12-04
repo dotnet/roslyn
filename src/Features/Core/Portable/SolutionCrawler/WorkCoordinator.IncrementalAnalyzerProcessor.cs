@@ -33,14 +33,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
-                private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
-
-                // NOTE: IDiagnosticAnalyzerService can be null in test environment.
-                private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
                 /// <summary>
                 /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
@@ -60,9 +56,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
-
-                    _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
                     var analyzersGetter = new AnalyzersGetter(analyzerProviders);
 
@@ -80,18 +73,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // event and worker queues
                     _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Workspace.Services.SolutionServices.ExportProvider
+                        .GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
-                }
-
-                private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
-                {
-                    // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
-                    // this can be null in test env.
-                    return (IDiagnosticAnalyzerService?)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
@@ -134,7 +121,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
 
                 private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
-                private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
 
                 public Task AsyncProcessorTask
                 {
@@ -146,9 +132,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             _lowPriorityProcessor.AsyncProcessorTask);
                     }
                 }
-
-                private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
@@ -225,7 +208,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -297,7 +280,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -319,7 +302,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)
@@ -388,22 +371,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private class NullDisposable : IDisposable
+                private class AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
-                    public static readonly IDisposable Instance = new NullDisposable();
-
-                    public void Dispose() { }
-                }
-
-                private class AnalyzersGetter
-                {
-                    private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+                    private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders = analyzerProviders.ToList();
                     private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
-
-                    public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
-                    {
-                        _analyzerProviders = analyzerProviders.ToList();
-                    }
 
                     public ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(Workspace workspace, bool onlyHighPriorityAnalyzer)
                     {

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,9 +14,12 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -24,15 +27,57 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         /// <summary>
         /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
-        /// for all analyzers for each project.
+        /// for all analyzers for the last project to be analyzed.
         /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following document analyses modes for the project:
         ///  1. Span-based analysis for active document (lightbulb)
         ///  2. Background analysis for active and open documents.
         ///  
-        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process,
-        /// and CWT does not seem to drop entries until ForceGC happens.
+        /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process.
+        /// Additionally, we only store the cache entry for the last project to be analyzed instead of maintaining a CWT keyed off
+        /// each project in the solution, as the CWT does not seem to drop entries until ForceGC happens, leading to significant memory
+        /// pressure when there are large number of open documents across different projects to be analyzed by background analysis.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersCacheEntry> s_compilationWithAnalyzersCache = new();
+        private static CompilationWithAnalyzersCacheEntry? s_compilationWithAnalyzersCache = null;
+
+        /// <summary>
+        /// Set of high priority diagnostic computation tasks which are currently executing.
+        /// Any new high priority diagnostic request is added to this set before the core diagnostics
+        /// compute call is performed, and removed from this list after the computation finishes.
+        /// Any new normal priority diagnostic request first waits for all the high priority tasks in this set
+        /// to complete, and moves ahead only after this list becomes empty.
+        /// </summary>
+        /// <remarks>
+        /// Read/write access to this field is guarded by <see cref="s_gate"/>.
+        /// </remarks>
+        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = ImmutableHashSet<Task>.Empty;
+
+        /// <summary>
+        /// Set of cancellation token sources for normal priority diagnostic computation tasks which are currently executing.
+        /// For any new normal priority diagnostic request, a new cancellation token source is created and added to this set
+        /// before the core diagnostics compute call is performed, and removed from this set after the computation finishes.
+        /// Any new high priority diagnostic request first fires cancellation on all the cancellation token sources in this set
+        /// to avoid resource contention between normal and high priority requests.
+        /// Canceled normal priority diagnostic requests are re-attempted from scratch after all the high priority requests complete.
+        /// </summary>
+        /// <remarks>
+        /// Read/write access to this field is guarded by <see cref="s_gate"/>.
+        /// </remarks>
+        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = ImmutableHashSet<CancellationTokenSource>.Empty;
+
+        /// <summary>
+        /// Static gate controlling access to following static fields:
+        /// - <see cref="s_compilationWithAnalyzersCache"/>
+        /// - <see cref="s_highPriorityComputeTasks"/>
+        /// - <see cref="s_normalPriorityCancellationTokenSources"/>
+        /// </summary>
+        private static readonly object s_gate = new();
+
+        /// <summary>
+        /// Solution checksum for the diagnostic request.
+        /// We use this checksum and the <see cref="ProjectId"/> of the diagnostic request as the key
+        /// to the <see cref="s_compilationWithAnalyzersCache"/>.
+        /// </summary>
+        private readonly Checksum _solutionChecksum;
 
         private readonly TextDocument? _document;
         private readonly Project _project;
@@ -41,27 +86,239 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly HostWorkspaceServices _hostWorkspaceServices;
 
-        public DiagnosticComputer(
+        private DiagnosticComputer(
             TextDocument? document,
             Project project,
+            Checksum solutionChecksum,
             IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices)
         {
             _document = document;
             _project = project;
+            _solutionChecksum = solutionChecksum;
             _ideOptions = ideOptions;
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
-
-            // We only track performance from primary branch. All forked branch we don't care such as preview.
-            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Services.GetService<IPerformanceTrackerService>() : null;
+            _hostWorkspaceServices = hostWorkspaceServices;
+            _performanceTracker = project.Solution.Services.GetService<IPerformanceTrackerService>();
         }
 
-        public async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+        public static Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
+            TextDocument? document,
+            Project project,
+            Checksum solutionChecksum,
+            IdeAnalyzerOptions ideOptions,
+            TextSpan? span,
+            IEnumerable<string> analyzerIds,
+            AnalysisKind? analysisKind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            HostWorkspaceServices hostWorkspaceServices,
+            bool isExplicit,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            // PERF: Due to the concept of InFlight solution snapshots in OOP process, we might have been
+            //       handed a Project instance that does not match the Project instance corresponding to our
+            //       cached CompilationWithAnalyzers instance, while the underlying Solution checksum matches
+            //       for our cached entry and the incoming request.
+            //       We detect this case upfront here and re-use the cached CompilationWithAnalyzers and Project
+            //       instance for diagnostic computation, thus improving the performance of analyzer execution.
+            //       This is an important performance optimization for lightbulb diagnostic computation.
+            //       See https://github.com/dotnet/roslyn/issues/66968 for details.
+            lock (s_gate)
+            {
+                if (s_compilationWithAnalyzersCache?.SolutionChecksum == solutionChecksum &&
+                    s_compilationWithAnalyzersCache.Project.Id == project.Id &&
+                    s_compilationWithAnalyzersCache.Project != project)
+                {
+                    project = s_compilationWithAnalyzersCache.Project;
+                    if (document != null)
+                        document = project.GetTextDocument(document.Id);
+                }
+            }
+
+            // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
+            // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
+            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            return isExplicit
+                ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
+                : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetHighPriorityDiagnosticsAsync(
+            IEnumerable<string> analyzerIds,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Step 1:
+            //  - Create the core 'computeTask' for computing diagnostics.
+            var computeTask = GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+
+            // Step 2:
+            //  - Add this computeTask to the set of currently executing high priority tasks.
+            //    This set of high priority tasks is used in 'GetNormalPriorityDiagnosticsAsync'
+            //    method to ensure that any new or cancelled normal priority task waits for all
+            //    the executing high priority tasks before starting its execution.
+            //  - Note that it is critical to do this step prior to Step 3 below to ensure that
+            //    any canceled normal priority tasks in Step 3 do not resume execution prior to
+            //    completion of this high priority computeTask. 
+            lock (s_gate)
+            {
+                Debug.Assert(!s_highPriorityComputeTasks.Contains(computeTask));
+                s_highPriorityComputeTasks = s_highPriorityComputeTasks.Add(computeTask);
+            }
+
+            try
+            {
+                // Step 3:
+                //  - Force cancellation of all the executing normal priority tasks
+                //    to minimize resource and CPU contention between normal priority tasks
+                //    and the high priority computeTask in Step 4 below.
+                CancelNormalPriorityTasks();
+
+                // Step 4:
+                //  - Execute the core 'computeTask' for diagnostic computation.
+                return await computeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                // Step 5:
+                //  - Remove the 'computeTask' from the set of current executing high priority tasks.
+                lock (s_gate)
+                {
+                    Debug.Assert(s_highPriorityComputeTasks.Contains(computeTask));
+                    s_highPriorityComputeTasks = s_highPriorityComputeTasks.Remove(computeTask);
+                }
+            }
+
+            static void CancelNormalPriorityTasks()
+            {
+                ImmutableHashSet<CancellationTokenSource> cancellationTokenSources;
+                lock (s_gate)
+                {
+                    cancellationTokenSources = s_normalPriorityCancellationTokenSources;
+                }
+
+                foreach (var cancellationTokenSource in cancellationTokenSources)
+                {
+                    try
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // CancellationTokenSource might get disposed if the normal priority
+                        // task completes while we were executing this foreach loop.
+                        // Gracefully handle this case and ignore this exception.
+                    }
+                }
+            }
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetNormalPriorityDiagnosticsAsync(
+            IEnumerable<string> analyzerIds,
+            bool reportSuppressedDiagnostics,
+            bool logPerformanceInfo,
+            bool getTelemetryInfo,
+            CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Step 1:
+                //  - Normal priority task must wait for all the executing high priority tasks to complete
+                //    before beginning execution.
+                await WaitForHighPriorityTasksAsync(cancellationToken).ConfigureAwait(false);
+
+                // Step 2:
+                //  - Create a custom 'cancellationTokenSource' associated with the current normal priority
+                //    request and add it to the tracked set of normal priority cancellation token sources.
+                //    This token source allows normal priority computeTasks to be cancelled when
+                //    a subsequent high priority diagnostic request is received.
+                using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                lock (s_gate)
+                {
+                    s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Add(cancellationTokenSource);
+                }
+
+                try
+                {
+                    // Step 3:
+                    //  - Execute the core compute task for diagnostic computation.
+                    return await GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
+                        cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationTokenSource.Token)
+                {
+                    // Step 4:
+                    //  - Attempt to re-execute this cancelled normal priority task by running the loop again.
+                    continue;
+                }
+                finally
+                {
+                    // Step 5:
+                    //  - Remove the 'cancellationTokenSource' for completed or cancelled task.
+                    //    For the case where the computeTask was cancelled, we will create a new
+                    //    'cancellationTokenSource' for the retry.
+                    lock (s_gate)
+                    {
+                        Debug.Assert(s_normalPriorityCancellationTokenSources.Contains(cancellationTokenSource));
+                        s_normalPriorityCancellationTokenSources = s_normalPriorityCancellationTokenSources.Remove(cancellationTokenSource);
+                    }
+                }
+            }
+
+            static async Task WaitForHighPriorityTasksAsync(CancellationToken cancellationToken)
+            {
+                // We loop continuously until we have an empty high priority task queue.
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    ImmutableHashSet<Task> highPriorityTasksToAwait;
+                    lock (s_gate)
+                    {
+                        highPriorityTasksToAwait = s_highPriorityComputeTasks;
+                    }
+
+                    if (highPriorityTasksToAwait.IsEmpty)
+                    {
+                        return;
+                    }
+
+                    // Wait for all the high priority tasks, ignoring all exceptions from it. Loop directly to avoid
+                    // expensive allocations in Task.WhenAll.
+                    foreach (var task in highPriorityTasksToAwait)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (task.IsCompleted)
+                        {
+                            // Make sure to yield so continuations of 'task' can make progress.
+                            await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
+                        }
+                        else
+                        {
+                            await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -69,6 +326,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             CancellationToken cancellationToken)
         {
             var (compilationWithAnalyzers, analyzerToIdMap) = await GetOrCreateCompilationWithAnalyzersAsync(cancellationToken).ConfigureAwait(false);
+            if (compilationWithAnalyzers == null)
+            {
+                return SerializableDiagnosticAnalysisResults.Empty;
+            }
 
             var analyzers = GetAnalyzers(analyzerToIdMap, analyzerIds);
             if (analyzers.IsEmpty)
@@ -82,21 +343,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
-            var cacheService = _project.Solution.Services.GetRequiredService<IProjectCacheService>();
-            using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
-            try
-            {
-                return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                // Do not re-use cached CompilationWithAnalyzers instance in presence of an exception, as the underlying analysis state might be corrupt.
-                s_compilationWithAnalyzersCache.Remove(_project);
-                throw;
-            }
+            return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
+                reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
@@ -116,12 +366,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
-            // Record performance if tracker is available
             if (logPerformanceInfo && _performanceTracker != null)
             {
-                // +1 to include project itself
-                var unitCount = documentAnalysisScope != null ? 1 : _project.DocumentIds.Count + 1;
-                _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount);
+                // Only log telemetry snapshot is we have an active telemetry session,
+                // i.e. user has not opted out of reporting telemetry.
+                var telemetryService = _hostWorkspaceServices.GetRequiredService<IWorkspaceTelemetryService>();
+                if (telemetryService.HasActiveSession)
+                {
+                    // +1 to include project itself
+                    var unitCount = 1;
+                    if (documentAnalysisScope == null)
+                        unitCount += _project.DocumentIds.Count;
+
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache), unitCount, forSpanAnalysis: _span.HasValue);
+                }
             }
 
             var builderMap = await analysisResult.ToResultBuilderMapAsync(
@@ -213,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private async Task<(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
+        private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
         {
             var cacheEntry = await GetOrCreateCacheEntryAsync().ConfigureAwait(false);
             return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);
@@ -226,13 +484,23 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (s_compilationWithAnalyzersCache.TryGetValue(_project, out var data))
+                lock (s_gate)
                 {
-                    return data;
+                    if (s_compilationWithAnalyzersCache?.SolutionChecksum == _solutionChecksum &&
+                        s_compilationWithAnalyzersCache.Project == _project)
+                    {
+                        return s_compilationWithAnalyzersCache;
+                    }
                 }
 
-                data = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
-                return s_compilationWithAnalyzersCache.GetValue(_project, _ => data);
+                var entry = await CreateCompilationWithAnalyzersCacheEntryAsync(cancellationToken).ConfigureAwait(false);
+
+                lock (s_gate)
+                {
+                    s_compilationWithAnalyzersCache = entry;
+                }
+
+                return entry;
             }
         }
 
@@ -258,14 +526,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 analyzerMapBuilder.AppendAnalyzerMap(analyzers);
             }
 
-            var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzers = analyzerBuilder.Count > 0
+                ? await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false)
+                : null;
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
-            return new CompilationWithAnalyzersCacheEntry(compilationWithAnalyzers, analyzerToIdMap);
+            return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
         }
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(!analyzers.IsEmpty);
+
             // Always run analyzers concurrently in OOP
             const bool concurrentAnalysis = true;
 
@@ -282,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _project.Solution, _ideOptions),
+                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,
@@ -294,11 +566,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private sealed class CompilationWithAnalyzersCacheEntry
         {
-            public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
+            public Checksum SolutionChecksum { get; }
+            public Project Project { get; }
+            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
+                SolutionChecksum = solutionChecksum;
+                Project = project;
                 CompilationWithAnalyzers = compilationWithAnalyzers;
                 AnalyzerToIdMap = analyzerToIdMap;
             }

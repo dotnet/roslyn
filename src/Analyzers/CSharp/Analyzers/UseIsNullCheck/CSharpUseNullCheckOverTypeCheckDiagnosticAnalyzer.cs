@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
@@ -41,22 +42,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             });
         }
 
-        private static bool ShouldAnalyze(OperationAnalysisContext context, out ReportDiagnostic severity)
+        private bool ShouldAnalyze(OperationAnalysisContext context, out NotificationOption2 notificationOption)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferNullCheckOverTypeCheck;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
-                severity = ReportDiagnostic.Default;
+                notificationOption = NotificationOption2.Silent;
                 return false;
             }
 
-            severity = option.Notification.Severity;
+            notificationOption = option.Notification;
             return true;
         }
 
         private void AnalyzeNegatedPatternOperation(OperationAnalysisContext context)
         {
-            if (!ShouldAnalyze(context, out var severity) ||
+            if (!ShouldAnalyze(context, out var notificationOption) ||
                 context.Operation.Syntax is not UnaryPatternSyntax)
             {
                 return;
@@ -77,19 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
+                        Descriptor, context.Operation.Syntax.GetLocation(), notificationOption, additionalLocations: null, properties: null));
             }
         }
 
         private void AnalyzeIsTypeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var operation = context.Operation;
+            var semanticModel = operation.SemanticModel;
             var syntax = operation.Syntax;
 
-            if (!ShouldAnalyze(context, out var severity) || syntax is not BinaryExpressionSyntax)
+            Contract.ThrowIfNull(semanticModel);
+
+            if (!ShouldAnalyze(context, out var notificationOption) || syntax is not BinaryExpressionSyntax)
                 return;
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, syntax, expressionType, context.CancellationToken))
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, syntax, expressionType, context.CancellationToken))
                 return;
 
             var isTypeOperation = (IIsTypeOperation)operation;
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             {
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, syntax.GetLocation(), severity, additionalLocations: null, properties: null));
+                        Descriptor, syntax.GetLocation(), notificationOption, additionalLocations: null, properties: null));
             }
         }
     }

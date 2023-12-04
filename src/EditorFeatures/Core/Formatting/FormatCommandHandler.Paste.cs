@@ -51,41 +51,31 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
             if (!caretPosition.HasValue)
+                return;
+
+            var subjectBuffer = args.SubjectBuffer;
+            if (!subjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return;
             }
-
-            var subjectBuffer = args.SubjectBuffer;
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-            {
                 return;
-            }
 
-            if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
-            {
+            if (!_globalOptions.GetOption(FormattingOptionsStorage.FormatOnPaste, document.Project.Language))
                 return;
-            }
 
             var solution = document.Project.Solution;
-            if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return;
-            }
-
             var services = solution.Services;
             var formattingRuleService = services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id))
-            {
                 return;
-            }
 
             var formattingService = document.GetLanguageService<IFormattingInteractionService>();
             if (formattingService == null || !formattingService.SupportsFormatOnPaste)
-            {
                 return;
-            }
 
             var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot).Span.ToTextSpan();
@@ -93,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // Note: C# always completes synchronously, TypeScript is async
             var changes = formattingService.GetFormattingChangesOnPasteAsync(document, subjectBuffer, span, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.IsEmpty)
-            {
                 return;
-            }
 
             subjectBuffer.ApplyChanges(changes);
         }

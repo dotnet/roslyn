@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                  options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
-        protected abstract string GetLanguageName();
-
         /// <summary>
         /// Reports on whether the specified member is suitable for qualification. Some member
         /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
@@ -126,8 +124,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
 
             var shouldOptionBePresent = optionValue.Value;
-            var severity = optionValue.Notification.Severity;
-            if (!shouldOptionBePresent || severity == ReportDiagnostic.Suppress)
+            if (!shouldOptionBePresent || ShouldSkipAnalysis(context, optionValue.Notification))
             {
                 return;
             }
@@ -137,7 +134,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     GetLocation(operation),
-                    severity,
+                    optionValue.Notification,
                     additionalLocations: null,
                     properties: null));
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.None)
             {
                 // root namespace
-                var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+                var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
                 if (root.Externs.Count > 0 ||
                     root.Usings.Count > 0)
                 {
@@ -116,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
-                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective)
-                    && !token.Parent.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
+                if (token.Parent is (kind: SyntaxKind.ExternAliasDirective or SyntaxKind.UsingDirective) &&
+                    !token.Parent.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
                 {
                     return true;
                 }
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
                 if (token.Parent is TypeDeclarationSyntax &&
-                    !(token.Parent.Parent is TypeDeclarationSyntax))
+                    token.Parent.Parent is not TypeDeclarationSyntax)
                 {
                     return true;
                 }
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) &&
-                    !(token.Parent.Parent is TypeDeclarationSyntax))
+                    token.Parent.Parent is not TypeDeclarationSyntax)
                 {
                     return true;
                 }

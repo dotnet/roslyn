@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
         {
             if (node is not ParenthesizedExpressionSyntax parenthesizedExpression)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            if (!modifiersGetter(decl).Any(t => t.Kind() == SyntaxKind.ConstKeyword))
+            if (!modifiersGetter(decl).Any(SyntaxKind.ConstKeyword))
             {
                 return false;
             }

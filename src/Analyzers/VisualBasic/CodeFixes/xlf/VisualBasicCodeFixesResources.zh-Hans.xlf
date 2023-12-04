@@ -22,14 +22,29 @@
         <target state="translated">将 "GetType" 转换为 "NameOf"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_an_Async_Function">
+        <source>Make {0} an Async Function.</source>
+        <target state="translated">使 {0} 为异步函数。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
         <target state="translated">使 "{0}" 可继承</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">删除不必要的导入</target>
+      <trans-unit id="Make_Async_Function">
+        <source>Make Async Function</source>
+        <target state="translated">使成为异步函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_Async_Sub">
+        <source>Make Async Sub</source>
+        <target state="translated">使成为异步 Sub</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

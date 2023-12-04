@@ -102,20 +102,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return project.AnalyzerConfigDocuments.FirstOrDefault(d => d.FilePath == analyzerConfigPath);
         }
 
-        public static AnalyzerConfigDocument? GetOrCreateAnalyzerConfigDocument(this Project project, string analyzerConfigPath)
-        {
-            var existingAnalyzerConfigDocument = project.TryGetExistingAnalyzerConfigDocumentAtPath(analyzerConfigPath);
-            if (existingAnalyzerConfigDocument != null)
-            {
-                return existingAnalyzerConfigDocument;
-            }
-
-            var id = DocumentId.CreateNewId(project.Id);
-            var documentInfo = DocumentInfo.Create(id, ".editorconfig", filePath: analyzerConfigPath);
-            var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
-            return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
-        }
-
         public static async Task<Compilation> GetRequiredCompilationAsync(this Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);

@@ -15,8 +15,9 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CommentSelection)>
     Public Class VisualBasicCommentSelectionTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub Comment1()
             Dim code = <code>Module Program
     [|Sub Main(args As String())
@@ -35,7 +36,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())
@@ -52,7 +53,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat2()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())           |]

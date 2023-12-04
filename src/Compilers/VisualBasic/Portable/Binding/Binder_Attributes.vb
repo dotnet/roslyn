@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)) = visitor.VisitNamedArguments(boundAttribute.NamedArguments, diagnostics)
             Dim isConditionallyOmitted As Boolean = Not visitor.HasErrors AndAlso IsAttributeConditionallyOmitted(boundAttributeType, node, boundAttribute.SyntaxTree)
 
-            Return New SourceAttributeData(node.GetReference(), DirectCast(boundAttribute.Type, NamedTypeSymbol), boundAttribute.Constructor, args, namedArgs, isConditionallyOmitted, hasErrors:=visitor.HasErrors)
+            Return New SourceAttributeData(Compilation, node.GetReference(), DirectCast(boundAttribute.Type, NamedTypeSymbol), boundAttribute.Constructor, args, namedArgs, isConditionallyOmitted, hasErrors:=visitor.HasErrors)
         End Function
 
         Protected Function IsAttributeConditionallyOmitted(attributeType As NamedTypeSymbol, node As AttributeSyntax, syntaxTree As SyntaxTree) As Boolean
@@ -347,6 +347,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Next
 
+                        CheckRequiredMembersInObjectInitializer(methodSym, methodSym.ContainingType, boundNamedArguments, node.Name, diagnostics)
+
                         If Not errorsReported Then
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
@@ -369,7 +371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundAttribute(node, methodSym, boundArguments, defaultArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
         End Function
-
 
         ' Given a list of arguments, create arrays of the bound arguments and pairs of names and expression syntax. Attribute arguments are bound but
         ' named arguments are not yet bound. Assumption is that the parser enforces that named arguments come after arguments.
@@ -480,10 +481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If Not IsAccessible(setMethod, useSiteInfo) Then
-                                ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_InaccessibleMember3,
+                                ReportDiagnostic(diagnostics, identifierName, New BadSymbolDiagnostic(propertySym,
+                                                   ERRID.ERR_InaccessibleMember3,
                                                    propertySym.ContainingSymbol,
                                                    propertySym,
-                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly))
+                                                   AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly)))
                                 hasErrors = True
                             End If
 
@@ -911,7 +913,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Structure
 #End Region
-
 
     End Class
 

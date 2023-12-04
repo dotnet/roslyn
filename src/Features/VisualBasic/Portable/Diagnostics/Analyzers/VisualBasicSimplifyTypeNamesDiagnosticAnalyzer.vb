@@ -35,27 +35,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 codeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
         End Function
 
-        Protected Overrides Function AnalyzeCodeBlock(context As CodeBlockAnalysisContext) As ImmutableArray(Of Diagnostic)
+        Protected Overrides Function AnalyzeCodeBlock(context As CodeBlockAnalysisContext, root As SyntaxNode) As ImmutableArray(Of Diagnostic)
+            Debug.Assert(context.CodeBlock.DescendantNodesAndSelf().Contains(root))
+
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
             Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), cancellationToken)) Then
+                Return ImmutableArray(Of Diagnostic).Empty
+            End If
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=Nothing, cancellationToken)
-            simplifier.Visit(context.CodeBlock)
+            simplifier.Visit(root)
             Return simplifier.Diagnostics
         End Function
 
-        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)) As ImmutableArray(Of Diagnostic)
-            Dim semanticModel = context.SemanticModel
-            Dim cancellationToken = context.CancellationToken
-
-            Dim syntaxTree = semanticModel.SyntaxTree
-            Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree)
+        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, root As SyntaxNode, codeBlockIntervalTree As TextSpanIntervalTree) As ImmutableArray(Of Diagnostic)
             Dim simplifierOptions = context.GetVisualBasicAnalyzerOptions().GetSimplifierOptions()
-            Dim root = syntaxTree.GetRoot(cancellationToken)
+            If (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(simplifierOptions), context.CancellationToken)) Then
+                Return ImmutableArray(Of Diagnostic).Empty
+            End If
 
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
+            Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, context.SemanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, context.CancellationToken)
             simplifier.Visit(root)
             Return simplifier.Diagnostics
         End Function
@@ -112,10 +115,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Return True
-        End Function
-
-        Protected Overrides Function GetLanguageName() As String
-            Return LanguageNames.VisualBasic
         End Function
     End Class
 End Namespace

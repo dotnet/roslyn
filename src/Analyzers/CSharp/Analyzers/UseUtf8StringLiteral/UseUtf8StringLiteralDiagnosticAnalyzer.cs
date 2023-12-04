@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
 
             // Don't offer if the user doesn't want it
             var option = context.GetCSharpAnalyzerOptions().PreferUtf8StringLiterals;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
 
             // Only replace arrays with initializers
@@ -100,22 +100,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
 
             if (arrayCreationOperation.Syntax is ImplicitArrayCreationExpressionSyntax or ArrayCreationExpressionSyntax)
             {
-                ReportArrayCreationDiagnostic(context, arrayCreationOperation.Syntax, option.Notification.Severity);
+                ReportArrayCreationDiagnostic(context, arrayCreationOperation.Syntax, option.Notification);
             }
-            else if (elements.Length > 0 && elements[0].Syntax.Parent is ArgumentSyntax)
+            else if (elements is [{ Syntax.Parent: ArgumentSyntax }, ..])
             {
                 // For regular parameter arrays the code fix will need to search down
-                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Descendants);
+                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification, ArrayCreationOperationLocation.Descendants);
             }
-            else if (elements.Length > 0 && elements[0].Syntax.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
+            else if (elements is [{ Syntax.Parent: (kind: SyntaxKind.CollectionInitializerExpression) }, ..])
             {
                 // For collection initializers where the Add method takes a parameter array, the code fix
                 // will have to search up
-                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification.Severity, ArrayCreationOperationLocation.Ancestors);
+                ReportParameterArrayDiagnostic(context, arrayCreationOperation.Syntax, elements, option.Notification, ArrayCreationOperationLocation.Ancestors);
             }
         }
 
-        private void ReportParameterArrayDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ImmutableArray<IOperation> elements, ReportDiagnostic severity, ArrayCreationOperationLocation operationLocation)
+        private void ReportParameterArrayDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ImmutableArray<IOperation> elements, NotificationOption2 notificationOption, ArrayCreationOperationLocation operationLocation)
         {
             // When the first elements parent is as argument, or an edge case for collection
             // initializers where the Add method takes a param array, it means we have a parameter array.
@@ -124,18 +124,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             var span = TextSpan.FromBounds(elements[0].Syntax.SpanStart, elements[^1].Syntax.Span.End);
             var location = Location.Create(syntaxNode.SyntaxTree, span);
 
-            ReportDiagnostic(context, syntaxNode, severity, location, operationLocation);
+            ReportDiagnostic(context, syntaxNode, notificationOption, location, operationLocation);
         }
 
-        private void ReportArrayCreationDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ReportDiagnostic severity)
+        private void ReportArrayCreationDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, NotificationOption2 notificationOption)
         {
             // When the user writes the array creation we raise the diagnostic on the first token, which will be the "new" keyword
             var location = syntaxNode.GetFirstToken().GetLocation();
 
-            ReportDiagnostic(context, syntaxNode, severity, location, ArrayCreationOperationLocation.Current);
+            ReportDiagnostic(context, syntaxNode, notificationOption, location, ArrayCreationOperationLocation.Current);
         }
 
-        private void ReportDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, ReportDiagnostic severity, Location location, ArrayCreationOperationLocation operationLocation)
+        private void ReportDiagnostic(OperationAnalysisContext context, SyntaxNode syntaxNode, NotificationOption2 notificationOption, Location location, ArrayCreationOperationLocation operationLocation)
         {
             // Store the original syntax location so the code fix can find the operation again
             var additionalLocations = ImmutableArray.Create(syntaxNode.GetLocation());
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             var properties = ImmutableDictionary<string, string?>.Empty.Add(nameof(ArrayCreationOperationLocation), operationLocation.ToString());
 
             context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor, location, severity, additionalLocations, properties));
+                DiagnosticHelper.Create(Descriptor, location, notificationOption, additionalLocations, properties));
         }
 
         internal static bool TryConvertToUtf8String(StringBuilder? builder, ImmutableArray<IOperation> arrayCreationElements)

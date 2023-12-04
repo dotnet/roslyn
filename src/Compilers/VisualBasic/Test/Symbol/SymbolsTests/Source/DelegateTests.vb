@@ -120,7 +120,6 @@ End Class
             Assert.False(delegateEndInvoke.Parameters(1).IsByRef)
             Assert.True(delegateEndInvoke.IsRuntimeImplemented())
 
-
             ' --- test function delegate ----------------------------------------------------------------------------
 
             Dim funcDel As NamedTypeSymbol = CType(compilation.SourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("FuncDel").Single(), NamedTypeSymbol)
@@ -148,7 +147,6 @@ End Class
             Assert.Equal("DelegateAsyncResult", delegateEndInvoke.Parameters(0).Name)
             Assert.False(delegateEndInvoke.Parameters(0).IsByRef)
 
-
             ' --- test generic sub delegate -------------------------------------------------------------------------
             Dim genSubDel As NamedTypeSymbol = CType(compilation.SourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("SubGenDel").Single(), NamedTypeSymbol)
             Assert.Equal("System.MulticastDelegate", genSubDel.BaseType.ToDisplayString(SymbolDisplayFormat.TestFormat))
@@ -163,7 +161,6 @@ End Class
             Assert.False(delegateInvoke.Parameters(0).IsByRef())
             Assert.Equal("T", delegateInvoke.Parameters(0).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
             Assert.True(delegateInvoke.IsRuntimeImplemented())
-
 
             ' --- test generic function delegate -------------------------------------------------------------------------
             Dim genFuncDel As NamedTypeSymbol = CType(compilation.SourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("FuncGenDel").Single(), NamedTypeSymbol)

@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return GetPartialForDynamicType(nodeName);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
@@ -554,7 +554,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

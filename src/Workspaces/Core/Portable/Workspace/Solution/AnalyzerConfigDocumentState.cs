@@ -14,33 +14,33 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class AnalyzerConfigDocumentState : TextDocumentState
     {
-        private readonly ValueSource<AnalyzerConfig> _analyzerConfigValueSource;
+        private readonly AsyncLazy<AnalyzerConfig> _analyzerConfigValueSource;
 
         private AnalyzerConfigDocumentState(
-            HostWorkspaceServices solutionServices,
+            SolutionServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            SourceText sourceTextOpt,
-            ValueSource<TextAndVersion> textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource)
+            ITextAndVersionSource textAndVersionSource,
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
 
         public AnalyzerConfigDocumentState(
+            SolutionServices solutionServices,
             DocumentInfo documentInfo,
-            HostWorkspaceServices solutionServices)
-            : base(documentInfo, solutionServices)
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentInfo, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
 
-        private ValueSource<AnalyzerConfig> CreateAnalyzerConfigValueSource()
+        private AsyncLazy<AnalyzerConfig> CreateAnalyzerConfigValueSource()
         {
             return new AsyncLazy<AnalyzerConfig>(
                 asynchronousComputeFunction: async cancellationToken => AnalyzerConfig.Parse(await GetTextAsync(cancellationToken).ConfigureAwait(false), FilePath),
-                synchronousComputeFunction: cancellationToken => AnalyzerConfig.Parse(GetTextSynchronously(cancellationToken), FilePath),
-                cacheResult: true);
+                synchronousComputeFunction: cancellationToken => AnalyzerConfig.Parse(GetTextSynchronously(cancellationToken), FilePath));
         }
 
         public AnalyzerConfig GetAnalyzerConfig(CancellationToken cancellationToken) => _analyzerConfigValueSource.GetValue(cancellationToken);
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis
         public new AnalyzerConfigDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (AnalyzerConfigDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
             return new AnalyzerConfigDocumentState(
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                this.sourceText,
-                newTextSource);
+                newTextSource,
+                this.LoadTextOptions);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// Describes a command line metadata reference (assembly or netmodule) specification.
     /// </summary>
     [DebuggerDisplay("{Reference,nq}")]
-    public struct CommandLineReference : IEquatable<CommandLineReference>
+    public readonly struct CommandLineReference : IEquatable<CommandLineReference>
     {
         private readonly string _reference;
         private readonly MetadataReferenceProperties _properties;
