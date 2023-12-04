@@ -24,16 +24,10 @@ steps:
     - template: checkout-windows-task.yml
 
   - task: PowerShell@2
-    displayName: Build
+    displayName: Build and Test
     inputs:
       filePath: eng/build.ps1
-      arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
-    
-  - task: PowerShell@2
-    displayName: Test
-    inputs:
-      filePath: eng/build.ps1
-      arguments: -ci -configuration ${{ parameters.configuration }} -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }}
+      arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
