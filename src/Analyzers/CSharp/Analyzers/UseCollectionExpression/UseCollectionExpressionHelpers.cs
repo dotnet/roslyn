@@ -25,11 +25,15 @@ internal static class UseCollectionExpressionHelpers
 {
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
-    private static SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
+    private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
+        // Not relevant.  We are not comparing method signatures.
         distinguishRefFromOut: true,
+        // Not relevant.  We are not comparing method signatures.
+        objectAndDynamicCompareEqually: false,
+        // The value we're tweaking.
         tupleNamesMustMatch: false,
-        ignoreNullableAnnotations: false,
-        objectAndDynamicCompareEqually: false);
+        // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
+        ignoreNullableAnnotations: false);
 
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
