@@ -83,8 +83,8 @@ internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
 
         void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
-            equivalenceVisitors.Add(new EquivalenceVisitor(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
-            getHashCodeVisitors.Add(new GetHashCodeVisitor(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
         }
     }
 
