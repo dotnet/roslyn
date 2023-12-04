@@ -227,14 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             ArrayBuilder<string> codeActionPath,
             ref int currentHighestSetNumber)
         {
-            /*if (!string.IsNullOrEmpty(currentTitle))
-            {
-                // Adding a delimiter for nested code actions, e.g. 'Suppress or Configure issues|Suppress IDEXXXX|in Source'
-                currentTitle += '|';
-            }*/
-
             var codeAction = suggestedAction.OriginalCodeAction;
-            //currentTitle += codeAction.Title;
 
             var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
