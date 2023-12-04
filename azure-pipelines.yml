@@ -212,7 +212,7 @@ stages:
       jobName: Test_macOS_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
+      testArguments: --testCoreClr --helixQueueName OSX.13.Amd64.Open
 
 - stage: Correctness
   dependsOn: []
