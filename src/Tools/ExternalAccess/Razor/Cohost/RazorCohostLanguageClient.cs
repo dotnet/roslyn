@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 /// by the Razor tooling team in the Razor tooling repo.
 /// </summary>
 [ContentType(Constants.RazorLSPContentType)]
-[ClientName("RazorCohost")]
 [Export(typeof(ILanguageClient))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,9 +34,11 @@ internal sealed class RazorCohostLanguageClient(
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider,
     [Import(AllowDefault = true)] IRazorCohostCapabilitiesProvider? razorCapabilitiesProvider = null,
-    [Import(AllowDefault = true)] IRazorCustomMessageTarget? razorCustomMessageTarget = null)
+    [Import(AllowDefault = true)] IRazorCustomMessageTarget? razorCustomMessageTarget = null,
+    [Import(AllowDefault = true)] IRazorCohostLanguageClientActivationService? razorCohostLanguageClientActivationService = null)
     : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider, middleLayer: null)
 {
+    private readonly IRazorCohostLanguageClientActivationService? _razorCohostLanguageClientActivationService = razorCohostLanguageClientActivationService;
     private readonly IRazorCohostCapabilitiesProvider? _razorCapabilitiesProvider = razorCapabilitiesProvider;
     private readonly IRazorCustomMessageTarget? _razorCustomMessageTarget = razorCustomMessageTarget;
 
@@ -47,6 +48,16 @@ internal sealed class RazorCohostLanguageClient(
 
     public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
+        if (_razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() != true)
+        {
+            // A default return would still opt us in to TextDocumentSync for open files, but even that's
+            // wasteful if we don't want to handle anything, as we'd track document content.
+            return new()
+            {
+                TextDocumentSync = null
+            };
+        }
+
         Contract.ThrowIfNull(_razorCapabilitiesProvider);
 
         // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
@@ -69,7 +80,7 @@ internal sealed class RazorCohostLanguageClient(
     /// <summary>
     /// If the cohost server is expected to activate then any failures are catastrophic as no razor features will work.
     /// </summary>
-    public override bool ShowNotificationOnInitializeFailed => true;
+    public override bool ShowNotificationOnInitializeFailed => _razorCohostLanguageClientActivationService?.ShouldActivateCohostServer() == true;
 
     public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorCohostServer;
 }

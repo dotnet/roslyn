@@ -30,6 +30,7 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         .AddParts(
             typeof(RazorHandler),
             typeof(RazorCohostCapabilitiesProvider),
+            typeof(RazorCohostLanguageClientActivationService),
             typeof(NoOpLspLoggerFactory));
 
     [WpfFact]
@@ -223,5 +224,14 @@ public class RazorCohostTests(ITestOutputHelper testOutputHelper) : AbstractLang
         {
             return "{ }";
         }
+    }
+
+    [PartNotDiscoverable]
+    [Export(typeof(IRazorCohostLanguageClientActivationService)), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    private class RazorCohostLanguageClientActivationService() : IRazorCohostLanguageClientActivationService
+    {
+        public bool ShouldActivateCohostServer() => true;
     }
 }
