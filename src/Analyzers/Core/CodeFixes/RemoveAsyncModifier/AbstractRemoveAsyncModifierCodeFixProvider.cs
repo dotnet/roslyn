@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
         private static bool ShouldOfferFix(ITypeSymbol returnType, KnownTypes knownTypes)
             => IsTaskType(returnType, knownTypes)
                 || returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType)
-                || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt);
+                || returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTType);
 
         private static bool IsTaskType(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.TaskType)

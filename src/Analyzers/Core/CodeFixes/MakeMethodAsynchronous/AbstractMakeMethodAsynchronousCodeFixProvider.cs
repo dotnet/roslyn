@@ -197,36 +197,5 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var newDocument = document.WithSyntaxRoot(newRoot);
             return newDocument.Project.Solution;
         }
-
-        protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
-        {
-            if (returnType.Equals(knownTypes.TaskType))
-            {
-                return true;
-            }
-
-            if (returnType.Equals(knownTypes.ValueTaskType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(knownTypes.ValueTaskOfTTypeOpt))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType())
-            {
-                return returnType.Name.Equals("Task") ||
-                       returnType.Name.Equals("ValueTask");
-            }
-
-            return false;
-        }
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
             => IsIAsyncEnumerableOrEnumerator(type, knownTypes) ||
-               IsTaskLike(type, knownTypes);
+               knownTypes.IsTaskLike(type);
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid,
@@ -129,21 +129,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 var returnType = methodSymbol.ReturnType;
                 if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
                 {
-                    newReturnType = knownTypes.IAsyncEnumerableOfTTypeOpt is null
+                    newReturnType = knownTypes.IAsyncEnumerableOfTType is null
                         ? MakeGenericType(nameof(IAsyncEnumerable<int>), methodSymbol.ReturnType)
-                        : knownTypes.IAsyncEnumerableOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes.IAsyncEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol, cancellationToken))
                 {
-                    newReturnType = knownTypes.IAsyncEnumeratorOfTTypeOpt is null
+                    newReturnType = knownTypes.IAsyncEnumeratorOfTType is null
                         ? MakeGenericType(nameof(IAsyncEnumerator<int>), methodSymbol.ReturnType)
-                        : knownTypes.IAsyncEnumeratorOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes.IAsyncEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
                 else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
                 {
                     // Leave the return type alone
                 }
-                else if (!IsTaskLike(returnType, knownTypes))
+                else if (!knownTypes.IsTaskLike(returnType))
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.
@@ -167,8 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             => method.Locations.Any(static (loc, cancellationToken) => loc.FindNode(cancellationToken).ContainsYield(), cancellationToken);
 
         private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
-            => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTTypeOpt) ||
-               returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTTypeOpt);
+            => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTType) ||
+               returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumeratorOfTType);
 
         private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
             => returnType.OriginalDefinition.Equals(knownTypes.IEnumerableOfTType);
