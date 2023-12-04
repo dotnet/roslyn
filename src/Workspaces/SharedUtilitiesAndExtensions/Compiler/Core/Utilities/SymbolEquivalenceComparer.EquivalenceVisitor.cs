@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-////#define TRACKDEPTH
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -21,21 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             bool objectAndDynamicCompareEqually)
         {
 
-#if TRACKDEPTH
-            private int depth = 0;
-#endif
             public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
-#if TRACKDEPTH
-                try
-                { 
-                this.depth++;
-                if (depth > 100)
-                {
-                    throw new InvalidOperationException("Stack too deep.");
-                }
-#endif
-
                 if (ReferenceEquals(x, y))
                 {
                     return true;
@@ -65,14 +50,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 
                 return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
-
-#if TRACKDEPTH
-            }
-            finally
-            {
-                this.depth--;
-            }
-#endif
             }
 
             internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
