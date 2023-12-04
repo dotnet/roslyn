@@ -3583,4 +3583,65 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestAbstractClass1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    protected [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    internal C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

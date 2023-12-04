@@ -278,8 +278,17 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 if (primaryConstructor.Parameters.Length == 0)
                     return null;
 
-                if (primaryConstructor.DeclaredAccessibility != Accessibility.Public)
+                // protected constructor in an abstract type is fine.  It will stay protected even as a primary constructor.
+                // otherwise it has to be public.
+                if (primaryConstructor.DeclaredAccessibility == Accessibility.Protected)
+                {
+                    if (!namedType.IsAbstract)
+                        return null;
+                }
+                else if (primaryConstructor.DeclaredAccessibility != Accessibility.Public)
+                {
                     return null;
+                }
 
                 // Constructor has to have a real body (can't be extern/etc.).
                 if (primaryConstructorDeclaration is { Body: null, ExpressionBody: null })
