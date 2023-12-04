@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
-                => symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
+                => symbolEquivalenceComparer._assemblyComparer?.Equals(x, y) ?? true;
 
             private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             /// <param name="y">The second type to compare</param>
             /// <param name="equivalentTypesWithDifferingAssemblies">
             /// Map of equivalent non-nested types to be populated, such that each key-value pair of named types are equivalent but reside in different assemblies.
-            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assemblyComparerOpt"/> is true.
+            /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assemblyComparer"/> is true.
             /// </param>
             /// <returns>True if the two types are equivalent.</returns>
             private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                if (x.IsGlobalNamespace && symbolEquivalenceComparer._assemblyComparerOpt == null)
+                if (x.IsGlobalNamespace && symbolEquivalenceComparer._assemblyComparer == null)
                 {
                     // No need to compare the containers of global namespace when assembly identities are ignored.
                     return true;

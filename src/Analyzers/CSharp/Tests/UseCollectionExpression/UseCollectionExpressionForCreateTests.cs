@@ -1182,4 +1182,38 @@ public class UseCollectionExpressionForCreateTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70998")]
+    public async Task ForMismatchedTupleNames()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<(int A, int B)> M()
+                    {
+                        return [|ImmutableArray.[|Create|](|](A: 1, 2));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<(int A, int B)> M()
+                    {
+                        return [(A: 1, 2)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
