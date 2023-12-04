@@ -182,24 +182,20 @@ internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
 
     private static bool CheckContainingType(IMethodSymbol x)
     {
-        if (x.MethodKind == MethodKind.DelegateInvoke &&
-            x.ContainingType != null &&
-            x.ContainingType.IsAnonymousType)
-        {
+        if (x is { MethodKind: MethodKind.DelegateInvoke, ContainingType.IsAnonymousType: true })
             return false;
-        }
-        else if (x.MethodKind == MethodKind.FunctionPointerSignature)
-        {
-            // We use the signature of a function pointer type to determine equivalence, but
-            // function pointer types do not have containing types.
+
+        // We use the signature of a function pointer type to determine equivalence, but
+        // function pointer types do not have containing types.
+        if (x.MethodKind == MethodKind.FunctionPointerSignature)
             return false;
-        }
 
         return true;
     }
 
     private static OneOrMany<INamedTypeSymbol> Unwrap(INamedTypeSymbol namedType)
     {
+        // Make the common case non-allocating.
         if (namedType is not IErrorTypeSymbol errorType)
             return OneOrMany.Create(namedType);
 
@@ -222,9 +218,10 @@ internal partial class SymbolEquivalenceComparer : IEqualityComparer<ISymbol?>
         => symbol.PartialDefinitionPart != null;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
-    {
-        // Treat static classes as modules.
-        var k = x.TypeKind;
-        return k == TypeKind.Module ? TypeKind.Class : k;
-    }
+        => x.TypeKind switch
+        {
+            // Treat static classes and modules as equivalent.
+            TypeKind.Module => TypeKind.Class,
+            var v => v,
+        };
 }
