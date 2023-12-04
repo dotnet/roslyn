@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
     public class ForEachCastTests
     {
         private static async Task TestWorkerAsync(
-            string testCode, string fixedCode, string optionValue)
+            string testCode, string fixedCode, string optionValue, ReferenceAssemblies? referenceAssemblies)
         {
             await new VerifyCS.Test
             {
@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
                 [*]
                 dotnet_style_prefer_foreach_explicit_cast_in_source=
                 """ + optionValue,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+                ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
             }.RunAsync();
         }
 
-        private static Task TestAlwaysAsync(string markup, string alwaysMarkup)
-            => TestWorkerAsync(markup, alwaysMarkup, "always");
+        private static Task TestAlwaysAsync(string markup, string alwaysMarkup, ReferenceAssemblies? referenceAssemblies = null)
+            => TestWorkerAsync(markup, alwaysMarkup, "always", referenceAssemblies);
 
-        private static Task TestWhenStronglyTypedAsync(string markup, string nonLegacyMarkup)
-            => TestWorkerAsync(markup, nonLegacyMarkup, "when_strongly_typed");
+        private static Task TestWhenStronglyTypedAsync(string markup, string nonLegacyMarkup, ReferenceAssemblies? referenceAssemblies = null)
+            => TestWorkerAsync(markup, nonLegacyMarkup, "when_strongly_typed", referenceAssemblies);
 
         [Fact]
         public async Task NonGenericIComparableCollection()
@@ -1096,8 +1096,8 @@ public static class Program
     }
 }
 ";
-            await TestAlwaysAsync(test, test);
-            await TestWhenStronglyTypedAsync(test, test);
+            await TestAlwaysAsync(test, test, ReferenceAssemblies.Net.Net80);
+            await TestWhenStronglyTypedAsync(test, test, ReferenceAssemblies.Net.Net80);
         }
 
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
@@ -1130,8 +1130,8 @@ public static class Program
     }
 }
 ";
-            await TestAlwaysAsync(test, code);
-            await TestWhenStronglyTypedAsync(test, code);
+            await TestAlwaysAsync(test, code, ReferenceAssemblies.Net.Net80);
+            await TestWhenStronglyTypedAsync(test, code, ReferenceAssemblies.Net.Net80);
         }
 
         [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
@@ -1177,6 +1177,81 @@ public class C : IEnumerable<Match>
 ";
             await TestAlwaysAsync(test, test);
             await TestWhenStronglyTypedAsync(test, test);
+        }
+
+        [Fact, WorkItem(63470, "https://github.com/dotnet/roslyn/issues/63470")]
+        public async Task WeaklyTypedGetEnumeratorWithIEnumerableOfT_DifferentTypeUsedInForEach()
+        {
+            var code = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class C : IEnumerable<string>
+{
+    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+
+    public static void M(C c)
+    {
+        [|foreach|] (C x in c)
+        {
+        }
+    }
+
+    private class Enumerator : IEnumerator
+    {
+        public object Current => ""String"";
+
+        public bool MoveNext()
+        {
+            return true;
+        }
+
+        public void Reset()
+        {
+        }
+    }
+}
+";
+
+            var fixedCode = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+public class C : IEnumerable<string>
+{
+    public IEnumerator GetEnumerator() => new Enumerator(); // compiler picks this for the foreach loop.
+
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => null; // compiler doesn't use this.
+
+    public static void M(C c)
+    {
+        foreach (C x in c.Cast<C>())
+        {
+        }
+    }
+
+    private class Enumerator : IEnumerator
+    {
+        public object Current => ""String"";
+
+        public bool MoveNext()
+        {
+            return true;
+        }
+
+        public void Reset()
+        {
+        }
+    }
+}
+";
+            await TestAlwaysAsync(code, fixedCode);
+            await TestWhenStronglyTypedAsync(code, fixedCode);
         }
     }
 }
