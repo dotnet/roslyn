@@ -96,18 +96,16 @@
   </Target>
 
   <Target Name="MetalamaCompilerUpdateNuspec" DependsOnTargets="MetalamaCompilerGenerateNuspec" Condition="$(IsPackable) == 'true'  AND $(MetalamaCompilerDisablePackCustomization)!='true'">
+
     <ItemGroup>
-      <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'"/>
+      <NuspecFileAbsolutePaths Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'"/>
     </ItemGroup>
 
-    <PropertyGroup>
-      <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
-    </PropertyGroup>
     <ItemGroup>
       <MetalamaSdkPackageReplacement Include="Metalama.Compiler.Sdk" ReplacedBy="Metalama.Compiler"/>
     </ItemGroup>
 
-    <RewriteMetalamaSdkNuspec File="$(NuspecFileAbsolutePath)" Replacements="@(MetalamaSdkPackageReplacement)"/>
+    <RewriteMetalamaSdkNuspec File="%(NuspecFileAbsolutePaths.Identity)" Replacements="@(MetalamaSdkPackageReplacement)"/>
 
   </Target>
 

@@ -14,6 +14,7 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <!-- <Metalama> -->
     <NuspecPackageId>Metalama.Compiler</NuspecPackageId>
+
  
     <PackageDescription>
       THIS IS NOT THE PACKAGE YOU ARE LOOKING FOR. If you want to add Metalama to your project, add a reference to the package named `Metalama.Framework`.
@@ -26,6 +27,9 @@
     <PackageIcon>metalama.png</PackageIcon>
     <PackageIconFullPath>$(AssetsDirectory)\metalama.png</PackageIconFullPath>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Avoid error NU5017: Cannot create a package that has no dependencies nor content. -->
+    <IncludeSymbols>false</IncludeSymbols>
     <!-- </Metalama> -->
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->

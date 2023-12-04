@@ -16,5 +16,13 @@
    
   </PropertyGroup>
 
+  <!-- <Metalama> -->
+  <PropertyGroup>
+    <RepoKind>GitHub</RepoKind>
+  </PropertyGroup>
+  
+  <Import Sdk="PostSharp.Engineering.Sdk" Project="SourceLink.props"/>
+  <!-- </Metalama> -->
+
 </Project>
 
