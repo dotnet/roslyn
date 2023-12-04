@@ -40,8 +40,8 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-            // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-            Assert.Equal(4, spans.Length);
+            // ensure all 5 outlining region tags were found (usings, class, method, lambda, argument list)
+            Assert.Equal(5, spans.Length);
         }
 
         [Fact]
@@ -64,8 +64,8 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-            // ensure all 4 outlining region tags were found (usings, class, method, lambda)
-            Assert.Equal(4, spans.Length);
+            // ensure all 5 outlining region tags were found (usings, class, method, lambda, argument list)
+            Assert.Equal(5, spans.Length);
         }
 
         [Fact]
@@ -88,8 +88,8 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var spans = await GetSpansFromWorkspaceAsync(workspace);
 
-            // ensure all 4 outlining region tags were found (usings, class, method, anonymous delegate)
-            Assert.Equal(4, spans.Length);
+            // ensure all 5 outlining region tags were found (usings, class, method, anonymous delegate, argument list)
+            Assert.Equal(5, spans.Length);
         }
 
         private static async Task<ImmutableArray<BlockSpan>> GetSpansFromWorkspaceAsync(
