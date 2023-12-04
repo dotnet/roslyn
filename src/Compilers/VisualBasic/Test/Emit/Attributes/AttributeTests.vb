@@ -5250,6 +5250,36 @@ BC30668: 'C' is obsolete: 'error'.
         End Sub
 
         <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete_ReverseOrder()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+<System.Obsolete("error", True)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
         Public Sub ExperimentalWithDiagnosticsId_WithObsolete_Metadata()
             Dim attrReference = CreateCSharpCompilation(experimentalAttributeCSharpSrc).EmitToImageReference()
 
