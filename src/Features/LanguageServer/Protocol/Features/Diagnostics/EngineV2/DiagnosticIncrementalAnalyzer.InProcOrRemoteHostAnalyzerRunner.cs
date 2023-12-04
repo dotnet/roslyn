@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -84,6 +85,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
                     client: null, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+            if (!options.RunSourceGeneratorsInSameProcessOnly)
+            {
+                var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+                if (remoteHostClient != null)
+                {
+                    var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                        project.Solution,
+                        invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (!result.HasValue)
+                        return ImmutableArray<Diagnostic>.Empty;
+
+                    return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(

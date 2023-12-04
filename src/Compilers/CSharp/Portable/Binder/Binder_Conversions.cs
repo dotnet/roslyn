@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression ConvertCollectionExpression(
+        private BoundCollectionExpression ConvertCollectionExpression(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
             Conversion conversion,
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
-                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType);
+                        collectionBuilderInvocationPlaceholder = new BoundValuePlaceholder(syntax, collectionBuilderMethod.ReturnType) { WasCompilerGenerated = true };
                         collectionBuilderInvocationConversion = CreateConversion(collectionBuilderInvocationPlaceholder, targetType, diagnostics);
 
                         ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
@@ -650,9 +650,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (targetType is TypeParameterSymbol typeParameter)
                 {
-                    var arguments = AnalyzedArguments.GetInstance();
-                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, arguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
-                    arguments.Free();
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindTypeParameterCreationExpression(syntax, typeParameter, analyzedArguments, initializerOpt: null, typeSyntax: syntax, wasTargetTyped: true, diagnostics);
+                    collectionCreation.WasCompilerGenerated = true;
+                    analyzedArguments.Free();
                 }
                 else
                 {
@@ -735,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(enumeratorInfo is { });
                 Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
-                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+                var elementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
                 var convertElement = CreateConversion(
                     element.Syntax,
                     elementPlaceholder,
@@ -764,6 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 ref collectionExpr,
                 isAsync: false,
+                isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,
                 builder: out _);

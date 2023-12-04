@@ -698,8 +698,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // In such case we report a rude edit for the document. If the host is actually running out of memory,
                 // it might throw another OOM here or later on.
                 var diagnostic = (e is OutOfMemoryException)
-                    ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { newDocument.FilePath })
-                    : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
+                    ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [newDocument.FilePath])
+                    : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [newDocument.FilePath, e.ToString()]);
 
                 // Report as "syntax error" - we can't analyze the document
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, ImmutableArray.Create(diagnostic), syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
@@ -3118,6 +3118,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration, syntaxMap, newSymbol.IsStatic,
                                     isMemberWithDeletedInitializer: isOldDeclarationWithInitializer && !isNewDeclarationWithInitializer);
+
+                                // Syntax map will be aggregated into one created for the constructor edit.
+                                // It should not be set on the edit of the member with an initializer.
+                                syntaxMap = null;
                             }
 
                             if (isConstructorWithMemberInitializers)
@@ -6253,6 +6257,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ISymbol? oldCapturedThisParameter = null;
             ISymbol? newCapturedThisParameter = null;
+            var oldThisCaptureIndex = -1;
 
             for (var oldCaptureIndex = 0; oldCaptureIndex < oldCaptures.Length; oldCaptureIndex++)
             {
@@ -6260,7 +6265,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (oldCapture.IsThis)
                 {
-                    oldCapturedThisParameter ??= oldCapture.Symbol;
+                    // captures are unique, so we can only have one that represents this pointer:
+                    Debug.Assert(oldCapturedThisParameter == null);
+                    Debug.Assert(oldThisCaptureIndex == -1);
+
+                    oldCapturedThisParameter = oldCapture.Symbol;
+                    oldThisCaptureIndex = oldCaptureIndex;
                 }
                 else if (oldCapture.Symbol is IParameterSymbol oldParameterCapture)
                 {
@@ -6279,7 +6289,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (newCapture.IsThis)
                 {
-                    newCapturedThisParameter ??= newCapture.Symbol;
+                    // captures are unique, so we can only have one that represents this pointer:
+                    Debug.Assert(newCapturedThisParameter == null);
+
+                    newCapturedThisParameter = newCapture.Symbol;
+                    reverseCapturesMap[newCaptureIndex] = oldThisCaptureIndex;
                     continue;
                 }
 

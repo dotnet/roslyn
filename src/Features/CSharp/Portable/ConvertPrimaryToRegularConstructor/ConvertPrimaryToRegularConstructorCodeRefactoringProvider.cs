@@ -105,7 +105,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         // Find any field/properties whose initializer references a primary constructor parameter.  These initializers
         // will have to move inside the constructor we generate.
-        var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrProperties().ConfigureAwait(false);
+        var initializedFieldsAndProperties = await GetExistingAssignedFieldsOrPropertiesAsync().ConfigureAwait(false);
 
         var constructorAnnotation = new SyntaxAnnotation();
 
@@ -208,7 +208,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
             return result.ToImmutableDictionary();
         }
 
-        async Task<ImmutableHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrProperties()
+        async Task<ImmutableHashSet<(ISymbol fieldOrProperty, EqualsValueClauseSyntax initializer)>> GetExistingAssignedFieldsOrPropertiesAsync()
         {
             using var _1 = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var initializers);
             foreach (var (parameter, references) in parameterReferences)

@@ -27,6 +27,7 @@ internal static class UseCollectionExpressionHelpers
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
         ExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
@@ -54,6 +55,9 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
+            return false;
+
+        if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             return false;
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
@@ -478,6 +482,7 @@ internal static class UseCollectionExpressionHelpers
             CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
+            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             ArrowExpressionClauseSyntax => true,
@@ -504,6 +509,9 @@ internal static class UseCollectionExpressionHelpers
             else
                 return false;
         }
+
+        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
 
         bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {
@@ -674,6 +682,7 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken)
@@ -719,11 +728,13 @@ internal static class UseCollectionExpressionHelpers
                             {
                                 Identifier.ValueText: var variableName,
                                 Parent.Parent: LocalDeclarationStatementSyntax localDeclarationStatement
-                            },
+                            } variableDeclarator,
                         })
                     {
                         return default;
                     }
+
+                    var localSymbol = semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
 
                     var currentStatement = localDeclarationStatement.GetNextStatement();
                     for (var currentIndex = 0; currentIndex < sizeValue; currentIndex++)
@@ -740,7 +751,7 @@ internal static class UseCollectionExpressionHelpers
                                         Expression: IdentifierNameSyntax { Identifier.ValueText: var elementName },
                                         ArgumentList.Arguments: [var elementArgument],
                                     } elementAccess,
-                                }
+                                } assignmentExpression,
                             } expressionStatement)
                         {
                             return default;
@@ -757,6 +768,14 @@ internal static class UseCollectionExpressionHelpers
                             return default;
                         }
 
+                        // If we have an array whose elements points back to the array itself, then we can't convert
+                        // this to a collection expression.
+                        if (assignmentExpression.Right.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().Any(
+                                i => localSymbol.Equals(semanticModel.GetSymbolInfo(i, cancellationToken).GetAnySymbol())))
+                        {
+                            return default;
+                        }
+
                         // this looks like a good statement, add to the right size of the assignment to track as that's what
                         // we'll want to put in the final collection expression.
                         matches.Add(new(expressionStatement, UseSpread: false));
@@ -767,7 +786,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }

@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">Esta versão de '{0}' não pode ser usada com expressões de coleção.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -560,11 +560,6 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' não pode iniciar uma instrução.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Não foi possível atualizar porque um tipo de delegado inferido foi alterado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -1862,6 +1857,11 @@
         <target state="translated">Um padrão de desconstrução de elemento único requer alguma outra sintaxe para desambiguação. É recomendado adicionar um designador de descarte '_' após o parêntese de fechamento ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">O membro do registro '{0}' não pode ser estático.</target>
@@ -2340,6 +2340,16 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">ponteiro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="new">{0} is not a valid C# spread operation</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">

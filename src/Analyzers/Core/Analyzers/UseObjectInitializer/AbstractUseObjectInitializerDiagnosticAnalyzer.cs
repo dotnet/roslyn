@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
             EnforceOnBuildValues.UseObjectInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: false);
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
             EnforceOnBuildValues.UseObjectInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetAnalyzerOptions().PreferObjectInitializer;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // not point in analyzing if the option is off.
                 return;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 locations,
                 properties: null));
 
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                         s_unnecessaryCodeDescriptor,
                         location1,
-                        ReportDiagnostic.Default,
+                        NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: ImmutableArray.Create(
                             syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));

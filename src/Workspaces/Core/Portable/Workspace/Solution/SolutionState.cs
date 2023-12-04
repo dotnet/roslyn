@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (Services.GetService<IWorkpacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
+                    if (Services.GetService<IWorkspacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
                         return this;
                     }
@@ -1881,7 +1881,9 @@ namespace Microsoft.CodeAnalysis
 
             if (existingGeneratedState != null)
             {
-                newGeneratedState = existingGeneratedState.WithUpdatedGeneratedContent(sourceText, existingGeneratedState.ParseOptions);
+                newGeneratedState = existingGeneratedState
+                    .WithText(sourceText)
+                    .WithParseOptions(existingGeneratedState.ParseOptions);
 
                 // If the content already matched, we can just reuse the existing state
                 if (newGeneratedState == existingGeneratedState)
@@ -1896,7 +1898,9 @@ namespace Microsoft.CodeAnalysis
                     documentIdentity,
                     sourceText,
                     projectState.ParseOptions!,
-                    projectState.LanguageServices);
+                    projectState.LanguageServices,
+                    // Just compute the checksum from the source text passed in.
+                    originalSourceTextChecksum: null);
             }
 
             var projectId = documentIdentity.DocumentId.ProjectId;

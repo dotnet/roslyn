@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                     var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
                     var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
-                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = new[] { edit } });
+                    textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = [edit] });
                 }
             }
 

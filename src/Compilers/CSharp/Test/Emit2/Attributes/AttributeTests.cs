@@ -588,9 +588,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -620,10 +619,9 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
-            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2).ToString());
         }
 
         [Fact]
@@ -1094,6 +1092,24 @@ static class Program
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
         Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
     }
+
+    [Mark(true, ""Hello"")]
+    static void M1(){}
+
+    [Mark(false, ""World"", ""Hello"")]
+    static void M2(){}
+
+    [Mark(true)]
+    static void M3(){}
+
+    [Mark(a: true)]
+    static void M4(){}
+
+    [Mark(a: false, b: ""M5"")]
+    static void M5(){}
+
+    [Mark(b: ""M6"", a: true)]
+    static void M6(){}
 }", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
@@ -1103,9 +1119,32 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M1").GetAttributes().Single();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M2").GetAttributes().Single();
+            Assert.Equal(@"false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"""World""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M3").GetAttributes().Single();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"Mark", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M4").GetAttributes().Single();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"Mark", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M5").GetAttributes().Single();
+            Assert.Equal(@"a: false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""M5""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
+
+            attributeData = (SourceAttributeData)comp.GetMember("Program.M6").GetAttributes().Single();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""M6""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1144,9 +1183,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1184,9 +1222,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1224,9 +1261,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]
@@ -1263,9 +1299,8 @@ static class Program
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
             Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
 
-            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1).ToString());
         }
 
         [Fact]

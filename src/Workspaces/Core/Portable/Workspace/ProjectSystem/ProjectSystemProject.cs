@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 {
     internal sealed partial class ProjectSystemProject
     {
-        private static readonly char[] s_directorySeparator = { Path.DirectorySeparatorChar };
+        private static readonly char[] s_directorySeparator = [Path.DirectorySeparatorChar];
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 
                     if (telemetryService?.HasActiveSession == true)
                     {
-                        var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetService<IWorkspaceStatusService>();
+                        var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
                         // We only log telemetry during solution open
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
                         // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
                         // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
                         // fully loaded.
-                        var isFullyLoadedTask = workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                        var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(CancellationToken.None);
                         var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
 
                         if (!isFullyLoaded)
@@ -719,8 +719,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
         #region Additional File Addition/Removal
 
         // TODO: should AdditionalFiles have source code kinds?
-        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
+        public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public bool ContainsAdditionalFile(string fullPath)
             => _additionalFiles.ContainsFile(fullPath);

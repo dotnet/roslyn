@@ -277,8 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
+                var visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt);
                 symbol.Accept(visitor);
+                visitor.Free();
             }
 
             return builder;

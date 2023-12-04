@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal partial class CSharpSelectionResult
     {
         private class StatementResult(
-            OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
             ExtractMethodOptions options,
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             SyntaxAnnotation firstTokenAnnotation,
             SyntaxAnnotation lastTokenAnnotation,
             bool selectionChanged) : CSharpSelectionResult(
-                status, originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+                originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
         {
             public override bool ContainingScopeHasAsyncKeyword()
             {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 });
             }
 
-            public override ITypeSymbol GetContainingScopeType()
+            public override (ITypeSymbol returnType, bool returnsByRef) GetReturnType()
             {
                 Contract.ThrowIfTrue(SelectionInExpression);
 
@@ -74,31 +73,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     case AccessorDeclarationSyntax access:
                         // property or event case
                         if (access.Parent == null || access.Parent.Parent == null)
-                        {
-                            return null;
-                        }
+                            return default;
 
                         return semanticModel.GetDeclaredSymbol(access.Parent.Parent) switch
                         {
-                            IPropertySymbol propertySymbol => propertySymbol.Type,
-                            IEventSymbol eventSymbol => eventSymbol.Type,
-                            _ => null,
+                            IPropertySymbol propertySymbol => (propertySymbol.Type, propertySymbol.ReturnsByRef),
+                            IEventSymbol eventSymbol => (eventSymbol.Type, false),
+                            _ => default,
                         };
 
-                    case MethodDeclarationSyntax method:
-                        return semanticModel.GetDeclaredSymbol(method).ReturnType;
+                    case MethodDeclarationSyntax methodDeclaration:
+                        {
+                            return semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol method
+                                ? default
+                                : (method.ReturnType, method.ReturnsByRef);
+                        }
 
-                    case ParenthesizedLambdaExpressionSyntax lambda:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
-
-                    case SimpleLambdaExpressionSyntax lambda:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(lambda);
-
-                    case AnonymousMethodExpressionSyntax anonymous:
-                        return semanticModel.GetLambdaOrAnonymousMethodReturnType(anonymous);
+                    case AnonymousFunctionExpressionSyntax function:
+                        {
+                            return semanticModel.GetSymbolInfo(function).Symbol is not IMethodSymbol method
+                                ? default
+                                : (method.ReturnType, method.ReturnsByRef);
+                        }
 
                     default:
-                        return null;
+                        return default;
                 }
             }
         }

@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
         <source>This version of '{0}' cannot be used with collection expressions.</source>
-        <target state="new">This version of '{0}' cannot be used with collection expressions.</target>
+        <target state="translated">Esta versión de '{0}' no se puede usar con expresiones de colección.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -560,11 +560,6 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">“else” no puede iniciar una instrucción.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">No se puede actualizar porque ha cambiado un tipo delegado inferido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -959,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">El método '{0}' no debe ser genérico para que coincida con '{1}'.</target>
+        <target state="translated">El método "{0}" no debe ser genérico para que coincida con "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -1862,6 +1857,11 @@
         <target state="translated">Un patrón de deconstrucción de un solo elemento requiere más sintaxis para la desambiguación. Se recomienda agregar un designador de descarte "_" después del paréntesis de cierre ")".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">El miembro del registro "{0}" no puede ser estático.</target>
@@ -2340,6 +2340,16 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">puntero</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_StringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="new">{0} is not a valid C# spread operation</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">

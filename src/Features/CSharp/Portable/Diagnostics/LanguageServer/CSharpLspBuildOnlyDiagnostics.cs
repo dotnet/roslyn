@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS8178", // ErrorCode.ERR_RefReturningCallAndAwait:
         "CS4013", // ErrorCode.ERR_SpecialByRefInLambda:
         "CS1969", // ErrorCode.ERR_DynamicRequiredTypesMissing:
-        "CS8984", // ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
         "CS9026", // ErrorCode.ERR_CannotBeConvertedToUtf8:
         "CS9068", // ErrorCode.ERR_FileTypeNonUniquePath:
         "CS9144", // ErrorCode.ERR_InterceptorSignatureMismatch
@@ -58,7 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer
         "CS9163", // ErrorCode.ERR_SymbolDefinedInAssembly
         "CS9177", // ErrorCode.ERR_InterceptorArityNotCompatible
         "CS9178", // ErrorCode.ERR_InterceptorCannotBeGeneric
-        "CS9207" // ErrorCode.ERR_InterceptableMethodMustBeOrdinary
+        "CS9207", // ErrorCode.ERR_InterceptableMethodMustBeOrdinary
+        "CS8419", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
+        "CS8420" // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
         )]
     [Shared]
     internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics

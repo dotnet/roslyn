@@ -42,9 +42,9 @@
         <target state="translated">Sub als asynchron definieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Unnötige Import-Direktiven entfernen</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="new">Remove unnecessary imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

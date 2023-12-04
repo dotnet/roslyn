@@ -723,8 +723,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         edit.Kind,
                         oldSymbol: oldSymbol,
                         newSymbol: newSymbol,
-                        syntaxMap: edit.SyntaxMap,
-                        preserveLocalVariables: edit.SyntaxMap != null));
+                        syntaxMap: edit.SyntaxMap));
                 }
             }
 
@@ -778,7 +777,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
                         var syntaxMap = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : null;
-                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
+                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap));
                     }
                 }
             }
@@ -938,7 +937,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
+                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldCompilation);
+
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(oldProject, oldCompilation, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -973,9 +975,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     log.Write("Emitting update of '{0}'", newProject.Id);
 
-                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldCompilation);
                     Contract.ThrowIfNull(newCompilation);
 
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
