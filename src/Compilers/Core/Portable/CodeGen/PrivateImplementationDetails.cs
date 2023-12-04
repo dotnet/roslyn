@@ -496,9 +496,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private ConstantValueAndUShortEqualityComparer() { }
 
-            public override bool Equals((ImmutableArray<ConstantValue> Constants, ushort Value) x, (ImmutableArray<ConstantValue> Constants, ushort Value) y) =>
-                x.Value == y.Value &&
-                ByteSequenceComparer.Equals(x.Constants, y.Constants);
+            public override bool Equals((ImmutableArray<ConstantValue> Constants, ushort Value) x, (ImmutableArray<ConstantValue> Constants, ushort Value) y)
+            {
+                if (x.Value != y.Value)
+                {
+                    return false;
+                }
+
+                if (x.Constants.Length != y.Constants.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < x.Constants.Length; i++)
+                {
+                    if (x.Constants[i] != y.Constants[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
 
             public override int GetHashCode((ImmutableArray<ConstantValue> Constants, ushort Value) obj)
             {

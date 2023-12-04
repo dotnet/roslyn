@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// And if false and <paramref name="avoidInPlace"/> is true (in which case <paramref name="inPlaceTarget"/> must have been non-null), the caller
         /// may try again but with a null <paramref name="inPlaceTarget"/>.
         /// </returns>
-        private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace, BoundExpression? start = null, BoundExpression? length = null)
+        private bool TryEmitOptimizedReadonlySpanCreation(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
             // The purpose of this optimization is to replace a BoundArrayCreation with better code generation.
             // We're looking for an expression like:
@@ -443,18 +443,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             avoidInPlace = false;
             SpecialType specialElementType = SpecialType.None;
 
-            if (_module.IsEncDelta)
-            {
-                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
-                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
-                return false;
-            }
-
             if (inPlaceTarget is null && !used)
             {
                 // The caller has specified that we're creating a ReadOnlySpan expression that won't be used.
                 // We needn't emit anything.
                 return true;
+            }
+
+            if (_module.IsEncDelta)
+            {
+                // Avoid using FieldRva table. Can be allowed if tested on all supported runtimes.
+                // Consider removing: https://github.com/dotnet/roslyn/issues/69480
+                return false;
             }
 
             // The primary optimization here is for byte-sized primitives that can wrap a ReadOnlySpan directly around a pointer
@@ -477,6 +477,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Get the array type and its element type.
                 arrayType = (ArrayTypeSymbol)ac.Type;
                 elementType = arrayType.ElementType;
+
+                if (ac.InitializerOpt?.Initializers.Length == 0)
+                {
+                    emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
+                    return true;
+                }
 
                 // This optimization is only supported for core primitive types that can be stored in metadata blobs.
                 // For enums, we need to use the underlying type.
@@ -528,12 +534,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // There's no start/length, so the length to use with a constructor is the element count.
                 lengthForConstructor = elementCount;
-            }
-
-            if (elementCount == 0)
-            {
-                emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
-                return true;
             }
 
             if (IsPeVerifyCompatEnabled())
@@ -693,28 +693,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return false;
                 }
 
+                Debug.Assert(!elementType.IsEnumType());
+                ImmutableArray<ConstantValue> constants = initializers.Select(static init => init.ConstantValueOpt!).ToImmutableArray();
                 if (!tryGetReadOnlySpanArrayCtor(arrayCreation.Syntax, out var rosArrayCtor))
                 {
                     return false;
                 }
 
-                Debug.Assert(!elementType.IsEnumType());
-
-                ImmutableArray<ConstantValue> constants = initializers.Select(static init => init.ConstantValueOpt!).ToImmutableArray();
-
-                if (constants.IsEmpty)
-                {
-                    emitEmptyReadonlySpan(spanType, arrayCreation, used, inPlaceTarget);
-                    return true;
-                }
-
                 if (inPlaceTarget is not null)
                 {
-                    // We can use the optimization, but not for in-place initialization. Fail to optimize,
-                    // but tell the caller they can call this again with a null inPlaceTarget, at which point this
-                    // should be able to optimize the call.
-                    avoidInPlace = true;
-                    return false;
+                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
                 }
 
                 Cci.IFieldReference cachingField = _builder.module.GetArrayCachingFieldForConstants(constants, _module.Translate(arrayType),
@@ -740,7 +728,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // arrayNotNullLabel:
                 // new ReadOnlySpan<T>(array)
                 _builder.MarkLabel(arrayNotNullLabel);
-                _builder.EmitOpCode(ILOpCode.Newobj, 0);
+
+                if (inPlaceTarget is not null)
+                {
+                    // Consumes target ref, array, pushes nothing.
+                    _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -2);
+                }
+                else
+                {
+                    // Consumes array, pushes the instance.
+                    Debug.Assert(used);
+                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: 0);
+                }
+
                 EmitSymbolToken(rosArrayCtor.AsMember(spanType), arrayCreation.Syntax, optArgList: null);
 
                 return true;

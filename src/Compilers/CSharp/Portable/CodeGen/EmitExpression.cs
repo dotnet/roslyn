@@ -2444,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
+                   TryEmitOptimizedReadonlySpanCreation((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }

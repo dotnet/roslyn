@@ -232,22 +232,19 @@ namespace Microsoft.CodeAnalysis
 
             static byte[] getBytes(ConstantValue constant)
             {
-                Debug.Assert(Enum.GetValues(typeof(ConstantValueTypeDiscriminator)).Cast<ConstantValueTypeDiscriminator>().Max()
-                    == ConstantValueTypeDiscriminator.DateTime);
-
                 switch (constant.Discriminator)
                 {
-                    case ConstantValueTypeDiscriminator.Nothing:
+                    case ConstantValueTypeDiscriminator.Null:
                         return _singleZeroByteArray;
 
                     case ConstantValueTypeDiscriminator.String:
                         return Encoding.Unicode.GetBytes(constant.StringValue!);
 
                     case ConstantValueTypeDiscriminator.NInt:
-                        return BitConverter.GetBytes(constant.Int32Value);
+                        return getBytes(constant.UInt32Value);
 
                     case ConstantValueTypeDiscriminator.NUInt:
-                        return BitConverter.GetBytes(constant.UInt32Value);
+                        return getBytes(constant.UInt32Value);
 
                     case ConstantValueTypeDiscriminator.Decimal:
                         int[] bits = decimal.GetBits(constant.DecimalValue);
@@ -261,12 +258,17 @@ namespace Microsoft.CodeAnalysis
                         BinaryPrimitives.WriteInt32LittleEndian(span.Slice(12), bits[3]);
 
                         return bytes;
-                    case ConstantValueTypeDiscriminator.DateTime:
-                        return BitConverter.GetBytes(constant.DateTimeValue.Ticks);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(constant.Discriminator);
                 };
+
+                static byte[] getBytes(uint value)
+                {
+                    var bytes = new byte[4];
+                    BinaryPrimitives.WriteUInt32LittleEndian(bytes, value);
+                    return bytes;
+                }
             }
         }
 
