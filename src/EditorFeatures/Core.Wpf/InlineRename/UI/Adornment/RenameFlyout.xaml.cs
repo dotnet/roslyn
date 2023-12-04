@@ -274,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         e.Handled = true;
                     }
                 }
-                // When user starts typing, stop to ask advice
-                smartRenameViewModel.StopRequestNameSuggestions();
+                // When user starts typing, cancel any inflight name-suggestion requests.
+                smartRenameViewModel.CancelNameSuggestions();
             }
         }
     }
