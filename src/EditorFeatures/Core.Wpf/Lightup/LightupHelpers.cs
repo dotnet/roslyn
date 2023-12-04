@@ -330,7 +330,7 @@ internal static class LightupHelpers
         }
 
         var argument = Expression.Parameter(typeof(TArg), parameters[0].Name);
-        var instance = Expression.Parameter(type, GenerateParameterName(type));
+        var instance = Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
         var convertedArgument =
             argType.GetTypeInfo().IsAssignableFrom(typeof(TArg).GetTypeInfo())
             ? (Expression)argument
@@ -340,7 +340,7 @@ internal static class LightupHelpers
             Expression.Lambda<Func<T, TArg, TResult>>(
                 Expression.Convert(
                     Expression.Call(
-                        instance,
+                        Expression.Convert(instance, type),
                         method,
                         convertedArgument), typeof(TResult)),
                 instance,
