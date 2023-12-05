@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    [Obsolete("TS, remove your implementation of this type now that you're entirely on LSP.  Then let us know.", error: false)]
+    [Obsolete("TS, remove your implementation of this type now that you're entirely on LSP for go-to-def.  Then let us know.", error: false)]
     internal interface IVSTypeScriptGoToDefinitionService
     {
         Task<IEnumerable<IVSTypeScriptNavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
