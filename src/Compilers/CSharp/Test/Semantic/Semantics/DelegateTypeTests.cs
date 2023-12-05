@@ -2431,6 +2431,7 @@ public static class E
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
         public void MethodGroup_ScopeByScope_TypeReceiver(bool useCSharp13)
         {
+            // Instance method and extension methods are ignored on type receiver
             var source = """
 System.Action x = C.M;
 x();
@@ -2445,7 +2446,7 @@ public class C
 
 public static class E
 {
-    public static void M(this C c) { }
+    public static void M(this C c) { } // ignored
 }
 """;
             {
@@ -2476,6 +2477,8 @@ public static class E
                 Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
             }
 
+            // PROTOTYPE instead of finding the extension method and reporting an error on its receiver,
+            // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
             {
                 var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(
@@ -2508,6 +2511,7 @@ public static class E
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
         public void MethodGroup_ScopeByScope_TypeReceiver_2(bool useCSharp13)
         {
+            // Extension methods are ignored on type receiver
             var source = """
 System.Action x = C.M;
 x();
@@ -2519,7 +2523,7 @@ public class C { }
 
 public static class E
 {
-    public static void M(this C c) { }
+    public static void M(this C c) { } // ignored
 }
 """;
             {
@@ -2550,6 +2554,8 @@ public static class E
                 Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
             }
 
+            // PROTOTYPE instead of finding the extension method and reporting an error on its receiver,
+            // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
             {
                 var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
                 comp.VerifyDiagnostics(
