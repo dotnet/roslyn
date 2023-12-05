@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             {
                 var token = usingDirective.Alias.Name;
 
-                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.Name, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo(usingDirective.NamespaceOrType, cancellationToken);
                 if (symbolInfo.Symbol is ITypeSymbol typeSymbol)
                 {
                     var classification = GetClassificationForType(typeSymbol);

@@ -9,6 +9,13 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
+    internal enum TaskListItemPriority
+    {
+        Low,
+        Medium,
+        High,
+    }
+
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
@@ -18,9 +25,9 @@ namespace Microsoft.CodeAnalysis.TaskList
         [DataMember(Order = 0)]
         public string Text { get; }
         [DataMember(Order = 1)]
-        public int Priority { get; }
+        public TaskListItemPriority Priority { get; }
 
-        public TaskListItemDescriptor(string text, int priority)
+        public TaskListItemDescriptor(string text, TaskListItemPriority priority)
         {
             Text = text;
             Priority = priority;
@@ -34,8 +41,25 @@ namespace Microsoft.CodeAnalysis.TaskList
             {
                 if (item.Split(':') is [var token, var priorityString] &&
                     !string.IsNullOrWhiteSpace(token) &&
-                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
+                    int.TryParse(priorityString, NumberStyles.None, CultureInfo.InvariantCulture, out var encoded))
                 {
+                    // From:
+                    // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Shims/TaskListOptions.cs&version=GBmain&line=133&lineEnd=134&lineStartColumn=1&lineEndColumn=98&lineStyle=plain&_a=contents
+#if false
+                    // I've no idea why the strange conversion (legacy mapping from __VSERRORCATEGORY?).
+                    private static int EncodedValueFromPriority(CommentTaskPriority p) { return 3 - (int)p; }
+                    private static CommentTaskPriority PriorityFromEncodedValue(int v) { return (CommentTaskPriority)(3 - v); }
+#endif
+                    // In other words, the actual VS enum here goes from high-to-low priority, but the values are
+                    // encoded low-to-high. So we undo this conversion to map from the encoded priority values to what
+                    // they represent.
+                    var priority = encoded switch
+                    {
+                        1 => TaskListItemPriority.Low,
+                        2 => TaskListItemPriority.Medium,
+                        3 => TaskListItemPriority.High,
+                        _ => TaskListItemPriority.Medium,
+                    };
                     result.Add(new TaskListItemDescriptor(token, priority));
                 }
             }

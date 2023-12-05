@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
 
-            public void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors) =>
-                File.Replace(sourceFileName, destinationFileName, destinationBackupFileName, ignoreMetadataErrors);
+            public void Replace(string sourceFileName, string destinationFileName, string destinationBackupFileName, bool ignoreMetadataErrors)
+                => File.Replace(sourceFileName, destinationFileName, destinationBackupFileName, ignoreMetadataErrors);
 
-            public void Move(string sourceFileName, string destinationFileName) =>
-                File.Move(sourceFileName, destinationFileName);
+            public void Move(string sourceFileName, string destinationFileName)
+                => File.Move(sourceFileName, destinationFileName);
 
             public void WriteAndFlushAllBytes(string path, byte[] bytes)
             {

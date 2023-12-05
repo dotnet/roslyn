@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -36,9 +37,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             SupportedDiagnostics = supportedDiagnostics;
 
             Descriptor = SupportedDiagnostics[0];
+            Debug.Assert(!supportedDiagnostics.Any(descriptor => descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Unnecessary)) || this is AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer);
         }
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public virtual CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(

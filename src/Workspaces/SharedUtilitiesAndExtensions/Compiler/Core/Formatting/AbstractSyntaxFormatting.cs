@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public abstract SyntaxFormattingOptions DefaultOptions { get; }
-        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions);
+        public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
 
         public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (spans == null)
             {
-                spansToFormat = node.FullSpan.IsEmpty ?
-                    SpecializedCollections.EmptyReadOnlyList<TextSpan>() :
-                    SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+                spansToFormat = node.FullSpan.IsEmpty
+                    ? SpecializedCollections.EmptyReadOnlyList<TextSpan>()
+                    : SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
             }
             else
             {

@@ -713,7 +713,7 @@ namespace Foo
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 // Comments before declaration.
@@ -729,7 +729,8 @@ namespace [||]{declaredNamespace}
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 // Comments before declaration.
 // Comments after opening brace
@@ -1139,7 +1140,8 @@ class Class2
 }
 ";
             var expectedSourceReference =
-@"using System;
+@"
+using System;
 using Class1Alias = Class1;
 
 namespace Foo
@@ -1166,7 +1168,7 @@ namespace Foo
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+        <Document Folders=""{folder}"" FilePath=""{filePath}"">
 using System;
 
 class [||]Class1
@@ -1177,7 +1179,8 @@ class [||]Class1
 </Workspace>";
 
             var expectedSourceOriginal =
-@"using System;
+@"
+using System;
 
 namespace A.B.C
 {
@@ -1875,7 +1878,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         [WpfFact]
         public async Task ChangeNamespace_ExtensionMethodInReducedForm()
         {
@@ -1931,7 +1934,7 @@ namespace {defaultNamespace}
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         [WpfFact]
         public async Task ChangeNamespace_ExternsionMethodInRegularForm()
         {
@@ -1987,7 +1990,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         [WpfFact]
         public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
         {
@@ -2049,7 +2052,7 @@ namespace A
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33890")]
         [WpfFact]
         public async Task ChangeNamespace_WithExtensionMethodReferencesInVBDocument()
         {
@@ -2107,7 +2110,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         [WpfFact]
         public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
         {
@@ -2171,7 +2174,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         [WpfFact]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
         {
@@ -2230,7 +2233,7 @@ namespace Foo
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         [WpfFact]
         public async Task ChangeNamespace_WithMemberAccessReferencesInVBDocument()
         {
@@ -2282,7 +2285,7 @@ End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
 
-        [WorkItem(37891, "https://github.com/dotnet/roslyn/issues/37891")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/37891")]
         [WpfFact]
         public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInVBDocument()
         {

@@ -4191,9 +4191,9 @@ public class C
                 // (7,23): error CS8944: 'C.C(bool, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public C(bool b, [InterpolatedStringHandlerArgument("", "b")]CustomHandler c1) {}
                 Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""", ""b"")").WithArguments("C.C(bool, CustomHandler)").WithLocation(7, 23),
-                // (11,25): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (11,25): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c1' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 //         _ = new C(true, $"literal{c,1:format}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""literal{c,1:format}""").WithArguments("CustomHandler", "CustomHandler").WithLocation(11, 25)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""literal{c,1:format}""").WithArguments("CustomHandler c1", "CustomHandler").WithLocation(11, 25)
             };
 
             string expectedFlowGraph = @"

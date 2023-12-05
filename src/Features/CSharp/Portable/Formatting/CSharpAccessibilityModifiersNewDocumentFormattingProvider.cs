@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             foreach (var declaration in typeDeclarations)
             {
-                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _))
+                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _, out _))
                     continue;
 
                 // Since we format each document as they are added to a project we can't assume we know about all

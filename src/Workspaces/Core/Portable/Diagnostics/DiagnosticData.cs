@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return DiagnosticSeverity.Warning;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

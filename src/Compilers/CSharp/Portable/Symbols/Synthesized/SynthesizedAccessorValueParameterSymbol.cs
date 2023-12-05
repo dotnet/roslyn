@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    syntaxRef: null,
                    isParams: false,
                    isExtensionMethodThis: false,
-                   scope: DeclarationScope.Unscoped)
+                   scope: ScopedKind.None)
         {
         }
 

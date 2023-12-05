@@ -38,9 +38,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public DiagnosticDataLocation(
             FileLinePositionSpan unmappedFileSpan,
-            DocumentId? documentId = null,
-            FileLinePositionSpan? mappedFileSpan = null)
+            DocumentId? documentId,
+            FileLinePositionSpan mappedFileSpan)
             : this(unmappedFileSpan, documentId, mappedFileSpan, forceMappedPath: false)
+        {
+            // This constructor is used for deserialization, so the arguments must have the same exact order and type
+            // as the fields with the [DataMember] attribute.
+        }
+
+        public DiagnosticDataLocation(
+            FileLinePositionSpan unmappedFileSpan,
+            DocumentId? documentId = null)
+            : this(unmappedFileSpan, documentId, null, forceMappedPath: false)
         {
         }
 

@@ -262,7 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+                            tree = VisualBasicSyntaxTree.ParseText(
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
+                                isMyTemplate:=True,
+                                options,
+                                path:=Nothing)
 
                             If tree.GetDiagnostics().Any() Then
                                 Throw ExceptionUtilities.Unreachable
@@ -1223,7 +1227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We are explicitly ignoring scenario where the type might be defined in an added module.
             For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
                 Debug.Assert(Not reference.IsMissing)
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = reference.LookupDeclaredTopLevelMetadataType(metadataName)
+                Debug.Assert(If(Not candidate?.IsErrorType(), True))
 
                 If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
                     Return True
@@ -2425,8 +2430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Return moduleBeingBuilt
@@ -2435,11 +2439,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
             emittingPdb As Boolean,
-            emitMetadataOnly As Boolean,
-            emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbolInternal),
             cancellationToken As CancellationToken) As Boolean
+
+            Dim emitMetadataOnly = moduleBuilder.EmitOptions.EmitMetadataOnly
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
             ' metadata if there are declaration errors or method body errors (but we do insert all errors from method body binding...)
@@ -2471,7 +2475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
             Else
                 ' start generating PDB checksums if we need to emit PDBs
-                If (emittingPdb OrElse emitTestCoverageData) AndAlso
+                If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso
                    Not CreateDebugDocuments(moduleBeingBuilt.DebugDocumentsBuilder, moduleBeingBuilt.EmbeddedTexts, diagnostics) Then
                     Return False
                 End If
@@ -2486,7 +2490,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me,
                     moduleBeingBuilt,
                     emittingPdb,
-                    emitTestCoverageData,
                     hasDeclarationErrors,
                     filterOpt,
                     New BindingDiagnosticBag(methodBodyDiagnosticBag),
@@ -3133,6 +3136,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Return False
             End Select
+        End Function
+
+        Private Protected Overrides Function SupportsRuntimeCapabilityCore(capability As RuntimeCapability) As Boolean
+            Return Me.Assembly.SupportsRuntimeCapability(capability)
         End Function
 
 #End Region

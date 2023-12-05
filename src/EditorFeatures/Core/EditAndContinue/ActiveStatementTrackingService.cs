@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -37,13 +38,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [ExportWorkspaceServiceFactory(typeof(IActiveStatementTrackingService), ServiceLayer.Editor), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory() { }
+            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
+                => _listenerProvider = listenerProvider;
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new ActiveStatementTrackingService(workspaceServices.Workspace);
+                => new ActiveStatementTrackingService(workspaceServices.Workspace, _listenerProvider.GetListener(FeatureAttribute.EditAndContinue));
         }
+
+        private readonly IAsynchronousOperationListener _listener;
 
         private TrackingSession? _session;
         private readonly Workspace _workspace;
@@ -53,12 +59,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public event Action? TrackingChanged;
 
-        public ActiveStatementTrackingService(Workspace workspace)
+        public ActiveStatementTrackingService(Workspace workspace, IAsynchronousOperationListener listener)
         {
             _workspace = workspace;
+            _listener = listener;
         }
 
-        public async ValueTask StartTrackingAsync(Solution solution, IActiveStatementSpanProvider spanProvider, CancellationToken cancellationToken)
+        public void StartTracking(Solution solution, IActiveStatementSpanProvider spanProvider)
         {
             var newSession = new TrackingSession(_workspace, spanProvider);
             if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
@@ -67,7 +74,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Contract.Fail("Can only track active statements for a single edit session.");
             }
 
-            await newSession.TrackActiveSpansAsync(solution, cancellationToken).ConfigureAwait(false);
+            var token = _listener.BeginAsyncOperation(nameof(ActiveStatementTrackingService));
+            _ = newSession.TrackActiveSpansAsync(solution).CompletesAsyncOperation(token);
 
             TrackingChanged?.Invoke();
         }
@@ -145,12 +153,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             private void DocumentOpened(object? sender, DocumentEventArgs e)
-                => _ = TrackActiveSpansAsync(e.Document, _cancellationSource.Token);
+                => _ = TrackActiveSpansAsync(e.Document);
 
-            private async Task TrackActiveSpansAsync(Document designTimeDocument, CancellationToken cancellationToken)
+            private async Task TrackActiveSpansAsync(Document designTimeDocument)
             {
                 try
                 {
+                    var cancellationToken = _cancellationSource.Token;
+
                     if (!designTimeDocument.DocumentState.SupportsEditAndContinue())
                     {
                         return;
@@ -176,10 +186,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            internal async Task TrackActiveSpansAsync(Solution solution, CancellationToken cancellationToken)
+            internal async Task TrackActiveSpansAsync(Solution solution)
             {
                 try
                 {
+                    var cancellationToken = _cancellationSource.Token;
+
                     var openDocumentIds = _workspace.GetOpenDocumentIds().ToImmutableArray();
                     if (openDocumentIds.Length == 0)
                     {
@@ -355,9 +367,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             return oldSpans.NullToEmpty();
                         }
 
-                        return _trackingSpans[document.FilePath] = hasExistingSpans ?
-                            UpdateTrackingSpans(snapshot, oldSpans, activeStatementSpans) :
-                            CreateTrackingSpans(snapshot, activeStatementSpans);
+                        return _trackingSpans[document.FilePath] = hasExistingSpans
+                            ? UpdateTrackingSpans(snapshot, oldSpans, activeStatementSpans)
+                            : CreateTrackingSpans(snapshot, activeStatementSpans);
                     }
                 }
                 catch (OperationCanceledException)

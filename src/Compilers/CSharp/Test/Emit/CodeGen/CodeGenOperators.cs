@@ -3231,7 +3231,6 @@ class C
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is converted to type B, and this becomes the result.
             // SPEC PROPOSAL:    Otherwise, b is evaluated and becomes the result.
 
-
             string source = @"
 struct SnapshotPoint
 {
@@ -4133,8 +4132,6 @@ struct S
 ");
         }
 
-
-
         [Fact]
         public void TestTernary_InterfaceRegression1a()
         {
@@ -4293,7 +4290,6 @@ public class Test
 }
 ");
         }
-
 
         [Fact]
         public void TestTernary_InterfaceRegression2()
@@ -5071,9 +5067,10 @@ class test<T> where T : c0
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
-  // Code size       80 (0x50)
+  // Code size       96 (0x60)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T& V_0,
+            T V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  dup
@@ -5084,26 +5081,32 @@ class test<T> where T : c0
   IL_0013:  ldarga.s   V_0
   IL_0015:  stloc.0
   IL_0016:  ldloc.0
-  IL_0017:  ldloc.0
-  IL_0018:  constrained. ""T""
-  IL_001e:  callvirt   ""int c0.P1.get""
-  IL_0023:  ldc.i4.1
-  IL_0024:  add
-  IL_0025:  constrained. ""T""
-  IL_002b:  callvirt   ""void c0.P1.set""
-  IL_0030:  ldarga.s   V_0
-  IL_0032:  stloc.0
-  IL_0033:  ldloc.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  ldloc.0
-  IL_0036:  ldc.i4.1
-  IL_0037:  constrained. ""T""
-  IL_003d:  callvirt   ""int c0.this[int].get""
-  IL_0042:  ldc.i4.1
-  IL_0043:  add
-  IL_0044:  constrained. ""T""
-  IL_004a:  callvirt   ""void c0.this[int].set""
-  IL_004f:  ret
+  IL_0017:  ldobj      ""T""
+  IL_001c:  stloc.1
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  ldloc.0
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int c0.P1.get""
+  IL_002b:  ldc.i4.1
+  IL_002c:  add
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""void c0.P1.set""
+  IL_0038:  ldarga.s   V_0
+  IL_003a:  stloc.0
+  IL_003b:  ldloc.0
+  IL_003c:  ldobj      ""T""
+  IL_0041:  stloc.1
+  IL_0042:  ldloca.s   V_1
+  IL_0044:  ldc.i4.1
+  IL_0045:  ldloc.0
+  IL_0046:  ldc.i4.1
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""int c0.this[int].get""
+  IL_0052:  ldc.i4.1
+  IL_0053:  add
+  IL_0054:  constrained. ""T""
+  IL_005a:  callvirt   ""void c0.this[int].set""
+  IL_005f:  ret
 }
 ").VerifyIL("test<T>.Repro2(T)", @"
 {
@@ -5283,9 +5286,9 @@ class Test
             }
 
             diagnostics.Verify(
-    // (10,16): error CS8078: An expression is too long or complex to compile
-    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
-    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                // (10,16): error CS8078: An expression is too long or complex to compile
+                //         return a[0] & f[0] | a[1] & f[1] | a[2] & f[2] | ...
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
         }
 
@@ -5298,10 +5301,10 @@ class Test
                 builder.Append("a[");
                 builder.Append(i);
                 builder.Append("]");
-                builder.Append(" && ");
+                builder.Append(" & ");
                 builder.Append("f[");
                 builder.Append(i);
-                builder.Append("] || ");
+                builder.Append("] | ");
             }
 
             builder.Append("a[");
@@ -5412,7 +5415,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03()};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06()};" + @"
     }
 }
 
@@ -5453,6 +5456,28 @@ struct S1
                 );
         }
 
+        private static string BuildSequenceOfBinaryExpressions_06(int count = 8192)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count; i++)
+            {
+                builder.Append("a[");
+                builder.Append(i);
+                builder.Append("]");
+                builder.Append(" && ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] || ");
+            }
+
+            builder.Append("a[");
+            builder.Append(i);
+            builder.Append("]");
+
+            return builder.ToString();
+        }
+
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_07()
@@ -5475,7 +5500,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06(count)};" + @"
     }
 }
 
@@ -5541,7 +5566,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return {BuildSequenceOfBinaryExpressions_03(2048)};" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06(2048)};" + @"
     }
 }
 ";

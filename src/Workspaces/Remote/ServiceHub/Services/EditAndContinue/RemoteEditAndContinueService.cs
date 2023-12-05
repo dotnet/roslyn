@@ -50,6 +50,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
         }
 
+        private sealed class SourceTextProvider : IPdbMatchingSourceTextProvider
+        {
+            private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
+            private readonly RemoteServiceCallbackId _callbackId;
+
+            public SourceTextProvider(RemoteCallback<IRemoteEditAndContinueService.ICallback> callback, RemoteServiceCallbackId callbackId)
+            {
+                _callback = callback;
+                _callbackId = callbackId;
+            }
+
+            public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.TryGetMatchingSourceTextAsync(_callbackId, filePath, requiredChecksum, checksumAlgorithm, cancellationToken), cancellationToken);
+        }
+
         private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
 
         public RemoteEditAndContinueService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEditAndContinueService.ICallback> callback)
@@ -72,7 +87,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
-                var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+                var sourceTextProvider = new SourceTextProvider(_callback, callbackId);
+
+                var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
                 return sessionId;
             }, cancellationToken);
         }
@@ -117,7 +134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }, cancellationToken);
         }
@@ -221,19 +238,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask OnSourceFileUpdatedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, solution =>
+            return RunServiceAsync(cancellationToken =>
             {
-                // TODO: Non-C#/VB documents are not currently serialized to remote workspace.
-                // https://github.com/dotnet/roslyn/issues/47341
-                var document = solution.GetDocument(documentId);
-                if (document != null)
-                {
-                    GetService().OnSourceFileUpdated(document);
-                }
-
-                return ValueTaskFactory.CompletedTask;
+                GetService().SetFileLoggingDirectory(logDirectory);
+                return default;
             }, cancellationToken);
         }
     }

@@ -60,8 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
 
                 // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
-                // doesn't block the UI thread.
-                await TaskScheduler.Default;
+                // doesn't block the UI thread. Note, we always yield because sometimes our caller starts
+                // on the threadpool thread but is indirectly blocked on by the UI thread.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
                 await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[]
                 {

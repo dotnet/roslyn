@@ -1047,11 +1047,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType)));
         }
 
-        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, [NotNullIfNotNull("collectionVarDecl")] ref BoundStatement? collectionVarDecl)
+        private void InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, [NotNullIfNotNull(nameof(collectionVarDecl))] ref BoundStatement? collectionVarDecl)
         {
             if (this.Instrument)
             {
-                collectionVarDecl = _instrumenter.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
+                collectionVarDecl = Instrumenter.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
             }
         }
 
@@ -1062,11 +1062,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CommonForEachStatementSyntax forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
                 if (forEachSyntax is ForEachVariableStatementSyntax)
                 {
-                    iterationVarDecl = _instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
+                    iterationVarDecl = Instrumenter.InstrumentForEachStatementDeconstructionVariablesDeclaration(original, iterationVarDecl);
                 }
                 else
                 {
-                    iterationVarDecl = _instrumenter.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
+                    iterationVarDecl = Instrumenter.InstrumentForEachStatementIterationVarDeclaration(original, iterationVarDecl);
                 }
             }
         }
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Instrument)
             {
-                result = _instrumenter.InstrumentForEachStatement(original, result);
+                result = Instrumenter.InstrumentForEachStatement(original, result);
             }
         }
     }

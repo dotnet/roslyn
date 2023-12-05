@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit.NoPia;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #if !DEBUG
 using SymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbol;
@@ -205,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(IsFrozen);
 
-            // We are emitting an assembly, A, which /references some assembly, B, and 
+            // We are emitting an assembly, A, which /references some assembly, B, and
             // /links some other assembly, C, so that it can use C's types (by embedding them)
             // without having an assemblyref to C itself.
-            // We can say that A has an indirect reference to each assembly that B references. 
+            // We can say that A has an indirect reference to each assembly that B references.
             // In this function, we are looking for the situation where B has an assemblyref to C,
             // thus giving A an indirect reference to C. If so, we will report a warning.
 
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             DiagnosticBag diagnostics,
             EmbeddedTypesManager optTypeManager = null)
         {
-            // We do not embed SpecialTypes (they must be defined in Core assembly), error types and 
+            // We do not embed SpecialTypes (they must be defined in Core assembly), error types and
             // types from assemblies that aren't linked.
             if (namedType.SpecialType != SpecialType.None || namedType.IsErrorType() || !namedType.ContainingAssembly.IsLinked)
             {
@@ -436,11 +437,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             var containerKind = field.AdaptedFieldSymbol.ContainingType.TypeKind;
 
-            // Structures may contain only public instance fields. 
+            // Structures may contain only public instance fields.
             if (containerKind == TypeKind.Interface || containerKind == TypeKind.Delegate ||
                 (containerKind == TypeKind.Struct && (field.AdaptedFieldSymbol.IsStatic || field.AdaptedFieldSymbol.DeclaredAccessibility != Accessibility.Public)))
             {
-                // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods 
+                // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
                 ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, field.AdaptedFieldSymbol.ContainingType, syntaxNodeOpt, diagnostics, this);
             }
 

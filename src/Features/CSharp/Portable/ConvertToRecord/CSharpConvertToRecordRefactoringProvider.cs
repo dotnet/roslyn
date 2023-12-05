@@ -24,23 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         {
             var (document, _, cancellationToken) = context;
 
-            if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
-            {
-                return;
-            }
-
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
             if (typeDeclaration == null)
-            {
                 return;
-            }
 
-            var action = await ConvertToRecordEngine
-                .GetCodeActionAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
+            var action = await ConvertToRecordEngine.GetCodeActionAsync(
+                document, typeDeclaration, context.Options, cancellationToken).ConfigureAwait(false);
             if (action != null)
-            {
                 context.RegisterRefactoring(action);
-            }
         }
     }
 }

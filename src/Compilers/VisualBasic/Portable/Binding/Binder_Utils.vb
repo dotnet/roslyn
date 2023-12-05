@@ -1513,7 +1513,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-
         ''' <summary>isWinMd says whether to mangle the name for winmdobj output. See the param tag for details.</summary>
         ''' <param name="isWinMd">isWinMd is only necessary for set properties, so any MethodKind which is definitely not
         ''' a set property can safely set this value to False.</param>

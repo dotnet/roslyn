@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionOptions = CompletionOptions.Default;
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
+            return GetCompletionsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="trigger">The triggering action.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="cancellationToken"></param>
-        internal virtual Task<CompletionList> GetCompletionsAsync(
+        internal virtual async Task<CompletionList> GetCompletionsAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
@@ -64,34 +64,6 @@ namespace Microsoft.CodeAnalysis.Completion
              CompletionTrigger trigger = default,
              ImmutableHashSet<string>? roles = null,
              CancellationToken cancellationToken = default)
-        {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
-        }
-
-        /// <summary>
-        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
-        /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
-        /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
-        /// we get into this transient state.
-        /// </summary>
-        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (_suppressPartialSemantics)
-            {
-                return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
-            }
-
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
-            Document document,
-            int caretPosition,
-            CompletionOptions options,
-            OptionSet passThroughOptions,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles,
-            CancellationToken cancellationToken)
         {
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -190,6 +162,22 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 return additionalAugmentingProviders.ToImmutableAndFree();
             }
+        }
+
+        /// <summary>
+        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+        /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
+        /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
+        /// we get into this transient state.
+        /// </summary>
+        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            if (_suppressPartialSemantics)
+            {
+                return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+            }
+
+            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,

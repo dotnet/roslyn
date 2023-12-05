@@ -69,7 +69,7 @@ using G.H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WorkItem(4457, "https://github.com/dotnet/roslyn/issues/4457")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/4457")>
         <WpfFact>
         Public Async Function TestAddImport_InsideNamespace() As Task
             Dim originalCode = "
@@ -174,7 +174,7 @@ using G=   H.I;
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")>
         Public Async Function TestAddImport_BadNamespaceGetsAdded() As Task
             Dim originalCode = ""
             Dim namespacesToAdd = {"$system"}
@@ -277,7 +277,7 @@ using G=   H.I;
             TestFormattingWithTabSize(3)
         End Sub
 
-        <WpfTheory, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/4652")>
         <InlineData(3)>
         <InlineData(4)>
         <InlineData(5)>

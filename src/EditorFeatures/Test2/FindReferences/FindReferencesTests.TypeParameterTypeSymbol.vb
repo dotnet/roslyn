@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestTypeParameter_NewConstraint_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23699")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -86,7 +86,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23699")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -108,7 +108,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23699")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter3(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -130,7 +130,7 @@ class C
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(23699, "https://github.com/dotnet/roslyn/issues/23699")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/23699")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_LocalFunctionTypeParameter4(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -234,7 +234,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -256,7 +256,7 @@ class A : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -278,7 +278,7 @@ class A : I
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(542598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542598")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodTypeParameterExplicitImplementation3(kind As TestKind, host As TestHost) As Task
             Dim input =

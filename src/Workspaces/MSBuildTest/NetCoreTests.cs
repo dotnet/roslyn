@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 {
                     var dotIndex = project.Name.IndexOf('.');
                     var projectName = dotIndex >= 0
-                        ? project.Name.Substring(0, dotIndex)
+                        ? project.Name[..dotIndex]
                         : project.Name;
 
                     actualNames.Add(projectName);

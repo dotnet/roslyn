@@ -231,6 +231,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -269,167 +271,169 @@
 </source>
         <target state="translated">                  Opcje kompilatora Visual Basic
 
-                                  - OUTPUT FILE -
+                                  - PLIK WYJŚCIOWY -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
--target:exe                       Tworzenie aplikacji konsoli (ustawienie domyślne).
-                                  (Skrócona forma: -t)
--target:winexe                    Tworzenie aplikacji systemu Windows.
--target:library                   Tworzenie zestawu bibliotek.
--target:module                    Tworzenie modułu, który można dodać do
-                                  zestawu.
--target:appcontainerexe           Tworzenie aplikacji systemu Windows, która działa w środowisku
+-target:exe                       Utwórz aplikację konsoli (domyślne).
+                                  (Krótki formularz: -t)
+-target:winexe                    Utwórz aplikację systemu Windows.
+-target:library                   Utwórz zestaw biblioteki.
+-target:module                    Utwórz moduł, który można dodać do
+                                  zestaw.
+-target:appcontainerexe           Utwórz aplikację systemu Windows, która działa w
                                   AppContainer.
--target:winmdobj                  Tworzenie pliku pośredniego metadanych systemu Windows
+-target:winmdobj                  Utwórz pośredni plik metadanych systemu Windows
 -doc[+|-]                         Generuje plik dokumentacji XML.
--doc:&lt;file&gt;                       Generuje plik dokumentacji XML do pliku &lt;file&gt;.
--refout:&lt;file&gt;                    Dane wyjściowe zestawu odwołania do wygenerowania
+-doc:&lt;file&gt;                       Generuje plik dokumentacji XML w pliku &lt;file&gt;.
+-refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
 
-                                  - INPUT FILES -
+                                  - PLIKI WEJŚCIOWE -
 -addmodule:&lt;file_list&gt;            Metadane odwołania z określonych modułów
--link:&lt;file_list&gt;                 Osadzanie metadanych z określonego zestawu
-                                  międzyoperacyjnego. (Skrócona forma: -l)
--recurse:&lt;wildcard&gt;               Uwzględnianie wszystkich plików w bieżącym katalogu
-                                  i podkatalogach zgodnie ze
-                                  specyfikacjami symboli wieloznacznych.
--reference:&lt;file_list&gt;            Metadane odwołania z określonego
-                                  zestawu. (Skrócona forma: -r)
--analyzer:&lt;file_list&gt;             Uruchamianie analizatorów z tego zestawu
-                                  (Skrócona forma: -a)
--additionalfile:&lt;file list&gt;       Dodatkowe pliki, które nie wpływają bezpośrednio na generowanie
-                                  kodu, ale mogą być używane przez analizatory na potrzeby generowania
-                                  błędów lub ostrzeżeń.
+-link:&lt;file_list&gt;                 Osadzone metadane z określonej międzyoperacyjności
+                                  zestaw. (Krótki formularz: -l)
+-recurse:&lt;wildcard&gt;               Uwzględnij wszystkie pliki w bieżącym katalogu
+                                  i podkatalogów zgodnie z
+                                  specyfikacje symboli wieloznacznych.
+-reference:&lt;file_list&gt;            Metadane odwołania z określonego elementu
+                                  zestaw. (Krótki formularz: -r)
+-analyzer:&lt;file_list&gt;             Uruchom analizatory z tego zestawu
+                                  (Krótki formularz: -a)
+-additionalfile:&lt;file list&gt;       Dodatkowe pliki, które nie mają bezpośredniego wpływu na kod
+                                  generowania, ale może być używana przez analizatory do produkcji
+                                  brak błędów i ostrzeżeń.
 
-                                  - RESOURCES -
+                                  - ZASOBY -
 -linkresource:&lt;resinfo&gt;           Łączy określony plik jako zewnętrzny
                                   zasób zestawu.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Skrócona forma: -linkres)
--nowin32manifest                  Nie należy osadzać domyślnego manifestu
-                                  w sekcji manifestu pliku wyjściowego PE.
--resource:&lt;resinfo&gt;               Dodaje plik w postaci osadzonej
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Skrócona forma: -res)
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,publiczny|prywatny]]
+                                  (Krótki formularz: -linkres)
+-nowin32manifest                  Manifest domyślny nie powinien być osadzony
+                                  w sekcji manifestu wyjściowego środowiska PE.
+-resource:&lt;resinfo&gt;               Dodaje określony plik jako osadzony
+                                  zasób zestawu.
+                                  resinfo:&lt;file&gt;[,&lt;nazwa&gt;[,publiczny|prywatny]]
+                                  (Krótki formularz: -res)
 -win32icon:&lt;file&gt;                 Określa plik ikony Win32 (.ico) dla
-                                  zasobów domyślnych Win32.
--win32manifest:&lt;file&gt;             Podany plik jest osadzony w sekcji
-                                  manifestu pliku wyjściowego PE.
--win32resource:&lt;file&gt;             Określa plik zasobu Win32 (.res).
+                                  domyślne zasoby Win32.
+-win32manifest:&lt;file&gt;             Podany plik jest osadzony w manifeście
+                                  sekcji wyjściowego środowiska PE.
+-win32resource:&lt;file&gt;             Określa plik zasobów Win32 (res)
 
-                                  - CODE GENERATION -
--optimize[+|-]                    Włączanie optymalizacji.
--removeintchecks[+|-]             Usuwanie kontroli liczb całkowitych. Ustawienie domyślne wyłączone.
--debug[+|-]                       Wysyłanie informacji o debugowaniu.
--debug:full                       Wysyłanie pełnych informacji o debugowaniu (domyślnie).
--debug:pdbonly                    Wysyłanie pełnych informacji o debugowaniu.
--debug:portable                   Wysyłanie informacji o międzyplatformowym debugowaniu.
--debug:embedded                   Wysyłanie informacji o międzyplatformowym debugowaniu do
-                                  docelowego pliku .dll lub .exe.
--deterministic                    Tworzenie deterministycznego zestawu
-                                  (w tym identyfikatora GUID i znacznika czasu wersji modułu)
--refonly                          Tworzenie zestawu odwołania w miejsce wyjścia głównego
--instrument:TestCoverage          Tworzenie zestawu zinstrumentowanego na zbieranie
-                                   informacji o pokryciu
--sourcelink:&lt;file&gt;                Informacje o linku do źródła do osadzenia w pliku PDB.
+                                  - GENEROWANIE KODU -
+-optimize[+|-]                    Włącz optymalizacje.
+-removeintchecks[+|-]             Usuń testy liczb całkowitych. Wartość domyślna jest wyłączona.
+-debug[+|-]                       Emituj informacje o debugowaniu.
+-debug:full                       Emituj pełne informacje o debugowaniu (domyślnie).
+-debug:pdbonly                    Emituj pełne informacje debugowania.
+-debug:portable                   Emituj informacje debugowania międzyplatformowego.
+-debug:embedded                   Emituj informacje debugowania międzyplatformowego do
+                                  docelowy plik dll lub exe.
+-deterministic                    Produkuj zestawy deterministyczne
+                                  (w tym identyfikator GUID wersji modułu i sygnatura czasowa)
+-refonly                          Utwórz zestaw referencyjny zamiast głównego wyjścia
+-instrument:TestCoverage          Utwórz zestaw instrumentowany do zbierania
+                                  informacje o pokryciach
+-sourcelink:&lt;file&gt;                Informacje o linku źródłowym, aby osadzić w bazie danych PDB.
 
-                                  - ERRORS AND WARNINGS -
--nowarn                           Wyłączanie wszystkich ostrzeżeń.
--nowarn:&lt;number_list&gt;             Wyłączanie listy poszczególnych ostrzeżeń.
--warnaserror[+|-]                 Traktowanie wszystkich ostrzeżeń jako błędów.
--warnaserror[+|-]:&lt;number_list&gt;   Traktowanie listy ostrzeżeń jako błędów.
--ruleset:&lt;file&gt;                   Określanie pliku zestawu reguł, który wyłącza określone
-                                  dane diagnostyczne.
+                                  - BŁĘDY I OSTRZEŻENIA -
+-nowarn                           Wyłącz wszystkie ostrzeżenia.
+-nowarn:&lt;number_list&gt;             Wyłącz listę poszczególnych ostrzeżeń.
+-warnaserror[+|-]                 Traktuj wszystkie ostrzeżenia jako błędy.
+-warnaserror[+|-]:&lt;number_list&gt;   Traktuj listę ostrzeżeń jako błędy.
+-ruleset:&lt;file&gt;                   Określ plik zestawu reguł, który wyłącza określone
+                                  diagnostyka.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Określanie pliku do rejestrowania wszystkich danych diagnostycznych
-                                  kompilatora i analizatora w formacie SARIF.
-                                  sarif_version:{1|2|2.1} Wartości domyślne to 1. 2 i 2.1, które
-                                  oznaczają SARIF w wersji 2.1.0.
--reportanalyzer                   Raportowanie dodatkowych informacji analizatora, takich jak
+                                  Określ plik do rejestrowania całego kompilatora i analizatora
+                                  diagnostyki w formacie SARIF.
+                                  sarif_version:{1|2|2.1} Wartość domyślna to 1. 2 i 2.1
+                                  średnia wersja SARIF 2.1.0.
+-reportanalyzer                   Raport dodatkowe informacje analizatora, takie jak
                                   czas wykonania.
--skipanalyzers[+|-]               Pomijanie wykonania analizatorów diagnostycznych.
+-skipanalyzers[+|-]               Pomiń wykonywanie analizatorów diagnostycznych.
 
-                                  - LANGUAGE -
+                                  - JĘZYK -
 -define:&lt;symbol_list&gt;             Deklarowanie globalnej kompilacji warunkowej
-                                  symbol(s). symbol_list:name=value,...
-                                  (Skrócona forma: -d)
+                                  symbol (-e). symbol_list:nazwa=wartość,...
+                                  (Krótki formularz: -d)
 -imports:&lt;import_list&gt;            Deklarowanie globalnych importów dla przestrzeni nazw w
-                                  przywoływanych plikach metadanych.
-                                  import_list:namespace,...
--langversion:?                    Wyświetlanie dozwolonych wartości dla wersji języka
--langversion:&lt;string&gt;             Określanie wersji języka, takiej jak
-                                  „default” (najnowsza wersja główna) lub
-                                  „latest” (najnowsze wersja, w tym wersje główne)
-                                  albo określone wersje, np. „14” lub „15.3”
--optionexplicit[+|-]              Wymaganie jawnej deklaracji zmiennych.
--optioninfer[+|-]                 Zezwalanie na wnioskowanie o typie zmiennych.
--rootnamespace:&lt;string&gt;           Określa przestrzeń nazwa katalogu głównego dla wszystkich deklaracji
-                                  typu.
--optionstrict[+|-]                Wymuszanie jednoznacznej semantyki języka.
--optionstrict:custom              Ostrzeganie, gdy jednoznaczna semantyka języka nie jest
-                                  przestrzegana.
--optioncompare:binary             Określa porównania ciągów ze stylem binarnym.
+                                  przywoływanych plików metadanych.
+                                  import_list:przestrzeń nazw,...
+-langversion:?                    Wyświetl dozwolone wartości dla wersji językowej
+-langversion:&lt;string&gt;             Określ wersję języka, na przykład
+                                  `default` (najnowsza wersja główna) lub
+                                  `latest` (najnowsza wersja, w tym wersje pomocnicze),
+                                  lub określone wersje, takie jak `14` lub `15.3`
+-optionexplicit[+|-]              Wymagaj jawnej deklaracji zmiennych.
+-optioninfer[+|-]                 Zezwalaj na wnioskowanie typów zmiennych.
+-rootnamespace:&lt;string&gt;           Określa główną przestrzeń nazw dla wszystkich typów
+                                  deklaracje.
+-optionstrict[+|-]                Wymuszaj ścisłą semantykę języka.
+-optionstrict:custom              Ostrzegaj, gdy ścisła semantyka języka nie jest
+                                  przestrzegane.
+-optioncompare:binary             Określa porównania ciągów w stylu binarnym.
                                   Jest to ustawienie domyślne.
--optioncompare:text               Określa porównania ciągów ze stylem tekstowym.
+-optioncompare:text               Określa porównania ciągów w stylu tekstu.
 
-                                  - MISCELLANEOUS -
--help                             Wyświetlanie komunikatu o tym użyciu. (Skrócona forma: -?)
--noconfig                         Nie uwzględniaj automatycznie pliku VBC.RSP.
--nologo                           Nie wyświetlaj transparentu praw autorskich kompilatora.
--quiet                            Cichy tryb wyjścia.
--verbose                          Wyświetlanie pełnych komunikatów.
--parallel[+|-]                    Kompilacja współbieżna.
--version                          Wyświetlanie numeru wersji kompilatora i zamykanie.
+                                  - RÓŻNE -
+-help                             Wyświetla ten komunikat dotyczący użycia. (Krótki formularz: -?)
+-noconfig                         Nie dołącza automatycznie pliku VBC.RSP.
+-nologo                           Nie wyświetlaj transparentu kompilatora z informacjami o prawach autorskich.
+-quiet                            Cichy tryb wyjściowy.
+-verbose                          Wyświetl szczegółowe komunikaty.
+-parallel[+|-]                    Współbieżna kompilacja.
+-version                          Wyświetl numer wersji kompilatora i zakończ.
 
-                                  - ADVANCED -
--baseaddress:&lt;number&gt;             Adres bazowy biblioteki lub modułu
+                                  - ZAAWANSOWANA -
+-baseaddress:&lt;number&gt;             Adres podstawowy biblioteki lub modułu
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Określanie algorytmu dla pliku źródłowego obliczania
-                                  sumy kontrolnej przechowywanej w pliku PDB. Obsługiwane wartości to:
-                                  SHA1 lub SHA256 (domyślnie).
+-checksumalgorithm:&lt;alg&gt;          Określ algorytm obliczania pliku źródłowego
+                                  suma kontrolna przechowywana w bazie danych PDB. Obsługiwane wartości to:
+                                  SHA1 lub SHA256 (wartość domyślna).
 -codepage:&lt;number&gt;                Określa stronę kodową do użycia podczas otwierania
-                                  plików źródłowych.
--delaysign[+|-]                   Podpisanie zestawu z opóźnieniem przy użyciu wyłącznie publicznej
-                                  części silnego klucza nazwy.
--publicsign[+|-]                  Podpisanie publiczne zestawu przy użyciu wyłącznie publicznej
-                                  części silnego klucza nazwy.
--errorreport:&lt;string&gt;             Określa sposób obsługi błędów wewnętrznych
-                                  kompilatora; musi być prompt, send, none lub queue
-                                  (domyślnie).
--filealign:&lt;number&gt;               Określanie wyrównania dla sekcji
-                                  pliku wyjściowego.
--highentropyva[+|-]               Włączanie losowego generowania układu przestrzeni adresowej o wysokiej entropii.
--keycontainer:&lt;string&gt;            Określa konterner silnych kluczy nazw.
--keyfile:&lt;file&gt;                   Określa plik silnego klucza nazwy.
--libpath:&lt;path_list&gt;              Lista katalogów do wyszukania odwołań
-                                  metadanych. (Rozdzielone średnikami).
+                                  pliki źródłowe.
+-delaysign[+|-]                   Opóźnienie podpisywania zestawu przy użyciu tylko publicznego
+                                  część klucza silnej nazwy.
+-publicsign[+|-]                  Podpisz zestaw jako publiczny
+                                  część klucza silnej nazwy.
+-errorreport:&lt;string&gt;             Określa sposób obsługi wewnętrznego kompilatora
+                                  błędy; musi być monitem, wysyłaniem, brakiem lub kolejką
+                                  (domyślne).
+-generatedfilesout:&lt;dir&gt;          Umieść pliki wygenerowane podczas kompilacji w
+                                  określony katalog.
+-filealign:&lt;number&gt;               Określ wyrównanie używane dla pliku wyjściowego
+                                  sekcje.
+-highentropyva[+|-]               Włącz funkcję ASLR o wysokiej entropii.
+-keycontainer:&lt;string&gt;            Określa kontener klucza o silnej nazwie.
+-keyfile:&lt;file&gt;                   Określa plik klucza silnej nazwy.
+-libpath:&lt;path_list&gt;              Lista katalogów do wyszukania metadanych
+                                  odwołania. (Rozdzielone średnikami).
 -main:&lt;class&gt;                     Określa klasę lub moduł zawierający
-                                  instrukcję Sub Main. Może to być również klasa, która
-                                  dziedziczy po elemencie System.Windows.Forms.Form.
-                                  (Skrócona forma: -m)
--moduleassemblyname:&lt;string&gt;      Nazwa zestawu, do którego
-                                  należy ten moduł.
--netcf                            Docelowe środowisko .NET Compact Framework.
--nostdlib                         Nie odwołuj się do bibliotek standardowych
-                                  (pliki system.dll i VBC.RSP).
+                                  Sub Main. Może to być również klasa, która
+                                  dziedziczy z elementu System.Windows.Forms.Form.
+                                  (Krótki formularz: -m)
+-moduleassemblyname:&lt;string&gt;      Nazwa zestawu, który ten moduł będzie
+                                  być częścią.
+-netcf                            Wskaż platformę .NET Compact Framework jako element docelowy.
+-nostdlib                         Nie należy odwoływać się do bibliotek standardowych
+                                  (system.dll i VBC. pliku RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Określanie mapowania dla wyjścia nazw ścieżek źródłowych przez
-                                  kompilator.
--platform:&lt;string&gt;                Ograniczanie, na których platformach może działać ten kod;
+                                  Określ mapowanie dla nazw ścieżek źródłowych według
+                                  kompilatora.
+-platform:&lt;string&gt;                Ogranicz platformy, na których można uruchomić ten kod;
                                   musi być x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred lub anycpu (domyślnie).
--preferreduilang                  Określanie nazwy preferowanego języka wyjściowego.
--nosdkpath                        Wyłączania wyszukiwania ścieżki zestawu SDK dla zestawów bibliotek standardowych.
--sdkpath:&lt;path&gt;                   Lokalizacja katalogu zestawu SDK .NET Framework
+                                  AnyCPU32BitPreferred lub anycpu (wartość domyślna).
+-preferreduilang                  Określ preferowaną nazwę języka wyjściowego.
+-nosdkpath                        Wyłącz wyszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowe.
+-sdkpath:&lt;path&gt;                   Lokalizacja katalogu zestawu .NET Framework SDK (mscorlib.dll)
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Określanie wersji podsystemu pliku wyjściowego PE.
+-subsystemversion:&lt;version&gt;       Określ wersję podsystemu wyjściowego środowiska PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Wysyłanie danych wyjściowych kompilatora w systemie kodowania znaków
-                                  UTF-8.
-@&lt;file&gt;                           Wstawianie ustawień w wierszu polecenia z pliku tekstowego
--vbruntime[+|-|*]                 Kompilowanie z/bez domyślnego aparatu plików wykonywalnych języka wspólnego
-                                  Visual Basic.
--vbruntime:&lt;file&gt;                 Kompilowanie z alternatywnym aparatem plików wykonywalnych języka wspólnego
-                                  Visual Basic w pliku &lt;file&gt;.
+-utf8output[+|-]                  Emituj dane wyjściowe kompilatora w znaku UTF-8
+                                  kodowanie.
+@&lt;file&gt;                           Wstaw ustawienia wiersza polecenia z pliku tekstowego
+-vbruntime[+|-|*]                 Kompiluj z/bez użycia domyślnej wersji wykonywalnej programu Visual Basic.
+                                  środowisko uruchomieniowe.
+-vbruntime:&lt;file&gt;                 Kompiluj z użyciem zastępczej wersji wykonywalnej programu Visual Basic z pliku
+                                  środowisko uruchomieniowe w &lt;file&gt;.
 </target>
         <note />
       </trans-unit>

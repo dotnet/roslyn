@@ -2331,7 +2331,6 @@ class C
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
-
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
@@ -3908,7 +3907,6 @@ class C
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
-
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
@@ -4113,7 +4111,6 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
-
 
             var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
             var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;

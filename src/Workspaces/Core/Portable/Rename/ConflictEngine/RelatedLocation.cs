@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             var hashCode = 928418920;
             hashCode = hashCode * -1521134295 + ConflictCheckSpan.GetHashCode();
-            hashCode = hashCode * -1521134295 + Type.GetHashCode();
+            hashCode = hashCode * -1521134295 + ((int)Type).GetHashCode();
             hashCode = hashCode * -1521134295 + IsReference.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<DocumentId>.Default.GetHashCode(DocumentId);
             hashCode = hashCode * -1521134295 + ComplexifiedTargetSpan.GetHashCode();

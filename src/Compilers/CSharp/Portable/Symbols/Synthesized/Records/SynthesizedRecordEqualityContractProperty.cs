@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
@@ -76,8 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (TypeWithAnnotations.Create(Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Type, diagnostics, Location), NullableAnnotation.NotAnnotated),
                     ImmutableArray<ParameterSymbol>.Empty);
         }
-
-        protected override bool HasPointerTypeSyntactically => false;
 
         protected override void ValidatePropertyType(BindingDiagnosticBag diagnostics)
         {
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        hasBody: true,
                        hasExpressionBody: false,
                        isIterator: false,
-                       modifiers: new SyntaxTokenList(),
+                       modifiers: default,
                        MethodKind.PropertyGet,
                        usesInit: false,
                        isAutoPropertyAccessor: false,
@@ -163,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
             internal override bool SynthesizesLoweredBoundBody => true;
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {

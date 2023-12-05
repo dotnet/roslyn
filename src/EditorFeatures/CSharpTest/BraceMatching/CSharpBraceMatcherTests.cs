@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
@@ -623,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithSingleMatchingDirective()
         {
@@ -643,7 +641,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
         {
@@ -665,7 +663,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestConditionalDirectiveWithAllMatchingDirectives()
         {
@@ -689,7 +687,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestRegionDirective()
         {
@@ -709,7 +707,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestInterleavedDirectivesInner()
         {
@@ -747,7 +745,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestInterleavedDirectivesOuter()
         {
@@ -785,7 +783,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestUnmatchedDirective1()
         {
@@ -803,7 +801,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7120, "https://github.com/dotnet/roslyn/issues/7120")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
         [WpfFact]
         public async Task TestUnmatchedDirective2()
         {
@@ -821,7 +819,7 @@ public class C
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         [WpfFact]
         public async Task TestUnmatchedConditionalDirective()
         {
@@ -845,7 +843,7 @@ class Program
             await TestAsync(code, expected);
         }
 
-        [WorkItem(7534, "https://github.com/dotnet/roslyn/issues/7534")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
         [WpfFact]
         public async Task TestUnmatchedConditionalDirective2()
         {

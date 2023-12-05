@@ -84,7 +84,6 @@ namespace System.Threading.Tasks {
                 taskAssembly = taskAssembly + "\n" + extensionSource;
             }
 
-
             var taskCompilation = CreateEmptyCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
@@ -753,7 +752,6 @@ internal E e2;
 internal protected E e3;
 public E e4;
 ", previous: c0);
-
 
             CreateSubmission(@"protected A x;", previous: c1).VerifyDiagnostics(
                 // (1,10): error CS0052: Inconsistent accessibility: field type 'A' is less accessible than field 'x'

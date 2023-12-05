@@ -782,7 +782,6 @@ public class A
                 MethodDefinitionHandle handleDestructorA = typeA.GetMethods().AsEnumerable().
                     Single(handle => peFileReader.GetString(peFileReader.GetMethodDefinition(handle).Name) == WellKnownMemberNames.DestructorName);
 
-
                 // Find the handle for System.Object.
                 TypeReferenceHandle handleObject = peFileReader.TypeReferences.AsEnumerable().
                     Select(handle => new { handle = handle, row = peFileReader.GetTypeReference(handle) }).
@@ -794,7 +793,6 @@ public class A
                     Select(handle => new { handle = handle, row = peFileReader.GetMemberReference(handle) }).
                     Single(pair => pair.row.Parent == (EntityHandle)handleObject &&
                         peFileReader.GetString(pair.row.Name) == WellKnownMemberNames.DestructorName).handle;
-
 
                 // Find the MethodImpl row for A.
                 MethodImplementation methodImpl = typeA.GetMethodImplementations().AsEnumerable().

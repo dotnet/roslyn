@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitConditionalOperatorAddress(BoundConditionalOperator expr, AddressKind addressKind)
         {
-            Debug.Assert(expr.ConstantValue == null, "Constant value should have been emitted directly");
+            Debug.Assert(expr.ConstantValueOpt == null, "Constant value should have been emitted directly");
 
             object consequenceLabel = new object();
             object doneLabel = new object();
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 _builder.EmitArrayElementAddress(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
-                                                arrayAccess.Syntax, _diagnostics);
+                                                arrayAccess.Syntax, _diagnostics.DiagnosticBag);
             }
         }
 

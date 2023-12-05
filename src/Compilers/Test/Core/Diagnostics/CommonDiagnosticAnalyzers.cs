@@ -62,14 +62,18 @@ namespace Microsoft.CodeAnalysis
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterCompilationAction(compilationContext =>
+                context.RegisterCompilationStartAction(context =>
                 {
                     // With location diagnostic.
-                    var location = compilationContext.Compilation.SyntaxTrees.First().GetRoot().GetLocation();
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    context.RegisterSyntaxTreeAction(context =>
+                    {
+                        var location = context.Tree.GetRoot().GetLocation();
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    });
 
                     // No location diagnostic.
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties));
+                    context.RegisterCompilationEndAction(context =>
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties)));
                 });
             }
 
@@ -295,13 +299,16 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification)
+            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification, string suppressionType)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
-
+                var expectedSuppressionPropertyMap = @",
+              ""properties"": {
+                ""suppressionType"": """ + suppressionType + @"""
+              }";
                 return
 @"      ""results"": [
         {
@@ -314,7 +321,7 @@ namespace Microsoft.CodeAnalysis
           ""suppressions"": [
             {
               ""kind"": ""inSource""" + (justification == null ? "" : @",
-              ""justification"": """ + (justification) + @"""") + @"
+              ""justification"": """ + (justification) + @"""") + (suppressionType == null ? "" : expectedSuppressionPropertyMap) + @"
             }
           ],
           ""locations"": [
@@ -350,7 +357,21 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogRulesText()
+            public static string GetExpectedV2SuppressionTextForRulesSection(string[] suppressionKinds)
+            {
+                if (suppressionKinds?.Length > 0)
+                {
+                    return @",
+                ""isEverSuppressed"": ""true"",
+                ""suppressionKinds"": [
+                  " + string.Join("," + Environment.NewLine + "                  ", suppressionKinds.Select(s => $"\"{s}\"")) + @"
+                ]";
+                }
+
+                return string.Empty;
+            }
+
+            public static string GetExpectedV2ErrorLogRulesText(string[] suppressionKinds1 = null, string[] suppressionKinds2 = null)
             {
                 return
 @"          ""rules"": [
@@ -364,9 +385,9 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @""",
+                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
                 ""tags"": [
-                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+                  " + string.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
               }
             },
@@ -383,7 +404,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor2.Category + @""",
+                ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
                 ""tags"": [
                   " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
@@ -398,6 +419,25 @@ namespace Microsoft.CodeAnalysis
                 return uri.IsAbsoluteUri
                     ? uri.AbsoluteUri
                     : WebUtility.UrlEncode(uri.ToString());
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SuppressorForErrorLogTest : DiagnosticSuppressor
+        {
+            public static readonly SuppressionDescriptor Descriptor1 = new("SPR0001", AnalyzerForErrorLogTest.Descriptor1.Id, "SuppressorJustification1");
+            public static readonly SuppressionDescriptor Descriptor2 = new("SPR0002", AnalyzerForErrorLogTest.Descriptor2.Id, "SuppressorJustification2");
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(Descriptor1, Descriptor2);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    var descriptor = diagnostic.Id == Descriptor1.SuppressedDiagnosticId ? Descriptor1 : Descriptor2;
+                    context.ReportSuppression(Suppression.Create(descriptor, diagnostic));
+                }
             }
         }
 
@@ -629,10 +669,16 @@ namespace Microsoft.CodeAnalysis
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: false);
 
+            internal readonly ConcurrentSet<ISymbol> CallbackSymbols = new();
+
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolAction(_ => { }, SymbolKind.NamedType);
+                context.RegisterSymbolAction(context =>
+                {
+                    CallbackSymbols.Add(context.Symbol);
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, context.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
             }
         }
 
@@ -1873,8 +1919,8 @@ namespace Microsoft.CodeAnalysis
                     if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString()).Order());
-                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString()).Order());
+                        var symbolsStartedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(SymbolsStarted.Select(s => s.ToDisplayString())));
+                        var symbolsEndedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(symbolsEnded.Select(s => s.ToDisplayString())));
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
 
@@ -2222,7 +2268,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(_symbolCallbacks.Select(s => s.Name)));
 
             public override void Initialize(AnalysisContext context)
             {
@@ -2474,11 +2520,166 @@ namespace Microsoft.CodeAnalysis
                             context.CancellationToken.ThrowIfCancellationRequested();
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     context.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.Tree.GetRoot().GetLocation()));
                 });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class LocalNonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new("ID0001", "Title", "{0}", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private readonly ActionKind _actionKind;
+
+            public enum ActionKind
+            {
+                SyntaxTreeAction,
+                SemanticModelAction,
+                SymbolAction,
+                SymbolStartEndAction,
+                OperationAction,
+                OperationBlockAction,
+                OperationBlockStartEndAction,
+                SyntaxNodeAction,
+                CodeBlockAction,
+                CodeBlockStartEndAction
+            }
+
+            public LocalNonLocalDiagnosticsAnalyzer(ActionKind actionKind)
+            {
+                _actionKind = actionKind;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(AnalyzeCompilation);
+            }
+
+            private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+            {
+                switch (_actionKind)
+                {
+                    case ActionKind.SyntaxTreeAction:
+                        context.RegisterSyntaxTreeAction(treeContext =>
+                            ReportDiagnosticsInAllTrees("RegisterSyntaxTreeAction", treeContext.Tree, treeContext.Compilation, treeContext.ReportDiagnostic));
+                        break;
+
+                    case ActionKind.SemanticModelAction:
+                        context.RegisterSemanticModelAction(semanticModelContext =>
+                            ReportDiagnosticsInAllTrees("RegisterSemanticModelAction", semanticModelContext.SemanticModel.SyntaxTree, semanticModelContext.SemanticModel.Compilation, semanticModelContext.ReportDiagnostic));
+                        break;
+
+                    case ActionKind.SymbolAction:
+                        context.RegisterSymbolAction(symbolContext =>
+                            ReportSymbolDiagnostics("RegisterSymbolAction", symbolContext.Symbol, symbolContext.Compilation, symbolContext.ReportDiagnostic),
+                            SymbolKind.NamedType, SymbolKind.Method);
+                        break;
+
+                    case ActionKind.SymbolStartEndAction:
+                        context.RegisterSymbolStartAction(symbolStartContext =>
+                        {
+                            symbolStartContext.RegisterOperationAction(operationContext =>
+                                ReportDiagnostics($"RegisterOperationAction({operationContext.Operation.Syntax}) in RegisterSymbolStartAction", operationContext.Operation.Syntax.SyntaxTree, operationContext.ContainingSymbol, operationContext.ReportDiagnostic),
+                                OperationKind.VariableDeclarationGroup);
+
+                            symbolStartContext.RegisterSyntaxNodeAction(syntaxNodeContext =>
+                                ReportDiagnostics($"RegisterSyntaxNodeAction({syntaxNodeContext.Node}) in RegisterSymbolStartAction", syntaxNodeContext.Node.SyntaxTree, syntaxNodeContext.ContainingSymbol, syntaxNodeContext.ReportDiagnostic),
+                                SyntaxKind.LocalDeclarationStatement);
+
+                            symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
+                                ReportSymbolDiagnostics("RegisterSymbolEndAction", symbolEndContext.Symbol, symbolEndContext.Compilation, symbolEndContext.ReportDiagnostic));
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case ActionKind.OperationAction:
+                        context.RegisterOperationAction(operationContext =>
+                            ReportDiagnostics($"RegisterOperationAction({operationContext.Operation.Syntax})", operationContext.Operation.Syntax.SyntaxTree, operationContext.ContainingSymbol, operationContext.ReportDiagnostic),
+                            OperationKind.VariableDeclarationGroup);
+                        break;
+
+                    case ActionKind.OperationBlockAction:
+                        context.RegisterOperationBlockAction(operationBlockContext =>
+                            ReportDiagnostics("RegisterOperationBlockAction", operationBlockContext.OwningSymbol.DeclaringSyntaxReferences[0].SyntaxTree, operationBlockContext.OwningSymbol, operationBlockContext.ReportDiagnostic));
+                        break;
+
+                    case ActionKind.OperationBlockStartEndAction:
+                        context.RegisterOperationBlockStartAction(operationBlockStartContext =>
+                        {
+                            operationBlockStartContext.RegisterOperationAction(operationContext =>
+                                ReportDiagnostics($"RegisterOperationAction({operationContext.Operation.Syntax}) in RegisterOperationBlockStartAction", operationContext.Operation.Syntax.SyntaxTree, operationContext.ContainingSymbol, operationContext.ReportDiagnostic),
+                                OperationKind.VariableDeclarationGroup);
+
+                            operationBlockStartContext.RegisterOperationBlockEndAction(operationBlockEndContext =>
+                                ReportDiagnostics("RegisterOperationBlockEndAction", operationBlockEndContext.OwningSymbol.DeclaringSyntaxReferences[0].SyntaxTree, operationBlockEndContext.OwningSymbol, operationBlockEndContext.ReportDiagnostic));
+                        });
+                        break;
+
+                    case ActionKind.SyntaxNodeAction:
+                        context.RegisterSyntaxNodeAction(syntaxNodeContext =>
+                            ReportDiagnostics($"RegisterSyntaxNodeAction({syntaxNodeContext.Node})", syntaxNodeContext.Node.SyntaxTree, syntaxNodeContext.ContainingSymbol, syntaxNodeContext.ReportDiagnostic),
+                            SyntaxKind.LocalDeclarationStatement);
+                        break;
+
+                    case ActionKind.CodeBlockAction:
+                        context.RegisterCodeBlockAction(codeBlockContext =>
+                            ReportDiagnostics("RegisterCodeBlockAction", codeBlockContext.CodeBlock.SyntaxTree, codeBlockContext.OwningSymbol, codeBlockContext.ReportDiagnostic));
+                        break;
+
+                    case ActionKind.CodeBlockStartEndAction:
+                        context.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockStartContext =>
+                        {
+                            codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext =>
+                                ReportDiagnostics($"RegisterSyntaxNodeAction({syntaxNodeContext.Node}) in RegisterCodeBlockStartAction", syntaxNodeContext.Node.SyntaxTree, syntaxNodeContext.ContainingSymbol, syntaxNodeContext.ReportDiagnostic),
+                                SyntaxKind.LocalDeclarationStatement);
+
+                            codeBlockStartContext.RegisterCodeBlockEndAction(codeBlockEndContext =>
+                                ReportDiagnostics("RegisterCodeBlockEndAction", codeBlockEndContext.CodeBlock.SyntaxTree, codeBlockEndContext.OwningSymbol, codeBlockEndContext.ReportDiagnostic));
+                        });
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_actionKind);
+                }
+            }
+
+            private static void ReportSymbolDiagnostics(string actionName, ISymbol symbol, Compilation compilation, Action<Diagnostic> reportDiagnostic)
+            {
+                var arg = $"{actionName}({symbol.Name})";
+                var trees = symbol.DeclaringSyntaxReferences.Select(syntaxRef => syntaxRef.SyntaxTree).Distinct();
+                foreach (var tree in trees)
+                {
+                    var index = compilation.SyntaxTrees.IndexOf(tree) + 1;
+                    ReportDiagnosticsInTreeCore($"{arg}(File{index})", tree, reportDiagnostic);
+                }
+            }
+
+            private static void ReportDiagnosticsInAllTrees(string actionName, SyntaxTree analyzedTree, Compilation compilation, Action<Diagnostic> reportDiagnostic)
+            {
+                var index = compilation.SyntaxTrees.IndexOf(analyzedTree) + 1;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    ReportDiagnosticsInTreeCore($"{actionName}(File{index})", tree, reportDiagnostic);
+                }
+            }
+
+            private static void ReportDiagnostics(string actionName, SyntaxTree tree, ISymbol containingSymbol, Action<Diagnostic> reportDiagnostic)
+            {
+                var arg = $"{actionName}({containingSymbol.Name})";
+                ReportDiagnosticsInTreeCore(arg, tree, reportDiagnostic);
+            }
+
+            private static void ReportDiagnosticsInTreeCore(string arg, SyntaxTree tree, Action<Diagnostic> reportDiagnostic)
+            {
+                var root = tree.GetRoot();
+                foreach (var localDecl in root.DescendantNodes().OfType<CSharp.Syntax.LocalDeclarationStatementSyntax>())
+                {
+                    reportDiagnostic(Diagnostic.Create(s_descriptor, localDecl.GetLocation(), arg));
+                }
             }
         }
 
@@ -2515,6 +2716,171 @@ namespace Microsoft.CodeAnalysis
                     context.RegisterOperationAction(
                         context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Operation.Syntax.GetLocation())),
                         OperationKind.VariableDeclaration);
+                }
+            }
+        }
+
+        internal enum AnalyzerRegisterActionKind
+        {
+            SyntaxTree,
+            SyntaxNode,
+            Symbol,
+            Operation,
+            SemanticModel,
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        internal sealed class CancellationTestAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            private readonly DiagnosticDescriptor s_descriptor =
+                new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            private readonly AnalyzerRegisterActionKind _actionKind;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+            public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
+            {
+                _actionKind = actionKind;
+                CanceledCompilations = new ConcurrentSet<Compilation>();
+            }
+
+            public CancellationToken CancellationToken => _cancellationTokenSource.Token;
+            public ConcurrentSet<Compilation> CanceledCompilations { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(OnCompilationStart);
+            }
+
+            private void OnCompilationStart(CompilationStartAnalysisContext context)
+            {
+                switch (_actionKind)
+                {
+                    case AnalyzerRegisterActionKind.SyntaxTree:
+                        context.RegisterSyntaxTreeAction(syntaxContext => HandleCallback(syntaxContext.Tree.GetRoot().GetLocation(), context.Compilation, syntaxContext.ReportDiagnostic, syntaxContext.CancellationToken));
+                        break;
+                    case AnalyzerRegisterActionKind.SyntaxNode:
+                        context.RegisterSyntaxNodeAction(context => HandleCallback(context.Node.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), CodeAnalysis.CSharp.SyntaxKind.ClassDeclaration);
+                        break;
+                    case AnalyzerRegisterActionKind.Symbol:
+                        context.RegisterSymbolAction(context => HandleCallback(context.Symbol.Locations[0], context.Compilation, context.ReportDiagnostic, context.CancellationToken), SymbolKind.NamedType);
+                        break;
+                    case AnalyzerRegisterActionKind.Operation:
+                        context.RegisterOperationAction(context => HandleCallback(context.Operation.Syntax.GetLocation(), context.Compilation, context.ReportDiagnostic, context.CancellationToken), OperationKind.VariableDeclaration);
+                        break;
+                    case AnalyzerRegisterActionKind.SemanticModel:
+                        context.RegisterSemanticModelAction(context => HandleCallback(context.SemanticModel.SyntaxTree.GetRoot().GetLocation(), context.SemanticModel.Compilation, context.ReportDiagnostic, context.CancellationToken));
+                        break;
+                }
+            }
+
+            private void HandleCallback(Location analysisLocation, Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+            {
+                // Mimic cancellation by throwing an OperationCanceledException in first callback.
+                if (!_cancellationTokenSource.IsCancellationRequested)
+                {
+                    _cancellationTokenSource.Cancel();
+                    CanceledCompilations.Add(compilation);
+
+                    while (true)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                // Report diagnostic in the second callback.
+                reportDiagnostic(Diagnostic.Create(s_descriptor, analysisLocation));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class AllActionsAnalyzer : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new("ID0001", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            private readonly bool _testSyntaxTreeAction;
+            private readonly bool _testSemanticModelAction;
+            private readonly bool _testSymbolStartAction;
+            private readonly bool _testBlockActions;
+
+            public readonly List<SyntaxTree> AnalyzedTrees = new();
+            public readonly List<SemanticModel> AnalyzedSemanticModels = new();
+            public readonly List<ISymbol> AnalyzedSymbols = new();
+            public readonly List<ISymbol> AnalyzedSymbolStartSymbols = new();
+            public readonly List<ISymbol> AnalyzedSymbolEndSymbols = new();
+            public readonly List<IOperation> AnalyzedOperations = new();
+            public readonly List<ISymbol> AnalyzedOperationBlockSymbols = new();
+            public readonly List<IOperation> AnalyzedOperationsInsideOperationBlock = new();
+            public readonly List<ISymbol> AnalyzedOperationBlockStartSymbols = new();
+            public readonly List<ISymbol> AnalyzedOperationBlockEndSymbols = new();
+            public readonly List<SyntaxNode> AnalyzedSyntaxNodes = new();
+            public readonly List<ISymbol> AnalyzedCodeBlockSymbols = new();
+            public readonly List<SyntaxNode> AnalyzedSyntaxNodesInsideCodeBlock = new();
+            public readonly List<ISymbol> AnalyzedCodeBlockStartSymbols = new();
+            public readonly List<ISymbol> AnalyzedCodeBlockEndSymbols = new();
+
+            public AllActionsAnalyzer(bool testSyntaxTreeAction, bool testSemanticModelAction, bool testSymbolStartAction, bool testBlockActions)
+            {
+                _testSyntaxTreeAction = testSyntaxTreeAction;
+                _testSemanticModelAction = testSemanticModelAction;
+                _testSymbolStartAction = testSymbolStartAction;
+                _testBlockActions = testBlockActions;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationStartAction(AnalyzeCompilation);
+            }
+
+            private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+            {
+                // Unconditionally test symbol/operation/node actions.
+                context.RegisterSymbolAction(symbolContext => AnalyzedSymbols.Add(symbolContext.Symbol), SymbolKind.NamedType, SymbolKind.Method);
+                context.RegisterOperationAction(operationContext => AnalyzedOperations.Add(operationContext.Operation), OperationKind.VariableDeclaration);
+                context.RegisterSyntaxNodeAction(syntaxNodeContext => AnalyzedSyntaxNodes.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement);
+
+                if (_testSyntaxTreeAction)
+                {
+                    context.RegisterSyntaxTreeAction(treeContext => AnalyzedTrees.Add(treeContext.Tree));
+                }
+
+                if (_testSemanticModelAction)
+                {
+                    context.RegisterSemanticModelAction(semanticModelContext => AnalyzedSemanticModels.Add(semanticModelContext.SemanticModel));
+                }
+
+                if (_testSymbolStartAction)
+                {
+                    context.RegisterSymbolStartAction(symbolStartContext =>
+                    {
+                        AnalyzedSymbolStartSymbols.Add(symbolStartContext.Symbol);
+                        symbolStartContext.RegisterSymbolEndAction(symbolEndContext => AnalyzedSymbolEndSymbols.Add(symbolEndContext.Symbol));
+                    }, SymbolKind.NamedType);
+                }
+
+                if (_testBlockActions)
+                {
+                    context.RegisterOperationBlockAction(operationBlockContext => AnalyzedOperationBlockSymbols.Add(operationBlockContext.OwningSymbol));
+                    context.RegisterOperationBlockStartAction(operationBlockStartContext =>
+                    {
+                        AnalyzedOperationBlockStartSymbols.Add(operationBlockStartContext.OwningSymbol);
+                        operationBlockStartContext.RegisterOperationAction(operationContext => AnalyzedOperationsInsideOperationBlock.Add(operationContext.Operation), OperationKind.VariableDeclaration);
+                        operationBlockStartContext.RegisterOperationBlockEndAction(operationBlockEndContext => AnalyzedOperationBlockEndSymbols.Add(operationBlockEndContext.OwningSymbol));
+                    });
+                    context.RegisterCodeBlockAction(codeBlockContext => AnalyzedCodeBlockSymbols.Add(codeBlockContext.OwningSymbol));
+                    context.RegisterCodeBlockStartAction<SyntaxKind>(codeBlockStartContext =>
+                    {
+                        AnalyzedCodeBlockStartSymbols.Add(codeBlockStartContext.OwningSymbol);
+                        codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext => AnalyzedSyntaxNodesInsideCodeBlock.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement);
+                        codeBlockStartContext.RegisterCodeBlockEndAction(codeBlockEndContext => AnalyzedCodeBlockEndSymbols.Add(codeBlockEndContext.OwningSymbol));
+                    });
                 }
             }
         }

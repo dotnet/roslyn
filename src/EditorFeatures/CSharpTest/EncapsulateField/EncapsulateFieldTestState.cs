@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         {
             var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedProperties), CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+            workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
             return new EncapsulateFieldTestState(workspace);
         }

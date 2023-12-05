@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private const string DynamicFormatSpecifier = "dynamic";
 
-        internal static DynamicViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value, ResultProvider resultProvider)
+        internal static DynamicViewExpansion CreateExpansion(DkmInspectionContext inspectionContext, DkmClrValue value)
         {
             if (value.IsError() || value.IsNull || value.HasExceptionThrown())
             {
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue value,
             ResultProvider resultProvider)
         {
-            var expansion = CreateExpansion(inspectionContext, value, resultProvider);
-            return (expansion != null) ?
-                expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, fullNameProvider: resultProvider.FullNameProvider) :
-                new EvalResult(name, Resources.DynamicViewNotDynamic, inspectionContext);
+            var expansion = CreateExpansion(inspectionContext, value);
+            return (expansion != null)
+                ? expansion.CreateDynamicViewRow(inspectionContext, name, parent: null, fullNameProvider: resultProvider.FullNameProvider)
+                : new EvalResult(name, Resources.DynamicViewNotDynamic, inspectionContext);
         }
 
         private readonly DkmClrValue _proxyValue;
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var isRootExpression = parent == null;
             var fullName = isRootExpression ? name : parent.ChildFullNamePrefix;
-            var childFullNamePrefix = (fullName == null) ?
-                null :
-                fullNameProvider.GetClrObjectCreationExpression(
+            var childFullNamePrefix = (fullName == null)
+                ? null
+                : fullNameProvider.GetClrObjectCreationExpression(
                     inspectionContext,
                     proxyTypeAndInfo.ClrType,
                     proxyTypeAndInfo.Info,

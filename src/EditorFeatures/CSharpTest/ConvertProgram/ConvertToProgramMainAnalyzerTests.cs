@@ -363,7 +363,7 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61126, "https://github.com/dotnet/roslyn/issues/61126")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61126")]
         public async Task TestNormalCommentStaysInsideMainIfTouchingStatement()
         {
             await new VerifyCS.Test
@@ -391,7 +391,7 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(61126, "https://github.com/dotnet/roslyn/issues/61126")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61126")]
         public async Task TestNormalCommentMovesIfNotTouching()
         {
             await new VerifyCS.Test
@@ -597,7 +597,7 @@ internal class Program
             }.RunAsync();
         }
 
-        [Fact, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62943")]
         public async Task TestHasExistingPart()
         {
             await new VerifyCS.Test
@@ -630,7 +630,7 @@ partial class Program
             }.RunAsync();
         }
 
-        [Theory, WorkItem(62943, "https://github.com/dotnet/roslyn/issues/62943")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/62943")]
         [InlineData("public")]
         [InlineData("internal")]
         [InlineData("static")]

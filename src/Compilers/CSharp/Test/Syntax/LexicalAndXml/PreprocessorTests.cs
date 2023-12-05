@@ -1716,7 +1716,6 @@ aeu";
 
             var node = Parse(text);
             TestRoundTripping(node, text, false);
-            VerifyErrorCode(node, (int)ErrorCode.ERR_NamespaceUnexpected);
             VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
         }
 

@@ -72,10 +72,14 @@ namespace Microsoft.CodeAnalysis.Remote
                             : null;
                         var documentSpan = arguments.DocumentSpan;
                         var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                        var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                        var hostWorkspaceServices = this.GetWorkspace().Services;
 
-                        var result = await diagnosticComputer.GetDiagnosticsAsync(
-                            arguments.AnalyzerIds,
+                        var result = await DiagnosticComputer.GetDiagnosticsAsync(
+                            document, project, solutionChecksum,
+                            arguments.IdeOptions, documentSpan,
+                            arguments.AnalyzerIds, documentAnalysisKind,
+                            _analyzerInfoCache, hostWorkspaceServices,
+                            isExplicit: arguments.IsExplicit,
                             reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                             logPerformanceInfo: arguments.LogPerformanceInfo,
                             getTelemetryInfo: arguments.GetTelemetryInfo,
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
+        public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return default;
                     }
 
-                    service.AddSnapshot(snapshot, unitCount);
+                    service.AddSnapshot(snapshot, unitCount, forSpanAnalysis);
                 }
 
                 return default;

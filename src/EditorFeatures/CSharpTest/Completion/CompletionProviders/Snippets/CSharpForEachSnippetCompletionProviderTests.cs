@@ -225,7 +225,6 @@ static void Main(string[] args)
     {
         $$
     }
-
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Regular);
@@ -248,7 +247,6 @@ static void Main(string[] args)
     {
         $$
     }
-
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);

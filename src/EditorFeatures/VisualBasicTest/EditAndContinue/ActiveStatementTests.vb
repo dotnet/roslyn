@@ -368,7 +368,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.class_, "C")))
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Inner()
             Dim src1 = " 
 Class C
@@ -401,7 +401,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()", FeaturesResources.code))
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Inner_MultipleParents()
             Dim src1 = "
 Class C 
@@ -598,7 +598,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then", FeaturesResources.code))
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Leaf()
             Dim src1 = "
 Class C
@@ -628,7 +628,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Leaf_InTry()
             Dim src1 = "
 Class C
@@ -663,7 +663,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Leaf_InTry2()
             Dim src1 = "
 Class C
@@ -701,7 +701,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Inner_CommentActiveStatement()
             Dim src1 = "
 Class C
@@ -733,7 +733,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()", FeaturesResources.code))
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub Delete_Leaf_CommentActiveStatement()
             Dim src1 = "
 Class C
@@ -822,7 +822,7 @@ End Class
                                         Diagnostic(RudeEditKind.ActiveStatementUpdate, "f As Goo = New Goo(5*2)"))
         End Sub
 
-        <Fact, WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")>
         Public Sub Updated_Leaf_Constructor()
             Dim src1 = "
 Class Program
@@ -934,7 +934,7 @@ End Class
                 Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 42", FeaturesResources.parameter))
         End Sub
 
-        <Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
         Public Sub Updated_Leaf_ConstructorChaining1()
             Dim src1 = "
 Class B 
@@ -968,7 +968,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
         Public Sub Updated_Leaf_ConstructorChaining2()
             Dim src1 = "
 Class Test
@@ -1128,7 +1128,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
         Public Sub InstanceConstructorWithInitializer_Leaf_DeleteBaseCall()
             Dim src1 = "
 Class C
@@ -1188,7 +1188,7 @@ End Class
 
 #Region "Initializers"
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_Init()
             Dim src1 = "
 Class C
@@ -1215,7 +1215,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_AsNew()
             Dim src1 = "
 Class C
@@ -1242,7 +1242,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_SharedAsNew()
             Dim src1 = "
 Class C
@@ -1269,7 +1269,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_PropertyInitializer()
             Dim src1 = "
 Class C
@@ -1296,7 +1296,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_PropertyInitializerUntyped()
             Dim src1 = "
 Class C
@@ -1323,7 +1323,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_PropertyAsNewInitializer()
             Dim src1 = "
 Class C
@@ -1350,7 +1350,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_ArrayInitializer_Untyped()
             Dim src1 = "
 Class C
@@ -1376,7 +1376,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
         Public Sub Initializer_Unedited_ArrayInitializer_Typed()
             Dim src1 = "
 Class C
@@ -1483,7 +1483,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_Update1()
             Dim src1 = "
 Class C
@@ -1511,7 +1511,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c = 2"))
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_Update2()
             Dim src1 = "
 Class C
@@ -1567,7 +1567,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub FieldInitializer_AsNewToInit()
             Dim src1 = "
 Class C
@@ -1614,7 +1614,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_InitToAsNew()
             Dim src1 = "
 Class C
@@ -1642,7 +1642,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As New Integer"))
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_AsNewMulti_Update1()
             Dim src1 = "
 Class C
@@ -1678,7 +1678,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "x"))
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_AsNewMulti_Update3()
             Dim src1 = "
 Class C
@@ -1709,7 +1709,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e"))
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_AsNewMulti_Update4()
             Dim src1 = "
 Class C
@@ -1761,7 +1761,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_AsNewMulti_WithLambda2()
             Dim src1 = "
 Class C
@@ -1832,7 +1832,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b(20)"))
         End Sub
 
-        <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_Update1()
             Dim src1 = "
 Class C
@@ -1860,7 +1860,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(2)"))
         End Sub
 
-        <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_Update2()
             Dim src1 = "
 Class C
@@ -1888,7 +1888,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d(2)"))
         End Sub
 
-        <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_Update3()
             Dim src1 = "
 Class C
@@ -1921,7 +1921,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(1,2)"))
         End Sub
 
-        <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_WithLambda1()
             Dim src1 = "
 Class C
@@ -1941,7 +1941,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"))
         End Sub
 
-        <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_WithLambda2()
             Dim src1 = "
 Class C
@@ -2530,7 +2530,7 @@ End Class
 
 #Region "SyncLock"
 
-        <Fact, WorkItem(755749, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755749")>
         Public Sub SyncLock_Insert_Leaf()
             Dim src1 = "
 Class Test
@@ -2627,7 +2627,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock d", VBFeaturesResources.SyncLock_statement))
         End Sub
 
-        <Fact, WorkItem(755752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755752")>
         Public Sub SyncLock_Update_Leaf()
             Dim src1 = "
 Class Test
@@ -4705,7 +4705,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Where_clause))
         End Sub
 
-        <Fact, WorkItem(841361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841361")>
         Public Sub Queries_ActiveStatementRemoved_LetClause()
             Dim src1 = "
 Class C
@@ -4951,7 +4951,7 @@ End Class"
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1359")>
         Public Sub Lambdas_LeafEdits_GeneralStatement()
             Dim src1 = "
 Class C
@@ -4973,7 +4973,7 @@ End Class
             edits.VerifySemanticDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1359")>
         Public Sub Lambdas_LeafEdits_NestedLambda()
             Dim src1 = "
 Class C

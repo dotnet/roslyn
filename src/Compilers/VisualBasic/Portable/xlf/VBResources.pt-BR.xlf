@@ -231,6 +231,8 @@
 -errorreport:&lt;string&gt;             Specifies how to handle internal compiler
                                   errors; must be prompt, send, none, or queue
                                   (default).
+-generatedfilesout:&lt;dir&gt;          Place files generated during compilation in the
+                                  specified directory.
 -filealign:&lt;number&gt;               Specify the alignment used for output file
                                   sections.
 -highentropyva[+|-]               Enable high-entropy ASLR.
@@ -267,169 +269,171 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opções do Compilador Visual Basic
+        <target state="translated">                  Opções do compilador do Visual Basic
 
                                   - ARQUIVO DE SAÍDA -
--out:&lt;file&gt;           Especifica o nome do arquivo de saída. 
--target:exe                       Cria um aplicativo do console (padrão).
-                                  (Forma abreviada: -t)
--target:winexe                    Cria um aplicativo do Windows.
--target:library                   Cria um assembly de biblioteca.
--target:module                    Cria um módulo que pode ser adicionado a um assembly
-                                  aplicativo.
--target:appcontainerexe Cria um aplicativo do Windows que é executado
+-out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
+-target:exe                       Criar um aplicativo de console (padrão).
+                                  (Forma curta: -t)
+-target:winexe                    Criar um aplicativo do Windows.
+-target:library                   Criar um assembly de biblioteca.
+-target:module                    Cria um módulo que pode ser adicionado a um
+                                  assembly.
+-target:appcontainerexe           Crie um aplicativo do Windows que seja executado em
                                   AppContainer.
--target:winmdobj                  Cria um arquivo intermediário de Metadados do Windows
--doc[+|-]                         Gera um arquivo de documentação XML.
--doc:&lt;file&gt;                       Gera o arquivo de documentação XML para &lt;file&gt;.
--refout:&lt;file&gt;                    Saída de assembly de referência para gerar
+-target:winmdobj                  Crie um arquivo intermediário de Metadados do Windows
+-doc[+|-]                         Gera arquivo de documentação XML.
+-doc:&lt;file&gt;                       Gera arquivo de documentação XML para &lt;file&gt;.
+-refout:&lt;file&gt;                    Saída de montagem de referência para gerar
 
-                                  - ARQUIVOS DE ENTRADA-
+                                  - ARQUIVOS DE ENTRADA -
 -addmodule:&lt;file_list&gt;            Metadados de referência dos módulos especificados
--link:&lt;file_list&gt;                 Inserir metadados do assembly de interoperabilidade
-                         especificado. (Forma abreviada: -l)
--recurse:&lt;wildcard&gt;               Inclua todos os arquivos no diretório atual
-                                  e subdiretórios de acordo com as
-                                 especificações de curinga.
--reference:&lt;file_list&gt;            Metadados de referência do assembly
-                                 especificado. (Forma abreviada: -r)
--analyzer:&lt;file_list&gt;             Executa os analisadores deste assembly
+-link:&lt;file_list&gt;                 Incorporar metadados da interoperabilidade especificada
+                                  assembly. (Forma abreviada: -l)
+-recurse:&lt;wildcard&gt;               Incluir todos os arquivos no diretório atual
+                                  e subdiretórios de acordo com o
+                                  especificações curinga.
+-reference:&lt;file_list&gt;            Metadados de referência do especificado
+                                  assembly. (Forma abreviada: -r)
+-analyzer:&lt;file_list&gt;             Execute os analisadores desta montagem
                                   (Forma abreviada: -a)
--additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente o a geração
-                                  do código mas podem ser usados pelos analisadores para a produção de
+-additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente o código
+                                  geração, mas pode ser usado por analisadores para produzir
                                   erros ou avisos.
 
                                   - RECURSOS -
--linkresource:&lt;resinfo&gt;           Conecta o arquivo especificado como um recurso
-                                  assembly externo.
+-linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um arquivo externo
+                                  recurso de montagem.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Forma abreviada: -linkres)
 -nowin32manifest                  O manifesto padrão não deve ser incorporado
                                   na seção de manifesto do PE de saída.
--resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso assembly
-                                  específico.
+-resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um incorporado
+                                  recurso de montagem.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Forma abreviada: -res)
--win32icon:&lt;file&gt;                 Especifica um arquivo de ícone do Win32 (.ico) para os
+-win32icon:&lt;file&gt;                 Especifica um arquivo de ícone Win32 (.ico) para o
                                   recursos padrão do Win32.
--win32manifest:&lt;file&gt;             O arquivo fornecido é incorporado na seção de saída PE
-                                  no manifesto.
--win32resource:&lt;file&gt;             Especifica um arquivo de recurso (.res) do Win32.
+-win32manifest:&lt;file&gt;             O arquivo fornecido está incorporado no manifesto
+                                  seção da saída PE.
+-win32resource:&lt;file&gt;             Especifica um arquivo de recurso Win32 (.res).
 
                                   - GERAÇÃO DE CÓDIGO -
 -optimize[+|-]                    Habilitar otimizações.
--removeintchecks[+|-]             Remover verificações inteiras. Padrão desabilitado.
+-removeintchecks[+|-]             Remover verificações de números inteiros. Padrão desativado.
 -debug[+|-]                       Emite informações de depuração.
--debug:full                       Emite informações de depuração completas (default).
--debug:pdbonly                    Emite informações de depuração completas.
--debug:portable                   Emite informações de depuração de plataforma cruzada.
--debug:embedded                   Emite informações de depuração de plataforma cruzada no
-                                  .dll or .exe. do destino
--determinístico                    Produz o assembly determinístico
-                                  (incluindo o GUID de versão de módulo e carimbo de data/hora)
--refonly                          Produz o assembly de referência no lugar da saída principal
--instrument:TestCoverage          Produz um assembly instrumentado para coletar
+-debug:full                       Emite informações completas de depuração (padrão).
+-debug:pdbonly                    Emite informações completas de depuração.
+-debug:portable                   Emite informações de depuração entre plataformas.
+-debug:embedded                   Emita informações de depuração de plataforma cruzada para
+                                  o .dll ou .exe de destino.
+-deterministic                    Produzir uma montagem determinística
+                                  (incluindo GUID da versão do módulo e carimbo de data/hora)
+-refonly                          Produzir uma montagem de referência no lugar da saída principal
+-instrument:TestCoverage          Produzir uma montagem instrumentada para coletar
                                   informações de cobertura
--sourcelink:&lt;file&gt;                Informações do link de origem para incorporar ao PDB.
+-sourcelink:&lt;file&gt;                Informações do link de origem para incorporar no PDB.
 
                                   - ERROS E AVISOS -
--nowarn                           Desabilita todos os avisos.
--nowarn:&lt;number_list&gt;             Desabilita uma lista de avisos individuais.
--warnaserror[+|-]                 Trata todos os avisos como erros.
--warnaserror[+|-]:&lt;number_list&gt;   Trata uma lista de avisos como erros.
--ruleset:&lt;file&gt;                   Especifica um arquivo de conjunto de regras que desabilita diagnósticos
-                                  específicos.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Especifica um arquivo para registrar todos os diagnósticos do
-                                  complidaor e analisador no formato SARIF.
-                                  sarif_version:{1|2|2.1} Padrão é 1.2 and 2.1
-                                  ambos significam a versão SARIF 2.1.0.
--reportanalyzer                   Reporta informações adicionais do analisador, como
+-nowarn                           Desabilitar todos os avisos.
+-nowarn:&lt;number_list&gt;             Desabilitar uma lista de avisos individuais.
+-warnaserror[+|-]                 Trate todos os avisos como erros.
+-warnaserror[+|-]:&lt;number_list&gt;   Tratar uma lista de avisos como erros.
+-ruleset:&lt;file&gt;                   Especifique um arquivo de conjunto de regras que desabilita determinados
+                                  diagnósticos.
+-errorlog:&lt;file&gt;[,versão=&lt;sarif_version&gt;]         
+                                  Especifique um arquivo para registrar todo o compilador e analisador
+                                  diagnóstico em formato SARIF.
+                                  sarif_version:{1|2|2.1} Padrão é 1. 2 e 2.1
+                                  ambos significam versão SARIF 2.1.0.
+-reportanalyzer                   Relatar informações adicionais do analisador, como
                                   tempo de execução.
--skipanalyzers[+|-]               Salta a execução dos analisadores de diagnóstico.
+-skipanalyzers[+|-]               Ignorar a execução de analisadores de diagnóstico.
 
                                   - IDIOMA -
--define:&lt;symbol_list&gt;             Declara compilação condicional global
-                                  symbol(s). symbol_list:name=value,...
+-define:&lt;symbol_list&gt;             Declarar compilação condicional global
+                                  símbolo(s). symbol_list:name=value,...
                                   (Forma abreviada: -d)
--imports:&lt;import_list&gt; Declara importações globais para namespaces em
-                                  metadados referenciados.
+-imports:&lt;import_list&gt;            Declarar importações globais para namespaces em
+                                  arquivos de metadados referenciados.
                                   import_list:namespace,...
--langversion:?                    Exibe os valores permitidos para
--langversion:&lt;string&gt;             Especifica a versão de idioma como
-                                  `padrão` (versão principal mais recente) ou
-                                  `recente` (versão mais recente, incluindo versões secundárias),
+-langversion:?                    Exibir os valores permitidos para a versão do idioma
+-langversion:&lt;string&gt;             Especifique a versão do idioma, como
+                                  `default` (última versão principal), ou
+                                  `latest` (versão mais recente, incluindo versões secundárias),
                                   ou versões específicas como `14` or `15.3`
--optionexplicit[+|-]              Exige  declaração explícita de variáveis.
--optioninfer[+|-]                Permite inferência de tipo de variáveis.
--rootnamespace:&lt;string&gt;           Especifica a raiz do Namespace para todos os tipos de
+-optionexplicit[+|-]              Requer declaração explícita de variáveis.
+-optioninfer[+|-]                 Permitir inferência de tipo de variáveis.
+-rootnamespace:&lt;string&gt;           Especifica o Namespace raiz para todos os tipos
                                   declarações.
--optionstrict[+|-]                Enforça semânticas de idioma estritas.
--optionstrict:custom              Avisa quando as semânticas de idioma restritas não são
-                                  respeitadas.
--optioncompare:binary             Especifica as comparações das cadeias de estilo binárias.
+-optionstrict[+|-]                Aplicar semântica de linguagem estrita.
+-optionstrict:custom              Avisar quando a semântica estrita da linguagem não for
+                                  respeitado.
+-optioncompare:binary             Especifica comparações de cadeia de caracteres de estilo binário.
                                   Este é o padrão.
--optioncompare:text              Especifica as comparações da cadeia texto-estilo.
+-optioncompare:text               Especifica comparações de cadeia de estilo de texto.
 
                                   - DIVERSOS -
--help                             Exibe essa mensagem de uso. (Forma abreviada: -?)
--noconfig                         Não inclui automaticamente o arquivo VBC.RSP.
--nologo                           Não exibe o banner de direitos autorais do compilador.
+-help                             Exibir esta mensagem de uso. (Forma abreviada: -?)
+-noconfig                         Não inclua automaticamente o arquivo VBC.RSP.
+-nologo                           Não exibir banner de direitos autorais do compilador.
 -quiet                            Modo de saída silencioso.
--verbose                          Exibe mensagens verbosas.
--parallel[+|-]                    Compilação simultânea.
--version                          Exibe a saída e número de versão do compilador.
+-verbose                          Exibir mensagens detalhadas.
+-parallel[+|-]                    compilação simultânea.
+-version                          Exiba o número da versão do compilador e saia.
 
                                   - AVANÇADO -
--baseaddress:&lt;number&gt;             O endereço básico para uma biblioteca ou módulo
+-baseaddress:&lt;number&gt;             O endereço base para uma biblioteca ou módulo
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Especifica o algoritmo para calcular o arquivo de origem
-                                  soma de verificação armazenada no PDB. Os valores com suporte são:
-                                  SHA1 or SHA256 (padrão).
+-checksumalgorithm:&lt;alg&gt;          Especifique o algoritmo para calcular o arquivo de origem
+                                  csoma de verificação armazenada no PDB. Os valores suportados são:
+                                  SHA1 ou SHA256 (padrão).
 -codepage:&lt;number&gt;                Especifica a página de código a ser usada ao abrir
                                   arquivos de origem.
--delaysign[+|-]                   Assina o assembly com atraso usando apenas a parte pública
-                                  da chave de nome forte.
--publicsign[+|-]                  Assina o assembly público usando apenas a parte pública
-                                  da chave de nome forte.
--errorreport:&lt;string&gt;             Especifica como tratar erros internos do compilador
-                                  erros; devem ser prompt, send, none, or queue
+-delaysign[+|-]                   Atrasar a assinatura do assembly usando apenas o público
+                                  parte da chave de nome forte.
+-publicsign[+|-]                  Assinar publicamente o assembly usando apenas o público
+                                  parte da chave de nome forte.
+-errorreport:&lt;string&gt;             Especifica como lidar com o compilador interno
+                                  erros; deve ser prompt, enviar, nenhum ou fila
                                   (padrão).
--filealign:&lt;number&gt;               Especifica o alinhamento usado para seções de marcador
-                                  de saída.
--highentropyva[+|-]               Habilita ASLR de alta entropia.
--keycontainer:&lt;string&gt;            Especifica um contêiner de chave de nome fort..
+-generatedfilesout:&lt;dir&gt;          Coloque os arquivos gerados durante a compilação no
+                                  diretório especificado.
+-filealign:&lt;number&gt;               Especifique o alinhamento usado para o arquivo de saída
+                                  Seções.
+-highentropyva[+|-]               Habilite o ASLR de alta entropia.
+-keycontainer:&lt;string&gt;            Especifica um contêiner de chave de nome forte.
 -keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
--libpath:&lt;path_list&gt;              Lista de diretórios a serem pesquisados por referências
-                                  de metadados. (Delimitado por ponto e vírgula.)
--main:&lt;class&gt; Especifica a classe ou módulo que contém
-                                  Sub main. Também pode ser uma Classe que
-                                  herda do System.Windows.Forms.Form.
+-libpath:&lt;path_list&gt;              Lista de diretórios para pesquisar metadados
+                                  referências. (Delimitado por ponto e vírgula.)
+-main:&lt;class&gt;                     Especifica a Classe ou Módulo que contém
+                                  Sub Principal. Também pode ser uma Classe que
+                                  herda de System.Windows.Forms.Form.
                                   (Forma abreviada: -m)
--moduleassemblyname:&lt;string&gt;      Nome do assembly do qual este módulo
-                                 será parte.
--netcf                            Especifica o .NET Compact Framework.
--nostdlib                         Não referencia as bibliotecas padrão de referência
-                                  (system.dll and VBC.RSP file).
+-moduleassemblyname:&lt;string&gt;      Nome do assembly que este módulo irá
+                                  fazer parte de.
+-netcf                            Direcione o .NET Compact Framework.
+-nostdlib                         Não faça referência a bibliotecas padrão
+                                  (arquivo system.dll e VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Especifica um mapeamento para saída de nomes de caminho de origem pelo
-                                  compilador.
--platform:&lt;string&gt; Limita em quais plataformas esse código pode ser executado;
-                                  deve ser x86, x64, Itanium, arm, arm64
+                                  Especifique um mapeamento para saída de nomes de caminho de origem por
+                                  o compilador.
+-platform:&lt;string&gt;                Limite em quais plataformas esse código pode ser executado;
+                                  must be x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred ou anycpu (padrão).
--preferreduilang                  Especifica o nome do idioma de saída preferencial.
--nosdkpath                        Desabilita a pesquisa no caminho do SDK padrão para assemblies de biblioteca padrão.
--sdkpath:&lt;path&gt;                   Local do diretório do SDK .NET Framework
-                   (mscorlib.dll).
--subsystemversion:&lt;version&gt; Especifica a versão do subsistema do PE de saída.
+-preferreduilang                  Especifique o nome do idioma de saída preferido.
+-nosdkpath                        Desabilitar a pesquisa do caminho padrão do SDK para conjuntos de bibliotecas padrão.
+-sdkpath:&lt;path&gt;                   Local do diretório SDK do .NET Framework
+                                  (mscorlib.dll).
+-subsystemversion:&lt;version&gt;       Especifique a versão do subsistema do PE de saída.
                                   versão:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emite a saída do compilador na codificação de caracteres UTF-8
-                                  .
+-utf8output[+|-]                  Emite a saída do compilador no caractere UTF-8
+                                  codificação.
 @&lt;file&gt;                           Inserir configurações de linha de comando de um arquivo de texto
--vbruntime[+|-|*]                 Compila com/sem o runtime padrão do Visual Basic
- .
--vbruntime:&lt;file&gt; Compile com o runtime de Visual Basic
-                                  alternativo em &lt;file&gt;.
+-vbruntime[+|-|*]                 Compilar com/sem o Visual Basic padrão
+                                  tempo de execução.
+-vbruntime:&lt;file&gt;                 Compilar com o Visual Basic alternativo
+                                  tempo de execução em &lt;file&gt;.
 </target>
         <note />
       </trans-unit>

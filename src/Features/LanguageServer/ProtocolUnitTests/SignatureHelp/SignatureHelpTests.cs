@@ -9,14 +9,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
 {
     public class SignatureHelpTests : AbstractLanguageServerProtocolTests
     {
-        [Fact]
-        public async Task TestGetSignatureHelpAsync()
+        public SignatureHelpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetSignatureHelpAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,

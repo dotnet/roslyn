@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 #if !DEBUG
 using NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol;
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 // This is an interface with no GuidAttribute, or some other type, so we will generate the
                 // TypeIdentifier with name and scope parameters.
 
-                // Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it; 
+                // Look for a GUID attribute attached to type's containing assembly. If we find one, we'll use it;
                 // otherwise, we expect that we will have reported an error (ERRID_PIAHasNoAssemblyGuid1) about this assembly, since
                 // you can't /link against an assembly which lacks a GuidAttribute.
 

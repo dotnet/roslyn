@@ -119,6 +119,41 @@ class C
             Assert.Equal(new[] { symbol }, foundSymbols);
         }
 
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void InvalidTypeParameterIndex_CSharp()
+        {
+            var comp = CreateCSharpCompilation("""
+                namespace N;
+                class C
+                {
+                    static void Main() { }
+                    public void M<T>(T[] ts) { }
+                }
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
+        }
+
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void InvalidTypeParameterIndex_VisualBasic()
+        {
+            var comp = CreateVisualBasicCompilation("""
+                Namespace N
+                    Class C
+                        Shared Sub Main()
+                        End Sub
+
+                        Public Sub M(Of T)(ByVal ts As T())
+                        End Sub
+                    End Class
+                End Namespace
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
+        }
+
         internal override string VisualizeRealIL(
             IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
             => throw new NotImplementedException();

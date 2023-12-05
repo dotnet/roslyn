@@ -42,18 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 _whenTypeIsApparent = styleForApparent.Notification.Severity;
                 _elsewhere = styleForElsewhere.Notification.Severity;
 
-                var stylePreferences = UseVarPreference.None;
-
-                if (styleForIntrinsicTypes.Value)
-                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
-
-                if (styleForApparent.Value)
-                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
-
-                if (styleForElsewhere.Value)
-                    stylePreferences |= UseVarPreference.Elsewhere;
-
-                this.TypeStylePreference = stylePreferences;
+                this.TypeStylePreference = options.GetUseVarPreference();
 
                 IsTypeApparentInContext =
                         declaration is VariableDeclarationSyntax varDecl

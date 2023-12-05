@@ -26,22 +26,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
                                          </File>, "#Const")
         End Sub
 
-        <Fact, WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
         Public Sub HashConstAfterSingleNonMatchingCharacterTest()
             VerifyRecommendationsContain(<File>a|</File>, "#Const")
         End Sub
 
-        <Fact, WorkItem(544629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544629")>
         Public Sub HashConstAfterPartialConstWithoutHashTest()
             VerifyRecommendationsContain(<File>Con|</File>, "#Const")
         End Sub
 
-        <Fact, WorkItem(722, "https://github.com/dotnet/roslyn/issues/722")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/722")>
         Public Sub NotAfterHashConstTest()
             VerifyRecommendationsMissing(<File>#Const |</File>, "#Const")
         End Sub
 
-        <Fact, WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6389")>
         Public Sub NotAfterHashRegionTest()
             VerifyRecommendationsMissing(<File>
                                          Class C

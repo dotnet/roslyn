@@ -1481,6 +1481,9 @@ class C
     }
 }" + IAsyncDisposableDefinition);
             comp.VerifyDiagnostics(
+                // (9,9): error CS0165: Use of unassigned local variable 'x'
+                //         x++;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 9),
                 // (10,9): error CS0165: Use of unassigned local variable 'y'
                 //         y++;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 9),

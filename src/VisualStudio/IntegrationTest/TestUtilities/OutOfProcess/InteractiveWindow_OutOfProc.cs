@@ -63,6 +63,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForLastReplOutput(string outputText)
             => _interactiveWindowInProc.WaitForLastReplOutput(outputText);
 
+        public void WaitForLastReplInput(string outputText)
+            => _interactiveWindowInProc.WaitForLastReplInput(outputText);
+
         public void WaitForLastReplInputContains(string outputText)
             => _interactiveWindowInProc.WaitForLastReplInputContains(outputText);
 

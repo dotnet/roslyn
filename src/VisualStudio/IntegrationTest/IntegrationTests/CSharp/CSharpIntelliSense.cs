@@ -291,7 +291,7 @@ class Class1
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(33825, "https://github.com/dotnet/roslyn/issues/33825")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33825")]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -325,7 +325,7 @@ assertCaretPosition: true);
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(33823, "https://github.com/dotnet/roslyn/issues/33823")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33823")]
         public void CommitOnShiftEnter(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -417,7 +417,7 @@ assertCaretPosition: true);
         }
 
         [WpfTheory, CombinatorialData]
-        [WorkItem(33822, "https://github.com/dotnet/roslyn/issues/33822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/33822")]
         public void EnsureTheCaretIsVisibleAfterALongEdit(bool showCompletionInArgumentLists)
         {
             var visibleColumns = VisualStudio.Editor.GetVisibleColumnCount();

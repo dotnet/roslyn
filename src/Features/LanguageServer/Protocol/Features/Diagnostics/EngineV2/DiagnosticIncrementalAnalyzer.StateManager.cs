@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var hostStateSets = GetAllHostStateSets();
 
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry) ?
-                    hostStateSets.Concat(entry.StateSetMap.Values) :
-                    hostStateSets;
+                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
+                    ? hostStateSets.Concat(entry.StateSetMap.Values)
+                    : hostStateSets;
             }
 
             /// <summary>
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
-                var projectStateSets = project.SupportsCompilation ?
-                    GetOrUpdateProjectStateSets(project) :
-                    ProjectAnalyzerStateSets.Default;
+                var projectStateSets = project.SupportsCompilation
+                    ? GetOrUpdateProjectStateSets(project)
+                    : ProjectAnalyzerStateSets.Default;
                 var hostStateSets = GetOrCreateHostStateSets(project, projectStateSets);
 
                 if (!project.SupportsCompilation)
@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, PredefinedBuildTools.Live));
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance));
                 }
 
                 foreach (var analyzers in analyzerCollection)
@@ -280,37 +280,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        var buildToolName = analyzer.IsBuiltInAnalyzer() ?
-                            PredefinedBuildTools.Live : analyzer.GetAnalyzerAssemblyName();
-
-                        builder.Add(analyzer, new StateSet(language, analyzer, buildToolName));
+                        builder.Add(analyzer, new StateSet(language, analyzer));
                     }
                 }
 
                 return builder.ToImmutable();
-            }
-
-            [Conditional("DEBUG")]
-            private static void VerifyUniqueStateNames(IEnumerable<StateSet> stateSets)
-            {
-                // Ensure diagnostic state name is indeed unique.
-                var set = new HashSet<ValueTuple<string, string>>();
-
-                foreach (var stateSet in stateSets)
-                {
-                    Contract.ThrowIfFalse(set.Add((stateSet.Language, stateSet.StateName)));
-                }
-            }
-
-            [Conditional("DEBUG")]
-            private void VerifyProjectDiagnosticStates(IEnumerable<StateSet> stateSets)
-            {
-                // We do not de-duplicate analyzer instances across host and project analyzers.
-                var projectAnalyzers = stateSets.Select(state => state.Analyzer).ToImmutableHashSet();
-
-                var hostStates = GetAllHostStateSets().Where(state => !projectAnalyzers.Contains(state.Analyzer));
-
-                VerifyUniqueStateNames(hostStates.Concat(stateSets));
             }
 
             private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>

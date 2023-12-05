@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -13,13 +15,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// expected to be.  Namely, multiple client can be calling <see cref="IProgress{T}.Report(T)"/> on it at the same
     /// time.  This is safe, though the order that the items are reported in when called concurrently is not specified.
     /// </summary>
-    internal readonly struct BufferedProgress<T> : IProgress<T[]>, IProgress<T>, IDisposable
+    internal readonly struct BufferedProgress<T> : IProgress<T>, IDisposable
     {
         /// <summary>
         /// The progress stream to report results to.  May be <see langword="null"/> for clients that do not support streaming.
         /// If <see langword="null"/> then <see cref="_buffer"/> will be non null and will contain all the produced values.
         /// </summary>
-        private readonly IProgress<T[]>? _underlyingProgress;
+        private readonly IProgress<T>? _underlyingProgress;
 
         /// <summary>
         /// A buffer that results are held in if the client does not support streaming.  Values of this can be retrieved
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private readonly ArrayBuilder<T>? _buffer;
 
-        public BufferedProgress(IProgress<T[]>? underlyingProgress)
+        public BufferedProgress(IProgress<T>? underlyingProgress)
         {
             _underlyingProgress = underlyingProgress;
             _buffer = underlyingProgress == null ? ArrayBuilder<T>.GetInstance() : null;
@@ -42,27 +44,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void Report(T value)
         {
             // Don't need to lock _underlyingProgress.  It is inherently thread-safe itself being an IProgress implementation.
-            _underlyingProgress?.Report(new[] { value });
+            _underlyingProgress?.Report(value);
 
             if (_buffer != null)
             {
                 lock (_buffer)
                 {
                     _buffer.Add(value);
-                }
-            }
-        }
-
-        public void Report(T[] values)
-        {
-            // Don't need to lock _underlyingProgress.  It is inherently thread-safe itself being an IProgress implementation.
-            _underlyingProgress?.Report(values);
-
-            if (_buffer != null)
-            {
-                lock (_buffer)
-                {
-                    _buffer.AddRange(values);
                 }
             }
         }
@@ -78,7 +66,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
     internal static class BufferedProgress
     {
-        public static BufferedProgress<T> Create<T>(IProgress<T[]>? progress)
+        public static BufferedProgress<T> Create<T>(IProgress<T>? progress)
             => new BufferedProgress<T>(progress);
+
+        public static void Report<T>(this BufferedProgress<T[]> progress, T item)
+        {
+            progress.Report(new[] { item });
+        }
+
+        public static T[]? GetFlattenedValues<T>(this BufferedProgress<T[]> progress)
+        {
+            return progress.GetValues()?.Flatten().ToArray();
+        }
     }
 }

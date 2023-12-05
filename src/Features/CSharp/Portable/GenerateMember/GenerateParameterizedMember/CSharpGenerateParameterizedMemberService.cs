@@ -131,12 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             }
 
             protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-            {
-                return
-                    _invocationExpression.ArgumentList.Arguments.Select(
-                        a => a.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                             a.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None).ToImmutableArray();
-            }
+                => _invocationExpression.ArgumentList.Arguments.Select(a => a.GetRefKind()).ToImmutableArray();
 
             protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
                 => _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToImmutableArray();

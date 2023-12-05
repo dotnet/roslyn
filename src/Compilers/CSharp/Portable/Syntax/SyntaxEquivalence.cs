@@ -240,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             using var afterDirectivesEnumerator = ((Green.CSharpSyntaxNode)after).GetDirectives().GetEnumerator();
             while (true)
             {
-                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator, ignoreChildNode);
-                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator, ignoreChildNode);
+                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator);
+                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator);
 
                 if (beforeAnnotation == null || afterAnnotation == null)
                 {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return false;
                 }
 
-                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator, Func<SyntaxKind, bool>? ignoreChildNode)
+                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator)
                 {
                     while (enumerator.MoveNext())
                     {

@@ -185,7 +185,7 @@ $$");
     public C(int i, [Goo]$$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -193,7 +193,7 @@ $$");
     public C():this($$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -201,7 +201,7 @@ $$");
     public C():this(Goo:$$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
@@ -209,7 +209,7 @@ $$");
     public C():base($$");
         }
 
-        [Fact, WorkItem(933972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
@@ -540,6 +540,10 @@ $$");
         public async Task TestAfterPublic()
             => await VerifyKeywordAsync(@"public $$");
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestAfterFile()
+            => await VerifyKeywordAsync(SourceCodeKind.Regular, @"file $$");
+
         [Fact]
         public async Task TestAfterNestedPublic()
         {
@@ -666,7 +670,7 @@ $$");
 @"$$ readonly struct { }");
         }
 
-        [Fact, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
         {
             await VerifyAbsenceAsync(
@@ -763,7 +767,7 @@ $$");
 @" D1 lambda = () => $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -777,7 +781,7 @@ ref int x = ref true ? $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [Theory, WorkItem(21889, "https://github.com/dotnet/roslyn/issues/21889")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/21889")]
         [InlineData(SourceCodeKind.Regular, true)]
         [InlineData(SourceCodeKind.Regular, false)]
         [InlineData(SourceCodeKind.Script, true, Skip = "https://github.com/dotnet/roslyn/issues/44630")]
@@ -792,7 +796,7 @@ ref int y = ref true ? ref x : $$", topLevelStatement: topLevelStatement),
                 options: sourceCodeKind == SourceCodeKind.Script ? Options.Script : CSharp9ParseOptions);
         }
 
-        [Theory, WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22253")]
         [CombinatorialData]
         public async Task TestInLocalMethod(bool topLevelStatement)
         {
@@ -844,7 +848,7 @@ return ref (x = $$", topLevelStatement: topLevelStatement), options: CSharp9Pars
     static void Extension($$");
         }
 
-        [Fact, WorkItem(30339, "https://github.com/dotnet/roslyn/issues/30339")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(
@@ -970,7 +974,26 @@ $$");
 $$");
         }
 
-        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
+        public async Task TestFileKeywordInsideNamespaceBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"namespace N {
+file $$
+class C {}
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
         {
             await VerifyKeywordAsync(
@@ -984,7 +1007,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58906")]
         public async Task TestInPotentialLambdaParamListParsedAsCastOnSameLine()
         {
             await VerifyKeywordAsync(
@@ -995,6 +1018,55 @@ $$");
         var f = ($$)Main(null);
     }
 }");
+        }
+
+        [Fact]
+        public async Task TestAfterScoped()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    void M()
+    {
+        scoped $$
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestInParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M(scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInParameterAfterThisScoped()
+        {
+            await VerifyKeywordAsync("""
+                static class C
+                {
+                    static void M(this scoped $$)
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestInAnonymousMethodParameterAfterScoped()
+        {
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    void M()
+                    {
+                        var x = delegate (scoped $$) { };
+                    }
+                }
+                """);
         }
     }
 }

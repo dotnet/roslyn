@@ -251,7 +251,7 @@ $$");
 extern alias Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeExtern_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
@@ -267,7 +267,7 @@ extern alias Goo;");
 extern alias Goo;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeExternAfterGlobal_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,

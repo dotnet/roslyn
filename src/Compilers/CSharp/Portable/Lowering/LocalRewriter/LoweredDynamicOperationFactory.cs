@@ -549,8 +549,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (loweredReceiver.Kind)
             {
-                case BoundKind.Local:
                 case BoundKind.Parameter:
+                    Debug.Assert(!LocalRewriter.IsCapturedPrimaryConstructorParameter(loweredReceiver));
+                    goto case BoundKind.Local;
+
+                case BoundKind.Local:
                 case BoundKind.ArrayAccess:
                 case BoundKind.ThisReference:
                 case BoundKind.PointerIndirectionOperator:
@@ -863,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // as well as the alternative where x is a const null of type object.
 
-            if (boundArgument.ConstantValue != null)
+            if (boundArgument.ConstantValueOpt != null)
             {
                 flags |= CSharpArgumentInfoFlags.Constant;
             }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                     return;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (Exception)
             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
                 return;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static string ContainerStyleToString(ContainerElementStyle style)

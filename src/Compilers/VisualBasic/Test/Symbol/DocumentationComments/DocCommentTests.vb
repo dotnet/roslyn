@@ -6708,7 +6708,6 @@ End Class
                                     SymbolKind.Method),
                                "Function System.Object.GetHashCode() As System.Int32")
 
-
             ' c.n1.n2.t.C
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "C")
             Assert.Equal(1, names.Length)
@@ -6718,7 +6717,6 @@ End Class
                                                  DirectCast(names(0), ExpressionSyntax),
                                                  "C(Of T).N1.N2.T.C")
             Assert.Equal(1, symbols.Length)
-
 
             ' "t"
             names = FindNodesOfTypeFromText(Of NameSyntax)(tree, "t")
@@ -10925,7 +10923,6 @@ End Class
     </file>
 </compilation>)
 
-
             Dim xmlDoc = If(Not invalidChars,
 <xml>
     <![CDATA[
@@ -11423,7 +11420,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
@@ -11451,7 +11447,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
 
@@ -11489,7 +11484,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             Dim lib1Ref = CreateCompilationWithMscorlib40(lib1Source).EmitToImageReference()
             Dim lib2Ref = CreateCompilationWithMscorlib40(lib2Source).EmitToImageReference()
@@ -11531,7 +11525,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11567,7 +11560,6 @@ End Class
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
@@ -11595,7 +11587,6 @@ Delegate Sub D(Of T)(p As T)
 ]]>
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -12439,7 +12430,6 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 sources,
                 options:=TestOptions.ReleaseDll)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)

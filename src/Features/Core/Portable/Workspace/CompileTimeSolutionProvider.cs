@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
-                            if (documentState.Attributes.DesignTimeOnly)
+                            if (documentState.Attributes.DesignTimeOnly || IsRazorDesignTimeDocument(documentState))
                             {
                                 documentIdsToRemove.Add(documentState.Id);
                             }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private static bool IsRazorDesignTimeDocument(DocumentState documentState)
-            => documentState.Attributes.DesignTimeOnly && (documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true);
+            => documentState.FilePath?.EndsWith(".razor.g.cs") == true || documentState.FilePath?.EndsWith(".cshtml.g.cs") == true;
 
         internal static async Task<Document?> TryGetCompileTimeDocumentAsync(
             Document designTimeDocument,

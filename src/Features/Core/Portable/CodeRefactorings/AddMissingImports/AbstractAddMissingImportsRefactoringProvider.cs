@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,14 +15,19 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 {
     internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPasteTrackingService _pasteTrackingService;
+        private readonly IPasteTrackingService? _pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
 
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
+        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService? pasteTrackingService)
             => _pasteTrackingService = pasteTrackingService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // If we aren't in a host that supports paste tracking, we can't do anything. This is just to avoid creating MEF part rejections for
+            // things composing the Features layer.
+            if (_pasteTrackingService == null)
+                return;
+
             var (document, _, cancellationToken) = context;
             // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Check pasted text span for missing imports
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var options = new AddMissingImportsOptions(

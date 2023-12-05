@@ -565,8 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SuppressVariableDeclaration(list, node);
         }
 
-        private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
-            forStatement.Initializers.Count == 0
+        private static bool IsEmptyForStatement(ForStatementSyntax forStatement)
+            => forStatement.Initializers.Count == 0
             && forStatement.Declaration == null
             && forStatement.Condition == null
             && forStatement.Incrementors.Count == 0;

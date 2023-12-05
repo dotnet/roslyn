@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         private static ITypeSymbol? RemoveUnavailableTypeParameters(
             this ITypeSymbol? type,
             Compilation compilation,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveAnonymousTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new AnonymousTypeRemover(compilation));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? RemoveUnnamedErrorTypes(
             this ITypeSymbol? type,
             Compilation compilation)
@@ -211,23 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
-        public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-            return result;
-        }
-
-        public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-            this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
-        {
-            result ??= new List<ITypeParameterSymbol>();
-            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-            return result;
-        }
-
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,
@@ -238,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.SubstituteTypes(mapping, new CompilationTypeGenerator(compilation));
         }
 
-        [return: NotNullIfNotNull(parameterName: "type")]
+        [return: NotNullIfNotNull(parameterName: nameof(type))]
         public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
             this ITypeSymbol? type,
             IDictionary<TType1, TType2> mapping,

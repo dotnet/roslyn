@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
                 context.IsAtStartOfPattern ||
+                context.IsUsingAliasTypeContext ||
                 (context.IsTypeContext && !context.IsEnumBaseListContext))
             {
                 return true;

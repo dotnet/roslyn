@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             cancellationToken.ThrowIfCancellationRequested();
 
             var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                oldSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (changedSolution is null)
             {
                 // No changed documents

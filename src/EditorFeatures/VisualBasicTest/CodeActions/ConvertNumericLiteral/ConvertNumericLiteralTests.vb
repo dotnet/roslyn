@@ -93,7 +93,7 @@ End Class"
             Await TestFixOneAsync("&H1e5UL", "&B111100101UL", Refactoring.ChangeBase2)
         End Function
 
-        <Fact, WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19225")>
         Public Async Function TestPreserveTrivia() As Task
             Await TestInRegularAndScriptAsync(
 "Class X
@@ -114,7 +114,7 @@ End Class",
 End Class", index:=Refactoring.ChangeBase2)
         End Function
 
-        <Fact, WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19369")>
         Public Async Function TestCaretPositionAtTheEnd() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

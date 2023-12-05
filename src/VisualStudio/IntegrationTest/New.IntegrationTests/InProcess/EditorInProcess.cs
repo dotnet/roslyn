@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.GoToBase;
@@ -178,11 +179,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret();
-            Assumes.Present(subjectBuffer);
-
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+            var point = new SnapshotPoint(view.TextSnapshot, position);
 
             view.Caret.MoveTo(point);
         }
@@ -203,6 +200,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await PlaceCaretAsync(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false, cancellationToken);
             await PlaceCaretAsync(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false, cancellationToken);
+        }
+
+        public async Task DeleteTextAsync(string text, CancellationToken cancellationToken)
+        {
+            await SelectTextInCurrentDocumentAsync(text, cancellationToken);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, cancellationToken);
+        }
+
+        public async Task PasteAsync(string text, CancellationToken cancellationToken)
+        {
+            var provider = await TestServices.Shell.GetComponentModelServiceAsync<IAsynchronousOperationListenerProvider>(cancellationToken);
+            var waiter = (IAsynchronousOperationWaiter)provider.GetListener(FeatureAttribute.AddImportsOnPaste);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy }, cancellationToken);
+            Clipboard.SetText(text);
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Paste, cancellationToken);
+
+            await waiter.ExpeditedWaitAsync();
         }
 
         public async Task<ClassificationSpan[]> GetLightBulbPreviewClassificationsAsync(string menuText, CancellationToken cancellationToken)
@@ -398,28 +413,31 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
-        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
-            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
+        public Task<ImmutableArray<TagSpan<IErrorTag>>> GetErrorTagsAsync(CancellationToken cancellationToken)
+        {
+            return GetTagsAsync<IErrorTag>(cancellationToken);
+        }
 
-        private static string PrintSpan(SnapshotSpan span)
-            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+        public async Task<ImmutableArray<TagSpan<ITextMarkerTag>>> GetRenameTagsAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForRenameAsync(cancellationToken);
+            var tags = await GetTagsAsync<ITextMarkerTag>(cancellationToken);
+            return tags.WhereAsArray(tag => tag.Tag.Type == RenameFieldBackgroundAndBorderTag.TagId);
+        }
 
-        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<TagSpan<TTag>>> GetTagsAsync<TTag>(CancellationToken cancellationToken)
             where TTag : ITag
         {
-            filter ??= _ => true;
-
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var view = await GetActiveTextViewAsync(cancellationToken);
-
             var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
+
             var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
             var tags = aggregator
                 .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
-                .Where(t => filter(t.Tag))
                 .Cast<IMappingTagSpan<ITag>>();
-            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+
+            return tags.SelectAsArray(tag => (new TagSpan<TTag>(tag.Span.GetSpans(view.TextBuffer).Single(), (TTag)tag.Tag)));
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
@@ -507,7 +525,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (itemIndex < 0)
             {
                 Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
@@ -661,6 +679,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
             broker.DismissAllSessions(view);
+        }
+
+        public async Task<bool> IsCompletionActiveAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await WaitForCompletionSetAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            if (view is null)
+                return false;
+
+            var broker = await TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+            return broker.IsCompletionActive(view);
         }
 
         public async Task ShowLightBulbAsync(CancellationToken cancellationToken)
@@ -1085,6 +1117,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         var span = r.Extent.GetSpan(view.TextSnapshot);
                         return (r.IsCollapsed, TextSpan.FromBounds(span.Start.Position, span.End.Position));
                     });
+        }
+
+        public Task FormatDocumentAsync(CancellationToken cancellationToken)
+        {
+            return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATDOCUMENT, cancellationToken);
+        }
+
+        public Task FormatSelectionAsync(CancellationToken cancellationToken)
+        {
+            return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
         }
 
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)

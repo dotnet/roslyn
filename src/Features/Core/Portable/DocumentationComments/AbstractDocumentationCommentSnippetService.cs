@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var newLine = options.NewLine;
 
             var lastLine = lines[^1];
-            lines[^1] = lastLine.Substring(0, lastLine.Length - newLine.Length);
+            lines[^1] = lastLine[..^newLine.Length];
 
             var comments = string.Join(string.Empty, lines);
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
             if (IsEndOfLineTrivia(trivia))
             {
-                newText = newText.Substring(0, newText.Length - newLine.Length);
+                newText = newText[..^newLine.Length];
             }
             else
             {
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var firstNonWhitespaceOffsetInPreviousXmlText = trimmedPreviousLine.GetFirstNonWhitespaceOffset();
 
             var extraIndent = firstNonWhitespaceOffsetInPreviousXmlText != null
-                ? trimmedPreviousLine.Substring(0, firstNonWhitespaceOffsetInPreviousXmlText.Value)
+                ? trimmedPreviousLine[..firstNonWhitespaceOffsetInPreviousXmlText.Value]
                 : " ";
 
             return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;

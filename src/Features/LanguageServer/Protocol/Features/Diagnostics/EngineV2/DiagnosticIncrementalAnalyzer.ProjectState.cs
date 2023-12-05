@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -23,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private sealed class ProjectState
         {
+            private const string SyntaxStateName = nameof(SyntaxStateName);
+            private const string SemanticStateName = nameof(SemanticStateName);
+            private const string NonLocalStateName = nameof(NonLocalStateName);
+
             // project id of this state
             private readonly StateSet _owner;
 
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // If we couldn't find a normal document, and all features are enabled for source generated
                     // documents, attempt to locate a matching source generated document in the project.
                     if (document is null
-                        && project.Solution.Services.GetService<IWorkspaceConfigurationService>()?.Options.EnableOpeningSourceGeneratedFiles == true)
+                        && project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
                     {
                         document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
                     }
@@ -223,12 +228,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)).ConfigureAwait(false);
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, _owner.SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)).ConfigureAwait(false);
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, _owner.NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal)).ConfigureAwait(false);
+                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)).ConfigureAwait(false);
+                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)).ConfigureAwait(false);
+                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal)).ConfigureAwait(false);
                 }
 
-                await AddToInMemoryStorageAsync(serializerVersion, project, document: null, result.ProjectId, _owner.NonLocalStateName, result.GetOtherDiagnostics()).ConfigureAwait(false);
+                await AddToInMemoryStorageAsync(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics()).ConfigureAwait(false);
             }
 
             public void ResetVersion()
@@ -256,8 +261,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
 
-                var languageServices = document.Project.Services;
-                var simplifierOptions = (languageServices.GetService<ISimplifierOptionsStorage>() != null) ? globalOptions.GetSimplifierOptions(languageServices) : null;
+                var simplifierOptions = globalOptions.GetSimplifierOptions(document.Project.Services);
                 var openFileOnlyAnalyzer = _owner.Analyzer.IsOpenFileOnly(simplifierOptions);
 
                 // if it is allowed to keep project state, check versions and if they are same, bail out.
@@ -278,8 +282,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
 
                 // save active file diagnostics back to project state
-                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, syntax.Items).ConfigureAwait(false);
-                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, _owner.SemanticStateName, semantic.Items).ConfigureAwait(false);
+                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items).ConfigureAwait(false);
+                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items).ConfigureAwait(false);
 
                 // save last aggregated form of analysis result
                 _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
@@ -293,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public bool OnProjectRemoved(ProjectId id)
             {
-                RemoveInMemoryCacheEntry(id, _owner.NonLocalStateName);
+                RemoveInMemoryCacheEntry(id, NonLocalStateName);
                 return !IsEmpty();
             }
 
@@ -348,7 +352,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private ValueTask AddToInMemoryStorageAsync(VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private ValueTask AddToInMemoryStorageAsync(
+                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SyntaxStateName, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SyntaxStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -373,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SemanticStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SemanticStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -383,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -398,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private async ValueTask<bool> TryGetProjectDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, Project project, Builder builder, CancellationToken cancellationToken)
             {
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document: null, project.Id, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document: null, project.Id, NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddOthers(diagnostics);
@@ -429,9 +434,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private void RemoveInMemoryCacheEntries(DocumentId id)
             {
-                RemoveInMemoryCacheEntry(id, _owner.SyntaxStateName);
-                RemoveInMemoryCacheEntry(id, _owner.SemanticStateName);
-                RemoveInMemoryCacheEntry(id, _owner.NonLocalStateName);
+                RemoveInMemoryCacheEntry(id, SyntaxStateName);
+                RemoveInMemoryCacheEntry(id, SemanticStateName);
+                RemoveInMemoryCacheEntry(id, NonLocalStateName);
             }
 
             private void RemoveInMemoryCacheEntry(object key, string stateKey)

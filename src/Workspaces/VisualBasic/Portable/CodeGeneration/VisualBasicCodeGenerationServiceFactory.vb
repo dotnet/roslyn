@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeGenerationService(provider)
+            Return New VisualBasicCodeGenerationService(provider.LanguageServices)
         End Function
     End Class
 End Namespace

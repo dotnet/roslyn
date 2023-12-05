@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact]
         public async Task TestMissingOnSimpleString()
         {
-            var code = @"public class C
+            var code = @"
+public class C
 {
     void M()
     {
@@ -363,7 +364,7 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
         public async Task TestWithMultipleStringConcatinations()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -383,7 +384,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
         public async Task TestWithMultipleStringConcatinations2()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -403,7 +404,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
         public async Task TestWithMultipleStringConcatinations3()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -423,7 +424,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16820")]
         public async Task TestWithMultipleStringConcatinations4()
         {
             var code = @"public class C
@@ -437,7 +438,7 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20943")]
         public async Task TestMissingWithDynamic1()
         {
             var code = @"class C
@@ -452,7 +453,7 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20943")]
         public async Task TestMissingWithDynamic2()
         {
             var code = @"class C
@@ -467,7 +468,7 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithStringLiteralWithBraces()
         {
             {
@@ -489,7 +490,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithStringLiteralWithBraces2()
         {
             {
@@ -511,7 +512,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithStringLiteralWithDoubleBraces()
         {
             {
@@ -533,7 +534,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithMultipleStringLiteralsWithBraces()
         {
             {
@@ -555,7 +556,7 @@ public class C
             }
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithVerbatimStringWithBraces()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -575,7 +576,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23536")]
         public async Task TestWithMultipleVerbatimStringsWithBraces()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -595,8 +596,8 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithSelectionOnEntireToBeInterpolatedString()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -616,7 +617,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringPrefix()
         {
             var code = @"public class C
@@ -631,8 +632,8 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
         {
             var code = @"public class C
@@ -647,8 +648,8 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
         {
             var code = @"public class C
@@ -663,7 +664,7 @@ public class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithSelectionExceedingToBeInterpolatedString()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -683,7 +684,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretBeforeNonStringToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -703,7 +704,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretAfterNonStringToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -723,7 +724,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretBeforePlusToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -743,7 +744,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretAfterPlusToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -763,7 +764,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretBeforeLastPlusToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -783,7 +784,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16981")]
         public async Task TestWithCaretAfterLastPlusToken()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -803,7 +804,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(32864, "https://github.com/dotnet/roslyn/issues/32864")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32864")]
         public async Task TestConcatenationWithNoStringLiterals()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -823,7 +824,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
         public async Task TestConcatenationWithChar()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -847,7 +848,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
         public async Task TestConcatenationWithCharAfterStringLiteral()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -869,7 +870,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37324")]
         public async Task TestConcatenationWithCharBeforeStringLiteral()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -891,7 +892,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
         public async Task TestConcatenationWithConstMember()
         {
             var code = @"
@@ -924,7 +925,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
         public async Task TestConcatenationWithConstDeclaration()
         {
             var code = @"
@@ -961,7 +962,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40413")]
         public async Task TestConcatenationWithInlineString()
         {
             await VerifyCS.VerifyRefactoringAsync(@"
@@ -986,7 +987,7 @@ class C
 }");
         }
 
-        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"[|""a"" + $""{1:000}""|]",
                      @"$""a{1:000}""")]
         [InlineData(@"[|""a"" + $""b{1:000}""|]",
@@ -1024,7 +1025,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
         }
 
-        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"""\t"" [|+|] 1",
                    @"$""\t{1}""")]
         [InlineData(@"""😀"" [|+|] 1",
@@ -1054,7 +1055,7 @@ class C
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
         }
 
-        [Theory, WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
         [InlineData(@"""a"" [|+|] (1 + 1)",
                    @"$""a{1 + 1}""")]
         [InlineData(@"""a"" [||]+ (1 + 1) + ""b"" + (2 + 2)",

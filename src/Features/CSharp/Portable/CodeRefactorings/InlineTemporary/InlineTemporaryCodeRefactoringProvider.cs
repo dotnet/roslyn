@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 CodeAction.Create(
-                    CSharpFeaturesResources.Inline_temporary_variable,
+                    FeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c),
-                    nameof(CSharpFeaturesResources.Inline_temporary_variable)),
+                    nameof(FeaturesResources.Inline_temporary_variable)),
                 variableDeclarator.Span);
         }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         {
             // Create the expression that we're actually going to inline.
             var expressionToInline = await CreateExpressionToInlineAsync(document, declarator, cancellationToken).ConfigureAwait(false);
-            expressionToInline = expressionToInline.Parenthesize().WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation, ExpressionAnnotation);
+            expressionToInline = expressionToInline.WithoutTrivia().Parenthesize().WithAdditionalAnnotations(Simplifier.Annotation, ExpressionAnnotation);
 
             // Annotate the variable declarator so that we can get back to it later.
             document = await document.ReplaceNodeAsync(declarator, declarator.WithAdditionalAnnotations(DefinitionAnnotation), cancellationToken).ConfigureAwait(false);
@@ -369,51 +369,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var expression = variableDeclarator.Initializer.Value.WalkDownParentheses();
 
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+            var expressionToInline = CreateExpressionToInline();
 
-            if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
+            // If we are moving something multiline to a new location, add the formatter annotation to it so we can
+            // attempt to ensure it gets properly indented/dedented there.
+            if (!text.AreOnSameLine(expression.SpanStart, expression.Span.End))
+                expressionToInline = expressionToInline.WithAdditionalAnnotations(Formatter.Annotation);
+
+            return expressionToInline;
+
+            ExpressionSyntax CreateExpressionToInline()
             {
-                // Consider: C c = new(); Console.WriteLine(c.ToString());
-                // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
-                // This condition converts implicit object creation expression to normal object creation expression.
+                var isVar = ((VariableDeclarationSyntax)variableDeclarator.Parent).Type.IsVar;
+                var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
 
-                var type = localSymbol.Type.GenerateTypeSyntax();
-                return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
-            }
-            else if (expression is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
-            {
-                // If this is an array initializer, we need to transform it into an array creation
-                // expression for inlining.
-
-                var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
-
-                // Add any non-whitespace trailing trivia from the equals clause to the type.
-                var equalsToken = variableDeclarator.Initializer.EqualsToken;
-                if (equalsToken.HasTrailingTrivia)
+                if (expression is ImplicitObjectCreationExpressionSyntax implicitCreation)
                 {
-                    var trailingTrivia = equalsToken.TrailingTrivia.SkipInitialWhitespace();
-                    if (trailingTrivia.Any())
-                        arrayType = arrayType.WithTrailingTrivia(trailingTrivia);
+                    // Consider: C c = new(); Console.WriteLine(c.ToString());
+                    // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
+                    // This condition converts implicit object creation expression to normal object creation expression.
+
+                    var type = localSymbol.Type.GenerateTypeSyntax();
+                    return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
                 }
+                else if (expression is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
+                {
+                    // If this is an array initializer, we need to transform it into an array creation
+                    // expression for inlining.
 
-                return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
-            }
-            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
-            {
-                // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
-                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
-                return expression;
-            }
-            else
-            {
-                if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
+                    var arrayType = (ArrayTypeSyntax)localSymbol.Type.GenerateTypeSyntax();
+
+                    // Add any non-whitespace trailing trivia from the equals clause to the type.
+                    var equalsToken = variableDeclarator.Initializer.EqualsToken;
+                    if (equalsToken.HasTrailingTrivia)
+                    {
+                        var trailingTrivia = equalsToken.TrailingTrivia.SkipInitialWhitespace();
+                        if (trailingTrivia.Any())
+                            arrayType = arrayType.WithTrailingTrivia(trailingTrivia);
+                    }
+
+                    return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
+                }
+                else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+                {
+                    // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
+                    // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
                     return expression;
+                }
+                else
+                {
+                    if (localSymbol.Type.ContainsAnonymousType() || localSymbol.Type is IErrorTypeSymbol { Name: null or "" })
+                        return expression;
 
-                return expression.Cast(localSymbol.Type);
+                    return expression.Cast(localSymbol.Type);
+                }
             }
         }
 

@@ -55,7 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Public SymbolMap As ConcurrentDictionary(Of NamedTypeSymbol, NamedTypeSymbol)
         End Structure
 
-
         Friend ReadOnly RetargetingTranslator As RetargetingSymbolTranslator
 
         ''' <summary>

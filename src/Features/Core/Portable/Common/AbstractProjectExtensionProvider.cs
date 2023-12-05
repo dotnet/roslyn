@@ -18,10 +18,13 @@ namespace Microsoft.CodeAnalysis
         where TExportAttribute : Attribute
         where TExtension : class
     {
+        public record class ExtensionInfo(string[] DocumentKinds, string[]? DocumentExtensions);
+
         // Following CWTs are used to cache completion providers from projects' references,
         // so we can avoid the slow path unless there's any change to the references.
         private static readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<TExtension>>> s_referencesToExtensionsMap = new();
         private static readonly ConditionalWeakTable<AnalyzerReference, TProvider> s_referenceToProviderMap = new();
+        private static readonly ConditionalWeakTable<TExtension, ExtensionInfo?> s_extensionInfoMap = new();
 
         private AnalyzerReference Reference { get; init; } = null!;
         private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
@@ -29,31 +32,103 @@ namespace Microsoft.CodeAnalysis
         protected abstract ImmutableArray<string> GetLanguages(TExportAttribute exportAttribute);
         protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);
 
+        public static bool TryGetCachedExtensions(IReadOnlyList<AnalyzerReference> analyzerReferences, out ImmutableArray<TExtension> extensions)
+        {
+            if (s_referencesToExtensionsMap.TryGetValue(analyzerReferences, out var providers))
+            {
+                extensions = providers.Value;
+                return true;
+            }
+
+            extensions = ImmutableArray<TExtension>.Empty;
+            return false;
+        }
+
         public static ImmutableArray<TExtension> GetExtensions(Project? project)
         {
             if (project is null)
                 return ImmutableArray<TExtension>.Empty;
 
-            if (s_referencesToExtensionsMap.TryGetValue(project.AnalyzerReferences, out var providers))
-                return providers.Value;
+            return GetExtensions(project.Language, project.AnalyzerReferences);
+        }
 
-            return GetExtensionsSlow(project);
+        public static ImmutableArray<TExtension> GetExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            if (TryGetCachedExtensions(analyzerReferences, out var providers))
+                return providers;
 
-            ImmutableArray<TExtension> GetExtensionsSlow(Project project)
-                => s_referencesToExtensionsMap.GetValue(project.AnalyzerReferences, _ => new(ComputeExtensions(project))).Value;
+            return GetExtensionsSlow(language, analyzerReferences);
 
-            ImmutableArray<TExtension> ComputeExtensions(Project project)
+            static ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+                => s_referencesToExtensionsMap.GetValue(analyzerReferences, _ => new(ComputeExtensions(language, analyzerReferences))).Value;
+
+            static ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
             {
                 using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
-                foreach (var reference in project.AnalyzerReferences)
+                foreach (var reference in analyzerReferences)
                 {
                     var provider = s_referenceToProviderMap.GetValue(
                         reference, static reference => new TProvider() { Reference = reference });
-                    foreach (var extension in provider.GetExtensions(project.Language))
+                    foreach (var extension in provider.GetExtensions(language))
                         builder.Add(extension);
                 }
 
                 return builder.ToImmutable();
+            }
+        }
+
+        public static ImmutableArray<TExtension> GetExtensions(TextDocument document, Func<TExportAttribute, ExtensionInfo>? getExtensionInfoForFiltering)
+        {
+            var extensions = GetExtensions(document.Project);
+            return getExtensionInfoForFiltering != null
+                ? FilterExtensions(document, extensions, getExtensionInfoForFiltering)
+                : extensions;
+        }
+
+        public static ImmutableArray<TExtension> FilterExtensions(TextDocument document, ImmutableArray<TExtension> extensions, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
+        {
+            return extensions.WhereAsArray(ShouldIncludeExtension);
+
+            bool ShouldIncludeExtension(TExtension extension)
+            {
+                if (!s_extensionInfoMap.TryGetValue(extension, out var extensionInfo))
+                {
+                    extensionInfo = s_extensionInfoMap.GetValue(extension,
+                        new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
+                }
+
+                if (extensionInfo == null)
+                    return true;
+
+                if (!extensionInfo.DocumentKinds.Contains(document.Kind.ToString()))
+                    return false;
+
+                if (document.FilePath != null &&
+                    extensionInfo.DocumentExtensions != null &&
+                    !extensionInfo.DocumentExtensions.Contains(PathUtilities.GetExtension(document.FilePath)))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            ExtensionInfo? ComputeExtensionInfo(TExtension extension)
+            {
+                TExportAttribute? attribute;
+                try
+                {
+                    var typeInfo = extension.GetType().GetTypeInfo();
+                    attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
+                }
+                catch
+                {
+                    attribute = null;
+                }
+
+                if (attribute == null)
+                    return null;
+                return getExtensionInfoForFiltering(attribute);
             }
         }
 

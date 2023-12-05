@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Full type name possibly with generic name mangling.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend MustOverride Function LookupTopLevelMetadataType(

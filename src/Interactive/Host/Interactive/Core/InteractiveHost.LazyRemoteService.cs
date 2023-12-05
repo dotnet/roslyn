@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
 #pragma warning restore CA2016
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

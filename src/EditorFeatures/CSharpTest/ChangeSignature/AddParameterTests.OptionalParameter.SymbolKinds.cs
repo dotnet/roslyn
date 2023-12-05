@@ -57,7 +57,7 @@ class D : B
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44126")]
         [WpfFact]
         public async Task AddOptionalParameter_ToConstructor_ImplicitObjectCreation()
         {

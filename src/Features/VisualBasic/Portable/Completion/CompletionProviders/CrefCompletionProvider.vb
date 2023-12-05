@@ -31,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
+        Private Shared ReadOnly s_minimalParameterTypeFormat As SymbolDisplayFormat =
+            SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.ExpandValueTuple)
+
         Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
@@ -231,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         builder.Append("ByRef ")
                     End If
 
-                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position))
+                    builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position, s_minimalParameterTypeFormat))
                 Next
 
                 builder.Append(")"c)
@@ -259,13 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
         Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
-#If False Then
-        Private Shared s_defaultRules As CompletionItemRules =
-            CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
-                CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
-#Else
         Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
-#End If
 
         Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
@@ -273,12 +270,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If displayText.Contains("(") Then
                 commitRules = commitRules.Add(s_WithoutOpenParen)
             End If
-
-#If False Then
-            If displayText.Contains("(Of") Then
-                commitRules = commitRules.Add(s_WithoutSpace)
-            End If
-#End If
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function

@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
+        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text, ParseOptions options, bool localFunction)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -114,6 +112,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (!localFunction && options is { Kind: SourceCodeKind.Regular })
                 {
                     return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_include_top_level_statements));
+                }
+            }
+
+            if (_localFunction)
+            {
+                foreach (var ancestor in selectionInfo.CommonRootFromOriginalSpan.AncestorsAndSelf())
+                {
+                    if (ancestor.IsKind(SyntaxKind.BaseConstructorInitializer) || ancestor.IsKind(SyntaxKind.ThisConstructorInitializer))
+                    {
+                        return selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_cannot_be_in_constructor_initializer));
+                    }
+
+                    if (ancestor is AnonymousFunctionExpressionSyntax)
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -391,13 +405,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // set final span
-            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan) ?
-                            Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start) :
-                            selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
+            var start = (selectionInfo.FirstTokenInOriginalSpan == selectionInfo.FirstTokenInFinalSpan)
+                            ? Math.Min(selectionInfo.FirstTokenInOriginalSpan.SpanStart, selectionInfo.OriginalSpan.Start)
+                            : selectionInfo.FirstTokenInFinalSpan.FullSpan.Start;
 
-            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan) ?
-                            Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End) :
-                            selectionInfo.LastTokenInFinalSpan.FullSpan.End;
+            var end = (selectionInfo.LastTokenInOriginalSpan == selectionInfo.LastTokenInFinalSpan)
+                            ? Math.Max(selectionInfo.LastTokenInOriginalSpan.Span.End, selectionInfo.OriginalSpan.End)
+                            : selectionInfo.LastTokenInFinalSpan.FullSpan.End;
 
             return selectionInfo.With(s => s.FinalSpan = GetAdjustedSpan(text, TextSpan.FromBounds(start, end)));
         }

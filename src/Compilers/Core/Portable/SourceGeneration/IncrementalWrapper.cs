@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         // never used. Just for back compat with loading mechanism
-        void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw ExceptionUtilities.Unreachable;
+        void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw ExceptionUtilities.Unreachable();
 
-        void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw ExceptionUtilities.Unreachable;
+        void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw ExceptionUtilities.Unreachable();
     }
 }

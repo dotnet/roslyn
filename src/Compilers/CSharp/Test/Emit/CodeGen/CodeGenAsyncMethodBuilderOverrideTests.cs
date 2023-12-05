@@ -276,18 +276,18 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
-                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'MyTask', a return keyword must not be followed by an object expression
                 //     static async MyTask F() { await Task.Yield(); return 1; } // 1
-                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()").WithLocation(9, 51),
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()", "MyTask").WithLocation(9, 51),
                 // (12,60): error CS0126: An object of a type convertible to 'T' is required
                 //     static async MyTask<T> G<T>(T t) { await Task.Yield(); return; } // 2
                 Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("T").WithLocation(12, 60),
                 // (15,63): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //     static async MyTask<int> M() { await Task.Yield(); return null; } // 3
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(15, 63),
-                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
+                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'MyTask<int>'
                 //     static async MyTask<int> M2(MyTask<int> mt) { await Task.Yield(); return mt; } // 4
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int").WithLocation(18, 78),
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int", "MyTask<int>").WithLocation(18, 78),
                 // (21,39): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     static async MyTask M2(bool b) => b ? await Task.Yield() : await Task.Yield(); // 5
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Yield() : await Task.Yield()").WithLocation(21, 39)

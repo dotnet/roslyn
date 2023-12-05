@@ -415,7 +415,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -436,7 +436,7 @@ class C
 end class")
         End Function
 
-        <Fact, WorkItem(29190, "https://github.com/dotnet/roslyn/issues/29190")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29190")>
         Public Async Function TestInitializeFieldWithParameterNameSelected2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -694,7 +694,7 @@ End Structure
 ", index:=1, parameters:=Always_Warning)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -716,7 +716,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -741,7 +741,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -766,7 +766,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingFields4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -791,7 +791,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -813,7 +813,7 @@ class C
 end class", index:=2)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -839,7 +839,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -865,7 +865,7 @@ class C
 end class", index:=3)
         End Function
 
-        <Fact, WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35665")>
         Public Async Function TestGenerateRemainingProperties4() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -889,6 +889,110 @@ class C
     Public ReadOnly Property I As Integer
     Public ReadOnly Property J As Integer
 end class", index:=3)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty1() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new NotImplementedException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+        end get
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty2() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private property S As String
+        get
+            throw new NotImplementedException
+        end get
+        set(value as S)
+            throw new NotImplementedException
+        end set
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private property S As String
+        get
+        end get
+        set(value as S)
+        end set
+    end property
+
+    public sub new(s As String)
+        Me.S = s
+    end sub
+end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36998")>
+        Public Async Function TestInitializeThrowingProperty3() As Task
+            Await TestInRegularAndScript1Async(
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    public sub new([||]s As String)
+
+    end sub
+end class",
+"
+imports System
+
+class C
+    Private ReadOnly property S As String
+        get
+            throw new InvalidOperationException
+        end get
+    end property
+
+    Public ReadOnly Property S1 As String
+
+    public sub new(s As String)
+        S1 = s
+    end sub
+end class")
         End Function
 
         Private ReadOnly Property OmitIfDefault_Warning As TestParameters

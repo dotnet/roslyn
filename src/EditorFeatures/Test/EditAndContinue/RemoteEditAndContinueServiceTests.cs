@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,9 +17,8 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -42,13 +40,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [Theory]
         [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)
                 .AddExcludedPartTypes(typeof(DiagnosticAnalyzerService))
                 .AddParts(typeof(MockDiagnosticAnalyzerService), typeof(NoCompilationLanguageService));
+
             if (testHost == TestHost.InProcess)
             {
                 localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
@@ -81,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var inProcOnlyProjectId = ProjectId.CreateNewId();
             var inProcOnlyDocumentId = DocumentId.CreateNewId(inProcOnlyProjectId);
 
-            localWorkspace.ChangeSolution(localWorkspace.CurrentSolution
+            await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
                 .AddProject(projectId, "proj", "proj", LanguageNames.CSharp)
                 .AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40))
                 .AddDocument(documentId, "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs")
@@ -95,7 +94,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var inProcOnlyDocument = solution.GetRequiredDocument(inProcOnlyDocumentId);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
+            var mockDiagnosticService = (MockDiagnosticAnalyzerService)localWorkspace.GetService<IDiagnosticAnalyzerService>();
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {
@@ -146,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+            var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
             {
                 Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
                 AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
@@ -164,6 +163,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
+                sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray.Create(documentId),
                 captureAllMatchingDocuments: false,
                 reportDiagnostics: true,
@@ -242,7 +242,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 $"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
                 $"[{projectId}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
-            }, emitDiagnosticsUpdated.Select(update => Inspect(update.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Single())));
+            }, emitDiagnosticsUpdated.Select(update => Inspect(update.Diagnostics.Single())));
 
             emitDiagnosticsUpdated.Clear();
 
@@ -347,21 +347,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             Assert.Empty(await proxy.GetDocumentDiagnosticsAsync(inProcOnlyDocument, inProcOnlyDocument, activeStatementSpanProvider, CancellationToken.None));
             Assert.Equal(diagnostic.GetMessage(), (await proxy.GetDocumentDiagnosticsAsync(document, document, activeStatementSpanProvider, CancellationToken.None)).Single().GetMessage());
-
-            // OnSourceFileUpdatedAsync
-
-            called = false;
-            mockEncService.OnSourceFileUpdatedImpl = updatedDocument =>
-            {
-                Assert.Equal(documentId, updatedDocument.Id);
-                called = true;
-            };
-
-            await proxy.OnSourceFileUpdatedAsync(inProcOnlyDocument, CancellationToken.None);
-            Assert.False(called);
-
-            await proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None);
-            Assert.True(called);
 
             // EndDebuggingSession
 

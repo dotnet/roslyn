@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
             await base.InitializeAsync();
 
-            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicEditAndContinue));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }

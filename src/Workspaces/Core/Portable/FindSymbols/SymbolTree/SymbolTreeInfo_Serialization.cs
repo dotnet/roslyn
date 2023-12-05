@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -23,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("23");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("24");
 
         /// <summary>
         /// Generalized function for loading/creating/persisting data.  Used as the common core code for serialization
@@ -32,18 +28,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<SymbolTreeInfo> LoadOrCreateAsync(
             SolutionServices services,
             SolutionKey solutionKey,
-            Func<ValueTask<Checksum>> getChecksumAsync,
+            Checksum checksum,
             Func<Checksum, ValueTask<SymbolTreeInfo>> createAsync,
             string keySuffix,
             CancellationToken cancellationToken)
         {
-            var checksum = await getChecksumAsync().ConfigureAwait(false);
-
             using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
             {
-                if (checksum == null)
-                    return await CreateWithLoggingAsync().ConfigureAwait(false);
-
                 // Ok, we can use persistence.  First try to load from the persistence service. The data in the
                 // persistence store must match the checksum passed in.
 
@@ -59,8 +50,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Now, try to create a new instance and write it to the persistence service.
-                var result = await CreateWithLoggingAsync().ConfigureAwait(false);
-                Contract.ThrowIfNull(result);
+                SymbolTreeInfo result;
+                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
+                {
+                    result = await createAsync(checksum).ConfigureAwait(false);
+                    Contract.ThrowIfNull(result);
+                }
 
                 var persistentStorageService = services.GetPersistentStorageService();
 
@@ -82,17 +77,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return result;
             }
-
-            async Task<SymbolTreeInfo> CreateWithLoggingAsync()
-            {
-                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
-                {
-                    return await createAsync(checksum).ConfigureAwait(false);
-                }
-            }
         }
 
-        private static async Task<SymbolTreeInfo> LoadAsync(
+        private static async Task<SymbolTreeInfo?> LoadAsync(
             SolutionServices services,
             SolutionKey solutionKey,
             Checksum checksum,
@@ -194,9 +181,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static SymbolTreeInfo TryReadSymbolTreeInfo(
-            ObjectReader reader,
-            Checksum checksum)
+        private static SymbolTreeInfo? TryReadSymbolTreeInfo(
+            ObjectReader reader, Checksum checksum)
         {
             if (reader == null)
                 return null;
@@ -204,12 +190,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 var nodeCount = reader.ReadInt32();
-                var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                while (nodes.Count < nodeCount)
+                using var _ = ArrayBuilder<Node>.GetInstance(nodeCount, out var nodes);
+
+                for (var i = 0; i < nodeCount; i++)
                 {
                     var name = reader.ReadString();
                     var groupCount = reader.ReadInt32();
-                    for (var i = 0; i < groupCount; i++)
+                    for (var j = 0; j < groupCount; j++)
                     {
                         var parentIndex = reader.ReadInt32();
                         nodes.Add(new Node(name, parentIndex));
@@ -230,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToExtensionMethodMap;
+                MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap;
 
                 var keyCount = reader.ReadInt32();
                 if (keyCount == 0)
@@ -256,14 +243,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var nodeArray = nodes.ToImmutableAndFree();
                 var spellChecker = SpellChecker.TryReadFrom(reader);
                 if (spellChecker is null)
                     return null;
 
+                var nodeArray = nodes.ToImmutableAndClear();
+
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellChecker, inheritanceMap,
-                    receiverTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
             catch
             {
@@ -275,11 +262,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal readonly partial struct TestAccessor
         {
-            internal static SymbolTreeInfo ReadSymbolTreeInfo(
-                ObjectReader reader, Checksum checksum)
-            {
-                return TryReadSymbolTreeInfo(reader, checksum);
-            }
+            public static SymbolTreeInfo? ReadSymbolTreeInfo(ObjectReader reader, Checksum checksum)
+                => TryReadSymbolTreeInfo(reader, checksum);
         }
     }
 }

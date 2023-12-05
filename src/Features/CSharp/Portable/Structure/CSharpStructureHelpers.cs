@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             Contract.ThrowIfNull(prefix);
 
             var prefixLength = prefix.Length;
-            return prefix + " " + text.Substring(prefixLength).Trim() + " " + Ellipsis;
+            return prefix + " " + text[prefixLength..].Trim() + " " + Ellipsis;
         }
 
         public static string GetCommentBannerText(SyntaxTrivia comment)
@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var text = comment.ToString();
                 if (lineBreakStart >= 0)
                 {
-                    text = text.Substring(0, lineBreakStart);
+                    text = text[..lineBreakStart];
                 }
                 else
                 {
                     text = text.Length >= "/**/".Length && text.EndsWith(MultiLineCommentSuffix)
-                        ? text.Substring(0, text.Length - MultiLineCommentSuffix.Length)
+                        ? text[..^MultiLineCommentSuffix.Length]
                         : text;
                 }
 
@@ -182,15 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 type: BlockTypes.Comment,
                 bannerText: GetCommentBannerText(startComment),
                 autoCollapse: true);
-        }
-
-        // For testing purposes
-        internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
-            SyntaxTriviaList triviaList)
-        {
-            using var result = TemporaryArray<BlockSpan>.Empty;
-            CollectCommentBlockSpans(triviaList, ref result.AsRef());
-            return result.ToImmutableAndClear();
         }
 
         public static void CollectCommentBlockSpans(

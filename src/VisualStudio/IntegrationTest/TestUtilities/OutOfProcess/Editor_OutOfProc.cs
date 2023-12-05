@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Windows;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using UIAutomationClient;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -55,9 +50,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetLineTextBeforeCaret()
             => _editorInProc.GetLineTextBeforeCaret();
 
-        public string GetSelectedText()
-            => _editorInProc.GetSelectedText();
-
         public string GetLineTextAfterCaret()
             => _editorInProc.GetLineTextAfterCaret();
 
@@ -66,7 +58,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public ImmutableArray<TextSpan> GetTagSpans(string tagId)
         {
-            if (tagId == _instance.InlineRenameDialog.ValidRenameTag)
+            if (tagId == InlineRenameDialog_OutOfProc.ValidRenameTag)
             {
                 _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             }
@@ -123,13 +115,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetCurrentSignature();
         }
 
-        public void InvokeNavigateTo(params object[] keys)
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
-            NavigateToSendKeys(keys);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigateTo);
-        }
-
         public void SelectTextInCurrentDocument(string text)
         {
             PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
@@ -139,12 +124,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetLine() => _editorInProc.GetLine();
 
         public int GetColumn() => _editorInProc.GetColumn();
-
-        public void DeleteText(string text)
-        {
-            SelectTextInCurrentDocument(text);
-            SendKeys(VirtualKey.Delete);
-        }
 
         public void ReplaceText(string oldText, string newText)
             => _editorInProc.ReplaceText(oldText, newText);
@@ -187,62 +166,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DialogSendKeys(string dialogAutomationName, params object[] keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
-        public void FormatDocument()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
-        }
-
-        public void FormatDocumentViaCommand()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.FormatDocumentViaCommand();
-        }
-
-        public void FormatSelection()
-        {
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
-        }
-
-        public void Paste(string text)
-        {
-            var thread = new Thread(() => Clipboard.SetText(text));
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-
-            _editorInProc.Paste();
-        }
-
         public void Undo()
             => _editorInProc.Undo();
 
         public void Redo()
             => _editorInProc.Redo();
 
-        public void NavigateToSendKeys(params object[] keys)
-            => _editorInProc.SendKeysToNavigateTo(keys);
-
-        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
-            _editorInProc.GetLightbulbPreviewClassifications(menuText);
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
+            => _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void SetUseSuggestionMode(bool value)
         {
             Assert.False(IsCompletionActive());
             _editorInProc.SetUseSuggestionMode(value);
-        }
-
-        public void WaitForActiveView(string viewName)
-            => _editorInProc.WaitForActiveView(viewName);
-
-        public string[] GetErrorTags()
-            => _editorInProc.GetErrorTags();
-
-        public string[] GetProjectNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(0);
         }
 
         public TextSpan[] GetKeywordHighlightTags()
@@ -262,16 +198,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var open = tag.LastIndexOf('[') + 1;
                 var comma = tag.LastIndexOf('-');
                 var close = tag.LastIndexOf(']');
-                var start = tag.Substring(open, comma - open);
+                var start = tag[open..comma];
                 var end = tag.Substring(comma + 1, close - comma - 1);
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();
         }
-
-        public void SendExplicitFocus()
-            => _editorInProc.SendExplicitFocus();
-
-        public void WaitForEditorOperations(TimeSpan timeout)
-            => _editorInProc.WaitForEditorOperations(timeout);
     }
 }

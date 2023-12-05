@@ -81,7 +81,6 @@ public readonly struct ImportedNamespaceOrType
 {
     public INamespaceOrTypeSymbol NamespaceOrType { get; }
 
-
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Location in source where the <c>using</c> directive or <c>Imports</c> clause was declared. May be null for

@@ -148,15 +148,15 @@ public class Test
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
         }
 
         [Fact]
@@ -1047,7 +1047,7 @@ class C
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
@@ -1058,7 +1058,7 @@ class C
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
         }
 
         [Fact]
@@ -2749,8 +2749,7 @@ class SwitchTest
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case true when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(10, 13));
             CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }

@@ -756,7 +756,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return True
         End Function
 
-
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             EnsureNestedTypesAreLoaded()
             EnsureNonTypeMembersAreLoaded()
@@ -1115,9 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each nestedTypeDef In [module].GetNestedTypeDefsOrThrow(_handle)
-                    If [module].ShouldImportNestedType(nestedTypeDef) Then
-                        members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
-                    End If
+                    members.Add(New PENamedTypeSymbol(moduleSymbol, Me, nestedTypeDef))
                 Next
             Catch mrEx As BadImageFormatException
             End Try
@@ -1213,7 +1210,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 For Each propertyDef In [module].GetPropertiesOfTypeOrThrow(_handle)
                     Try
                         Dim methods = [module].GetPropertyMethodsOrThrow(propertyDef)
-
 
                         Dim getMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Getter)
                         Dim setMethod = GetAccessorMethod(moduleSymbol, methodHandleToSymbol, _handle, methods.Setter)
@@ -1340,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
 
-            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.RefStructs, decoder)
 
             If diagnostic IsNot Nothing Then
                 Return diagnostic

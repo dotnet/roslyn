@@ -8,30 +8,31 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 #if !CODE_STYLE
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.OrganizeImports;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 [DataContract]
-internal sealed record class CodeCleanupOptions(
-    [property: DataMember] SyntaxFormattingOptions FormattingOptions,
-    [property: DataMember] SimplifierOptions SimplifierOptions)
+internal sealed record class CodeCleanupOptions
 {
+    [DataMember] public required SyntaxFormattingOptions FormattingOptions { get; init; }
+    [DataMember] public required SimplifierOptions SimplifierOptions { get; init; }
     [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
 #if !CODE_STYLE
     public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
-        => new(
-            FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
-            SimplifierOptions: SimplifierOptions.GetDefault(languageServices));
+        => new()
+        {
+            FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices),
+            SimplifierOptions = SimplifierOptions.GetDefault(languageServices)
+        };
 
     public OrganizeImportsOptions GetOrganizeImportsOptions()
         => new()
@@ -77,29 +78,25 @@ internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsP
     async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
         => (await GetCodeCleanupOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
 }
+
 #endif
 
 internal static class CodeCleanupOptionsProviders
 {
 #if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this AnalyzerConfigOptions options, bool allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions, LanguageServices languageServices)
-    {
-        var formattingOptions = options.GetSyntaxFormattingOptions(fallbackOptions?.FormattingOptions, languageServices);
-        var simplifierOptions = options.GetSimplifierOptions(fallbackOptions?.SimplifierOptions, languageServices);
-        var addImportOptions = options.GetAddImportPlacementOptions(allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions, languageServices);
-        var documentFormattingOptions = options.GetDocumentFormattingOptions(fallbackOptions?.DocumentFormattingOptions);
-
-        return new CodeCleanupOptions(formattingOptions, simplifierOptions)
+    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions, CodeCleanupOptions? fallbackOptions)
+        => new()
         {
-            AddImportOptions = addImportOptions,
-            DocumentFormattingOptions = documentFormattingOptions
+            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices, fallbackOptions?.FormattingOptions),
+            SimplifierOptions = options.GetSimplifierOptions(languageServices, fallbackOptions?.SimplifierOptions),
+            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions, fallbackOptions?.AddImportOptions),
+            DocumentFormattingOptions = options.GetDocumentFormattingOptions(fallbackOptions?.DocumentFormattingOptions),
         };
-    }
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.AllowImportsInHiddenRegions(), fallbackOptions, document.Project.Services);
+        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions(), fallbackOptions);
     }
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

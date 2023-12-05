@@ -84,6 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
+        public static string Option_analyze_source_generated_files
+            => ServicesVSResources.Analyze_source_generated_files;
+
         public static string Option_Inline_Hints
             => ServicesVSResources.Inline_Hints;
 
@@ -354,14 +357,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Include_global_imports
             => ServicesVSResources.Include_global_imports;
 
-        public static string Option_JSON_strings =>
-            ServicesVSResources.JSON_strings;
+        public static string Option_JSON_strings
+            => ServicesVSResources.JSON_strings;
 
-        public static string Option_Colorize_JSON_strings =>
-            ServicesVSResources.Colorize_JSON_strings;
+        public static string Option_Colorize_JSON_strings
+            => ServicesVSResources.Colorize_JSON_strings;
 
-        public static string Option_Report_invalid_JSON_strings =>
-            ServicesVSResources.Report_invalid_JSON_strings;
+        public static string Option_Report_invalid_JSON_strings
+            => ServicesVSResources.Report_invalid_JSON_strings;
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
@@ -395,5 +398,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_UI_as_dashboard_in_top_right
             => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
+
+        public static string Document_Outline
+            => ServicesVSResources.Document_Outline;
+
+        public static string Option_Enable_document_outline_experimental_requires_restart
+            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
     }
 }

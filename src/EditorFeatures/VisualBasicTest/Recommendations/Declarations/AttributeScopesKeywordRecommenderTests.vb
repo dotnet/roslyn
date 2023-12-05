@@ -35,7 +35,7 @@ Class Goo
 End Class</File>, {"Global"})
         End Sub
 
-        <Fact, WorkItem(542207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542207")>
         Public Sub AttributeScopesInFileAtStartOfMalformedAttributeTest()
             VerifyRecommendationsContain(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,
                                          "Assembly", "Module")
@@ -50,7 +50,7 @@ End Class
 </File>, "Assembly", "Module")
         End Sub
 
-        <Fact, WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         Public Sub AttributeScopesAfterEolTest()
             VerifyRecommendationsContain(<File>
 Class goo

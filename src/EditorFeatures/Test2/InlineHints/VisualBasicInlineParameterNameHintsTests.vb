@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean1() As Task
             Dim input =
@@ -609,7 +609,7 @@ end class
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestNotOnEnableDisableBoolean2() As Task
             Dim input =
@@ -631,7 +631,7 @@ end class
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean1() As Task
             Dim input =
@@ -669,7 +669,7 @@ end class
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnEnableDisableNonBoolean2() As Task
             Dim input =
@@ -707,7 +707,7 @@ end class
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnSetMethodWithClearContext() As Task
             Dim input =
@@ -729,7 +729,7 @@ end class
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestOnSetMethodWithUnclearContext() As Task
             Dim input =
@@ -767,7 +767,7 @@ end class
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithAlphaSuffix1() As Task
             Dim input =
@@ -789,7 +789,7 @@ end class
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNonAlphaSuffix1() As Task
             Dim input =
@@ -826,7 +826,7 @@ end class
             Await VerifyParamHints(input, output)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNumericSuffix1() As Task
             Dim input =
@@ -848,7 +848,7 @@ end class
             Await VerifyParamHints(input, input)
         End Function
 
-        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/47597")>
         <WpfFact>
         Public Async Function TestMethodWithNonNumericSuffix1() As Task
             Dim input =
@@ -879,6 +879,80 @@ class A
         Goo(obj1:=1, obj2:=2, nonobj3:=3)
     end sub
 end class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsReservedKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N({|Integer:|}1)
+    End Sub
+
+    Sub N([Integer] As Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N(Integer:=1)
+    End Sub
+
+    Sub N([Integer] As Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66817")>
+        Public Async Function TestParameterNameIsContextualKeyword() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N({|Async:|}True)
+    End Sub
+
+    Sub N(Async As Boolean)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub M()
+        N(Async:=True)
+    End Sub
+
+    Sub N(Async As Boolean)
+    End Sub
+End Class
                     </Document>
                 </Project>
             </Workspace>

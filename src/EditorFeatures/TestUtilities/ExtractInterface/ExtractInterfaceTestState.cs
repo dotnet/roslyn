@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
                 options.FallbackOptions);
 
-            var operations = await action.GetOperationsAsync(changedOptions, CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                this.OriginalSolution, changedOptions, CancellationToken.None);
             foreach (var operation in operations)
             {
                 operation.Apply(Workspace, CancellationToken.None);

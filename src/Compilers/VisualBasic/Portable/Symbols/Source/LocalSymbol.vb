@@ -424,7 +424,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #End Region
 
-
 #Region "ISymbol"
 
         Protected Overrides ReadOnly Property ISymbol_IsStatic As Boolean

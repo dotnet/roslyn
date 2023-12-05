@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+                    ' Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    ' whenever new values are added here.
                     Return True
                 Case ERRID.Void,
                      ERRID.Unknown,

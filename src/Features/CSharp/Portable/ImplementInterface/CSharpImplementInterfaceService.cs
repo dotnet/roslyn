@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format)
             => SymbolDisplay.ToDisplayString(disposeImplMethod, format);
 
+        protected override bool AllowDelegateAndEnumConstraints(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp7_3;
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)

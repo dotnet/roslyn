@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 // Expression-level preferences
                 //   dotnet_style_coalesce_expression
                 new DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
-                    IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId),
+                    IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 //   dotnet_style_collection_initializer
                 new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),

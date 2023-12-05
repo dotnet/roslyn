@@ -135,7 +135,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim comp1 = CreateCompilation(source1, references:={ilReference}, options:=TestOptions.DebugDll.WithOverflowChecks(enabled:=overflowChecksEnabled))
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -512,7 +511,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim comp1 = CreateCompilation(source1, references:={ilReference}, options:=TestOptions.DebugDll.WithOverflowChecks(enabled:=overflowChecksEnabled))
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -600,7 +598,6 @@ Public Class Program
 End Class
 ]]></file>
 </compilation>
-
 
             For Each comp0Reference In {comp0.ToMetadataReference(), comp0.EmitToImageReference()}
 

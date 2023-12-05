@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editing
             _generator = generator;
         }
 
-        [return: NotNullIfNotNull("node")]
+        [return: NotNullIfNotNull(nameof(node))]
         private SyntaxNode? ApplyTrackingToNewNode(SyntaxNode? node)
         {
             if (node == null)
@@ -412,9 +412,9 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => _isBefore ?
-                    generator.InsertNodesBefore(root, currentNode, _newNodes) :
-                    generator.InsertNodesAfter(root, currentNode, _newNodes);
+                => _isBefore
+                    ? generator.InsertNodesBefore(root, currentNode, _newNodes)
+                    : generator.InsertNodesAfter(root, currentNode, _newNodes);
         }
     }
 }

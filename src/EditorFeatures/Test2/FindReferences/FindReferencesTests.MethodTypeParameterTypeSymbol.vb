@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestMethodTypeParameter_NewConstraint_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(62744, "https://github.com/dotnet/roslyn/issues/62744")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62744")>
         Public Async Function TestMethodTypeParameter_NewConstraint_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
 #Region "FAR on generic partial methods"
 
-        <WorkItem(544436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodType_GenericPartialParameter_CSharp1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(544436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436"), WorkItem(544475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544475")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544436"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544475")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodType_GenericPartialParameter_CSharp2(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodType_GenericPartialParameter_VB1(kind As TestKind, host As TestHost) As Task
             Dim input =
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem(544435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544435")>
         <WpfTheory, CombinatorialData>
         Public Async Function TestMethodType_GenericPartialParameter_VB2(kind As TestKind, host As TestHost) As Task
             Dim input =

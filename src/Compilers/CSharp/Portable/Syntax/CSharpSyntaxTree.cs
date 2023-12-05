@@ -354,6 +354,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cloneRoot: true);
         }
 
+        internal static SyntaxTree Create(
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string? path,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm)
+        {
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                encodingOpt: encoding,
+                checksumAlgorithm: checksumAlgorithm,
+                path: path,
+                options: options,
+                root: root,
+                directives: default,
+                diagnosticOptions: null,
+                cloneRoot: true);
+        }
+
         /// <summary>
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
@@ -438,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
@@ -915,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Encoding? encoding,
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+            => ParseText(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -928,5 +947,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
 
+        /// <summary>
+        /// This is ONLY used for debugging purpose
+        /// </summary>
+        internal string Dump()
+        {
+            return this.GetRoot().Dump();
+        }
     }
 }

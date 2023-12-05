@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                 type: property.BackingField.Type), manager.System_Object__ToString),
                                                                             null,
                                                                             id: i,
+                                                                            forceCopyOfNullableValueType: true,
                                                                             type: manager.System_String),
                                                  Conversion.ImplicitReference);
                     }

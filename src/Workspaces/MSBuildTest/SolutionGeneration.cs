@@ -187,9 +187,9 @@ EndGlobal
             foreach (var project in projects)
             {
                 var fileName = project.Name + project.Extension;
-                var languageGuid = project.Language == LanguageNames.VisualBasic ?
-                    "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}" :
-                    "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
+                var languageGuid = project.Language == LanguageNames.VisualBasic
+                    ? "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"
+                    : "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
                 sb.AppendLine(
                     string.Format(
                         @"Project(""{0}"") = ""{1}"", ""{2}"", ""{3}""",

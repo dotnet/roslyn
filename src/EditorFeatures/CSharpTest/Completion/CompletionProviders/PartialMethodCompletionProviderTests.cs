@@ -595,7 +595,7 @@ partial class c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [Fact, WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
         public async Task DoNotConsiderFollowingDeclarationPartial()
         {
             var text = @"class Program
@@ -611,7 +611,7 @@ partial class c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [Fact, WorkItem(578757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578757")]
         public async Task DoNotConsiderFollowingDeclarationExtendedPartial()
         {
             var text = @"class Program
@@ -627,7 +627,7 @@ partial class c
             await VerifyNoItemsExistAsync(text);
         }
 
-        [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
         [WpfFact]
         public async Task CommitAsync()
         {
@@ -655,7 +655,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
         [WpfFact]
         public async Task CommitAsyncExtended()
         {
@@ -683,7 +683,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit);
         }
 
-        [WorkItem(578078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578078")]
         [WpfFact]
         public async Task AmbiguityCommittingWithParen()
         {
@@ -711,7 +711,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo()", expectedCodeAfterCommit, commitChar: '(');
         }
 
-        [WorkItem(965677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
         [WpfFact]
         public async Task NoDefaultParameterValues()
         {
@@ -742,7 +742,7 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
         }
 
-        [WorkItem(965677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965677")]
         [WpfFact]
         public async Task NoDefaultParameterValuesExtended()
         {
@@ -773,15 +773,15 @@ partial class Bar
             await VerifyCustomCommitProviderAsync(text, "PMethod(int i)", expected);
         }
 
-        [WorkItem(26388, "https://github.com/dotnet/roslyn/issues/26388")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/26388")]
         [WpfFact]
         public async Task ExpressionBodyMethod()
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
             workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
 
             var text = @"using System;
@@ -810,9 +810,9 @@ partial class Bar
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
             workspace.GlobalOptions.SetGlobalOption(
-                new OptionKey(CSharpCodeStyleOptions.PreferExpressionBodiedMethods),
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
                 new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
 
             var text = @"using System;

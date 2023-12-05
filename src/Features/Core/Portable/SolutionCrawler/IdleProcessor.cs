@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -146,6 +147,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 catch (OperationCanceledException)
                 {
                     // ignore cancellation exception
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    // In case any error happen during the execution, don't exit the loop and continue to work on the next item.
                 }
             }
         }

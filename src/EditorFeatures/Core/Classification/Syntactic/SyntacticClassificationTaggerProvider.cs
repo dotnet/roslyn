@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SyntacticColorizer))
+            if (!_globalOptions.GetOption(SyntacticColorizerOptionsStorage.SyntacticColorizer))
                 return null;
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))

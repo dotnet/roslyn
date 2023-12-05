@@ -225,13 +225,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Await waiter.ExpeditedWaitAsync()
 
             Dim diagnosticService = environment.ExportProvider.GetExportedValue(Of IDiagnosticService)
-            Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+            Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(
                 environment.Workspace,
                 projectId:=Nothing,
                 documentId:=Nothing,
                 id:=Nothing,
                 includeSuppressedDiagnostics:=True,
-                DiagnosticMode.Default,
                 CancellationToken.None)
             Return diagnostics
         End Function

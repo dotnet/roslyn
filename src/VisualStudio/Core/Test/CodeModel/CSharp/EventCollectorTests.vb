@@ -695,7 +695,7 @@ class B
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddAttributeToField() As Task
             Dim code =
@@ -719,7 +719,7 @@ class C
                  Add("System.CLSCompliant", "goo"))
         End Function
 
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddAttributeToTwoFields() As Task
             Dim code =
@@ -744,7 +744,7 @@ class C
                  Add("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveAttributeFromField() As Task
             Dim code =
@@ -768,7 +768,7 @@ class C
                  Remove("System.CLSCompliant", "goo"))
         End Function
 
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveAttributeFromTwoFields() As Task
             Dim code =
@@ -793,7 +793,7 @@ class C
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_ChangeAttributeOnField() As Task
             Dim code =
@@ -818,8 +818,8 @@ class C
                  ArgChange("System.CLSCompliant", "goo"))
         End Function
 
-        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
-        <WorkItem(844611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844611")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_ChangeAttributeOnTwoFields() As Task
             Dim code =
@@ -845,7 +845,7 @@ class C
                  ArgChange("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_AddOneMoreAttribute() As Task
             Dim code =
@@ -874,7 +874,7 @@ class Program
                  Add("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(1147865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147865")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function TestField_RemoveOneAttribute() As Task
             Dim code =
@@ -903,7 +903,7 @@ class Program
                  Remove("System.CLSCompliant", "bar"))
         End Function
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontFireEventForMethodAddedInsideNamespace() As Task
             Dim code =
@@ -926,7 +926,7 @@ namespace N
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedMethodsInNamespace() As Task
             Dim code =
@@ -956,7 +956,7 @@ namespace N
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedPropertiesInNamespace() As Task
             Dim code =
@@ -979,7 +979,7 @@ namespace N
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedEventsInNamespace1() As Task
             Dim code =
@@ -1002,7 +1002,7 @@ namespace N
             Await TestAsync(code, changedCode)
         End Function
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Async Function DontCrashOnDuplicatedEventsInNamespace2() As Task
             Dim code =

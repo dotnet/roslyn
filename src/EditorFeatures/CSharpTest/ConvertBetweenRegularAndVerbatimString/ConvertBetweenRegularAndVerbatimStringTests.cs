@@ -22,300 +22,300 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAn
         [Fact]
         public async Task EmptyRegularString()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]"";
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithMissingCloseQuote()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||];
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||];
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VerbatimStringWithMissingCloseQuote()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||];
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||];
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task EmptyVerbatimString()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||]"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = """";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||]";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestLeadingAndTrailingTrivia()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v =
-            // leading
-            @""[||]"" /* trailing */;
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v =
-            // leading
-            """" /* trailing */;
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v =
+                            // leading
+                            @"[||]" /* trailing */;
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v =
+                            // leading
+                            "" /* trailing */;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithBasicText()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]a"";
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]a";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VerbatimStringWithBasicText()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||]a"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = ""a"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||]a";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "a";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithUnicodeEscape()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]\u0001"";
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]\u0001";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithEscapedNewLine()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]a\r\nb"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = @""a
-b"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]a\r\nb";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"a
+                b";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VerbatimStringWithNewLine()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||]a
-b"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = ""a\r\nb"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||]a
+                b";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "a\r\nb";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithEscapedNull()
         {
-            await TestMissingAsync(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]a\0b"";
-    }
-}
-");
+            await TestMissingAsync("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]a\0b";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task RegularStringWithEscapedQuote()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]a\""b"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = @""a""""b"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]a\"b";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"a""b";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VerbatimStringWithEscapedQuote()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||]a""""b"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = ""a\""b"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||]a""b";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "a\"b";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task DoNotEscapeCurlyBracesInRegularString()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = ""[||]a\r\n{1}"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = @""a
-{1}"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "[||]a\r\n{1}";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"a
+                {1}";
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task DoNotEscapeCurlyBracesInVerbatimString()
         {
-            await TestInRegularAndScript1Async(@"
-class Test
-{
-    void Method()
-    {
-        var v = @""[||]a
-{1}"";
-    }
-}
-",
-@"
-class Test
-{
-    void Method()
-    {
-        var v = ""a\r\n{1}"";
-    }
-}
-");
+            await TestInRegularAndScript1Async("""
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = @"[||]a
+                {1}";
+                    }
+                }
+                """,
+                """
+                class Test
+                {
+                    void Method()
+                    {
+                        var v = "a\r\n{1}";
+                    }
+                }
+                """);
         }
     }
 }

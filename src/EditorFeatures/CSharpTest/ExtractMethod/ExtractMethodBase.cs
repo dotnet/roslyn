@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = new ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.Services))
+            var options = new ExtractMethodGenerationOptions()
             {
+                CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
                 ExtractOptions = new() { DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
             };
 

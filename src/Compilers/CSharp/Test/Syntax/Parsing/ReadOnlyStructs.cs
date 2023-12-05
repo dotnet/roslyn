@@ -41,7 +41,6 @@ class Program
             comp.VerifyDiagnostics(
             );
 
-
             var s1 = comp.GetTypeByMetadataName("Program+S1");
             Assert.False(s1.IsRefLikeType);
             Assert.True(s1.IsReadOnly);

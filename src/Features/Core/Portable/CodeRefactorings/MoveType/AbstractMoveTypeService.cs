@@ -166,11 +166,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
             => syntaxFacts.ContainsGlobalStatement(root);
 
-        private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
-            new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
+        private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind)
+            => new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
 
-        private static bool IsNestedType(TTypeDeclarationSyntax typeNode) =>
-            typeNode.Parent is TTypeDeclarationSyntax;
+        private static bool IsNestedType(TTypeDeclarationSyntax typeNode)
+            => typeNode.Parent is TTypeDeclarationSyntax;
 
         /// <summary>
         /// checks if there is a single top level type declaration in a document
@@ -178,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <remarks>
         /// optimized for perf, uses Skip(1).Any() instead of Count() > 1
         /// </remarks>
-        private static bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root) =>
-            TopLevelTypeDeclarations(root).Skip(1).Any();
+        private static bool MultipleTopLevelTypeDeclarationInSourceDocument(SyntaxNode root)
+            => TopLevelTypeDeclarations(root).Skip(1).Any();
 
-        private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
+        private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
+            => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
         private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         }
 
         private static IEnumerable<string> GetTypeNamePartsForNestedTypeNode(
-            TTypeDeclarationSyntax typeNode, SemanticModel semanticModel, CancellationToken cancellationToken) =>
-                typeNode.AncestorsAndSelf()
+            TTypeDeclarationSyntax typeNode, SemanticModel semanticModel, CancellationToken cancellationToken)
+                => typeNode.AncestorsAndSelf()
                         .OfType<TTypeDeclarationSyntax>()
                         .Select(n => semanticModel.GetDeclaredSymbol(n, cancellationToken).Name)
                         .Reverse();

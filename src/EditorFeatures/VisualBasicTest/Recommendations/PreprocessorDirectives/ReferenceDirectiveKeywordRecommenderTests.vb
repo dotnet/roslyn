@@ -7,12 +7,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
     Public Class ReferenceDirectiveKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37911")>
         Public Sub NotInFileTest()
             VerifyRecommendationsMissing(<File>|</File>, "#R")
         End Sub
 
-        <Fact, WorkItem(37911, "https://github.com/dotnet/roslyn/issues/37911")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37911")>
         Public Sub AppearsInScriptingContext()
             VerifyRecommendationsContain(<File Script="True">|</File>, "#R")
         End Sub

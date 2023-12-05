@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
     internal sealed class RemoteWorkspaceConfigurationService : IWorkspaceConfigurationService
     {
         private WorkspaceConfigurationOptions? _options;

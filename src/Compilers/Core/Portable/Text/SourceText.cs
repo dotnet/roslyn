@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -613,22 +612,25 @@ namespace Microsoft.CodeAnalysis.Text
             CheckSubSpan(span);
 
             // default implementation constructs text using CopyTo
-            var builder = new StringBuilder();
-            var buffer = new char[Math.Min(span.Length, 1024)];
+            var builder = PooledStringBuilder.GetInstance();
+            var buffer = s_charArrayPool.Allocate();
 
             int position = Math.Max(Math.Min(span.Start, this.Length), 0);
             int length = Math.Min(span.End, this.Length) - position;
+            builder.Builder.EnsureCapacity(length);
 
             while (position < this.Length && length > 0)
             {
                 int copyLength = Math.Min(buffer.Length, length);
                 this.CopyTo(position, buffer, 0, copyLength);
-                builder.Append(buffer, 0, copyLength);
+                builder.Builder.Append(buffer, 0, copyLength);
                 length -= copyLength;
                 position += copyLength;
             }
 
-            return builder.ToString();
+            s_charArrayPool.Free(buffer);
+
+            return builder.ToStringAndFree();
         }
 
         #region Changes

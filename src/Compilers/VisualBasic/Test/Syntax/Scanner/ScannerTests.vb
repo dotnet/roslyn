@@ -243,7 +243,6 @@ Public Class ScannerTests
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
 
-
         token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
@@ -299,7 +298,6 @@ Public Class ScannerTests
         Dim err = trivia.Errors().First
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
-
         ' Start of line, seven characters
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= trailing chars").Skip(2).First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
@@ -354,7 +352,6 @@ Public Class ScannerTests
         trivia = token.LeadingTrivia(2)
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
-
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").Skip(2).First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
@@ -487,7 +484,6 @@ Public Class ScannerTests
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
 
-
         token = SyntaxFactory.ParseTokens("||||||| Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
@@ -543,7 +539,6 @@ Public Class ScannerTests
         Dim err = trivia.Errors().First
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
-
         ' Start of line, seven characters
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "||||||| trailing chars").Skip(2).First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
@@ -598,7 +593,6 @@ Public Class ScannerTests
         trivia = token.LeadingTrivia(2)
         Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
         Assert.Equal(trivia.Span.Length, 34)
-
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "||||||| Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").Skip(2).First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
@@ -1912,7 +1906,6 @@ World!"</text>.Value
         Return String.Join("", arr)
     End Function
 
-
     <Fact>
     Public Sub Scanner_BufferTest()
         For i As Integer = 0 To 12
@@ -1930,7 +1923,6 @@ World!"</text>.Value
             tks = ScanAllNoDwCheck(TokenStr)
             Assert.Equal(4, tks.Count)
         Next
-
 
         For i As Integer = 100 To 5000 Step 250
             Dim TokenStr = New String("+"c, i)

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
-            => compilationUnit.Members.Count > 0 && compilationUnit.Members[0] is GlobalStatementSyntax;
+            => compilationUnit.Members is [GlobalStatementSyntax, ..];
 
         public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {

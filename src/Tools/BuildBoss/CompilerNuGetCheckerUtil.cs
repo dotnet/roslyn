@@ -128,6 +128,15 @@ namespace BuildBoss
 
             allGood &= VerifyPackageCore(
                 textWriter,
+                FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset.Framework"),
+                (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
+                (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
+                (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
+                (@"tasks\net472", GetProjectOutputDirectory("VBCSCompiler", "net472")),
+                (@"tasks\net472", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472"))); ;
+
+            allGood &= VerifyPackageCore(
+                textWriter,
                 FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers.Toolset"),
                 excludeFunc: relativeFileName => relativeFileName.StartsWith(@"tasks\net6.0\bincore\Microsoft.DiaSymReader.Native", PathComparison),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
@@ -156,17 +165,17 @@ namespace BuildBoss
             return allGood;
         }
 
-        private string GetProjectOutputDirectory(string projectName, string tfm) =>
-            Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm);
+        private string GetProjectOutputDirectory(string projectName, string tfm)
+            => Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm);
 
-        private string GetProjectPublishDirectory(string projectName, string tfm) =>
-            Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm, "publish");
+        private string GetProjectPublishDirectory(string projectName, string tfm)
+            => Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm, "publish");
 
         private static bool VerifyPackageCore(
             TextWriter textWriter,
             string packageFilePath,
-            params (string PackageFolderRelativePath, string BuildOutputFolder)[] packageInputs) =>
-            VerifyPackageCore(
+            params (string PackageFolderRelativePath, string BuildOutputFolder)[] packageInputs)
+            => VerifyPackageCore(
                 textWriter,
                 packageFilePath,
                 static _ => false,
@@ -366,7 +375,6 @@ namespace BuildBoss
                 }
             }
         }
-
 
         private string FindNuGetPackage(string directory, string partialName)
         {

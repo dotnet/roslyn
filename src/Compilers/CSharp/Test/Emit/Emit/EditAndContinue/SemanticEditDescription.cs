@@ -12,15 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
         public readonly Func<Compilation, ISymbol> NewSymbolProvider;
+        public readonly bool PreserveLocalVariables;
 
         public SemanticEditDescription(
             SemanticEditKind kind,
             Func<Compilation, ISymbol> symbolProvider,
-            Func<Compilation, ISymbol>? newSymbolProvider = null)
+            Func<Compilation, ISymbol>? newSymbolProvider = null,
+            bool preserveLocalVariables = false)
         {
             Kind = kind;
             SymbolProvider = symbolProvider;
             NewSymbolProvider = newSymbolProvider ?? symbolProvider;
+            PreserveLocalVariables = preserveLocalVariables;
         }
     }
 }

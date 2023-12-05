@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -290,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected bool AreSnippetsEnabled(EditorCommandArgs args)
         {
-            return EditorOptionsService.GlobalOptions.GetOption(InternalFeatureOnOffOptions.Snippets) &&
+            return EditorOptionsService.GlobalOptions.GetOption(SnippetsOptionsStorage.Snippets) &&
                 // TODO (https://github.com/dotnet/roslyn/issues/5107): enable in interactive
                 !(Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace) && workspace.Kind == WorkspaceKind.Interactive);
         }

@@ -225,7 +225,7 @@ class Class3
                 Region("span", "/// <summary> Hello C#!", autoCollapse: true));
         }
 
-        [Fact, WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2129")]
         public async Task CrefInSummary()
         {
             const string code = @"
@@ -242,7 +242,7 @@ class C
                 Region("span", "/// <summary> Summary with SeeClass, SeeAlsoClass, null, T, t, and not-supported.", autoCollapse: true));
         }
 
-        [Fact, WorkItem(402822, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=402822")]
         public async Task TestSummaryWithPunctuation()
         {
             const string code = @"
@@ -261,7 +261,7 @@ class C
                 Region("span", "/// <summary> The main entrypoint for Program.", autoCollapse: true));
         }
 
-        [Fact, WorkItem(20679, "https://github.com/dotnet/roslyn/issues/20679")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20679")]
         public async Task TestSummaryWithAdditionalTags()
         {
             const string code = @"

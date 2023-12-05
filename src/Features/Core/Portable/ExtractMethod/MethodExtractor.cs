@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             foreach (var variable in variables)
             {
-                var originalType = variable.GetVariableType(document);
+                var originalType = variable.GetVariableType();
                 var result = await CheckTypeAsync(document.Document, contextNode, location, originalType, cancellationToken).ConfigureAwait(false);
                 if (result.FailedWithNoBestEffortSuggestion())
                 {
@@ -195,9 +195,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 prefix = char.ToLowerInvariant(prefix[0]) + prefix[1..];
             }
 
-            return char.IsUpper(name[0]) ?
-                prefix + name :
-                prefix + char.ToUpper(name[0]).ToString() + name[1..];
+            return char.IsUpper(name[0])
+                ? prefix + name
+                : prefix + char.ToUpper(name[0]).ToString() + name[1..];
         }
     }
 }

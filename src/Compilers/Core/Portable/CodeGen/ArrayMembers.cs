@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
-
 // Contains support for pseudo-methods on multidimensional arrays.
 //
 // Opcodes such as newarr, ldelem, ldelema, stelem do not work with
@@ -137,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             throw ExceptionUtilities.UnexpectedValue(id);
         }
-
 
         /// <summary>
         /// "newobj ArrayConstructor"  is equivalent of "newarr ElementType" 
@@ -369,13 +367,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

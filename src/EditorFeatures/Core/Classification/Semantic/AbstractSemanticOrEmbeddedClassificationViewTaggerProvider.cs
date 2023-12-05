@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected sealed override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected sealed override ImmutableArray<IOption2> Options { get; } = ImmutableArray.Create<IOption2>(SemanticColorizerOptionsStorage.SemanticColorizer);
 
         protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
@@ -56,10 +56,9 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return Task.CompletedTask;
 
             // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
                 return Task.CompletedTask;
 
@@ -124,5 +123,8 @@ namespace Microsoft.CodeAnalysis.Classification
             return ClassificationUtilities.ProduceTagsAsync(
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
+
+        protected override bool TagEquals(IClassificationTag tag1, IClassificationTag tag2)
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }

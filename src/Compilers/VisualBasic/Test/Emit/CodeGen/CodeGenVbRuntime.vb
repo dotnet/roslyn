@@ -20,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 Imports System
 
@@ -59,7 +58,6 @@ Namespace Microsoft
 End Namespace
 
 ]]>
-
     </file>
 </compilation>,
 expectedOutput:="1234").
@@ -97,7 +95,6 @@ expectedOutput:="1234").
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 Imports System
 
@@ -139,7 +136,6 @@ Namespace Microsoft
 End Namespace
 
 ]]>
-
     </file>
 </compilation>,
 expectedOutput:="1234").
@@ -170,7 +166,6 @@ expectedOutput:="1234").
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 Imports System
 
@@ -198,7 +193,6 @@ Namespace Microsoft
 End Namespace
 
 ]]>
-
     </file>
 </compilation>,
 expectedOutput:="boo").
@@ -229,7 +223,6 @@ expectedOutput:="boo").
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
-
         <![CDATA[
 Imports System
 
@@ -257,7 +250,6 @@ Namespace Microsoft
 End Namespace
 
 ]]>
-
     </file>
 </compilation>,
 expectedOutput:="boo").

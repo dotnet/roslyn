@@ -45,6 +45,7 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
+                  @(Analyzer);
                   @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
@@ -177,14 +178,16 @@
        parse options. We'll then have to reparse them a second time which isn't great. It also means any
        cache lookups we do won't have the right options either, so the cache lookups might miss.
 
-       To help this, we'll have a property for the evaluation pass which is an "approximation" of the
-       options that would come out of CoreCompile, but only the ones that matter for parsing. It's acceptable
-       for this to be imperfect: once the execution pass is complete we'll use those options instead,
+       To help this, we'll have properties for the evaluation pass which is an "approximation" of the
+       options that would come out of CoreCompile, but only the ones that are required to be specified
+       and we don't expect them to change after evaluation phase or those that matter for parsing.
+
+       It's acceptable for the options that affect parsing to be imperfect: once the execution pass is complete we'll use those options instead,
        so any behaviors here that don't match the real command line generation will only be temporary, and
        probably won't be any worse than having no options at all. -->
-       
   <PropertyGroup>
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
   </PropertyGroup>
 </Project>

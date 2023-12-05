@@ -142,7 +142,7 @@ namespace Microsoft.SourceLink.Tools
             var filePathStar = key.IndexOf('*');
             if (filePathStar == key.Length - 1)
             {
-                key = key.Substring(0, filePathStar);
+                key = key[..filePathStar];
             }
             else if (filePathStar >= 0)
             {
@@ -158,8 +158,8 @@ namespace Microsoft.SourceLink.Tools
                     return false;
                 }
 
-                uriPrefix = value.Substring(0, uriStar);
-                uriSuffix = value.Substring(uriStar + 1);
+                uriPrefix = value[..uriStar];
+                uriSuffix = value[(uriStar + 1)..];
 
                 if (uriSuffix.IndexOf('*') >= 0)
                 {
@@ -209,7 +209,7 @@ namespace Microsoft.SourceLink.Tools
                 {
                     if (path.StartsWith(file.Path, StringComparison.OrdinalIgnoreCase))
                     {
-                        var escapedPath = string.Join("/", path.Substring(file.Path.Length).Split(new[] { '/', '\\' }).Select(Uri.EscapeDataString));
+                        var escapedPath = string.Join("/", path[file.Path.Length..].Split(new[] { '/', '\\' }).Select(Uri.EscapeDataString));
                         uri = mappedUri.Prefix + escapedPath + mappedUri.Suffix;
                         return true;
                     }

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             _globalOptions.OptionChanged += GlobalOptionChanged;
 
-            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
+            var enabled = _globalOptions.GetOption(StackTraceExplorerOptionsStorage.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
+            if (e.Option == StackTraceExplorerOptionsStorage.OpenOnFocus && e.Value is not null)
             {
                 var enabled = (bool)e.Value;
                 if (enabled)

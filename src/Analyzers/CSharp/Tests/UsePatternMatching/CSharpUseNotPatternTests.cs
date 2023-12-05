@@ -19,89 +19,157 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
     public partial class CSharpUseNotPatternTests
     {
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsExpression()
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] string))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not string)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] string))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not string)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task ConstantPattern()
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] null))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not null)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] null))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not null)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
-        [Fact, WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task BooleanValueConstantPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        void M(bool x)
+                        {
+                            if (!(x [|is|] true))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(bool x)
+                        {
+                            if (x is false)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task NonBooleanValueConstantPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] true))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not true)
+                            {
+                            }
+                        }
+                    }
+                    """,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] string s))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is not string s)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] string s))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is not string s)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -111,45 +179,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x is string s))
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x is string s))
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
 
-        [Fact, WorkItem(50690, "https://github.com/dotnet/roslyn/issues/50690")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
         public async Task BinaryIsObject()
         {
             await new VerifyCS.Test
             {
-                TestCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (!(x [|is|] object))
-        {
-        }
-    }
-}",
-                FixedCode =
-@"class C
-{
-    void M(object x)
-    {
-        if (x is null)
-        {
-        }
-    }
-}",
+                TestCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (!(x [|is|] object))
+                            {
+                            }
+                        }
+                    }
+                    """,
+                FixedCode = """
+                    class C
+                    {
+                        void M(object x)
+                        {
+                            if (x is null)
+                            {
+                            }
+                        }
+                    }
+                    """,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }

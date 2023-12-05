@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
 #Region "C# Tests"
 
-        <Fact, WorkItem(604392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604392")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604392")>
         Public Async Function TestNoExpansionForPropertyNamesOfObjectInitializers() As Task
             Dim input =
 <Workspace>
@@ -54,7 +54,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
@@ -109,7 +109,7 @@ namespace LongNamespace
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestCSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =
 <Workspace>
@@ -259,7 +259,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, WorkItem(11979, "https://github.com/dotnet/roslyn/issues/11979")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11979")>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2_variation() As Task
             Dim input =
 <Workspace>
@@ -302,7 +302,7 @@ class C
 
 #Region "Visual Basic tests"
 
-        <Fact, WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1913")>
         Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasBinds() As Task
             Dim input =
 <Workspace>
@@ -355,7 +355,7 @@ End Namespace
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1913")>
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805")>
         Public Async Function TestVisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind() As Task
             Dim input =

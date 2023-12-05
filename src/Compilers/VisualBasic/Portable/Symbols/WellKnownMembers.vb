@@ -382,6 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     result = Me.Assembly.GetTypeByMetadataName(mdName, includeReferences:=True, isWellKnownType:=True, useCLSCompliantNameArityEncoding:=True, conflicts:=conflicts,
                                                                ignoreCorLibraryDuplicatedTypes:=Me.Options.IgnoreCorLibraryDuplicatedTypes)
+                    Debug.Assert(If(Not result?.IsErrorType(), True))
                 End If
 
                 If result Is Nothing Then

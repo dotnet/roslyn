@@ -219,6 +219,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var members = syntaxFacts.GetMethodLevelMembers(root);
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
+
+                // The changed member might not be a method level member (e.g. a class).
+                // We can't perform method analysis  on these so we bail out.
+                if (changedMemberId == -1)
+                {
+                    return null;
+                }
+
                 return (changedMember, changedMemberId, memberSpans, lastDocument);
             }
 

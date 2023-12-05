@@ -75,66 +75,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
         public async Task TestTypeCharacter()
             => await TestFixOneAsync("0x1e5UL", "0b111100101UL", Refactoring.ChangeBase2);
 
-        [Fact, WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19225")]
         public async Task TestPreserveWhitespaces()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
-{
-    void M()
-    {
-        var numbers = new int[] {
-            [||]0x1, 0x2
-        };
-    }
-}",
-@"class Program
-{
-    void M()
-    {
-        var numbers = new int[] {
-            0b1, 0x2
-        };
-    }
-}", index: (int)Refactoring.ChangeBase2);
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        var numbers = new int[] {
+                            [||]0x1, 0x2
+                        };
+                    }
+                }
+                """,
+                """
+                class Program
+                {
+                    void M()
+                    {
+                        var numbers = new int[] {
+                            0b1, 0x2
+                        };
+                    }
+                }
+                """, index: (int)Refactoring.ChangeBase2);
         }
 
-        [Fact, WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19369")]
         public async Task TestCaretPositionAtTheEnd()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int a = 42[||];
-}",
-@"class C
-{
-    int a = 0b101010;
-}", index: (int)Refactoring.ChangeBase1);
+                """
+                class C
+                {
+                    int a = 42[||];
+                }
+                """,
+                """
+                class C
+                {
+                    int a = 0b101010;
+                }
+                """, index: (int)Refactoring.ChangeBase1);
         }
 
         [Fact]
         public async Task TestSelectionMatchesToken()
         {
             await TestInRegularAndScriptAsync(
-@"class C
-{
-    int a = [|42|];
-}",
-@"class C
-{
-    int a = 0b101010;
-}", index: (int)Refactoring.ChangeBase1);
+                """
+                class C
+                {
+                    int a = [|42|];
+                }
+                """,
+                """
+                class C
+                {
+                    int a = 0b101010;
+                }
+                """, index: (int)Refactoring.ChangeBase1);
         }
 
         [Fact]
         public async Task TestSelectionDoesntMatchToken()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    int a = [|42 * 2|];
-}");
+                """
+                class C
+                {
+                    int a = [|42 * 2|];
+                }
+                """);
         }
     }
 }

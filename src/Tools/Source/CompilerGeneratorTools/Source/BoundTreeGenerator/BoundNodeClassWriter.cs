@@ -323,7 +323,7 @@ namespace BoundTreeGenerator
             }
         }
 
-        private void WriteClassFooter(TreeType node)
+        private void WriteClassFooter()
         {
             switch (_targetLang)
             {
@@ -925,7 +925,7 @@ namespace BoundTreeGenerator
                 WriteUpdateMethod(node as Node);
             }
 
-            WriteClassFooter(node);
+            WriteClassFooter();
         }
 
         private void WriteUpdateMethod(Node node)
@@ -981,9 +981,9 @@ namespace BoundTreeGenerator
                         {
                             Write("If ");
                             Or(AllSpecifiableFields(node),
-                                field => IsValueType(field.Type) ?
-                                            string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name) :
-                                            string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
+                                field => IsValueType(field.Type)
+                                            ? string.Format("{0} <> Me.{1}", ToCamelCase(field.Name), field.Name)
+                                            : string.Format("{0} IsNot Me.{1}", ToCamelCase(field.Name), field.Name));
                             WriteLine(" Then");
                             Indent();
                             Write("Dim result = New {0}", node.Name);
@@ -1013,7 +1013,7 @@ namespace BoundTreeGenerator
                                 : TypeIsSymbol(field)
                                     ? "!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals({0}, this.{1})"
                                     : IsValueType(field.Type) && field.Type[^1] == '?'
-                                        ? "{0}.Equals(this.{1})"
+                                        ? "!{0}.Equals(this.{1})"
                                         : "{0} != this.{1}";
 
                 return string.Format(format, ToCamelCase(field.Name), field.Name);
@@ -1533,8 +1533,8 @@ namespace BoundTreeGenerator
 
                             Unbrace();
 
-                            void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
+                            void writeNullabilityCheck(bool inverted)
+                                => WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))");
 
                             void writeUpdateAndDecl(bool decl, bool updatedType)
                             {
@@ -1591,8 +1591,8 @@ namespace BoundTreeGenerator
                                 return typeIsUpdated(f.Type);
                             }
 
-                            bool immutableArrayIsPotentiallyUpdated(Field field) =>
-                                IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
+                            bool immutableArrayIsPotentiallyUpdated(Field field)
+                                => IsImmutableArray(field.Type, out var elementType) && TypeIsSymbol(elementType) && typeIsUpdated(elementType);
 
                             static bool typeIsUpdated(string type)
                             {

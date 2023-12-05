@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 {
     internal static class UseExpressionBodyForLambdaHelpers
     {
-        internal static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
-        internal static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_lambda_expressions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        internal static readonly LocalizableString UseExpressionBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+        internal static readonly LocalizableString UseBlockBodyTitle = new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_lambda_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         internal static bool CanOfferUseBlockBody(
             SemanticModel semanticModel, ExpressionBodyPreference preference,

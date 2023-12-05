@@ -253,8 +253,6 @@ End Namespace
 ]]></file>
           </compilation>
 
-
-
         Dim tree = CreateCompilationWithMscorlib40(source).SyntaxTrees.Item(0)
         Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
@@ -326,7 +324,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsCaseBlock(SyntaxKind.None))
     End Sub
 
-
     <Fact>
     Public Sub IsRelationalCaseClause()
         For Each item As SyntaxKind In {SyntaxKind.CaseEqualsClause, SyntaxKind.CaseNotEqualsClause, SyntaxKind.CaseLessThanClause, SyntaxKind.CaseLessThanOrEqualClause, SyntaxKind.CaseGreaterThanOrEqualClause, SyntaxKind.CaseGreaterThanClause}
@@ -353,7 +350,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsCaseStatement(SyntaxKind.ExitKeyword))
         Assert.False(SyntaxFacts.IsCaseStatement(SyntaxKind.None))
     End Sub
-
 
     <Fact>
     Public Sub IsContextualKeyword1()
@@ -429,7 +425,6 @@ End Namespace
         Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.NamespaceBlock))
         Assert.False(SyntaxFacts.IsDelegateStatementSubOrFunctionKeyword(SyntaxKind.None))
     End Sub
-
 
     <Fact>
     Public Sub IsDoLoopBlock()

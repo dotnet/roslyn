@@ -51,8 +51,8 @@ class C
             Region("span", "/* Hello C# ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-    [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
     public async Task TestIncompleteMultilineCommentZeroSpace()
     {
         const string code = @"
@@ -62,8 +62,8 @@ class C
             Region("span", "/*  ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(1108049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
-    [WorkItem(791, "https://github.com/dotnet/roslyn/issues/791")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108049")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/791")]
     public async Task TestIncompleteMultilineCommentSingleSpace()
     {
         const string code = @"
@@ -259,7 +259,7 @@ namespace M
             Region("span1", "/* Comment in class ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(64001, "https://github.com/dotnet/roslyn/issues/64001")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInMethod()
     {
         const string code = @"
@@ -281,7 +281,7 @@ namespace M
             Region("span1", "/* Comment in method ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(64001, "https://github.com/dotnet/roslyn/issues/64001")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInLocalFunction()
     {
         const string code = @"
@@ -306,7 +306,7 @@ namespace M
             Region("span1", "/* Comment in local function ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(64001, "https://github.com/dotnet/roslyn/issues/64001")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64001")]
     public async Task TestMultilineCommentInConstructor()
     {
         const string code = @"
@@ -328,7 +328,7 @@ namespace M
             Region("span1", "/* Comment in constructor ...", autoCollapse: true));
     }
 
-    [Fact, WorkItem(16186, "https://github.com/dotnet/roslyn/issues/16186")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16186")]
     public async Task TestInvalidComment()
     {
         const string code = @"$${|span:/*/|}";

@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // We can show up after 'internal' and 'private'.
             var precedingModifiers = context.PrecedingModifiers;
             return
+                !precedingModifiers.Contains(SyntaxKind.FileKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword);
         }

@@ -89,7 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute)
         End Function
 
-
         Public Shared Function DecodeTupleTypesIfApplicable(
              metadataType As TypeSymbol,
              elementNames As ImmutableArray(Of String)) As TypeSymbol

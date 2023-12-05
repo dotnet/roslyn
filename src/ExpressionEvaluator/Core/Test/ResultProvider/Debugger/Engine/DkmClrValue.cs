@@ -683,9 +683,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
             var typeArgs = enumerableType.GenericArguments;
             Debug.Assert(typeArgs.Count <= 1);
-            var proxyTypeName = (typeArgs.Count == 0) ?
-                "System.Linq.SystemCore_EnumerableDebugView" :
-                "System.Linq.SystemCore_EnumerableDebugView`1";
+            var proxyTypeName = (typeArgs.Count == 0)
+                ? "System.Linq.SystemCore_EnumerableDebugView"
+                : "System.Linq.SystemCore_EnumerableDebugView`1";
             DkmClrType proxyType;
             try
             {

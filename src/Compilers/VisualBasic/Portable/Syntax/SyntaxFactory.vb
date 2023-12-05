@@ -837,7 +837,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return XmlTextNewLine(text, True)
         End Function
 
-
         ''' <summary>
         ''' Creates a token with kind XmlTextLiteralNewLineToken.
         ''' </summary>

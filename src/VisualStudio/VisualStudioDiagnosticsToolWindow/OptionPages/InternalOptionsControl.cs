@@ -17,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     internal partial class InternalOptionsControl : AbstractOptionPageControl
     {
-        private readonly IEnumerable<IOption> _options;
+        private readonly IEnumerable<IOption2> _options;
 
-        public InternalOptionsControl(IEnumerable<IOption> options, OptionStore optionStore)
+        public InternalOptionsControl(IEnumerable<IOption2> options, OptionStore optionStore)
             : base(optionStore)
         {
             _options = options;
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        protected void AddOption(Panel panel, IOption option, string additional = null)
+        protected void AddOption(Panel panel, IOption2 option, string additional = null)
         {
             var uiElement = CreateControl(option, additional: additional);
             if (uiElement != null)
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        protected void AddPerLanguageOption(Panel panel, IOption option, string languageName, string additional = null)
+        protected void AddPerLanguageOption(Panel panel, IOption2 option, string languageName, string additional = null)
         {
             var uiElement = CreateControl(option, languageName, additional);
             if (uiElement != null)
@@ -141,11 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        private UIElement CreateControl(IOption option, string languageName = null, string additional = null)
+        private UIElement CreateControl(IOption2 option, string languageName = null, string additional = null)
         {
             // Underscores in WPF mean that the next character is the access key for keyboard navigation
             // but thats not why our option names have underscores. Also removing them looks nicer.
-            var optionDisplay = option.Name.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
+            var optionDisplay = option.Definition.ConfigName.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
 
             if (option.Type == typeof(bool))
             {
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + languageName + "]";
         }
 
-        private void BindToCheckBox(CheckBox checkBox, IOption option, string languageName = null)
+        private void BindToCheckBox(CheckBox checkBox, IOption2 option, string languageName = null)
         {
             if (languageName == null)
             {
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             BindToOption(checkBox, (PerLanguageOption2<bool>)option, languageName);
         }
 
-        private void BindToTextBox(TextBox textBox, IOption option, string languageName = null)
+        private void BindToTextBox(TextBox textBox, IOption2 option, string languageName = null)
         {
             if (languageName == null)
             {

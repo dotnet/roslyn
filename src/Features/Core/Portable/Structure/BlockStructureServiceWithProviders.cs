@@ -55,15 +55,6 @@ namespace Microsoft.CodeAnalysis.Structure
             return GetBlockStructure(context, _providers);
         }
 
-        public BlockStructure GetBlockStructure(
-            SyntaxTree syntaxTree,
-            in BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            var context = CreateContext(syntaxTree, options, cancellationToken);
-            return GetBlockStructure(context, _providers);
-        }
-
         private static BlockStructureContext CreateContext(
             SyntaxTree syntaxTree,
             in BlockStructureOptions options,

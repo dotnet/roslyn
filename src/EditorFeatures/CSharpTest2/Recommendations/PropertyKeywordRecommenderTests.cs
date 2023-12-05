@@ -198,25 +198,25 @@ $$");
     [$$");
         }
 
-        [Fact, WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51756")]
         public async Task TestInRecordPositionalParameter1()
         {
             await VerifyKeywordAsync("public record R([$$] string M);");
         }
 
-        [Fact, WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51756")]
         public async Task TestInRecordPositionalParameter2()
         {
             await VerifyKeywordAsync("public record R([$$ SomeAttribute] string M);");
         }
 
-        [Fact, WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51756")]
         public async Task TestInRecordPositionalParameter3()
         {
             await VerifyKeywordAsync("public record R([$$ string M);");
         }
 
-        [Fact, WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51756")]
         public async Task TestInRecordPositionalParameter4()
         {
             await VerifyKeywordAsync("public record R([$$");

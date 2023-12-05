@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
 using SQLitePCL;
@@ -206,18 +207,26 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction<TState>(Action<TState> action, TState state)
+        /// <inheritdoc cref="RunInTransaction{TState, TResult}(Func{TState, TResult}, TState, bool)"/>
+        public SqlException? RunInTransaction<TState>(Action<TState> action, TState state, bool throwOnSqlException)
         {
-            RunInTransaction(
+            var (_, exception) = RunInTransaction(
                 static state =>
                 {
                     state.action(state.state);
                     return (object?)null;
                 },
-                (action, state));
+                (action, state),
+                throwOnSqlException);
+
+            return exception;
         }
 
-        public TResult RunInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
+        /// <param name="throwOnSqlException">If a <see cref="SqlException"/> that happens during excution of <paramref
+        /// name="action"/> should bubble out of this method or not.  If <see langword="false"/>, then the exception
+        /// will be returned in the result value instead</param>
+        public (TResult? result, SqlException? exception) RunInTransaction<TState, TResult>(
+            Func<TState, TResult> action, TState state, bool throwOnSqlException)
         {
             try
             {
@@ -231,34 +240,41 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 ExecuteCommand("begin transaction");
                 var result = action(state);
                 ExecuteCommand("commit transaction");
-                return result;
+                return (result, null);
             }
-            catch (SqlException ex) when (ex.Result is Result.FULL or
-                                          Result.IOERR or
-                                          Result.BUSY or
-                                          Result.LOCKED or
-                                          Result.NOMEM)
+            catch (SqlException ex)
             {
+                Logger.Log(FunctionId.SQLite_SqlException, SQLitePersistentStorage.GetLogMessage(ex));
+
                 // See documentation here: https://sqlite.org/lang_transaction.html
-                // If certain kinds of errors occur within a transaction, the transaction 
-                // may or may not be rolled back automatically. The errors that can cause 
-                // an automatic rollback include:
+                //
+                // If certain kinds of errors occur within a transaction, the transaction may or may not be rolled back
+                // automatically.
+                //
+                // ...
+                //
+                // It is recommended that applications respond to the errors listed above by explicitly issuing a
+                // ROLLBACK command. If the transaction has already been rolled back automatically by the error
+                // response, then the ROLLBACK command will fail with an error, but no harm is caused by this.
+                //
+                // End of sqlite documentation.
 
-                // SQLITE_FULL: database or disk full
-                // SQLITE_IOERR: disk I/ O error
-                // SQLITE_BUSY: database in use by another process
-                // SQLITE_LOCKED: database in use by another connection in the same process
-                // SQLITE_NOMEM: out or memory
-
-                // It is recommended that applications respond to the errors listed above by
-                // explicitly issuing a ROLLBACK command. If the transaction has already been
-                // rolled back automatically by the error response, then the ROLLBACK command 
-                // will fail with an error, but no harm is caused by this.
+                // Because of the above, we know we may be in an incomplete state, so we always do a rollback to get us
+                // back to a clean state.  We ignore errors here as it's know that this can fail, but will cause no
+                // harm.
                 Rollback(throwOnError: false);
-                throw;
+
+                if (throwOnSqlException)
+                    throw;
+
+                return (default, ex);
             }
             catch (Exception)
             {
+                // Some other exception occurred outside of sqlite entirely (like a null-ref exception in our own code).
+                // Rollback (throwing if that rollback failed for some reason), then continue the exception higher up
+                // to tear down the callers as well.
+
                 Rollback(throwOnError: true);
                 throw;
             }

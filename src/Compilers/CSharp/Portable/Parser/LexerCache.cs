@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 #endif
 
-
         internal SyntaxToken LookupToken(
             char[] textBuffer,
             int keyStart,

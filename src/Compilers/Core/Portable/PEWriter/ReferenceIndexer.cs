@@ -115,7 +115,7 @@ namespace Microsoft.Cci
                     {
                         if (_alreadySeenScopes.Add(scope))
                         {
-                            VisitImports(scope.GetUsedNamespaces());
+                            VisitImports(scope.GetUsedNamespaces(Context));
                         }
                         else
                         {
@@ -125,7 +125,7 @@ namespace Microsoft.Cci
                 }
                 else if (!metadataWriter.MetadataOnly)
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
         }

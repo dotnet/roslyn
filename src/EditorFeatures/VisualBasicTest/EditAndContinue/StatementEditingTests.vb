@@ -1273,7 +1273,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "F", "Me"))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature1()
             Dim src1 = "
 Imports System
@@ -1310,7 +1310,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature2()
             Dim src1 = "
 Imports System
@@ -1347,7 +1347,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.Lambda))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature3()
             Dim src1 = "
 Imports System
@@ -1384,7 +1384,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(a)", VBFeaturesResources.Lambda))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature_EmptyBody1()
             Dim src1 = "
 Imports System
@@ -1425,7 +1425,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Sub(a)", VBFeaturesResources.Lambda))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature_EmptyBody2()
             Dim src1 = "
 Imports System
@@ -1502,7 +1502,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature_ReturnType1()
             Dim src1 = "
 Imports System
@@ -1616,7 +1616,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Signature_ParameterRefness1()
             Dim src1 = "
 Imports System
@@ -1745,7 +1745,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_SourceType2()
             Dim src1 = "
 Imports System
@@ -1794,7 +1794,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_SourceTypeAndMetadataType1()
             Dim src1 = "
 Namespace [System]
@@ -1885,7 +1885,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_Generic2()
             Dim src1 = "
 Delegate Function D1(Of S, T)(a As S, b As T) As Integer
@@ -1954,7 +1954,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2223")>
         Public Sub Lambdas_Update_CapturedParameters2()
             Dim src1 = "
 Imports System
@@ -2082,7 +2082,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a2", "a2"))
         End Sub
 
-        <Fact, WorkItem(1290, "https://github.com/dotnet/roslyn/issues/1290")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
         Public Sub Lambdas_Update_CeaseCapture_LambdaParameter1()
             Dim src1 = "
 Imports System
@@ -2114,7 +2114,7 @@ End Class
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a1", "a1"))
         End Sub
 
-        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
         Public Sub Lambdas_Update_CeaseCapture_SetterValueParameter1()
             Dim src1 = "
 Imports System
@@ -2149,7 +2149,7 @@ End Class
             edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
         End Sub
 
-        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
         Public Sub Lambdas_Update_CeaseCapture_IndexerSetterValueParameter1()
             Dim src1 = "
 Imports System
@@ -2184,7 +2184,7 @@ End Class
             edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Set", "Value"))
         End Sub
 
-        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
         Public Sub Lambdas_Update_CeaseCapture_IndexerSetterValueParameter2()
             Dim src1 = "
 Imports System
@@ -2219,7 +2219,7 @@ End Class
             edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
         End Sub
 
-        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
         Public Sub Lambdas_Update_CeaseCapture_EventAdderValueParameter1()
             Dim src1 = "
 Imports System
@@ -2258,7 +2258,7 @@ End Class
             edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.NotCapturingVariable, "Value", "Value"))
         End Sub
 
-        <Fact, WorkItem(234448, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
+        <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=234448")>
         Public Sub Lambdas_Update_CeaseCapture_EventRemoverValueParameter1()
             Dim src1 = "
 Imports System
@@ -3357,7 +3357,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_FromInAggregate1()
             Dim src1 = "
 Imports System
@@ -3388,7 +3388,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_FromInAggregate2()
             Dim src1 = "
 Imports System
@@ -3419,7 +3419,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", "From clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_FromInAggregate3()
             Dim src1 = "
 Imports System
@@ -3537,7 +3537,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 Ascending", VBFeaturesResources.Ordering_clause))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join1()
             Dim src1 = "
 Imports System
@@ -3566,7 +3566,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join2()
             Dim src1 = "
 Imports System
@@ -3595,7 +3595,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join3()
             Dim src1 = "
 Imports System
@@ -3624,7 +3624,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join4()
             Dim src1 = "
 Imports System
@@ -3653,7 +3653,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join5()
             Dim src1 = "
 Imports System
@@ -3682,7 +3682,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Join()
             Dim src1 = "
 Imports System
@@ -3711,7 +3711,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_GroupJoin1()
             Dim src1 = "
 Imports System
@@ -3740,7 +3740,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_GroupJoin2()
             Dim src1 = "
 Imports System
@@ -3769,7 +3769,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_GroupJoin3()
             Dim src1 = "
 Imports System
@@ -3798,7 +3798,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Group Join", "Group Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_GroupJoin4()
             Dim src1 = "
 Imports System
@@ -3828,7 +3828,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_GroupBy1()
             Dim src1 = "
 Imports System
@@ -3902,7 +3902,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Aggregate1()
             Dim src1 = "
 Imports System
@@ -3932,7 +3932,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Aggregate2()
             Dim src1 = "
 Imports System
@@ -3962,7 +3962,7 @@ End Class
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Aggregate3()
             Dim src1 = "
 Imports System
@@ -3992,7 +3992,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Aggregate", "Aggregate clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Aggregate4()
             Dim src1 = "
 Imports System
@@ -4022,7 +4022,7 @@ End Class
                 Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Join", "Join clause"))
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_Update_Signature_Aggregate5()
             Dim src1 = "
 Imports System
@@ -4226,7 +4226,7 @@ End Class"
             edits.VerifySemanticDiagnostics()
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem(1212, "https://github.com/dotnet/roslyn/issues/1212")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>
         Public Sub Queries_CapturedTransparentIdentifiers_JoinClause1()
             Dim src1 As String = "
 Imports System
@@ -4266,7 +4266,7 @@ End Class"
                 Diagnostic(RudeEditKind.ComplexQueryExpression, "Group Join", "method"))
         End Sub
 
-        <Fact, WorkItem(1312, "https://github.com/dotnet/roslyn/issues/1312")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1312")>
         Public Sub Queries_CeaseCapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System
@@ -4309,7 +4309,7 @@ End Class"
                 Diagnostic(RudeEditKind.NotCapturingVariable, "b In {2}", "b"))
         End Sub
 
-        <Fact, WorkItem(1312, "https://github.com/dotnet/roslyn/issues/1312")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1312")>
         Public Sub Queries_CapturingTransparentIdentifiers1()
             Dim src1 As String = "
 Imports System

@@ -1190,6 +1190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
+        internal static bool ContainsPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
+
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
@@ -2154,6 +2157,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default: return -1;
             }
+        }
+
+        internal static bool IsDisplayClassType(this TypeSymbol type)
+        {
+            if (type.Kind == SymbolKind.NamedType)
+            {
+                switch (GeneratedNameParser.GetKind(type.Name))
+                {
+                    case GeneratedNameKind.LambdaDisplayClass:
+                    case GeneratedNameKind.StateMachineType:
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

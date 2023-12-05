@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
 
             [Theory, CombinatorialData]
-            [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
             public async Task TestNativeInteger(bool signaturesOnly)
             {
                 var metadataSource = "public class C { public nint i; public nuint i2; }";
@@ -167,7 +167,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Theory, CombinatorialData, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
+            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
             public async Task TestValueTuple(bool signaturesOnly)
             {
                 using var context = TestContext.Create(LanguageNames.CSharp);
@@ -447,7 +447,7 @@ public class [|C|]
             }
 
             [Theory, CombinatorialData]
-            [WorkItem(44566, "https://github.com/dotnet/roslyn/issues/44566")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/44566")]
             public async Task TestRecordType(bool signaturesOnly)
             {
                 var metadataSource = "public record R;";
@@ -572,7 +572,7 @@ public record [|R|]
             /// This test must be updated when we switch to a new version of the decompiler that supports checked ops.
             /// </summary>
             [Theory, CombinatorialData]
-            [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
             public async Task TestCheckedOperators(bool signaturesOnly)
             {
                 var metadataSource = @"
@@ -665,7 +665,7 @@ public class [|C|]
                 await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
             }
 
-            [Fact, WorkItem(60567, "https://github.com/dotnet/roslyn/issues/60567")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60567")]
             public async Task TestStaticInterfaceMembers()
             {
                 var metadataSource = @"

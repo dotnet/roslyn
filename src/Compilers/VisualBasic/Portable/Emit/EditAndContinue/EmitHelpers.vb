@@ -57,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Try
 
             If testData IsNot Nothing Then
-                moduleBeingBuilt.SetMethodTestData(testData.Methods)
-                testData.Module = moduleBeingBuilt
+                moduleBeingBuilt.SetTestData(testData)
             End If
 
             Dim definitionMap = moduleBeingBuilt.PreviousDefinitions

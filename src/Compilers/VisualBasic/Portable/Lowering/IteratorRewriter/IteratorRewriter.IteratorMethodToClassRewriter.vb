@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Sub New(F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
-                           hoistedVariables As IReadOnlySet(Of Symbol),
+                           hoistedVariables As Roslyn.Utilities.IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
                            stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
@@ -64,12 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim newBody = DirectCast(Visit(Body), BoundStatement)
                 ' Select Me.state
-                '    Case 0: 
+                '    Case 0:
                 '       GoTo state_0
-                '    Case 1: 
+                '    Case 1:
                 '       GoTo state_1
                 '    'etc
-                '    Case Else: 
+                '    Case Else:
                 '       return false
                 ' }
                 ' state_0:
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     Me.current = expression
                 '     Me.state = <next_state>
                 '     return true
-                ' <next_state_label>: 
+                ' <next_state_label>:
                 '     Me.state = -1
 
                 Dim stateNumber As StateMachineState = 0

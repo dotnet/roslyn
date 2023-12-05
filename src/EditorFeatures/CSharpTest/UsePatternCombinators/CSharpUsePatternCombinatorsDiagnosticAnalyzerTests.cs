@@ -53,40 +53,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
 
         private static string FromExpression(string expression)
         {
-            const string initialMarkup = @"
-using System;
-using System.Collections.Generic;
-class C
-{
-    static bool field = {|FixAllInDocument:EXPRESSION|};
-    static bool Method() => EXPRESSION;
-    static bool Prop1 => EXPRESSION;
-    static bool Prop2 { get; } = EXPRESSION;
-    static void If() { if (EXPRESSION) ; }
-    static void Argument1() => Test(EXPRESSION);
-    static void Argument2() => Test(() => EXPRESSION);
-    static void Argument3() => Test(_ => EXPRESSION);
-    static void Test(bool b) {}
-    static void Test(Func<bool> b) {}
-    static void Test(Func<object, bool> b) {}
-    static void For() { for (; EXPRESSION; ); }
-    static void Local() { var local = EXPRESSION; }
-    static void Conditional() { _ = EXPRESSION ? EXPRESSION : EXPRESSION; }
-    static void Assignment() { _ = EXPRESSION; }
-    static void Do() { do ; while (EXPRESSION); }
-    static void While() { while (EXPRESSION) ; }
-    static bool When() => o switch { _ when EXPRESSION => EXPRESSION };
-    static bool Return() { return EXPRESSION; }
-    static IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
-    static Func<object, bool> SimpleLambda() => o => EXPRESSION;
-    static Func<bool> ParenthesizedLambda() => () => EXPRESSION;
-    static void LocalFunc() { bool LocalFunction() => EXPRESSION; }
-    static int i;
-    static int? nullable;
-    static object o;
-    static char ch;
-}
-";
+            const string initialMarkup = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    static bool field = {|FixAllInDocument:EXPRESSION|};
+                    static bool Method() => EXPRESSION;
+                    static bool Prop1 => EXPRESSION;
+                    static bool Prop2 { get; } = EXPRESSION;
+                    static void If() { if (EXPRESSION) ; }
+                    static void Argument1() => Test(EXPRESSION);
+                    static void Argument2() => Test(() => EXPRESSION);
+                    static void Argument3() => Test(_ => EXPRESSION);
+                    static void Test(bool b) {}
+                    static void Test(Func<bool> b) {}
+                    static void Test(Func<object, bool> b) {}
+                    static void For() { for (; EXPRESSION; ); }
+                    static void Local() { var local = EXPRESSION; }
+                    static void Conditional() { _ = EXPRESSION ? EXPRESSION : EXPRESSION; }
+                    static void Assignment() { _ = EXPRESSION; }
+                    static void Do() { do ; while (EXPRESSION); }
+                    static void While() { while (EXPRESSION) ; }
+                    static bool When() => o switch { _ when EXPRESSION => EXPRESSION };
+                    static bool Return() { return EXPRESSION; }
+                    static IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
+                    static Func<object, bool> SimpleLambda() => o => EXPRESSION;
+                    static Func<bool> ParenthesizedLambda() => () => EXPRESSION;
+                    static void LocalFunc() { bool LocalFunction() => EXPRESSION; }
+                    static int i;
+                    static int? nullable;
+                    static object o;
+                    static char ch;
+                }
+                """;
             return initialMarkup.Replace("EXPRESSION", expression);
         }
 
@@ -150,159 +150,177 @@ class C
         public async Task TestMultilineTrivia_01()
         {
             await TestAllAsync(
-@"class C
-{
-    bool M0(int variable)
-    {
-        return {|FixAllInDocument:variable == 0 || /*1*/
-               variable == 1 || /*2*/
-               variable == 2|}; /*3*/
-    }
-    bool M1(int variable)
-    {
-        return variable != 0 && /*1*/
-               variable != 1 && /*2*/
-               variable != 2; /*3*/
-    }
-}",
-@"class C
-{
-    bool M0(int variable)
-    {
-        return variable is 0 or /*1*/
-               1 or /*2*/
-               2; /*3*/
-    }
-    bool M1(int variable)
-    {
-        return variable is not 0 and /*1*/
-               not 1 and /*2*/
-               not 2; /*3*/
-    }
-}");
+                """
+                class C
+                {
+                    bool M0(int variable)
+                    {
+                        return {|FixAllInDocument:variable == 0 || /*1*/
+                               variable == 1 || /*2*/
+                               variable == 2|}; /*3*/
+                    }
+                    bool M1(int variable)
+                    {
+                        return variable != 0 && /*1*/
+                               variable != 1 && /*2*/
+                               variable != 2; /*3*/
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    bool M0(int variable)
+                    {
+                        return variable is 0 or /*1*/
+                               1 or /*2*/
+                               2; /*3*/
+                    }
+                    bool M1(int variable)
+                    {
+                        return variable is not 0 and /*1*/
+                               not 1 and /*2*/
+                               not 2; /*3*/
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMultilineTrivia_02()
         {
             await TestAllAsync(
-@"class C
-{
-    bool M0(int variable)
-    {
-        return {|FixAllInDocument:variable == 0 /*1*/
-            || variable == 1 /*2*/
-            || variable == 2|}; /*3*/
-    }
-    bool M1(int variable)
-    {
-        return variable != 0 /*1*/
-            && variable != 1 /*2*/
-            && variable != 2; /*3*/
-    }
-}",
-@"class C
-{
-    bool M0(int variable)
-    {
-        return variable is 0 /*1*/
-            or 1 /*2*/
-            or 2; /*3*/
-    }
-    bool M1(int variable)
-    {
-        return variable is not 0 /*1*/
-            and not 1 /*2*/
-            and not 2; /*3*/
-    }
-}");
+                """
+                class C
+                {
+                    bool M0(int variable)
+                    {
+                        return {|FixAllInDocument:variable == 0 /*1*/
+                            || variable == 1 /*2*/
+                            || variable == 2|}; /*3*/
+                    }
+                    bool M1(int variable)
+                    {
+                        return variable != 0 /*1*/
+                            && variable != 1 /*2*/
+                            && variable != 2; /*3*/
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    bool M0(int variable)
+                    {
+                        return variable is 0 /*1*/
+                            or 1 /*2*/
+                            or 2; /*3*/
+                    }
+                    bool M1(int variable)
+                    {
+                        return variable is not 0 /*1*/
+                            and not 1 /*2*/
+                            and not 2; /*3*/
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestParenthesized()
         {
             await TestAllAsync(
-@"class C
-{
-    bool M0(int v)
-    {
-        return {|FixAllInDocument:(v == 0 || v == 1 || v == 2)|};
-    }
-    bool M1(int v)
-    {
-        return (v == 0) || (v == 1) || (v == 2);
-    }
-}",
-@"class C
-{
-    bool M0(int v)
-    {
-        return (v is 0 or 1 or 2);
-    }
-    bool M1(int v)
-    {
-        return v is 0 or 1 or 2;
-    }
-}");
+                """
+                class C
+                {
+                    bool M0(int v)
+                    {
+                        return {|FixAllInDocument:(v == 0 || v == 1 || v == 2)|};
+                    }
+                    bool M1(int v)
+                    {
+                        return (v == 0) || (v == 1) || (v == 2);
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    bool M0(int v)
+                    {
+                        return (v is 0 or 1 or 2);
+                    }
+                    bool M1(int v)
+                    {
+                        return v is 0 or 1 or 2;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestMissingInExpressionTree()
         {
             await TestMissingAsync(
-@"using System.Linq;
-class C
-{
-    void M0(IQueryable<int> q)
-    {
-        q.Where(item => item == 1 [||]|| item == 2);
-    }
-}");
+                """
+                using System.Linq;
+                class C
+                {
+                    void M0(IQueryable<int> q)
+                    {
+                        q.Where(item => item == 1 [||]|| item == 2);
+                    }
+                }
+                """);
         }
 
-        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnLeftSide()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-public class C
-{
-    public int I { get; }
-    
-    public EventArgs Property { get; } 
+                public class C
+                {
+                    public int I { get; }
 
-    public void M()
-    {
-        if (Property != null [|&&|] I == 1)
-        {
+                    public EventArgs Property { get; } 
+
+                    public void M()
+                    {
+                        if (Property != null [|&&|] I == 1)
+                        {
+                        }
+                    }
+                }
+                """);
         }
-    }
-}");
-        }
 
-        [Fact, WorkItem(52397, "https://github.com/dotnet/roslyn/issues/52397")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52397")]
         public async Task TestMissingInPropertyAccess_NullCheckOnRightSide()
         {
             await TestMissingAsync(
-@"using System;
+                """
+                using System;
 
-public class C
-{
-    public int I { get; }
-    
-    public EventArgs Property { get; } 
+                public class C
+                {
+                    public int I { get; }
 
-    public void M()
-    {
-        if (I == 1 [|&&|] Property != null)
-        {
+                    public EventArgs Property { get; } 
+
+                    public void M()
+                    {
+                        if (I == 1 [|&&|] Property != null)
+                        {
+                        }
+                    }
+                }
+                """);
         }
-    }
-}");
-        }
 
-        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
@@ -322,7 +340,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(51691, "https://github.com/dotnet/roslyn/issues/51691")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
@@ -342,7 +360,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(51693, "https://github.com/dotnet/roslyn/issues/51693")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51693")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
@@ -362,7 +380,7 @@ public class C
 }}");
         }
 
-        [Theory, WorkItem(52573, "https://github.com/dotnet/roslyn/issues/52573")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52573")]
         [InlineData("&&")]
         [InlineData("||")]
         public async Task TestMissingIntegerAndStringIndex(string logicalOperator)
@@ -383,238 +401,238 @@ public class C
         public async Task TestOnSideEffects1()
         {
             await TestInRegularAndScriptAsync(
-                @"
-class C
-{
-    char ReadChar() => default;
+                """
+                class C
+                {
+                    char ReadChar() => default;
 
-    void M(char c)
-    {
-        if ({|FixAllInDocument:c == 'x' && c == 'y'|})
-        {
-        }
+                    void M(char c)
+                    {
+                        if ({|FixAllInDocument:c == 'x' && c == 'y'|})
+                        {
+                        }
 
-        if (c == 'x' && c == 'y')
-        {
-        }
+                        if (c == 'x' && c == 'y')
+                        {
+                        }
 
-        if (ReadChar() == 'x' && ReadChar() == 'y')
-        {
-        }
-    }
-}
-",
+                        if (ReadChar() == 'x' && ReadChar() == 'y')
+                        {
+                        }
+                    }
+                }
+                """,
 
-                @"
-class C
-{
-    char ReadChar() => default;
+                """
+                class C
+                {
+                    char ReadChar() => default;
 
-    void M(char c)
-    {
-        if (c is 'x' and 'y')
-        {
-        }
+                    void M(char c)
+                    {
+                        if (c is 'x' and 'y')
+                        {
+                        }
 
-        if (c is 'x' and 'y')
-        {
-        }
+                        if (c is 'x' and 'y')
+                        {
+                        }
 
-        if (ReadChar() == 'x' && ReadChar() == 'y')
-        {
-        }
-    }
-}
-");
+                        if (ReadChar() == 'x' && ReadChar() == 'y')
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestOnSideEffects2()
         {
             await TestInRegularAndScriptAsync(
-                @"
-class C
-{
-    char ReadChar() => default;
+                """
+                class C
+                {
+                    char ReadChar() => default;
 
-    void M(char c)
-    {
-        if ({|FixAllInDocument:ReadChar() == 'x' && ReadChar() == 'y'|})
-        {
+                    void M(char c)
+                    {
+                        if ({|FixAllInDocument:ReadChar() == 'x' && ReadChar() == 'y'|})
+                        {
+                        }
+
+                        if (ReadChar() == 'x' && ReadChar() == 'y')
+                        {
+                        }
+
+                        if (c == 'x' && c == 'y')
+                        {
+                        }
+                    }
+                }
+                """,
+
+                """
+                class C
+                {
+                    char ReadChar() => default;
+
+                    void M(char c)
+                    {
+                        if (ReadChar() is 'x' and 'y')
+                        {
+                        }
+
+                        if (ReadChar() is 'x' and 'y')
+                        {
+                        }
+
+                        if (c == 'x' && c == 'y')
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
-        if (ReadChar() == 'x' && ReadChar() == 'y')
-        {
-        }
-
-        if (c == 'x' && c == 'y')
-        {
-        }
-    }
-}
-",
-
-                @"
-class C
-{
-    char ReadChar() => default;
-
-    void M(char c)
-    {
-        if (ReadChar() is 'x' and 'y')
-        {
-        }
-
-        if (ReadChar() is 'x' and 'y')
-        {
-        }
-
-        if (c == 'x' && c == 'y')
-        {
-        }
-    }
-}
-");
-        }
-
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern1()
         {
             await TestMissingAsync(
-@"
-static class C
-{
-    public struct S1 : I { }
-    public struct S2 : I { }
-    public interface I { }
-}
+                """
+                static class C
+                {
+                    public struct S1 : I { }
+                    public struct S2 : I { }
+                    public interface I { }
+                }
 
-class Test<T>
-{
-    public readonly T C;
-    bool P => [|C is C.S1 || C is C.S2|];
-}
-");
+                class Test<T>
+                {
+                    public readonly T C;
+                    bool P => [|C is C.S1 || C is C.S2|];
+                }
+                """);
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern2()
         {
             await TestMissingAsync(
-@"
-        class Goo
-        {
-            private class X { }
-            private class Y { }
-
-            private void M(object o)
-            {
-                var X = 1;
-                var Y = 2;
-
-                if [|(o is X || o is Y)|]
+                """
+                class Goo
                 {
+                    private class X { }
+                    private class Y { }
+
+                    private void M(object o)
+                    {
+                        var X = 1;
+                        var Y = 2;
+
+                        if [|(o is X || o is Y)|]
+                        {
+                        }
+                    }
                 }
-            }
-        }
-");
+                """);
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestMissingInNonConvertibleTypePattern3()
         {
             await TestMissingAsync(
-@"
-        class Goo
-        {
-            private class X { }
-            private class Y { }
-            private void M(object o)
-            {
-                var X = 1;
-                var Y = 2;
-                if [|(o is global::Goo.X || o is Y)|]
+                """
+                class Goo
                 {
+                    private class X { }
+                    private class Y { }
+                    private void M(object o)
+                    {
+                        var X = 1;
+                        var Y = 2;
+                        if [|(o is global::Goo.X || o is Y)|]
+                        {
+                        }
+                    }
                 }
-            }
-        }
-");
+                """);
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern()
         {
             await TestInRegularAndScriptAsync(
-@"
-static class C
-{
-    public struct S1 : I { }
-    public struct S2 : I { }
-    public interface I { }
-}
+                """
+                static class C
+                {
+                    public struct S1 : I { }
+                    public struct S2 : I { }
+                    public interface I { }
+                }
 
-class Test<T>
-{
-    bool P => [|C is C.S1 || C is C.S2|];
-}
-",
+                class Test<T>
+                {
+                    bool P => [|C is C.S1 || C is C.S2|];
+                }
+                """,
 
-@"
-static class C
-{
-    public struct S1 : I { }
-    public struct S2 : I { }
-    public interface I { }
-}
+                """
+                static class C
+                {
+                    public struct S1 : I { }
+                    public struct S2 : I { }
+                    public interface I { }
+                }
 
-class Test<T>
-{
-    bool P => C is C.S1 or C.S2;
-}
-");
+                class Test<T>
+                {
+                    bool P => C is C.S1 or C.S2;
+                }
+                """);
         }
 
-        [Fact, WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57199")]
         public async Task TestInConvertibleTypePattern2()
         {
             await TestInRegularAndScriptAsync(
-@"
-public class Goo
-{
-    private class X { }
-    private class Y { }
+                """
+                public class Goo
+                {
+                    private class X { }
+                    private class Y { }
 
-    private void M(object o)
-    {
-        var X = 1;
-        var Y = 2;
+                    private void M(object o)
+                    {
+                        var X = 1;
+                        var Y = 2;
 
-        var @int = 1;
-        var @long = 2;
-        if [|(o is int || o is long)|]
-        {
-        }
-    }
-}
-", @"
-public class Goo
-{
-    private class X { }
-    private class Y { }
+                        var @int = 1;
+                        var @long = 2;
+                        if [|(o is int || o is long)|]
+                        {
+                        }
+                    }
+                }
+                """, """
+                public class Goo
+                {
+                    private class X { }
+                    private class Y { }
 
-    private void M(object o)
-    {
-        var X = 1;
-        var Y = 2;
+                    private void M(object o)
+                    {
+                        var X = 1;
+                        var Y = 2;
 
-        var @int = 1;
-        var @long = 2;
-        if (o is int or long)
-        {
-        }
-    }
-}
-");
+                        var @int = 1;
+                        var @long = 2;
+                        if (o is int or long)
+                        {
+                        }
+                    }
+                }
+                """);
         }
     }
 }

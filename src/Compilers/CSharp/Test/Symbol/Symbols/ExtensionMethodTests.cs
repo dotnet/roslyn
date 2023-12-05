@@ -2864,7 +2864,6 @@ public struct MyStruct<T>
             reducedWithReceiver = extensionMethod.GetPublicSymbol().ReduceExtensionMethod(msi.GetPublicSymbol());
             Assert.NotNull(reducedWithReceiver);
 
-
             compilation2 = CreateCompilation(source2, references: new[] { new CSharpCompilationReference(compilation1) }, parseOptions: TestOptions.Regular7);
             compilation2.VerifyDiagnostics(
                 // (5,9): error CS8107: Feature 'unmanaged constructed types' is not available in C# 7.0. Please use language version 8.0 or greater.
@@ -4079,6 +4078,33 @@ public static class C
             }
 
             CompileAndVerify(source, validator: Validator, options: TestOptions.ReleaseDll);
+        }
+
+        [Fact]
+        [WorkItem(65020, "https://github.com/dotnet/roslyn/issues/65020")]
+        public void ReduceExtensionsMethodOnReceiverTypeSystemVoid()
+        {
+            var source =
+@"static class C
+{
+    static void M(this object x)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            compilation.VerifyDiagnostics();
+
+            var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            Assert.True(extensionMethod.IsExtensionMethod);
+
+            var systemVoidType = compilation.GetSpecialType(SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, systemVoidType.SpecialType);
+
+            var reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, null!);
+            Assert.Null(reduced);
+
+            reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
+            Assert.Null(reduced);
         }
     }
 }

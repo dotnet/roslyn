@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,45 +22,14 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
     internal static class GoToDefinitionHelpers
     {
         public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
-            ISymbol symbol,
+            ISymbol? symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
             CancellationToken cancellationToken)
         {
-            var alias = symbol as IAliasSymbol;
-            if (alias != null)
-            {
-                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
-                {
-                    return ImmutableArray.Create<DefinitionItem>();
-                }
-            }
-
-            // VB global import aliases have a synthesized SyntaxTree.
-            // We can't go to the definition of the alias, so use the target type.
-
-            if (alias != null)
-            {
-                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
-                    solution, symbol, cancellationToken);
-
-                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
-                {
-                    symbol = alias.Target;
-                }
-            }
-
-            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            symbol = definition ?? symbol;
-
-            // If it is a partial method declaration with no body, choose to go to the implementation
-            // that has a method body.
-            if (symbol is IMethodSymbol method)
-            {
-                symbol = method.PartialImplementationPart ?? symbol;
-            }
+            symbol = await TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            if (symbol is null)
+                return ImmutableArray.Create<DefinitionItem>();
 
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
@@ -96,6 +66,44 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             definitions.Add(definitionItem);
             return definitions.ToImmutable();
+        }
+
+        public static async Task<ISymbol?> TryGetPreferredSymbolAsync(
+            Solution solution, ISymbol? symbol, CancellationToken cancellationToken)
+        {
+            // VB global import aliases have a synthesized SyntaxTree.
+            // We can't go to the definition of the alias, so use the target type.
+
+            var alias = symbol as IAliasSymbol;
+            if (alias != null)
+            {
+                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
+                    return null;
+            }
+
+            // VB global import aliases have a synthesized SyntaxTree.
+            // We can't go to the definition of the alias, so use the target type.
+
+            if (alias != null)
+            {
+                var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
+                    solution, symbol, cancellationToken);
+
+                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
+                    symbol = alias.Target;
+            }
+
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            symbol = definition ?? symbol;
+
+            // If it is a partial method declaration with no body, choose to go to the implementation
+            // that has a method body.
+            if (symbol is IMethodSymbol method)
+                symbol = method.PartialImplementationPart ?? symbol;
+
+            return symbol;
         }
 
         public static async Task<bool> TryNavigateToLocationAsync(

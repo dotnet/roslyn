@@ -213,6 +213,61 @@ class Program
         }
 
         [Fact]
+        public async Task TestNint_WithNumericIntPtr_CSharp11()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""11"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+
+            var expected =
+@"using System;
+class Program
+{
+    IntPtr _myfield;
+}";
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+        }
+
+        [Fact]
+        public async Task TestNint_WithNumericIntPtr_CSharp8()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferencesNet7=""true"" LanguageVersion=""8"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+        }
+
+        [Fact]
+        public async Task TestNint_WithoutNumericIntPtr()
+        {
+            var code =
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" LanguageVersion=""11"">
+        <Document>using System;
+class Program
+{
+    [|nint|] _myfield;
+}</Document>
+    </Project>
+</Workspace>";
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+        }
+
+        [Fact]
         public async Task FieldDeclarationWithInitializer()
         {
             var code =

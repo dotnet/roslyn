@@ -72,7 +72,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddOverload)>
-        <WorkItem(21948, "https://github.com/dotnet/roslyn/issues/21948")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/21948")>
         Public Async Function TestAddOverloadsToSub_HandlingTrivia() As Task
             Await VerifyVB.VerifyCodeFixAsync("
 Class Base

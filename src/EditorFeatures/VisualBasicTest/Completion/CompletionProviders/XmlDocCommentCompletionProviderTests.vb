@@ -114,7 +114,7 @@ End Class
             Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
-        <Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -303,7 +303,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
         End Function
 
-        <Fact, WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoRepeatTypeParam() As Task
             Dim text = "
 Class C(Of T)
@@ -317,7 +317,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "typeparam name=""T""")
         End Function
 
-        <Fact, WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoNestedParam() As Task
             Dim text = "
 Class C(Of T)
@@ -332,7 +332,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "param name=""bar""")
         End Function
 
-        <Fact, WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11487")>
         Public Async Function TestNoNestedTypeParam() As Task
             Dim text = "
 Class C(Of T)
@@ -444,7 +444,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type")
         End Function
 
-        <Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeNameInWrongTagTypeEmptyElement() As Task
             Dim text = "
 Class C
@@ -458,7 +458,7 @@ End Class
             Await VerifyItemExistsAsync(text, "type", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeNameInWrongTagTypeElementStartTag() As Task
             Dim text = "
 Class C
@@ -472,7 +472,7 @@ End Class
             Await VerifyItemExistsAsync(text, "cref", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeValueOnQuote() As Task
             Dim text = "
 Class C
@@ -486,7 +486,7 @@ End Class
             Await VerifyItemExistsAsync(text, "Await", usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")>
         Public Async Function TestAttributeValueOnStartOfWord() As Task
             Dim text = "
 Class C
@@ -513,7 +513,7 @@ End Class
             Await VerifyItemExistsAsync(text, "bar")
         End Function
 
-        <Fact, WorkItem(623158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623158")>
         Public Async Function TestCloseTag() As Task
             Dim text = "
 Class C
@@ -528,7 +528,7 @@ End Class
                 usePreviousCharAsTrigger:=True)
         End Function
 
-        <Fact, WorkItem(638805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>
         Public Async Function TestNoParentElement() As Task
             Dim text = "
 ''' <summary>
@@ -581,7 +581,7 @@ End Class
             Await VerifyItemsExistAsync(text, "completionlist")
         End Function
 
-        <Fact, WorkItem(8546, "https://github.com/dotnet/roslyn/issues/8546")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8546")>
         Public Async Function TestReturnsOnMethod() As Task
             Dim text = "
 Class C
@@ -608,7 +608,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "returns")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadWritePropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -625,7 +625,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadWritePropertyValue() As Task
             Dim text = "
 Class C
@@ -642,7 +642,7 @@ End Class
             Await VerifyItemExistsAsync(text, "value")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadOnlyPropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -657,7 +657,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function ReadOnlyPropertyValue() As Task
             Dim text = "
 Class C
@@ -672,7 +672,7 @@ End Class
             Await VerifyItemExistsAsync(text, "value")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function WriteOnlyPropertyNoReturns() As Task
             Dim text = "
 Class C
@@ -687,7 +687,7 @@ End Class
             Await VerifyItemIsAbsentAsync(text, "returns")
         End Function
 
-        <Fact, WorkItem(8627, "https://github.com/dotnet/roslyn/issues/8627")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8627")>
         Public Async Function WriteOnlyPropertyValue() As Task
             Dim text = "
 Class C
@@ -744,7 +744,7 @@ End Class
             Await VerifyItemsExistAsync(text, "number", "bullet", "table")
         End Function
 
-        <Fact, WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11490")>
         Public Async Function TestSeeAttributeNames() As Task
             Dim text = "
 Class C
@@ -758,7 +758,7 @@ End Class
             Await VerifyItemsExistAsync(text, "cref", "langword")
         End Function
 
-        <Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function TestLangwordCompletionInPlainText() As Task
             Dim text = "
 Class C
@@ -772,7 +772,7 @@ End Class
             Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket1() As Task
             Dim text = "
 Class C
@@ -786,7 +786,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket2() As Task
             Dim text = "
 Class C
@@ -800,7 +800,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <Fact, WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function LangwordCompletionAfterAngleBracket3() As Task
             Dim text = "
 Class C
@@ -814,7 +814,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
         End Function
 
-        <Fact, WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11490")>
         Public Async Function TestSeeLangwordAttributeValue() As Task
             Dim text = "
 Class C
@@ -882,7 +882,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "TClass", "i")
         End Function
 
-        <Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestTypeParamRefNames() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -899,7 +899,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
-        <Fact, WorkItem(17872, "https://github.com/dotnet/roslyn/issues/17872")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17872")>
         Public Async Function TestTypeParamRefNamesPartiallyTyped() As Task
             Dim text = "
 Class Outer(Of TOuter)
@@ -916,7 +916,7 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
-        <Fact, WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/757")>
         Public Async Function TermAndDescriptionInsideItem() As Task
             Dim text = "
 class C

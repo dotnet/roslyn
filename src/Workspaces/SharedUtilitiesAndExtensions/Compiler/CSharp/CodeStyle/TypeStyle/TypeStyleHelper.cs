@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         private static ITypeSymbol? UnwrapTupleType(ITypeSymbol? symbol)
         {
             if (symbol is null)

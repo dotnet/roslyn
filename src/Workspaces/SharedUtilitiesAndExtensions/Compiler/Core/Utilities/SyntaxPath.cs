@@ -80,7 +80,7 @@ namespace Roslyn.Utilities
                     }
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

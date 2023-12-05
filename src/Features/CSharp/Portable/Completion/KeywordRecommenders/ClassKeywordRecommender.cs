@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 
@@ -22,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.AbstractKeyword,
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
-                SyntaxKind.UnsafeKeyword
+                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.FileKeyword,
             };
 
         public ClassKeywordRecommender()
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken) ||
-                context.LeftToken.GetPreviousTokenIfTouchingWord(position).IsKind(SyntaxKind.RecordKeyword) ||
+                context.IsRecordDeclarationContext(s_validModifiers, cancellationToken) ||
                 syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
         }
     }

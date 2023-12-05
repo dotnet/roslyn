@@ -107,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // update cache. 
                 _projectAnalyzerStateMap[project.Id] = projectStateSets;
 
-                VerifyProjectDiagnosticStates(projectStateSets.StateSetMap.Values);
-
                 return projectStateSets;
             }
 

@@ -7,13 +7,14 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    ''' <summary> 
-    ''' A bound node rewriter that rewrites types properly (which in some cases the automatically-generated). 
+    ''' <summary>
+    ''' A bound node rewriter that rewrites types properly (which in some cases the automatically-generated).
     ''' This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
-    ''' </summary>    
+    ''' </summary>
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
         Inherits BoundTreeRewriterWithStackGuard
 
@@ -23,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly Proxies As Dictionary(Of Symbol, TProxy) = New Dictionary(Of Symbol, TProxy)()
 
         ''' <summary>
-        ''' A mapping from every local variable to its replacement local variable. Local variables 
+        ''' A mapping from every local variable to its replacement local variable. Local variables
         ''' are replaced when their types change due to being inside of a lambda within a generic method.
         ''' </summary>
         Protected ReadOnly LocalMap As Dictionary(Of LocalSymbol, LocalSymbol) = New Dictionary(Of LocalSymbol, LocalSymbol)(ReferenceEqualityComparer.Instance)
 
         ''' <summary>
-        ''' A mapping from every parameter to its replacement parameter. Local variables 
+        ''' A mapping from every parameter to its replacement parameter. Local variables
         ''' are replaced when their types change due to being inside of a lambda.
         ''' </summary>
         Protected ReadOnly ParameterMap As Dictionary(Of ParameterSymbol, ParameterSymbol) = New Dictionary(Of ParameterSymbol, ParameterSymbol)(ReferenceEqualityComparer.Instance)
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride Function FramePointer(syntax As SyntaxNode, frameClass As NamedTypeSymbol) As BoundExpression
 
         ''' <summary>
-        ''' The method (e.g. lambda) which is currently being rewritten. If we are 
+        ''' The method (e.g. lambda) which is currently being rewritten. If we are
         ''' rewriting a lambda, currentMethod is the new generated method.
         ''' </summary>
         Protected MustOverride ReadOnly Property CurrentMethod As MethodSymbol
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode
-            ' NOTE: this is only reachable from Lambda rewriter 
+            ' NOTE: this is only reachable from Lambda rewriter
             ' NOTE: in case property access is inside expression tree
             Dim rewrittenPropertySymbol = VisitPropertySymbol(node.PropertySymbol)
             Dim rewrittenReceiver = DirectCast(Visit(node.ReceiverOpt), BoundExpression)
@@ -376,9 +377,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim nodeStatements = node.Statements
 
             If prologue.Count > 0 Then
-                ' Add hidden sequence point, prologue doesn't map to source, but if 
+                ' Add hidden sequence point, prologue doesn't map to source, but if
                 ' the first statement in the block is a non-hidden sequence point
-                ' (for example, sequence point for a method block), keep it first. 
+                ' (for example, sequence point for a method block), keep it first.
                 If nodeStatements.Length > 0 AndAlso nodeStatements(0).Syntax IsNot Nothing Then
                     Dim keepSequencePointFirst As Boolean = False
 

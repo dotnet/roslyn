@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private SyntaxToken GetFreeSymbolNameAndMarkUsed(string prefix)
             {
-                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, containerOpt: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
+                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _source, container: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
                 _introducedLocalNames.Add(freeToken.ValueText);
                 return freeToken;
             }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         if (_semanticFacts.GenerateUniqueName(
                                 _semanticModel,
                                 location: forEachStatement.Statement,
-                                containerOpt: forEachStatement.Statement,
+                                container: forEachStatement.Statement,
                                 baseName: identifierName,
                                 usedNames: Enumerable.Empty<string>(),
                                 _cancellationToken).ValueText != identifierName)

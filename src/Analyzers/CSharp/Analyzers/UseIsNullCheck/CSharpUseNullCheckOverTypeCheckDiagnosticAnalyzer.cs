@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
@@ -84,12 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private void AnalyzeIsTypeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var operation = context.Operation;
+            var semanticModel = operation.SemanticModel;
             var syntax = operation.Syntax;
+
+            Contract.ThrowIfNull(semanticModel);
 
             if (!ShouldAnalyze(context, out var severity) || syntax is not BinaryExpressionSyntax)
                 return;
 
-            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, syntax, expressionType, context.CancellationToken))
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(semanticModel, syntax, expressionType, context.CancellationToken))
                 return;
 
             var isTypeOperation = (IIsTypeOperation)operation;

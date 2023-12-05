@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var syntaxTree = semanticModel.SyntaxTree;
                 var start = nameOrMemberAccessExpression.SpanStart;
                 var tokenOnLeftOfStart = syntaxTree.FindTokenOnLeftOfPosition(start, cancellationToken);
-                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
+                var isExpressionContext = syntaxTree.IsExpressionContext(start, tokenOnLeftOfStart, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
                 var isStatementContext = syntaxTree.IsStatementContext(start, tokenOnLeftOfStart, cancellationToken);
                 var isExpressionOrStatementContext = isExpressionContext || isStatementContext;
 
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                                 return true;
                             }
 
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         else
                         {
@@ -390,10 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                     // Get the Method symbol for the Delegate to be created
                     if (generateTypeServiceStateOptions.IsDelegateAllowed &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments.Count == 1 &&
-                        objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression.Kind() != SyntaxKind.DeclarationExpression)
+                        objectCreationExpressionOpt.ArgumentList.Arguments is [{ Expression: (kind: not SyntaxKind.DeclarationExpression) expression }])
                     {
-                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, objectCreationExpressionOpt.ArgumentList.Arguments[0].Expression, cancellationToken);
+                        generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, expression, cancellationToken);
                     }
                     else
                     {
@@ -715,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         }
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 if ((node is EventDeclarationSyntax || node is EventFieldDeclarationSyntax) &&

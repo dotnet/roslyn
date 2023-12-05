@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
                 var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
-                AppendTaskListItemsOnSingleLine(commentDescriptors, document, message.Substring(index), start, items);
+                AppendTaskListItemsOnSingleLine(commentDescriptors, document, message[index..], start, items);
                 return;
             }
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
                 return;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override string GetNormalizedText(string message)

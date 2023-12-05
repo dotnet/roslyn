@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     /// This service provides diagnostic analyzers from the analyzer assets specified in the manifest files of installed VSIX extensions.
     /// These analyzers are used across this workspace session.
     /// </summary>
-    internal partial class VisualStudioDiagnosticAnalyzerProvider
+    internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
     {
         private const string AnalyzerContentTypeName = "Microsoft.VisualStudio.Analyzer";
 

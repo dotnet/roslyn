@@ -23,20 +23,20 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     /// <summary>
     /// Document editorconfig options.
     /// </summary>
-    private readonly AnalyzerConfigOptions _options;
+    private readonly IOptionsReader _options;
 
     /// <summary>
     /// Fallback options - the default options in Code Style layer.
     /// </summary>
     private readonly IdeAnalyzerOptions _fallbackOptions;
 
-    public CSharpAnalyzerOptionsProvider(AnalyzerConfigOptions options, IdeAnalyzerOptions fallbackOptions)
+    public CSharpAnalyzerOptionsProvider(IOptionsReader options, IdeAnalyzerOptions fallbackOptions)
     {
         _options = options;
         _fallbackOptions = fallbackOptions;
     }
 
-    public CSharpAnalyzerOptionsProvider(AnalyzerConfigOptions options, AnalyzerOptions fallbackOptions)
+    public CSharpAnalyzerOptionsProvider(IOptionsReader options, AnalyzerOptions fallbackOptions)
         : this(options, fallbackOptions.GetIdeOptions())
     {
     }
@@ -52,7 +52,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
     internal CSharpSimplifierOptions GetSimplifierOptions()
-        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
+        => new CSharpSimplifierOptions(_options, FallbackSimplifierOptions);
 
     // SyntaxFormattingOptions
 
@@ -69,6 +69,8 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferNullCheckOverTypeCheck => GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, FallbackCodeStyleOptions.PreferNullCheckOverTypeCheck);
     public CodeStyleOption2<bool> AllowBlankLinesBetweenConsecutiveBraces => GetOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, FallbackCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces);
     public CodeStyleOption2<bool> AllowBlankLineAfterColonInConstructorInitializer => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, FallbackCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer);
+    public CodeStyleOption2<bool> AllowBlankLineAfterTokenInArrowExpressionClause => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, FallbackCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause);
+    public CodeStyleOption2<bool> AllowBlankLineAfterTokenInConditionalExpression => GetOption(CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, FallbackCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression);
     public CodeStyleOption2<bool> PreferConditionalDelegateCall => GetOption(CSharpCodeStyleOptions.PreferConditionalDelegateCall, FallbackCodeStyleOptions.PreferConditionalDelegateCall);
     public CodeStyleOption2<bool> PreferSwitchExpression => GetOption(CSharpCodeStyleOptions.PreferSwitchExpression, FallbackCodeStyleOptions.PreferSwitchExpression);
     public CodeStyleOption2<bool> PreferPatternMatching => GetOption(CSharpCodeStyleOptions.PreferPatternMatching, FallbackCodeStyleOptions.PreferPatternMatching);
@@ -92,14 +94,15 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     // CodeGenerationOptions
 
     internal CSharpCodeGenerationOptions GetCodeGenerationOptions()
-        => _options.GetCSharpCodeGenerationOptions(FallbackCodeGenerationOptions);
+        => new(_options, FallbackCodeGenerationOptions);
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferReadOnlyStruct => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct, FallbackCodeStyleOptions.PreferReadOnlyStruct);
+    public CodeStyleOption2<bool> PreferReadOnlyStructMember => GetOption(CSharpCodeStyleOptions.PreferReadOnlyStructMember, FallbackCodeStyleOptions.PreferReadOnlyStructMember);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
-        => _options.GetEditorConfigOption(option, defaultValue);
+        => _options.GetOption(option, defaultValue);
 
     private CSharpIdeCodeStyleOptions FallbackCodeStyleOptions
         => (CSharpIdeCodeStyleOptions?)_fallbackOptions.CodeStyleOptions ?? CSharpIdeCodeStyleOptions.Default;
@@ -120,23 +123,29 @@ internal readonly struct CSharpAnalyzerOptionsProvider
         => new(provider.GetAnalyzerConfigOptions(), provider.GetFallbackOptions());
 
     public static implicit operator AnalyzerOptionsProvider(CSharpAnalyzerOptionsProvider provider)
-        => new(provider._options, provider._fallbackOptions);
+        => new(provider._options, LanguageNames.CSharp, provider._fallbackOptions);
 }
 
 internal static class CSharpAnalyzerOptionsProviders
 {
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this AnalyzerOptions options, SyntaxTree syntaxTree)
+        => new(options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader(), options);
+
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SemanticModelAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
+        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxNodeAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree), context.Options);
+        => GetCSharpAnalyzerOptions(context.Options, context.Node.SyntaxTree);
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxTreeAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree), context.Options);
+        => GetCSharpAnalyzerOptions(context.Options, context.Tree);
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this CodeBlockAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
+        => GetCSharpAnalyzerOptions(context.Options, context.SemanticModel.SyntaxTree);
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this OperationAnalysisContext context)
-        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree), context.Options);
+        => GetCSharpAnalyzerOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SymbolStartAnalysisContext context, SyntaxTree syntaxTree)
+        => GetCSharpAnalyzerOptions(context.Options, syntaxTree);
 }

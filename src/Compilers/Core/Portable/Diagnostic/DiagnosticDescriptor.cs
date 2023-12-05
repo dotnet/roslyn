@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(this.Category.GetHashCode(),
-                Hash.Combine(this.DefaultSeverity.GetHashCode(),
+                Hash.Combine(((int)this.DefaultSeverity).GetHashCode(),
                 Hash.Combine(this.Description.GetHashCode(),
                 Hash.Combine(this.HelpLinkUri.GetHashCode(),
                 Hash.Combine(this.Id.GetHashCode(),

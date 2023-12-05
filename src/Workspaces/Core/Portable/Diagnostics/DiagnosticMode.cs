@@ -7,19 +7,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal enum DiagnosticMode
     {
         /// <summary>
-        /// Push diagnostics.  Roslyn/LSP is responsible for aggregating internal diagnostic notifications and pushing
-        /// those out to either VS or the LSP push diagnostic system.
+        /// Push diagnostics.  Roslyn solution crawler will compute diagnostics, and notify listeners when new
+        /// diagnostics are computed.
         /// </summary>
-        Push,
+        SolutionCrawlerPush,
         /// <summary>
-        /// Pull diagnostics.  Roslyn/LSP is responsible for aggregating internal diagnostic notifications and
-        /// responding to LSP pull requests for them.
+        /// Lsp pull diagnostics.  Diagnostics are computed on demand when requested.
         /// </summary>
-        Pull,
+        LspPull,
 
         /// <summary>
         /// Default mode - when the option is set to default we use a feature flag to determine if we're
-        /// is in <see cref="Push"/> or <see cref="Pull"/>
+        /// is in <see cref="SolutionCrawlerPush"/> or <see cref="LspPull"/>
         /// </summary>
         Default,
     }

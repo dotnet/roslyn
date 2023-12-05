@@ -16,53 +16,70 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A recoverable TextAndVersion source that saves its text to temporary storage.
     /// </summary>
-    internal sealed class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable
+    internal sealed class RecoverableTextAndVersion : ITextVersionable, ITextAndVersionSource
     {
         private readonly SolutionServices _services;
 
-        // Starts as ValueSource<TextAndVersion> and is replaced with RecoverableText when the TextAndVersion value is requested.
+        // Starts as ITextAndVersionSource and is replaced with RecoverableText when the TextAndVersion value is requested.
         // At that point the initial source is no longer referenced and can be garbage collected.
         private object _initialSourceOrRecoverableText;
 
-        public RecoverableTextAndVersion(ValueSource<TextAndVersion> initialSource, SolutionServices services)
+        public bool CanReloadText { get; }
+
+        public RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services)
         {
             _initialSourceOrRecoverableText = initialSource;
             _services = services;
+            CanReloadText = initialSource.CanReloadText;
+        }
+
+        /// <returns>
+        /// True if the <paramref name="source"/> is available, false if <paramref name="text"/> is returned.
+        /// </returns>
+        private bool TryGetInitialSourceOrRecoverableText([NotNullWhen(true)] out ITextAndVersionSource? source, [NotNullWhen(false)] out RecoverableText? text)
+        {
+            // store to local to avoid race:
+            var sourceOrRecoverableText = _initialSourceOrRecoverableText;
+
+            source = sourceOrRecoverableText as ITextAndVersionSource;
+            if (source != null)
+            {
+                text = null;
+                return true;
+            }
+
+            text = (RecoverableText)sourceOrRecoverableText;
+            return false;
         }
 
         public ITemporaryTextStorageInternal? Storage
             => (_initialSourceOrRecoverableText as RecoverableText)?.Storage;
 
-        public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
+        public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
         {
-            // store to local to avoid race:
-            var sourceOrRecoverableText = _initialSourceOrRecoverableText;
-
-            if (sourceOrRecoverableText is RecoverableText recoverableText)
+            if (TryGetInitialSourceOrRecoverableText(out var source, out var recoverableText))
             {
-                if (recoverableText.TryGetValue(out var text))
-                {
-                    value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
-                    return true;
-                }
+                return source.TryGetValue(options, out value);
             }
-            else
+
+            if (recoverableText.TryGetValue(out var text) && recoverableText.LoadTextOptions == options)
             {
-                return ((ValueSource<TextAndVersion>)sourceOrRecoverableText).TryGetValue(out value);
+                value = TextAndVersion.Create(text, recoverableText.Version, recoverableText.LoadDiagnostic);
+                return true;
             }
 
             value = null;
             return false;
         }
 
-        public bool TryGetTextVersion(out VersionStamp version)
+        public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
         {
             if (_initialSourceOrRecoverableText is ITextVersionable textVersionable)
             {
-                return textVersionable.TryGetTextVersion(out version);
+                return textVersionable.TryGetTextVersion(options, out version);
             }
 
-            if (TryGetValue(out var textAndVersion))
+            if (TryGetValue(options, out var textAndVersion))
             {
                 version = textAndVersion.Version;
                 return true;
@@ -72,33 +89,53 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
+        public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            if (_initialSourceOrRecoverableText is ValueSource<TextAndVersion> source)
+            if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
-                // replace initial source with recovarable text if it hasn't been replaced already:
+                // replace initial source with recoverable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(source.GetValue(cancellationToken), _services),
+                    value: new RecoverableText(source, source.GetValue(options, cancellationToken), options, _services),
                     comparand: source);
             }
 
+            // If we have a recoverable text but the options it was created for do not match the current options
+            // and the initial source supports reloading, reload and replace the recoverable text.
             var recoverableText = (RecoverableText)_initialSourceOrRecoverableText;
+            if (recoverableText.LoadTextOptions != options && recoverableText.InitialSource != null)
+            {
+                Interlocked.Exchange(
+                    ref _initialSourceOrRecoverableText,
+                    new RecoverableText(recoverableText.InitialSource, recoverableText.InitialSource.GetValue(options, cancellationToken), options, _services));
+            }
+
+            recoverableText = (RecoverableText)_initialSourceOrRecoverableText;
             return recoverableText.ToTextAndVersion(recoverableText.GetValue(cancellationToken));
         }
 
-        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
+        public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            if (_initialSourceOrRecoverableText is ValueSource<TextAndVersion> source)
+            if (_initialSourceOrRecoverableText is ITextAndVersionSource source)
             {
-                // replace initial source with recovarable text if it hasn't been replaced already:
+                // replace initial source with recoverable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(await source.GetValueAsync(cancellationToken).ConfigureAwait(false), _services),
+                    value: new RecoverableText(source, await source.GetValueAsync(options, cancellationToken).ConfigureAwait(false), options, _services),
                     comparand: source);
             }
 
+            // If we have a recoverable text but the options it was created for do not match the current options
+            // and the initial source supports reloading, reload and replace the recoverable text.
             var recoverableText = (RecoverableText)_initialSourceOrRecoverableText;
+            if (recoverableText.LoadTextOptions != options && recoverableText.InitialSource != null)
+            {
+                Interlocked.Exchange(
+                    ref _initialSourceOrRecoverableText,
+                    new RecoverableText(recoverableText.InitialSource, await recoverableText.InitialSource.GetValueAsync(options, cancellationToken).ConfigureAwait(false), options, _services));
+            }
+
+            recoverableText = (RecoverableText)_initialSourceOrRecoverableText;
             return recoverableText.ToTextAndVersion(await recoverableText.GetValueAsync(cancellationToken).ConfigureAwait(false));
         }
 
@@ -107,16 +144,27 @@ namespace Microsoft.CodeAnalysis
             private readonly ITemporaryStorageServiceInternal _storageService;
             public readonly VersionStamp Version;
             public readonly Diagnostic? LoadDiagnostic;
+            public readonly ITextAndVersionSource? InitialSource;
+            public readonly LoadTextOptions LoadTextOptions;
 
             public ITemporaryTextStorageInternal? _storage;
 
-            public RecoverableText(TextAndVersion textAndVersion, SolutionServices services)
-                : base(new ConstantValueSource<SourceText>(textAndVersion.Text))
+            public RecoverableText(ITextAndVersionSource source, TextAndVersion textAndVersion, LoadTextOptions options, SolutionServices services)
+                : base(textAndVersion.Text)
             {
                 _storageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
 
                 Version = textAndVersion.Version;
                 LoadDiagnostic = textAndVersion.LoadDiagnostic;
+                LoadTextOptions = options;
+
+                if (source.CanReloadText)
+                {
+                    // reloadable source must not cache results
+                    Contract.ThrowIfTrue(source is LoadableTextAndVersionSource { CacheResult: true });
+
+                    InitialSource = source;
+                }
             }
 
             public TextAndVersion ToTextAndVersion(SourceText text)
@@ -155,10 +203,10 @@ namespace Microsoft.CodeAnalysis
                 Interlocked.CompareExchange(ref _storage, storage, null);
             }
 
-            public bool TryGetTextVersion(out VersionStamp version)
+            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
             {
                 version = Version;
-                return true;
+                return options == LoadTextOptions;
             }
         }
     }

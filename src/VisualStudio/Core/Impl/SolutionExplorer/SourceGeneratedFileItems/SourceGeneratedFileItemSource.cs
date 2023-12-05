@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _items.BeginBulkOperation();
 
                 // Do we already have a "no files" placeholder item?
-                if (_items.Count == 1 && _items[0] is NoSourceGeneratedFilesPlaceholderItem)
+                if (_items is [NoSourceGeneratedFilesPlaceholderItem])
                 {
                     // We do -- if we have no items, we're done, since the placeholder is all that needs to be there;
                     // otherwise remove it since we have real files now

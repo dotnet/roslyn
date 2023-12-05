@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 #if CODE_STYLE
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
@@ -26,6 +24,9 @@ using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
+    using static UseConditionalExpressionCodeFixHelpers;
+    using static UseConditionalExpressionHelpers;
+
     internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         TStatementSyntax,
         TIfStatementSyntax,
@@ -104,22 +105,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
-            if (!isRef)
+            if (CanSimplify(trueValue, falseValue, isRef, out var negate))
             {
-                // If we are going to generate "expr ? true : false" then just generate "expr"
-                // instead.
-                if (IsBooleanLiteral(trueValue, true) && IsBooleanLiteral(falseValue, false))
-                {
-                    return (TExpressionSyntax)condition.WithoutTrivia();
-                }
-
-                // If we are going to generate "expr ? false : true" then just generate "!expr"
-                // instead.
-                if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
-                {
-                    return (TExpressionSyntax)generator.Negate(generatorInternal,
-                        condition, semanticModel, cancellationToken).WithoutTrivia();
-                }
+                return negate
+                    ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
+                    : (TExpressionSyntax)condition.WithoutTrivia();
             }
 
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
@@ -138,17 +128,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return MakeRef(generatorInternal, isRef, conditionalExpression);
-        }
-
-        private static bool IsBooleanLiteral(IOperation trueValue, bool val)
-        {
-            if (trueValue is ILiteralOperation)
-            {
-                var constant = trueValue.ConstantValue;
-                return constant.HasValue && constant.Value is bool b && b == val;
-            }
-
-            return false;
         }
 
         private static TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)

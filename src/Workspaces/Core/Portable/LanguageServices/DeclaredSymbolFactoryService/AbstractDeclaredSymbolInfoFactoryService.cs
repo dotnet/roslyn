@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                         containerDisplayName: null,
                         fullyQualifiedContainerName,
                         isPartial: true,
+                        hasAttributes: false,
                         DeclaredSymbolInfoKind.Namespace,
                         Accessibility.Public,
                         nameSyntax.Span,

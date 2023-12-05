@@ -66,5 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 }
             }
         }
+
+        protected override void RemoveAdornmentFromAdornmentLayer_CallOnlyOnUIThread(SnapshotSpan span)
+        {
+            AdornmentLayer.RemoveAdornmentsByVisualSpan(span);
+        }
     }
 }

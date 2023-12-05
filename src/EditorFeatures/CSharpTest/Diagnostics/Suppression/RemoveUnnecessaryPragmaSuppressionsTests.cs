@@ -32,7 +32,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
-    [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44177")]
     public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
         protected RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
@@ -116,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
                 new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
                     customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context) =>
-                context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
         }
 
         #endregion
@@ -296,7 +296,7 @@ class Class
             }
 
             [Theory, CombinatorialData]
-            [WorkItem(46047, "https://github.com/dotnet/roslyn/issues/46047")]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/46047")]
             public async Task TestDoNotRemoveUnsupportedDiagnosticSuppression(bool disable, TestKind testKind)
             {
                 var disableOrRestore = disable ? "disable" : "restore";
@@ -389,7 +389,7 @@ class Class
 |]");
             }
 
-            [Fact, WorkItem(46075, "https://github.com/dotnet/roslyn/issues/46075")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46075")]
             public async Task TestDoNotRemoveDiagnosticSuppressionInGeneratedCode()
             {
                 await TestMissingInRegularAndScriptAsync(
@@ -435,7 +435,7 @@ class Class
 |]", new TestParameters(options: options));
             }
 
-            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47288")]
             public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
             {
                 var options = new OptionsCollection(LanguageNames.CSharp)
@@ -1017,8 +1017,8 @@ class Class
             {
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 
             [Fact]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
@@ -1314,10 +1314,10 @@ class Class
                 }
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
 
-            [Fact, WorkItem(50203, "https://github.com/dotnet/roslyn/issues/50203")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50203")]
             public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
             {
                 await TestMissingInRegularAndScriptAsync(
@@ -1340,10 +1340,10 @@ namespace N
             {
             }
 
-            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
-                ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
+                => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseAutoPropertyAnalyzer());
 
-            [Fact, WorkItem(55529, "https://github.com/dotnet/roslyn/issues/55529")]
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55529")]
             public async Task TestDoNotRemoveAutoPropertySuppression()
             {
                 await TestMissingInRegularAndScriptAsync(

@@ -3608,7 +3608,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             Dim assembly = compilation1.SourceModule.GetReferencedAssemblySymbols()(1)
             Dim [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(
@@ -3621,7 +3621,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(
@@ -3631,7 +3631,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
 
             assembly = compilation3.SourceModule.GetReferencedAssemblySymbols()(1)
             [module] = assembly.Modules(0)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
 
             Dim compilation4 = CreateCompilationWithMscorlib40AndReferences(
@@ -3643,7 +3643,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             [module] = assembly.Modules(0)
             Assert.IsType(Of NoPiaMissingCanonicalTypeSymbol)(DirectCast([module], PEModuleSymbol).LookupTopLevelMetadataType(fullName, isNoPiaLocalType))
             Assert.True(isNoPiaLocalType)
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)([module].LookupTopLevelMetadataType(fullName))
+            Assert.Null([module].LookupTopLevelMetadataType(fullName))
             Assert.Null(assembly.GetTypeByMetadataName(fullName.FullName))
         End Sub
 
@@ -4343,7 +4343,6 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-
         <Fact, WorkItem(8088, "https://github.com/dotnet/roslyn/issues/8088")>
         Public Sub ParametersWithoutNames()
             Dim sources =
@@ -4369,7 +4368,6 @@ End Class
                                                                                 GetReference(display:="ParametersWithoutNames.dll", embedInteropTypes:=True)
                                                                          },
                                                                          options:=TestOptions.ReleaseDll)
-
 
             AssertParametersWithoutNames(compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("I1").GetMember(Of MethodSymbol)("M1").Parameters, False)
 

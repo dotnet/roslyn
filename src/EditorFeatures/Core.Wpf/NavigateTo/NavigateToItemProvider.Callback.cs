@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -48,6 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 _callback.ReportProgress(current, maximum);
             }
 
+            public void ReportIncomplete()
+            {
+            }
+
             private void ReportMatchResult(Project project, INavigateToSearchResult result)
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
@@ -66,7 +72,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     result,
                     patternMatch,
                     _displayFactory);
-                _callback.AddItem(navigateToItem);
+
+                try
+                {
+                    _callback.AddItem(navigateToItem);
+                }
+                catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                {
+                    // Mitigation for race condition in platform https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1534364
+                    //
+                    // Catch this so that don't tear down OOP, but still report the exception so that we ensure this issue
+                    // gets attention and is fixed.
+                }
             }
 
             private static PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)

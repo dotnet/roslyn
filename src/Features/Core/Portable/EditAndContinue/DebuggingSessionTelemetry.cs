@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     map["Capabilities"] = (int)editSessionData.Capabilities;
 
                     // Ids of all projects whose binaries were successfully updated during the session.
-                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(id => new PiiValue(id.ToString("B").ToUpperInvariant())) : "";
+                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(ProjectIdToPii) : "";
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }));
                 }
 
-                foreach (var (editKind, syntaxKind) in editSessionData.RudeEdits)
+                foreach (var (editKind, syntaxKind, projectId) in editSessionData.RudeEdits)
                 {
                     log(FunctionId.Debugging_EncSession_EditSession_RudeEdit, KeyValueLogMessage.Create(map =>
                     {
@@ -150,8 +150,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         map["RudeEditKind"] = editKind;
                         map["RudeEditSyntaxKind"] = syntaxKind;
                         map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
+                        map["RudeEditProjectId"] = ProjectIdToPii(projectId);
                     }));
                 }
+
+                static PiiValue ProjectIdToPii(Guid projectId)
+                    => new(projectId.ToString("B").ToUpperInvariant());
             }
         }
     }

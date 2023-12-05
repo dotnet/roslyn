@@ -1793,7 +1793,7 @@ Dim q = From var1 In src Where var1 And True _ ' Test 1 space
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         Public Async Function TestFromInQuery(testHost As TestHost) As Task
             Dim code =
 "Dim From = New List(Of Integer)
@@ -4728,7 +4728,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(538647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538647")>
         Public Async Function TestRegression4315_VariableNamesClassifiedAsType(testHost As TestHost) As Task
             Dim code =
 "Module M
@@ -4754,7 +4754,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539203")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539203")>
         Public Async Function TestColonTrivia(testHost As TestHost) As Task
             Await TestInMethodAsync("    : Console.WriteLine()",
                 testHost,
@@ -4767,7 +4767,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer1(testHost As TestHost) As Task
             Await TestInMethodAsync("Dim y = New Goo() From",
                 testHost,
@@ -4782,7 +4782,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539642")>
         Public Async Function TestFromInCollectionInitializer2(testHost As TestHost) As Task
             Await TestInMethodAsync("Dim y As New Goo() From",
                 testHost,
@@ -4797,7 +4797,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport1(testHost As TestHost) As Task
             Await TestAsync("Imports <x",
                 testHost,
@@ -4807,7 +4807,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport2(testHost As TestHost) As Task
             Await TestAsync("Imports <xml",
                 testHost,
@@ -4817,7 +4817,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport3(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns",
                 testHost,
@@ -4827,7 +4827,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport4(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns:",
                 testHost,
@@ -4838,7 +4838,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport5(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns:ns",
                 testHost,
@@ -4850,7 +4850,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport6(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns:ns=",
                 testHost,
@@ -4863,7 +4863,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestPartiallyTypedXmlNamespaceImport7(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns:ns=""http://goo""",
                 testHost,
@@ -4879,7 +4879,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(539779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539779")>
         Public Async Function TestFullyTypedXmlNamespaceImport(testHost As TestHost) As Task
             Await TestAsync("Imports <xmlns:ns=""http://goo"">",
                 testHost,
@@ -5109,7 +5109,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(2126, "https://github.com/dotnet/roslyn/issues/2126")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2126")>
         Public Async Function CommentBeforeXmlAccessExpression(testHost As TestHost) As Task
             Dim code =
 " ' Comment
@@ -5132,7 +5132,7 @@ End Module"
         End Function
 
         <Theory, CombinatorialData>
-        <WorkItem(3291, "https://github.com/dotnet/roslyn/issues/3291")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/3291")>
         Public Async Function TestCommentOnCollapsedEndRegion(testHost As TestHost) As Task
             Dim code =
 "#Region ""Stuff""
@@ -5499,7 +5499,7 @@ End Try"
                 ControlKeyword("Try"))
         End Function
 
-        <Theory, CombinatorialData, WorkItem(61687, "https://github.com/dotnet/roslyn/issues/61687")>
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/61687")>
         Public Async Function TestThrow(testHost As TestHost) As Task
             Dim code = "Throw New System.NotImplementedException"
             Await TestInMethodAsync(code,

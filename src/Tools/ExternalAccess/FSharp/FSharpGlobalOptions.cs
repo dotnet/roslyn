@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public bool BlockForCompletionItems
         {
-            get => _globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, LanguageNames.FSharp);
-            set => _globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.FSharp), value);
+            get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp);
+            set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.FSharp, value);
         }
 
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
             _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp),
+                SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp,
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
         }
     }

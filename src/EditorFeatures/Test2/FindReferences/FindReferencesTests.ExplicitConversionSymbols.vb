@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 #Region "C#"
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -34,7 +34,7 @@ struct Goo
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType1_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -58,7 +58,7 @@ struct Goo
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType2_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -82,7 +82,7 @@ struct Goo
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType1_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -106,7 +106,7 @@ struct Goo
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType2_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -130,7 +130,7 @@ struct Goo
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionArrayType_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -158,7 +158,7 @@ struct Goo
 #Region "Visual Basic"
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -182,7 +182,7 @@ end structure
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -206,7 +206,7 @@ end structure
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType2_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -230,7 +230,7 @@ end structure
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -254,7 +254,7 @@ end structure
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType2_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -278,7 +278,7 @@ end structure
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionArrayType_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

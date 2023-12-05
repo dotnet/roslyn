@@ -8,7 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -27,12 +30,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Value = value;
         }
 
+        public static SyntaxTree Parse(
+            string text,
+            string path = "",
+            CSharpParseOptions options = null,
+            Encoding encoding = null,
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
+        {
+            var stringText = SourceText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
+            var tree = SyntaxFactory.ParseSyntaxTree(stringText, options ?? TestOptions.RegularPreview, path);
+            CheckSerializable(tree);
+            return tree;
+        }
+
+        private static void CheckSerializable(SyntaxTree tree)
+        {
+            using var stream = new MemoryStream();
+            var root = tree.GetRoot();
+            root.SerializeTo(stream);
+            stream.Position = 0;
+
+            // verify absence of exception:
+            _ = CSharpSyntaxNode.DeserializeFrom(stream);
+        }
+
         public SyntaxTree[] GetSyntaxTrees(CSharpParseOptions parseOptions, string sourceFileName = "")
         {
             switch (Value)
             {
                 case string source:
-                    return new[] { CSharpTestBase.Parse(source, filename: sourceFileName, parseOptions) };
+                    return new[] { Parse(source, path: sourceFileName, parseOptions) };
                 case string[] sources:
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return CSharpTestBase.Parse(parseOptions, sources);
@@ -41,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     return new[] { CSharpTestBase.Parse(source, fileName, parseOptions) };
                 case (string Source, string FileName)[] sources:
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
-                    return sources.Select(source => CSharpTestBase.Parse(source.Source, source.FileName, parseOptions)).ToArray();
+                    return sources.Select(source => Parse(source.Source, source.FileName, parseOptions)).ToArray();
                 case SyntaxTree tree:
                     Debug.Assert(parseOptions == null);
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));

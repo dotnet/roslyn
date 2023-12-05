@@ -52,8 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             {
                 var compilation = compilationContext.Compilation;
                 var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
-                compilationContext.RegisterSyntaxNodeAction(
-                    syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument);
+
+                // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
+                // get callbacks for Argument nodes, but analyze nodes across the entire code block
+                // and eventually report a diagnostic on the local declaration node.
+                // Without the containing CodeBlockStartAction, our reported diagnostic would be classified
+                // as a non-local diagnostic and would not participate in lightbulb for computing code fixes.
+                compilationContext.RegisterCodeBlockStartAction<SyntaxKind>(blockStartContext =>
+                    blockStartContext.RegisterSyntaxNodeAction(
+                        syntaxContext => AnalyzeSyntaxNode(syntaxContext, expressionType), SyntaxKind.Argument));
             });
         }
 

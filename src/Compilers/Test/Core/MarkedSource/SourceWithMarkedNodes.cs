@@ -21,10 +21,12 @@ namespace Roslyn.Test.Utilities
         /// The source with markers stripped out, that was used to produce the tree
         /// </summary>
         public readonly string Source;
+
         /// <summary>
-        /// The original input source, with markers in tact
+        /// The original input source with markers intact.
         /// </summary>
         public readonly string Input;
+
         public readonly SyntaxTree Tree;
         public readonly ImmutableArray<MarkedSpan> MarkedSpans;
         public readonly ImmutableArray<ValueTuple<TextSpan, int, int>> SpansAndKindsAndIds;
@@ -140,13 +142,11 @@ namespace Roslyn.Test.Utilities
             return builder.ToImmutableDictionary();
         }
 
-        public static Func<SyntaxNode, SyntaxNode> GetSyntaxMap(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1)
+        public static Func<SyntaxNode, SyntaxNode> GetSyntaxMap(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1, List<SyntaxNode> unmappedNodes = null)
         {
             var map0 = source0.MapMarksToSyntaxNodes();
             var map1 = source1.MapSyntaxNodesToMarks();
-#if DUMP
-            Console.WriteLine("========");
-#endif
+
             return new Func<SyntaxNode, SyntaxNode>(node1 =>
             {
                 if (map1.TryGetValue(node1, out var mark) && map0.TryGetValue(mark, out var result))
@@ -154,9 +154,7 @@ namespace Roslyn.Test.Utilities
                     return result;
                 }
 
-#if DUMP
-                Console.WriteLine($"? {node1.RawKind} [[{node1}]]");
-#endif
+                unmappedNodes?.Add(node1);
                 return null;
             });
         }

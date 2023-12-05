@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     public partial class MSBuildProjectLoader
     {
-        // the workspace that the projects and solutions are intended to be loaded into.
-        private readonly HostWorkspaceServices _workspaceServices;
+        // the services for the projects and solutions are intended to be loaded into.
+        private readonly SolutionServices _solutionServices;
 
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly PathResolver _pathResolver;
@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _dataGuard = new();
 
         internal MSBuildProjectLoader(
-            HostWorkspaceServices workspaceServices,
+            SolutionServices solutionServices,
             DiagnosticReporter diagnosticReporter,
             ProjectFileLoaderRegistry? projectFileLoaderRegistry,
             ImmutableDictionary<string, string>? properties)
         {
-            _workspaceServices = workspaceServices;
+            _solutionServices = solutionServices;
             _diagnosticReporter = diagnosticReporter;
             _pathResolver = new PathResolver(_diagnosticReporter);
-            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspaceServices, _diagnosticReporter);
+            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(solutionServices, _diagnosticReporter);
 
             Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
-            : this(workspace.Services, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
+            : this(workspace.Services.SolutionServices, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
         }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
-                _workspaceServices,
+                _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
-                _workspaceServices,
+                _solutionServices,
                 _diagnosticReporter,
                 _pathResolver,
                 _projectFileLoaderRegistry,

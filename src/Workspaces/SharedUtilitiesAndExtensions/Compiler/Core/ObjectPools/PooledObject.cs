@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             _releaser = releaser;
         }
 
-        public T Object => _pooledObject;
+        public readonly T Object => _pooledObject;
 
         public void Dispose()
         {

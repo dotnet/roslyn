@@ -172,6 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
                     .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
                     .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
+                    .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1 + version)
                     .WithHasAllInformation(projectId, (version % 2) != 0)
                     .WithRunAnalyzers(projectId, (version % 2) != 0);
             }
@@ -186,6 +187,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
                 Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
                 Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
+                Assert.Equal(SourceHashAlgorithm.Sha1 + version, project.State.ChecksumAlgorithm);
                 Assert.Equal((version % 2) != 0, project.State.HasAllInformation);
                 Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
             }
@@ -439,7 +441,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Theory, CombinatorialData]
-        [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48564")]
         public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
         {
             using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
@@ -467,8 +469,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ? FormattingOptions2.NewLine.DefaultValue
                 : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
             solution = solution.WithOptions(solution.Options
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, newOptionValue)
-                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, newOptionValue));
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, newOptionValue)
+                .WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);

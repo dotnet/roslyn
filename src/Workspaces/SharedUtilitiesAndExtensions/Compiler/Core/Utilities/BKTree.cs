@@ -63,9 +63,9 @@ namespace Roslyn.Utilities
         }
 
         public static BKTree Create(params string[] values)
-            => Create(values.Select(v => v.AsMemory()));
+            => Create((IEnumerable<string>)values);
 
-        public static BKTree Create(IEnumerable<ReadOnlyMemory<char>> values)
+        public static BKTree Create(IEnumerable<string> values)
             => new Builder(values).Create();
 
         public IList<string> Find(string value, int? threshold = null)

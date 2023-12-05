@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateMethodCodeFixProvider());
 
         [Fact]
@@ -134,7 +132,7 @@ class Class
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
         }
 
-        [Fact, WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11518")]
         public async Task NameMatchesNamespaceName()
         {
             await TestInRegularAndScriptAsync(
@@ -713,7 +711,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestOutRefArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -734,6 +732,39 @@ class Class
     }
 
     private void Goo(out object a, ref object b)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54212")]
+        public async Task TestInArgument()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Example
+{
+    void M()
+    {
+        int i = 0;
+        [|M2(in i)|];
+    }
+}",
+@"
+using System;
+
+class Example
+{
+    void M()
+    {
+        int i = 0;
+        [|M2(in i)|];
+    }
+
+    private void M2(in int i)
     {
         throw new NotImplementedException();
     }
@@ -767,7 +798,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestParenthesizedArgumentName()
         {
             await TestInRegularAndScriptAsync(
@@ -794,7 +825,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestCastedArgumentName()
         {
             await TestInRegularAndScriptAsync(
@@ -1099,7 +1130,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestDuplicateNames()
         {
             await TestInRegularAndScriptAsync(
@@ -1126,7 +1157,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestDuplicateNamesWithNamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -1723,7 +1754,7 @@ interface ISibling
 }");
         }
 
-        [Fact, WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29584")]
         public async Task TestGenerateAbstractIntoSameType()
         {
             await TestInRegularAndScriptAsync(
@@ -1746,7 +1777,7 @@ interface ISibling
 index: 1);
         }
 
-        [Fact, WorkItem(537906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
         public async Task TestMethodReturningDynamic()
         {
             await TestInRegularAndScriptAsync(
@@ -1773,7 +1804,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(537906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
         public async Task TestMethodTakingDynamicArg()
         {
             await TestInRegularAndScriptAsync(
@@ -1823,7 +1854,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(537972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537972")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537972")]
         public async Task TestWithNamedOptionalArg2()
         {
             await TestInRegularAndScriptAsync(
@@ -1964,7 +1995,7 @@ class C2 : I2
 count: 1);
         }
 
-        [Fact, WorkItem(527278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527278")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527278")]
         public async Task TestInvocationOffOfBase()
         {
             await TestInRegularAndScriptAsync(
@@ -2375,7 +2406,7 @@ struct S
 }");
         }
 
-        [Fact, WorkItem(527291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527291")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527291")]
         public async Task TestInvocationOffOfIndexer()
         {
             await TestInRegularAndScriptAsync(
@@ -2439,7 +2470,7 @@ class Goo
 }");
         }
 
-        [Fact, WorkItem(527292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527292")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527292")]
         public async Task TestInvocationWithinForEach()
         {
             await TestInRegularAndScriptAsync(
@@ -2505,7 +2536,7 @@ class C8A
 }");
         }
 
-        [Fact, WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48064")]
         public async Task TestInvocationWithinSynchronousForEach()
         {
             await TestInRegularAndScriptAsync(
@@ -2540,7 +2571,7 @@ interface ISomeInterface
 }");
         }
 
-        [Fact, WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48064")]
         public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableDoesNotExist_FallbackToIEnumerable()
         {
             await TestInRegularAndScriptAsync(
@@ -2575,7 +2606,7 @@ interface ISomeInterface
 }");
         }
 
-        [Fact, WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48064")]
         public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerable()
         {
             await TestInRegularAndScriptAsync(
@@ -2610,7 +2641,7 @@ interface ISomeInterface
 " + IAsyncEnumerable);
         }
 
-        [Fact, WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48064")]
         public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerableOfString()
         {
             await TestInRegularAndScriptAsync(
@@ -2878,7 +2909,7 @@ namespace NS13A
 }");
         }
 
-        [Fact, WorkItem(538353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538353")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538353")]
         public async Task TestGenerateIntoAppropriatePart()
         {
             await TestInRegularAndScriptAsync(
@@ -2913,7 +2944,7 @@ public partial class C
 }");
         }
 
-        [Fact, WorkItem(538541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538541")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538541")]
         public async Task TestGenerateWithVoidArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -2948,7 +2979,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
         public async Task TestGenerateInSimpleLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -3006,7 +3037,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestGenerateInAsyncTaskOfTSimpleLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -3037,7 +3068,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestGenerateInAsyncTaskOfTParenthesizedLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -3068,7 +3099,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestGenerateInAsyncTaskSimpleLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -3099,7 +3130,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(30232, "https://github.com/dotnet/roslyn/issues/30232")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30232")]
         public async Task TestGenerateInAsyncTaskParenthesizedLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -3223,7 +3254,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface1()
         {
             await TestInRegularAndScriptAsync(
@@ -3250,7 +3281,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface2()
         {
             await TestInRegularAndScriptAsync(
@@ -3277,7 +3308,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface3()
         {
             await TestInRegularAndScriptAsync(
@@ -3304,7 +3335,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface4()
         {
             await TestInRegularAndScriptAsync(
@@ -3331,7 +3362,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface5()
         {
             await TestInRegularAndScriptAsync(
@@ -3358,7 +3389,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3375,7 +3406,7 @@ class A : I
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface7()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -3391,7 +3422,7 @@ class A
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface8()
         {
             await TestInRegularAndScriptAsync(
@@ -3418,7 +3449,7 @@ class A : I<int>
 }");
         }
 
-        [Fact, WorkItem(539024, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539024")]
         public async Task TestGenerateOffOfExplicitInterface9()
         {
             // TODO(cyrusn): It might be nice if we generated "Goo(T i)" here in the future.
@@ -3553,7 +3584,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         public async Task TestEscapedName()
         {
             await TestInRegularAndScriptAsync(
@@ -3580,7 +3611,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(539489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539489")]
         public async Task TestEscapedKeyword()
         {
             await TestInRegularAndScriptAsync(
@@ -3607,7 +3638,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         public async Task TestUnmentionableTypeParameter1()
         {
             await TestInRegularAndScriptAsync(
@@ -3641,7 +3672,7 @@ class B
 }");
         }
 
-        [Fact, WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         public async Task TestUnmentionableTypeParameter2()
         {
             await TestInRegularAndScriptAsync(
@@ -3668,7 +3699,7 @@ class Class<A>
 }");
         }
 
-        [Fact, WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         public async Task TestUnmentionableTypeParameter3()
         {
             await TestInRegularAndScriptAsync(
@@ -3701,7 +3732,7 @@ class Class<A>
 }");
         }
 
-        [Fact, WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         public async Task TestUnmentionableTypeParameter4()
         {
             await TestInRegularAndScriptAsync(
@@ -3734,7 +3765,7 @@ class Class<A>
 }");
         }
 
-        [Fact, WorkItem(539527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539527")]
         public async Task TestUnmentionableTypeParameter5()
         {
             await TestInRegularAndScriptAsync(
@@ -3767,7 +3798,7 @@ class Class<A>
 }");
         }
 
-        [Fact, WorkItem(539596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539596")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539596")]
         public async Task TestUnmentionableTypeParameter6()
         {
             await TestInRegularAndScriptAsync(
@@ -3794,7 +3825,7 @@ class Test
 }");
         }
 
-        [Fact, WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
         public async Task TestUnmentionableTypeParameter7()
         {
             await TestInRegularAndScriptAsync(
@@ -3821,7 +3852,7 @@ class H<T>
 }");
         }
 
-        [Fact, WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
         public async Task TestUnmentionableTypeParameter8()
         {
             await TestInRegularAndScriptAsync(
@@ -3848,7 +3879,7 @@ class H<T1, T2>
 }");
         }
 
-        [Fact, WorkItem(539597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539597")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539597")]
         public async Task TestOddErrorType()
         {
             await TestInRegularAndScriptAsync(
@@ -3875,7 +3906,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(539594, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539594")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539594")]
         public async Task TestGenericOverloads()
         {
             await TestInRegularAndScriptAsync(
@@ -3924,7 +3955,7 @@ class CA
 }");
         }
 
-        [Fact, WorkItem(537929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537929")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537929")]
         public async Task TestInScript1()
         {
             await TestAsync(
@@ -4024,7 +4055,7 @@ parseOptions: GetScriptOptions());
 }");
         }
 
-        [Fact, WorkItem(539571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
         public async Task TestSimplification1()
         {
             await TestInRegularAndScriptAsync(
@@ -4063,7 +4094,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539571")]
         public async Task TestSimplification2()
         {
             await TestInRegularAndScriptAsync(
@@ -4092,7 +4123,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
         public async Task TestClashesWithMethod1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4109,7 +4140,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539618")]
         public async Task TestClashesWithMethod2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4124,7 +4155,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539637")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539637")]
         public async Task TestReservedParametername1()
         {
             await TestInRegularAndScriptAsync(
@@ -4153,7 +4184,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539751, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539751")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539751")]
         public async Task TestShadows1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4169,7 +4200,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539769, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539769")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539769")]
         public async Task TestShadows2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4188,7 +4219,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(539781, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539781")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539781")]
         public async Task TestInTopLevelMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -4209,7 +4240,7 @@ void Goo()
 }");
         }
 
-        [Fact, WorkItem(539823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539823")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539823")]
         public async Task TestLambdaReturnType()
         {
             await TestInRegularAndScriptAsync(
@@ -4304,7 +4335,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539871")]
         public async Task TestDelegateScenario()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4319,7 +4350,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         public async Task TestInheritedTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -4350,7 +4381,7 @@ interface I<T, R>
 }");
         }
 
-        [Fact, WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         public async Task TestInheritedTypeParameters2()
         {
             await TestInRegularAndScriptAsync(
@@ -4381,7 +4412,7 @@ interface I<T>
 }");
         }
 
-        [Fact, WorkItem(539928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539928")]
         public async Task TestInheritedTypeParameters3()
         {
             await TestInRegularAndScriptAsync(
@@ -4412,7 +4443,7 @@ interface I<X>
 }");
         }
 
-        [Fact, WorkItem(538995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538995")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538995")]
         public async Task TestBug4777()
         {
             await TestInRegularAndScriptAsync(
@@ -4447,7 +4478,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539856")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539856")]
         public async Task TestGenerateOnInvalidInvocation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4464,7 +4495,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(539752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539752")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539752")]
         public async Task TestMissingOnMultipleLambdaInferences()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4496,7 +4527,7 @@ class C<T> : List<T>
 }");
         }
 
-        [Fact, WorkItem(540505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540505")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540505")]
         public async Task TestParameterTypeAmbiguity()
         {
             await TestInRegularAndScriptAsync(
@@ -4539,7 +4570,7 @@ namespace N
 }");
         }
 
-        [Fact, WorkItem(541176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
         public async Task TestTernaryWithBodySidesBroken1()
         {
             await TestInRegularAndScriptAsync(
@@ -4568,7 +4599,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(541176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541176")]
         public async Task TestTernaryWithBodySidesBroken2()
         {
             await TestInRegularAndScriptAsync(
@@ -4621,7 +4652,7 @@ public static class MyExtension
 }");
         }
 
-        [Fact, WorkItem(541405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541405")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541405")]
         public async Task TestMissingOnImplementedInterfaceMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4638,7 +4669,7 @@ interface ITest
 }");
         }
 
-        [Fact, WorkItem(541660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541660")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541660")]
         public async Task TestDelegateNamedVar()
         {
             await TestInRegularAndScriptAsync(
@@ -4671,7 +4702,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(540991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540991")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540991")]
         public async Task TestErrorVersusNamedTypeInSignature()
         {
             await TestMissingAsync(
@@ -4704,7 +4735,7 @@ new TestParameters(Options.Regular));
         [InlineData("struct")]
         [InlineData("new()")]
         [InlineData("unmanaged")]
-        [WorkItem(542529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542529")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542529")]
         public async Task TestTypeParameterConstraints(string constraint)
         {
             await TestInRegularAndScriptAsync(
@@ -4741,7 +4772,7 @@ class Program
 }}");
         }
 
-        [Fact, WorkItem(542622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542622")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542622")]
         public async Task TestLambdaTypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -4777,7 +4808,7 @@ class Program
         [InlineData("struct")]
         [InlineData("new()")]
         [InlineData("unmanaged")]
-        [WorkItem(542626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542626")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542626")]
         public async Task TestMethodConstraints(string constraint)
         {
             await TestInRegularAndScriptAsync(
@@ -4814,7 +4845,7 @@ class Program
 }}");
         }
 
-        [Fact, WorkItem(542627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542627")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542627")]
         public async Task TestCaptureMethodTypeParametersReferencedInOuterType1()
         {
             await TestInRegularAndScriptAsync(
@@ -4844,7 +4875,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(542658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542658")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542658")]
         public async Task TestCaptureTypeParametersInConstraints()
         {
             await TestInRegularAndScriptAsync(
@@ -4875,7 +4906,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(542659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542659")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542659")]
         public async Task TestConstraintOrder1()
         {
             await TestInRegularAndScriptAsync(
@@ -4926,7 +4957,7 @@ class C : B<Exception>
 }");
         }
 
-        [Fact, WorkItem(542678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542678")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542678")]
         public async Task TestConstraintOrder2()
         {
             await TestInRegularAndScriptAsync(
@@ -4977,7 +5008,7 @@ class C<U> : B<Exception, U>
 }");
         }
 
-        [Fact, WorkItem(542674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542674")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542674")]
         public async Task TestGenerateStaticMethodInField()
         {
             await TestInRegularAndScriptAsync(
@@ -5000,7 +5031,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(542680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542680")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542680")]
         public async Task TestGenerateIntoConstrainedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -5029,7 +5060,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(542750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542750")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542750")]
         public async Task TestCaptureOuterTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -5071,7 +5102,7 @@ class D
 }");
         }
 
-        [Fact, WorkItem(542744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542744")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542744")]
         public async Task TestMostDerivedTypeParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -5122,7 +5153,7 @@ class C<U> : B<ArgumentException>
 }");
         }
 
-        [Fact, WorkItem(543152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543152")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543152")]
         public async Task TestAnonymousTypeArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -5194,7 +5225,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(543336, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543336")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543336")]
         public async Task TestGenerateImplicitlyTypedArrays()
         {
             await TestInRegularAndScriptAsync(
@@ -5221,7 +5252,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(543510, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543510")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543510")]
         public async Task TestGenericArgWithMissingTypeParameter()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5239,7 +5270,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(544334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544334")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544334")]
         public async Task TestDuplicateWithErrorType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5430,8 +5461,8 @@ class C
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
-        [WorkItem(545397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545397")]
         public async Task TestVarParameterTypeName()
         {
             await TestInRegularAndScriptAsync(
@@ -5462,7 +5493,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(545269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545269")]
         public async Task TestGenerateInVenus1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -5478,7 +5509,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(538521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538521")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538521")]
         public async Task TestWithYieldReturnInMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -5538,7 +5569,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
         public async Task TestWithYieldReturnInLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -5574,7 +5605,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(784793, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784793")]
         public async Task TestGenerateMethodMissingForAnyArgumentInInvocationHavingErrorTypeAndNotBelongingToEnclosingNamedType()
         {
             await TestInRegularAndScriptAsync(
@@ -5601,7 +5632,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")]
         public async Task TestGenerateMethodWithLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -5632,7 +5663,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestGenerateMethodForDifferentParameterName()
         {
             await TestInRegularAndScriptAsync(
@@ -5665,7 +5696,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")]
         public async Task TestGenerateMethodForDifferentParameterNameCaseSensitive()
         {
             await TestInRegularAndScriptAsync(
@@ -5698,7 +5729,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")]
         public async Task TestGenerateMethodForSameNamedButGenericUsage()
         {
             await TestInRegularAndScriptAsync(
@@ -5739,7 +5770,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(910589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910589")]
         public async Task TestGenerateMethodForNewErrorCodeCS7036()
         {
             await TestInRegularAndScriptAsync(
@@ -5766,7 +5797,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(934729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934729")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/934729")]
         public async Task TestGenerateMethodUnknownReturnTypeInLambda()
         {
             await TestInRegularAndScriptAsync(
@@ -5794,7 +5825,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodInUnsafeMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -5817,7 +5848,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodInUnsafeMethodWithPointerArray()
         {
             await TestInRegularAndScriptAsync(
@@ -5844,7 +5875,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodInUnsafeBlock()
         {
             await TestInRegularAndScriptAsync(
@@ -5883,7 +5914,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodInUnsafeMethodNoPointersInParameterList()
         {
             await TestInRegularAndScriptAsync(
@@ -5906,7 +5937,7 @@ class C {
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodInUnsafeBlockNoPointers()
         {
             await TestInRegularAndScriptAsync(
@@ -5945,7 +5976,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodUnsafeReturnType()
         {
             await TestInRegularAndScriptAsync(
@@ -5972,7 +6003,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodUnsafeClass()
         {
             await TestInRegularAndScriptAsync(
@@ -5999,7 +6030,7 @@ unsafe class Program
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodUnsafeNestedClass()
         {
             await TestInRegularAndScriptAsync(
@@ -6032,7 +6063,7 @@ unsafe class Program
 }");
         }
 
-        [Fact, WorkItem(530177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530177")]
         public async Task TestGenerateMethodUnsafeNestedClass2()
         {
             await TestInRegularAndScriptAsync(
@@ -6078,7 +6109,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf()
         {
             await TestInRegularAndScriptAsync(
@@ -6105,7 +6136,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf2()
         {
             await TestInRegularAndScriptAsync(
@@ -6132,7 +6163,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf3()
         {
             await TestInRegularAndScriptAsync(
@@ -6159,7 +6190,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf4()
         {
             await TestInRegularAndScriptAsync(
@@ -6201,7 +6232,7 @@ namespace Z
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6214,7 +6245,7 @@ namespace Z
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6228,7 +6259,7 @@ namespace Z
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf7()
         {
             await TestInRegularAndScriptAsync(
@@ -6259,7 +6290,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf8()
         {
             await TestInRegularAndScriptAsync(
@@ -6288,7 +6319,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf9()
         {
             await TestInRegularAndScriptAsync(
@@ -6315,7 +6346,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf10()
         {
             await TestInRegularAndScriptAsync(
@@ -6342,7 +6373,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf11()
         {
             await TestInRegularAndScriptAsync(
@@ -6369,7 +6400,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf12()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6389,7 +6420,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf13()
         {
             await TestInRegularAndScriptAsync(
@@ -6428,7 +6459,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf14()
         {
             await TestInRegularAndScriptAsync(
@@ -6467,7 +6498,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf15()
         {
             await TestInRegularAndScriptAsync(
@@ -6506,7 +6537,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")]
         public async Task TestGenerateMethodInsideNameOf16()
         {
             await TestInRegularAndScriptAsync(
@@ -6545,7 +6576,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1075289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075289")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075289")]
         public async Task TestGenerateMethodForInaccessibleMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -6600,7 +6631,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccessMissing()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -6613,7 +6644,7 @@ namespace ConsoleApplication1
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess()
         {
             await TestInRegularAndScriptAsync(
@@ -6640,7 +6671,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess2()
         {
             await TestInRegularAndScriptAsync(
@@ -6667,7 +6698,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess3()
         {
             await TestInRegularAndScriptAsync(
@@ -6694,7 +6725,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess4()
         {
             await TestInRegularAndScriptAsync(
@@ -6721,7 +6752,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestTestGenerateMethodInConditionalAccess5()
         {
             await TestInRegularAndScriptAsync(
@@ -6759,7 +6790,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess6()
         {
             await TestInRegularAndScriptAsync(
@@ -6797,7 +6828,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess7()
         {
             await TestInRegularAndScriptAsync(
@@ -6835,7 +6866,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
         public async Task TestGenerateMethodInConditionalAccess8()
         {
             await TestInRegularAndScriptAsync(
@@ -6873,8 +6904,8 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/39001")]
         public async Task TestGenerateMethodInConditionalAccess9()
         {
             await TestInRegularAndScriptAsync(
@@ -6964,7 +6995,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
         public async Task TestGenerateMethodInExpressionBodiedAsyncTaskOfTMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -6985,7 +7016,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
         public async Task TestGenerateMethodInExpressionBodiedAsyncTaskMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -7138,7 +7169,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestGenerateMethodWithConfigureAwaitFalse()
         {
             await TestInRegularAndScriptAsync(
@@ -7173,7 +7204,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestGenerateMethodWithMethodChaining()
         {
             await TestInRegularAndScriptAsync(
@@ -7208,7 +7239,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
         public async Task TestGenerateMethodWithMethodChaining2()
         {
             await TestInRegularAndScriptAsync(
@@ -7247,7 +7278,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestInCollectionInitializers1()
         {
             await TestInRegularAndScriptAsync(
@@ -7274,7 +7305,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
         public async Task TestInCollectionInitializers2()
         {
             await TestInRegularAndScriptAsync(
@@ -7301,7 +7332,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5338")]
         public async Task TestGenerateMethodLambdaOverload1()
         {
             await TestInRegularAndScriptAsync(
@@ -7344,7 +7375,7 @@ class Class1
 }");
         }
 
-        [Fact, WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
         public async Task TestGenerateMethodFromStaticProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -7379,7 +7410,7 @@ public class Test
 }");
         }
 
-        [Fact, WorkItem(8010, "https://github.com/dotnet/roslyn/issues/8010")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8010")]
         public async Task TestGenerateMethodFromStaticProperty_FieldInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -7430,7 +7461,7 @@ public class Test
 }");
         }
 
-        [Fact, WorkItem(8230, "https://github.com/dotnet/roslyn/issues/8230")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8230")]
         public async Task TestGenerateMethodForOverloadedSignatureWithDelegateType()
         {
             await TestInRegularAndScriptAsync(
@@ -7481,7 +7512,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10004")]
         public async Task TestGenerateMethodWithMultipleOfSameGenericType()
         {
             await TestInRegularAndScriptAsync(
@@ -7518,7 +7549,7 @@ public static class Ex
 }");
         }
 
-        [Fact, WorkItem(11141, "https://github.com/dotnet/roslyn/issues/11141")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11141")]
         public async Task InferTypeParameters1()
         {
             await TestInRegularAndScriptAsync(
@@ -7549,7 +7580,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
         public async Task MethodWithNativeIntegerTypes()
         {
             await TestInRegularAndScriptAsync(
@@ -7655,7 +7686,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -7682,7 +7713,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
@@ -7709,7 +7740,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ImplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -7736,7 +7767,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(12147, "https://github.com/dotnet/roslyn/issues/12147")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12147")]
         public async Task TestOutVariableDeclaration_ExplicitlyTyped_NamedArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -7875,7 +7906,7 @@ class Class
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
         }
 
-        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction1()
         {
             await TestAsync(
@@ -7905,7 +7936,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction2()
         {
             await TestAsync(
@@ -7936,7 +7967,7 @@ parseOptions: TestOptions.Regular);
         }
 
         [Fact/*(Skip = "https://github.com/dotnet/roslyn/issues/15508")*/]
-        [WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction3()
         {
             await TestAsync(
@@ -7966,7 +7997,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(14136, "https://github.com/dotnet/roslyn/issues/14136")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14136")]
         public async Task TestDeconstruction4()
         {
             await TestAsync(
@@ -7996,7 +8027,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(15315, "https://github.com/dotnet/roslyn/issues/15315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15315")]
         public async Task TestInferBooleanTypeBasedOnName1()
         {
             await TestInRegularAndScriptAsync(
@@ -8023,7 +8054,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(15315, "https://github.com/dotnet/roslyn/issues/15315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15315")]
         public async Task TestInferBooleanTypeBasedOnName2()
         {
             await TestInRegularAndScriptAsync(
@@ -8050,7 +8081,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(16398, "https://github.com/dotnet/roslyn/issues/16398")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16398")]
         public async Task TestReturnsByRef()
         {
             await TestInRegularAndScriptAsync(
@@ -8081,7 +8112,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18969")]
         public async Task TestTupleElement1()
         {
             await TestAsync(
@@ -8111,7 +8142,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(18969, "https://github.com/dotnet/roslyn/issues/18969")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18969")]
         public async Task TestTupleElement2()
         {
             await TestAsync(
@@ -8141,7 +8172,7 @@ class C
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestTupleAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -8172,7 +8203,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
         public async Task TestTupleAssignment2()
         {
             await TestInRegularAndScriptAsync(
@@ -8201,7 +8232,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName1()
         {
             await TestAsync(
@@ -8235,7 +8266,7 @@ class Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName2()
         {
             await TestAsync(
@@ -8269,7 +8300,7 @@ interface Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName3()
         {
             await TestAsync(
@@ -8303,7 +8334,7 @@ struct Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName4()
         {
             await TestAsync(
@@ -8337,7 +8368,7 @@ delegate void Goo()",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName5()
         {
             await TestAsync(
@@ -8371,7 +8402,7 @@ namespace Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16975")]
         public async Task TestWithSameMethodNameAsTypeName6()
         {
             await TestAsync(
@@ -8405,7 +8436,7 @@ enum Goo { One }",
 parseOptions: TestOptions.Regular);
         }
 
-        [Fact, WorkItem(26957, "https://github.com/dotnet/roslyn/issues/26957")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26957")]
         public async Task NotOnNonExistedMetadataMemberWhenInsideLambda()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -8427,7 +8458,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInExpressionBodiedGetter()
         {
             await TestInRegularAndScriptAsync(
@@ -8454,7 +8485,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInExpressionBodiedSetter()
         {
             await TestInRegularAndScriptAsync(
@@ -8481,7 +8512,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInExpressionBodiedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -8508,7 +8539,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
         public async Task TestGenerateMethodInExpressionBodiedAsyncTaskOfTLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -8535,7 +8566,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(27647, "https://github.com/dotnet/roslyn/issues/27647")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27647")]
         public async Task TestGenerateMethodInExpressionBodiedAsyncTaskLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -8589,7 +8620,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInBlockBodiedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -8655,7 +8686,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInBlockBodiedLocalFunctionInsideLambdaExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -8698,7 +8729,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26993")]
         public async Task TestGenerateMethodInExpressionBodiedLocalFunctionInsideLambdaExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -8735,7 +8766,7 @@ class Class
 }");
         }
 
-        [Fact, WorkItem(24138, "https://github.com/dotnet/roslyn/issues/24138")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24138")]
         public async Task TestInCaseWhenClause()
         {
             await TestInRegularAndScriptAsync(
@@ -9054,8 +9085,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        [WorkItem(63883, "https://github.com/dotnet/roslyn/issues/63883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63883")]
         public async Task TestNullableCoalesce()
         {
             await TestInRegularAndScriptAsync(
@@ -9082,6 +9112,534 @@ class Example
 
     int? C() => null;
 }");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28996")]
+        public async Task TestPreferOverloadWithMatchingParameterCount()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
+}",
+@"using System;
+
+abstract class Barry
+{
+    public void Method()
+    {
+        Goo([|Baz|], null);
+    }
+
+    private void Baz(object obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected abstract void Goo(Action action);
+    protected abstract void Goo(Action<object> action, object arg);
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        return v;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        if (v)
+        {
+        }
+    }
+
+    private bool NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var v = [|NewExpr()|];
+        var x = v;
+        return x;
+    }
+
+    private int NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44861")]
+        public async Task GenerateBasedOnFutureUsage4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    void Goo(string x, int y) { }
+}",
+@"using System;
+
+class C
+{
+    int M()
+    {
+        var (x, y) = [|NewExpr()|];
+        Goo(x, y);
+    }
+
+    private (string x, int y) NewExpr()
+    {
+        throw new NotImplementedException();
+    }
+
+    void Goo(string x, int y) { }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12708")]
+        public async Task GenerateEventHookupWithExistingMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += [|OnChanged|];
+    }
+
+    private void OnChanged() { }
+}",
+@"using System;
+using System.Collections.Specialized;
+
+class Program
+{
+    void Main(string[] args)
+    {
+        INotifyCollectionChanged collection = null;
+        collection.CollectionChanged += OnChanged;
+    }
+
+    private void OnChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnChanged() { }
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29761")]
+        public async Task GenerateAlternativeNamesForFuncActionDelegates2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction([|Analyze|]);
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        RegisterOperationAction(Analyze);
+    }
+
+    private void Analyze(Context context1, Context context2)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RegisterOperationAction(Action<Context, Context> analyze)
+    {
+    }
+}
+
+class Context
+{
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => [|Goo()|],
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private int Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private int Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    private int Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => [|Goo()|],
+                            "a" => Bar(),
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private object Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37825")]
+        public async Task InferTypeFromNextSwitchArm3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => [|Bar()|],
+                        };
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class E
+                {
+                    void M(string s)
+                    {
+                        var v = s switch
+                        {
+                            "" => Goo(),
+                            "a" => Bar(),
+                        };
+                    }
+
+                    private object Bar()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         int* i = &[|Goo|]();
+                    }
+                }
+                """,
+                """
+                using System;
+
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         int* i = &Goo();
+                    }
+                
+                    private static int Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &[|Goo|];
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &Goo;
+                    }
+
+                    private static void Goo()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50764")]
+        public async Task InferMethodFromAddressOf3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<int, bool> i = &[|Goo|];
+                    }
+                }
+                """,
+                """
+                using System;
+                
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<int, bool> i = &Goo;
+                    }
+                
+                    private static bool Goo(int arg)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
         }
     }
 }

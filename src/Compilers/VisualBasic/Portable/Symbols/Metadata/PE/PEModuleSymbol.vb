@@ -340,8 +340,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' First, check this module
             Dim currentModuleResult As NamedTypeSymbol = Me.LookupTopLevelMetadataType(emittedName)
+            Debug.Assert(If(Not currentModuleResult?.IsErrorType(), True))
 
-            If IsAcceptableSystemTypeSymbol(currentModuleResult) Then
+            If currentModuleResult IsNot Nothing Then
+                Debug.Assert(IsAcceptableSystemTypeSymbol(currentModuleResult))
+
                 ' It doesn't matter if there's another System.Type in a referenced assembly -
                 ' we prefer the one in the current module.
                 Return currentModuleResult
@@ -350,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' If we didn't find it in this module, check the referenced assemblies
             Dim referencedAssemblyResult As NamedTypeSymbol = Nothing
             For Each assembly As AssemblySymbol In Me.GetReferencedAssemblySymbols()
-                Dim currResult As NamedTypeSymbol = assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+                Dim currResult As NamedTypeSymbol = assembly.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies:=Nothing)
                 If IsAcceptableSystemTypeSymbol(currResult) Then
                     If referencedAssemblyResult Is Nothing Then
                         referencedAssemblyResult = currResult
@@ -372,14 +375,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return referencedAssemblyResult
             End If
 
-            Debug.Assert(currentModuleResult IsNot Nothing)
-            Return currentModuleResult
+            Return New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
         End Function
 
-
         Private Shared Function IsAcceptableSystemTypeSymbol(candidate As NamedTypeSymbol) As Boolean
-            Return candidate.Kind <> SymbolKind.ErrorType AndAlso Not (TypeOf candidate Is MissingMetadataTypeSymbol)
-
+            Return candidate.Kind <> SymbolKind.ErrorType OrElse Not (TypeOf candidate Is MissingMetadataTypeSymbol)
         End Function
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
@@ -417,14 +417,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace
-                isNoPiaLocalType = False
-                result = New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
+                result = Nothing
             Else
-                result = scope.LookupMetadataType(emittedName, isNoPiaLocalType)
-                Debug.Assert(result IsNot Nothing)
+                result = scope.LookupMetadataType(emittedName)
+
+                If result Is Nothing Then
+                    result = scope.UnifyIfNoPiaLocalType(emittedName)
+
+                    If result IsNot Nothing Then
+                        isNoPiaLocalType = True
+                        Return result
+                    End If
+                End If
             End If
 
-            Return result
+            isNoPiaLocalType = False
+            Return If(result, New MissingMetadataTypeSymbol.TopLevel(Me, emittedName))
         End Function
 
         ''' <summary>
@@ -468,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
+                    Yield firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(name, visitedAssemblies:=Nothing)
                 End If
             Next
         End Function

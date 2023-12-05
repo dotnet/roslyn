@@ -100,13 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (builder.Count == 0)
                 return null;
 
-            if (builder.Count == 1 &&
-                builder[0].item.SourceSpans.Length <= 1)
+            if (builder is [{ item.SourceSpans.Length: <= 1, location: var location }])
             {
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
-
-                return builder[0].location;
+                return location;
             }
 
             if (presenter == null)

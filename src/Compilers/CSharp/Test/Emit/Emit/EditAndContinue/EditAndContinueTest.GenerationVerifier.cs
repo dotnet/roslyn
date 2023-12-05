@@ -101,10 +101,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
             }
 
+            internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
+                => _generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+
             internal void VerifyIL(string expectedIL)
-            {
-                _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
-            }
+                => _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
+
+            internal void VerifyIL(string qualifiedMemberName, string expectedIL)
+                => _generationInfo.CompilationDifference!.VerifyIL(qualifiedMemberName, expectedIL);
         }
     }
 }

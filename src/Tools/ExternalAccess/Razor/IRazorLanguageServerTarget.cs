@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface IRazorLanguageServerTarget : IAsyncDisposable
+    internal interface IRazorLanguageServerTarget
     {
     }
 }

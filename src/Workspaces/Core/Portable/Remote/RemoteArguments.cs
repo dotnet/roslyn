@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
 
-        [return: NotNullIfNotNull("alias")]
+        [return: NotNullIfNotNull(nameof(alias))]
         public static SerializableSymbolAndProjectId? Dehydrate(
             IAliasSymbol? alias, Document document, CancellationToken cancellationToken)
         {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
+                        $"We should always be able to resolve a symbol back on the host side:\r\n'{project.Name}-{project.Language}'\r\n'{SymbolKeyData}'\r\n'{failureReason}'");
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {

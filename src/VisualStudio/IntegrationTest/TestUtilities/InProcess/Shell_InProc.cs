@@ -12,9 +12,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static Shell_InProc Create() => new Shell_InProc();
 
-        public IntPtr GetHWnd()
-            => GetDTE().MainWindow.HWnd;
-
         public bool IsUIContextActive(Guid context)
         {
             return UIContext.FromUIContextGuid(context).IsActive;
@@ -32,7 +29,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 if (firstSpace >= 0)
                 {
                     // e.g. "17.1.31907.60 MAIN"
-                    fullVersion = fullVersion.Substring(0, firstSpace);
+                    fullVersion = fullVersion[..firstSpace];
                 }
 
                 if (Version.TryParse(fullVersion, out var version))

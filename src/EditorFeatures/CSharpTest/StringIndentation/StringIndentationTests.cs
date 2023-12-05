@@ -690,7 +690,7 @@ goo
 }");
         }
 
-        [Fact, WorkItem(1542623, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1542623")]
         public async Task TestWithManyConcatenatedStrings()
         {
             var input = new StringBuilder(

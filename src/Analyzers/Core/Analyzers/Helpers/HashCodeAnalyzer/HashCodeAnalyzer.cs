@@ -74,11 +74,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return default;
 
             // Unwind through nested blocks. This also handles if we're in an 'unchecked' block in C#
-            while (blockOperation.Operations.Length == 1 &&
-                   blockOperation.Operations[0] is IBlockOperation childBlock)
-            {
+            while (blockOperation.Operations is [IBlockOperation childBlock])
                 blockOperation = childBlock;
-            }
 
             var statements = blockOperation.Operations.WhereAsArray(o => !o.IsImplicit);
             var (accessesBase, members) =

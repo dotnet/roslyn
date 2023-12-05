@@ -24,7 +24,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WorkItem(530329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530329")>
         <WpfFact>
         Public Sub DontApplyForMustInheritProperty()
             VerifyStatementEndConstructNotApplied(
@@ -188,7 +188,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, WorkItem(536376, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536376")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536376")>
         Public Sub TestApplyForPropertyWithIndexer()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -208,7 +208,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Sub DontApplyForDuplicateGet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -222,7 +222,7 @@ End Class",
                 caret:={5, -1})
         End Sub
 
-        <WpfFact, WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Sub DontApplyForDuplicateSet()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -236,7 +236,7 @@ End Class",
                 caret:={5, -1})
         End Sub
 
-        <WpfFact, WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         Public Sub DontApplyForSetInReadOnly()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -247,7 +247,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WorkItem(536391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536391")>
         <WpfFact>
         Public Sub DontApplyForGetInReadOnly()
             VerifyStatementEndConstructNotApplied(
@@ -268,7 +268,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WorkItem(544197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544197")>
         <WpfFact>
         Public Sub DontApplyInsideAnInterface()
             VerifyStatementEndConstructNotApplied(
@@ -278,7 +278,7 @@ End Interface",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2096")>
         Public Sub TestDontGenerateSetForReadonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -295,7 +295,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, WorkItem(2096, "https://github.com/dotnet/roslyn/issues/2096")>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2096")>
         Public Sub TestDontGenerateGetForWriteonlyProperty()
             VerifyStatementEndConstructApplied(
                 before:="Class c1

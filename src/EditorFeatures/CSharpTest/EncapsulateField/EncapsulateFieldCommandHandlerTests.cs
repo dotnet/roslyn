@@ -121,7 +121,7 @@ class$$ C
             await state.AssertErrorAsync();
         }
 
-        [WorkItem(1086632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1086632")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task EncapsulateTwoFields()
         {

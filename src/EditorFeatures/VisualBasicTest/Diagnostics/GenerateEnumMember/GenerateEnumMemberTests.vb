@@ -151,7 +151,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, WorkItem(540540, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540540")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540540")>
         Public Async Function TestGenerateAfterEnumWithIntegerMaxValue() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -197,7 +197,7 @@ Enum Color As UShort
 End Enum")
         End Function
 
-        <Fact, WorkItem(540546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540546")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540546")>
         Public Async Function TestGenerateEnumMemberOfTypeLong() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -219,7 +219,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         Public Async Function TestGenerateAfterEnumWithLongMaxValueInHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -241,7 +241,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         Public Async Function TestGenerateAfterEnumWithLongMinValueInHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -331,7 +331,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540632")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540632")>
         Public Async Function TestGenerateAfterEnumWithULongMaxValue() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -496,7 +496,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, WorkItem(540549, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540549")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540549")>
         Public Async Function TestNoExtraneousStatementTerminatorBeforeCommentedMember() As Task
             Dim code = <Text>Module Program
     Sub Main(args As String())
@@ -525,7 +525,7 @@ End Enum</Text>.Value.Replace(vbLf, vbCrLf)
                     expected)
         End Function
 
-        <Fact, WorkItem(540552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540552")>
         Public Async Function TestGenerateAfterEnumWithMinValue() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -547,7 +547,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, WorkItem(540553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540553")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540553")>
         Public Async Function TestGenerateAfterEnumWithMinValuePlusConstant() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -569,7 +569,7 @@ Enum Color
 End Enum")
         End Function
 
-        <Fact, WorkItem(540556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540556")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540556")>
         Public Async Function TestGenerateAfterEnumWithByteMaxValue() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -657,7 +657,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         Public Async Function TestGenerateAfterEnumWithSByteMaxValueInOctal() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -679,7 +679,7 @@ Enum Color As SByte
 End Enum")
         End Function
 
-        <Fact, WorkItem(528207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528207")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528207")>
         Public Async Function TestAbsenceOfFixWhenImportingEnums() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports Color
@@ -717,7 +717,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540585")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540585")>
         Public Async Function TestGenerateIntoBitshiftEnum() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -743,7 +743,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(540566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540566")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540566")>
         Public Async Function TestKeywordName() As Task
             Await TestInRegularAndScriptAsync(
 "Imports Color
@@ -767,7 +767,7 @@ Enum Color As Byte
 End Enum")
         End Function
 
-        <Fact, WorkItem(540547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540547")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540547")>
         Public Async Function TestStandaloneReference() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -1132,7 +1132,7 @@ Module Program
 End Module")
         End Function
 
-        <Fact, WorkItem(540638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540638")>
         Public Async Function TestMaxHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -1156,7 +1156,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540636")>
         Public Async Function TestMinHex() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
@@ -1178,7 +1178,7 @@ Enum Color As Long
 End Enum")
         End Function
 
-        <Fact, WorkItem(540631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540631")>
         Public Async Function TestOctalBounds1() As Task
             Await TestInRegularAndScriptAsync(
 "Class A
@@ -1222,7 +1222,7 @@ Enum Color As ULong
 End Enum")
         End Function
 
-        <Fact, WorkItem(540604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540604")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540604")>
         Public Async Function TestWrapAround1() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -1283,7 +1283,7 @@ End Class
 #End ExternalSource")
         End Function
 
-        <Fact, WorkItem(544656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544656")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544656")>
         Public Async Function TestShortHexidecimalLiterals() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -1301,7 +1301,7 @@ Enum E As Short
 End Enum")
         End Function
 
-        <Fact, WorkItem(545937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545937")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545937")>
         Public Async Function TestUShortEnums() As Task
             Await TestInRegularAndScriptAsync(
 "Module M
@@ -1321,7 +1321,7 @@ Enum E As UShort
 End Enum")
         End Function
 
-        <Fact, WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49679")>
         Public Async Function TestWithLeftShift_Long() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program

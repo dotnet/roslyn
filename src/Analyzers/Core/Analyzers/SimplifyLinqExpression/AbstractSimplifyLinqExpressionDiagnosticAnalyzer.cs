@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 {
                     var parameters = whereMethodSymbol.Parameters;
 
-                    if (parameters.Length == 2 &&
-                        parameters.Last().Type is INamedTypeSymbol systemFunc &&
-                        systemFunc.Arity == 2)
+                    if (parameters is [_, { Type: INamedTypeSymbol { Arity: 2 } }])
                     {
                         // This is the where overload that does not take and index (i.e. Where(source, Func<T, bool>) vs Where(source, Func<T, int, bool>))
                         whereMethod = whereMethodSymbol;

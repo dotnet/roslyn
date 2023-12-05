@@ -149,7 +149,7 @@ $$");
     static $$");
         }
 
-        [Fact, WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
         public async Task TestInUnsafeLocalFunction()
         {
             await VerifyKeywordAsync(
@@ -165,7 +165,7 @@ $$");
 }");
         }
 
-        [Fact, WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
         public async Task TestNotInOrdinaryLocalFunction()
         {
             await VerifyAbsenceAsync(

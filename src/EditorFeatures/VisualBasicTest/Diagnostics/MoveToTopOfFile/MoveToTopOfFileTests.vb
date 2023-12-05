@@ -166,7 +166,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(601222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/601222")>
         Public Async Function TestOnlyMoveOptions() As Task
             Dim text = <File>
 Imports Sys = System
@@ -299,7 +299,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestOptionsMovedAfterBannerText() As Task
             Dim text = <File>
 ' Copyright
@@ -326,7 +326,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestOptionsMovedAfterBannerTextThatFollowsEndOfLineTrivia() As Task
             Dim text = <File>
 
@@ -355,7 +355,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestOptionsMovedAfterBannerTextFollowedByOtherOptions() As Task
             Dim text = <File>
 ' Copyright
@@ -384,7 +384,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestOptionsMovedToTopWithLeadingTriviaButNoBannerText() As Task
             Dim text = <File>
 #Const A = 5
@@ -411,7 +411,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestOptionsMovedAfterBannerTextWithImports() As Task
             Dim text = <File>
 
@@ -544,7 +544,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(7117, "https://github.com/dotnet/roslyn/issues/7117")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/7117")>
         Public Async Function TestAttributeMovedAfterBannerText() As Task
             Dim text = <File>
 ' Copyright
@@ -573,7 +573,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(600949, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/600949")>
         Public Async Function TestRemoveAttribute() As Task
             Dim text = <File>
 Class C
@@ -589,7 +589,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(606857, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606857")>
         Public Async Function TestMoveImportBeforeAttribute() As Task
             Dim text = <File>
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -603,7 +603,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(606877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606877")>
         Public Async Function TestNewLineWhenMovingFromEOF() As Task
             Dim text = <File>Imports System
 &lt;Assembly:CLSCompliant(True)&gt;
@@ -617,7 +617,7 @@ Imports System
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        <WorkItem(606851, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606851")>
         Public Async Function TestDoNotMoveLeadingWhitespace() As Task
             Dim text = <File>Imports System
  
@@ -633,7 +633,7 @@ Imports System
 #End Region
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
-        <WorkItem(632305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632305")>
         Public Async Function TestTestHiddenRegion() As Task
             Dim code =
 <File>

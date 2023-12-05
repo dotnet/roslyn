@@ -185,7 +185,7 @@ End Module");
             VisualStudio.Editor.Verify.CurrentParameter("b", "");
         }
 
-        [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
         [WpfFact]
         public void HandleBufferTextChangesDuringComputation()
         {

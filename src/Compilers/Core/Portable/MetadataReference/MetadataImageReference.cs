@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         protected override DocumentationProvider CreateDocumentationProvider()
         {
             // documentation provider is initialized in the constructor
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)

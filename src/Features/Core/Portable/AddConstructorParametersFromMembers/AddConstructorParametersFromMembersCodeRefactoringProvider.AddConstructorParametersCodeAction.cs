@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                     if (_useSubMenuName)
                     {
-                        return string.Format(FeaturesResources.Add_to_0, signature);
+                        return string.Format(CodeFixesResources.Add_to_0, signature);
                     }
                     else
                     {

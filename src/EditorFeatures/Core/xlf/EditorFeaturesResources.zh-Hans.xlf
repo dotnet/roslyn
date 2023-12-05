@@ -897,36 +897,6 @@
         <target state="translated">工作区中不包含该标记。</target>
         <note />
       </trans-unit>
-      <trans-unit id="You_must_rename_an_identifier">
-        <source>You must rename an identifier.</source>
-        <target state="translated">必须重命名标识符。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_this_element">
-        <source>You cannot rename this element.</source>
-        <target state="translated">无法重命名此元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
-        <source>Please resolve errors in your code before renaming this element.</source>
-        <target state="translated">请在重命名此元素前解决代码中的错误。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_operators">
-        <source>You cannot rename operators.</source>
-        <target state="translated">无法重命名运算符。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
-        <source>You cannot rename elements that are defined in metadata.</source>
-        <target state="translated">无法重命名元数据中定义的元素。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
-        <source>You cannot rename elements from previous submissions.</source>
-        <target state="translated">无法重命名来自之前提交的元素。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigation_Bars">
         <source>Navigation Bars</source>
         <target state="translated">导航栏</target>
@@ -1135,11 +1105,6 @@
       <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
         <source>Automatic Pair Completion End Point Marker Color</source>
         <target state="translated">自动配对完成终点标记颜色</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
-        <source>Renaming anonymous type members is not yet supported.</source>
-        <target state="translated">尚不支持重命名匿名类型成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">

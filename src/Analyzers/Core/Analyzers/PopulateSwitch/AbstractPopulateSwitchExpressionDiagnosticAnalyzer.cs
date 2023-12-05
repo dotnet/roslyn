@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected sealed override OperationKind OperationKind => OperationKind.SwitchExpression;
 
+        protected override IOperation GetValueOfSwitchOperation(ISwitchExpressionOperation operation)
+            => operation.Value;
+
         protected override bool IsSwitchTypeUnknown(ISwitchExpressionOperation operation)
             => operation.Value.Type is null;
 
@@ -28,5 +31,19 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected sealed override bool HasDefaultCase(ISwitchExpressionOperation operation)
             => PopulateSwitchExpressionHelpers.HasDefaultCase(operation);
+
+        protected override bool HasConstantCase(ISwitchExpressionOperation operation, object? value)
+        {
+            foreach (var arm in operation.Arms)
+            {
+                if (arm is { Guard: null, Pattern: IConstantPatternOperation constantPattern } &&
+                    ConstantValueEquals(constantPattern.Value.ConstantValue, value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

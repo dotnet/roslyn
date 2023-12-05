@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     2 => ImmutableArray.Create(_item0, _item1),
                     3 => ImmutableArray.Create(_item0, _item1, _item2),
                     4 => ImmutableArray.Create(_item0, _item1, _item2, _item3),
-                    _ => throw ExceptionUtilities.Unreachable,
+                    _ => throw ExceptionUtilities.Unreachable(),
                 };
 
                 // Since _builder is null on this path, we can overwrite the whole structure to Empty to reset all
@@ -275,6 +275,34 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             _count = 0;
             _builder = builder;
+        }
+
+        public void ReverseContents()
+        {
+            if (_builder is not null)
+            {
+                _builder.ReverseContents();
+                return;
+            }
+
+            switch (_count)
+            {
+                case <= 1:
+                    // if we have one or zero items, we're already reversed.
+                    return;
+                case 2:
+                    (_item0, _item1) = (_item1, _item0);
+                    return;
+                case 3:
+                    // Just need to swap the first and last items.  The middle one stays where it is.
+                    (_item0, _item2) = (_item2, _item0);
+                    return;
+                case 4:
+                    (_item0, _item1, _item2, _item3) = (_item3, _item2, _item1, _item0);
+                    return;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
         }
 
         /// <summary>

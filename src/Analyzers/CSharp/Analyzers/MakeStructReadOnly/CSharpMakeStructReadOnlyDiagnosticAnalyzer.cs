@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
@@ -90,7 +91,7 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (typeDeclaration is null)
             return false;
 
-        var options = new CSharpAnalyzerOptionsProvider(context.Options.AnalyzerConfigOptionsProvider.GetOptions(typeDeclaration.SyntaxTree), context.Options);
+        var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
         option = options.PreferReadOnlyStruct;
         if (!option.Value)
             return false;

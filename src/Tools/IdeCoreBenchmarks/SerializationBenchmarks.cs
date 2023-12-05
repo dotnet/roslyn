@@ -11,6 +11,7 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace IdeCoreBenchmarks
 {
@@ -39,7 +40,7 @@ namespace IdeCoreBenchmarks
                 }
 
                 var text = File.ReadAllText(file);
-                var tree = SyntaxFactory.ParseSyntaxTree(text);
+                var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default));
                 _rootList.Add(tree.GetCompilationUnitRoot());
             }
         }

@@ -1300,7 +1300,6 @@ class Class
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
-
         [Fact]
         public void TestCollisionInsideUsing()
         {

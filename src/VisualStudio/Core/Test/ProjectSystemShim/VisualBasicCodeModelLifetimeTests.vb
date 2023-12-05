@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicCodeModelLifetimeTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(33080, "https://github.com/dotnet/roslyn/issues/33080")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/33080")>
         Public Sub RemovingAndReAddingSourceFileWorksCorrectly()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")

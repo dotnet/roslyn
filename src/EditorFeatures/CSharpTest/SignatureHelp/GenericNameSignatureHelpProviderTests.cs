@@ -427,7 +427,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn1()
         {
             var markup = @"
@@ -455,7 +455,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn2()
         {
             var markup = @"
@@ -475,7 +475,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn1XmlDoc()
         {
             var markup = @"
@@ -500,7 +500,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWith2ParametersOn2XmlDoc()
         {
             var markup = @"
@@ -557,7 +557,7 @@ static class GooClass
 
         #region "Constraints on generic methods"
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWithConstraintsMixed1()
         {
             var markup = @"
@@ -588,7 +588,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(544091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544091")]
         public async Task InvokingGenericMethodWithConstraintsMixed2()
         {
             var markup = @"
@@ -825,7 +825,7 @@ public class C<T>
         }
         #endregion
 
-        [Fact, WorkItem(1083601, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083601")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083601")]
         public async Task DeclaringGenericTypeWithBadTypeArgumentList()
         {
             var markup = @"
@@ -843,7 +843,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
-        [Fact, WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50114")]
         public async Task DeclaringGenericTypeWithDocCommentList()
         {
             var markup = @"

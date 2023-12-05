@@ -32,16 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         [Fact]
         public async Task TestWarning1()
         {
-            await TestDiagnosticInfoAsync(@"
-using System.Text.RegularExpressions;
+            await TestDiagnosticInfoAsync("""
+                using System.Text.RegularExpressions;
 
-class Program
-{
-    void Main()
-    {
-        var r = new Regex(@""[|)|]"");
-    }     
-}",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = new Regex(@"[|)|]");
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -51,16 +52,17 @@ class Program
         [Fact]
         public async Task TestWarning2()
         {
-            await TestDiagnosticInfoAsync(@"
-using System.Text.RegularExpressions;
+            await TestDiagnosticInfoAsync("""
+                using System.Text.RegularExpressions;
 
-class Program
-{
-    void Main()
-    {
-        var r = new Regex(""[|\u0029|]"");
-    }     
-}",
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = new Regex("[|\u0029|]");
+                    }     
+                }
+                """,
                 globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
@@ -70,16 +72,17 @@ class Program
         [Fact]
         public async Task TestWarningMissing1()
         {
-            await TestDiagnosticMissingAsync(@"
-using System.Text.RegularExpressions;
+            await TestDiagnosticMissingAsync("""
+                using System.Text.RegularExpressions;
 
-class Program
-{
-    void Main()
-    {
-        var r = new Regex(@""[|\u0029|]"");
-    }     
-}");
+                class Program
+                {
+                    void Main()
+                    {
+                        var r = new Regex(@"[|\u0029|]");
+                    }     
+                }
+                """);
         }
     }
 }

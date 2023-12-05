@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 const int MaxPath = 260;
                 if (maxLength > MaxPath)
                 {
-                    testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
+                    testName = testName[..^(maxLength - MaxPath)];
                     baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
                 }
 
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 installationPath = instance.GetInstallationPath();
 
                 var instanceVersion = instance.GetInstallationVersion();
-                var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
+                var majorVersion = int.Parse(instanceVersion[..instanceVersion.IndexOf('.')]);
                 hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
 
                 // We wait until the DTE instance is up before we're good
@@ -401,11 +401,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var environmentPath = processStartInfo.Environment["PATH"];
 
                 // Assert that the PATH still has the form we are expecting since we're about to modify it
-                var firstPath = environmentPath.Substring(0, environmentPath.IndexOf(';'));
+                var firstPath = environmentPath[..environmentPath.IndexOf(';')];
                 Assert.Equal(Path.Combine(sourcesDirectory, ".dotnet") + '\\', firstPath);
 
                 // Drop the first path element
-                processStartInfo.Environment["PATH"] = environmentPath.Substring(environmentPath.IndexOf(';') + 1);
+                processStartInfo.Environment["PATH"] = environmentPath[(environmentPath.IndexOf(';') + 1)..];
             }
 
             var process = Process.Start(processStartInfo);

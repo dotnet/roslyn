@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        ByVal namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
                        ByVal isConditionallyOmitted As Boolean,
                        ByVal hasErrors As Boolean)
+            Debug.Assert(attrMethod IsNot Nothing OrElse hasErrors)
+
             Me._applicationNode = applicationNode
             Me._attributeClass = attrClass
             Me._attributeConstructor = attrMethod

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result = node.Update(node.Label, caseExpressionOpt, labelExpressionOpt);
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentGotoStatement(node, result);
+                result = Instrumenter.InstrumentGotoStatement(node, result);
             }
 
             return result;

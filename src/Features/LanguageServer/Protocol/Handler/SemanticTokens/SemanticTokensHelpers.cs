@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -117,14 +118,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // casing: https://github.com/dotnet/razor-tooling/issues/5850
             if (includeSyntacticClassifications)
             {
-                // `removeAdditiveSpans` will remove token modifiers such as 'static', which we want to include in LSP.
-                // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
-                // Therefore, we set both optional parameters to false.
+                // `includeAdditiveSpans` will add token modifiers such as 'static', which we want to include in LSP.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                    document, textSpan, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
-                // The spans returned to us may include some empty spans, which we don't care about.
-                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty);
+                // The spans returned to us may include some empty spans, which we don't care about. We also don't care
+                // about the 'text' classification.  It's added for everything between real classifications (including
+                // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
+                // semantic tokens as it just wastes space in the result.
+                var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
                 classifiedSpans.AddRange(nonEmptySpans);
             }
             else
@@ -153,8 +155,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // Since VS doesn't support multi-line spans/tokens, we need to break the span up into single-line spans.
                 if (startLine != endLine)
                 {
-                    spanIndex = ConvertToSingleLineSpan(
-                        text, classifiedSpans, updatedClassifiedSpans, spanIndex, span.ClassificationType,
+                    ConvertToSingleLineSpan(
+                        text, classifiedSpans, updatedClassifiedSpans, ref spanIndex, span.ClassificationType,
                         startLine, startOffset, endLine, endOffSet);
                 }
                 else
@@ -166,11 +168,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             return updatedClassifiedSpans.ToArray();
 
-            static int ConvertToSingleLineSpan(
+            static void ConvertToSingleLineSpan(
                 SourceText text,
                 ClassifiedSpan[] originalClassifiedSpans,
                 ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
-                int spanIndex,
+                ref int spanIndex,
                 string classificationType,
                 int startLine,
                 int startOffset,
@@ -180,34 +182,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 var numLinesInSpan = endLine - startLine + 1;
                 Contract.ThrowIfTrue(numLinesInSpan < 1);
 
-                var updatedSpanIndex = spanIndex;
-
                 for (var currentLine = 0; currentLine < numLinesInSpan; currentLine++)
                 {
-                    TextSpan? textSpan;
+                    TextSpan textSpan;
+                    var line = text.Lines[startLine + currentLine];
 
                     // Case 1: First line of span
                     if (currentLine == 0)
                     {
-                        var absoluteStartOffset = text.Lines[startLine].Start + startOffset;
-                        var spanLength = text.Lines[startLine].End - absoluteStartOffset;
-                        textSpan = new TextSpan(absoluteStartOffset, spanLength);
+                        var absoluteStart = line.Start + startOffset;
+
+                        // This start could be past the regular end of the line if it's within the newline character if we have a CRLF newline. In that case, just skip emitting a span for the LF.
+                        // One example where this could happen is an embedded regular expression that we're classifying; regular expression comments contained within a multi-line string
+                        // contain the carriage return but not the linefeed, so the linefeed could be the start of the next classification.
+                        textSpan = TextSpan.FromBounds(Math.Min(absoluteStart, line.End), line.End);
                     }
                     // Case 2: Any of the span's middle lines
                     else if (currentLine != numLinesInSpan - 1)
                     {
-                        textSpan = text.Lines[startLine + currentLine].Span;
+                        textSpan = line.Span;
                     }
                     // Case 3: Last line of span
                     else
                     {
-                        textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
+                        textSpan = new TextSpan(line.Start, endOffSet);
                     }
 
                     // Omit 0-length spans created in this fashion.
-                    if (textSpan.Value.Length > 0)
+                    if (textSpan.Length > 0)
                     {
-                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan, classificationType);
                         updatedClassifiedSpans.Add(updatedClassifiedSpan);
                     }
 
@@ -217,15 +221,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                     //     var x = @"one ""
                     //               two";
                     // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                    while (updatedSpanIndex + 1 < originalClassifiedSpans.Length &&
-                        textSpan.Value.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
+                    while (spanIndex + 1 < originalClassifiedSpans.Length &&
+                        textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
                     {
-                        updatedClassifiedSpans.Add(originalClassifiedSpans[updatedSpanIndex + 1]);
-                        updatedSpanIndex++;
+                        updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);
+                        spanIndex++;
                     }
                 }
-
-                return updatedSpanIndex;
             }
         }
 

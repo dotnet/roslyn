@@ -119,7 +119,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")>
         Public Async Function TestSelection() As Task
             Await TestFixOneAsync(
 "
@@ -194,7 +194,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -210,7 +210,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -246,7 +246,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition4() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -262,7 +262,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition5() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -278,7 +278,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(529624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529624")>
         Public Async Function TestMissingOnOverlapsHiddenPosition6() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -547,8 +547,8 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(529748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529748")>
-        <WorkItem(530593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529748")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
         <WpfFact(Skip:="Bug 530593")>
         Public Async Function TestColonAfterSingleLineIfWithEmptyElse() As Task
             Await TestInRegularAndScriptAsync(
@@ -567,7 +567,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnlyOnElseIf() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -583,7 +583,7 @@ End Module")
 End Module")
         End Function
 
-        <Fact, WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         Public Async Function TestOnConditionOfMultiLineIfStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -606,7 +606,7 @@ End Module",
 End Module")
         End Function
 
-        <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
         <WpfFact(Skip:="531474")>
         Public Async Function TestDoNotRemoveTypeCharactersDuringComplexification() As Task
             Dim markup =
@@ -727,7 +727,7 @@ end class",
 end class")
         End Function
 
-        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB12() As Task
             Await TestFixOneAsync(
 "
@@ -746,7 +746,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12))
         End Function
 
-        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB14() As Task
             Await TestFixOneAsync(
 "
@@ -765,7 +765,7 @@ end class")
 ", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14))
         End Function
 
-        <Fact, WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIsNot() As Task
             Await TestFixOneAsync(
 "
@@ -782,6 +782,101 @@ end class")
             aMethod()
         End If
 ")
+        End Function
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        [||]if l = ""hello""
+            return nothing
+        end if
+
+        return l
+
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        if l <> ""hello""
+            return l
+        end if
+
+        return nothing
+
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace_WithComments() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        [||]if l = ""hello""
+            ' nothing 1
+            return nothing ' nothing 2
+            ' nothing 3
+        end if
+
+        ' l 1
+        return l ' l 2
+        ' l 3
+
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+
+        if l <> ""hello""
+            ' l 1
+            return l ' l 2
+            ' nothing 3
+        end if
+
+        ' nothing 1
+        return nothing ' nothing 2
+        ' l 3
+
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/42715")>
+        Public Async Function PreserveSpace_NoTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+               "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        [||]if l = ""hello""
+            return nothing
+        end if
+        return l
+    end sub
+end class", "
+class C
+    sub M(s as string)
+        dim l = s.ToLowerCase()
+        if l <> ""hello""
+            return l
+        end if
+        return nothing
+    end sub
+end class")
         End Function
     End Class
 End Namespace

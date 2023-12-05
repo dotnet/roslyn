@@ -117,7 +117,6 @@ class Program
 ");
         }
 
-
         [Fact]
         public void BadCodeCast()
         {
@@ -955,7 +954,6 @@ class C
   IL_001f:  ret
 }");
         }
-
 
         [Fact]
         public void NumericToNullableIntPtr()

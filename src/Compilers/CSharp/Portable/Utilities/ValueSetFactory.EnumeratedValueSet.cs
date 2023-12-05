@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return tc.ToConstantValue(value);
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

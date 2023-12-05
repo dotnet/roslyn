@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
 
                     var builder = ImmutableArray.CreateBuilder<TaggedText>();
-                    builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
+                    builder.AddText(FeaturesResources.Awaited_task_returns_0[..symbolIndex]);
                     builder.AddRange(mainDescriptionTaggedParts);
                     builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
 

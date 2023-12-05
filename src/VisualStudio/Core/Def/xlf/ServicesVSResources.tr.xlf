@@ -82,6 +82,11 @@
         <target state="translated">Gezinti için her zaman varsayılan sembol sunucularını kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Kaynak tarafından oluşturulan dosyaları analiz et</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Çözümleyici Varsayılanları</target>
@@ -425,6 +430,11 @@
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">Kaynak oluşturuculardan alınan açık sayfalarda tüm özellikleri etkinleştir (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">Belge ana hattını etkinleştir (deneysel, yeniden başlatma gerektirir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -771,11 +781,6 @@
         <source>Namespace declarations</source>
         <target state="translated">Namespace bildirimleri</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Namespace öğeleri güncelleştirildi.</target>
-        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -1147,6 +1152,11 @@
         <target state="translated">Salt okunur yapıyı tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">Salt okunur yapı üyesini tercih et</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
         <target state="translated">Saltokunur alanları tercih et</target>
@@ -1486,6 +1496,11 @@
         <source>Sync Namespaces</source>
         <target state="translated">Namespace Öğelerini Eşitle</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">Ad alanı değişikliklerini eşitle</target>
+        <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>

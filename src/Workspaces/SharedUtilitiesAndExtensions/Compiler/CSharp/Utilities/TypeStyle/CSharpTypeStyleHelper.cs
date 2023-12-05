@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.UsingStatement);
 
             return isSupportedParentKind &&
-                variableDeclaration.Variables.Count == 1 &&
-                variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause);
+                variableDeclaration.Variables is [{ Initializer: not null }];
         }
 
         protected virtual bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)

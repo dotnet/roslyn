@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.SyntaxTree.IsParameterModifierContext(
                        position, context.LeftToken, includeOperators: false, out _, out var previousModifier) &&
-                   previousModifier == SyntaxKind.None;
+                   previousModifier is SyntaxKind.None or SyntaxKind.ScopedKeyword;
         }
     }
 }

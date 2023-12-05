@@ -29,6 +29,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");
             VisualStudio.SendKeys.Send(VirtualKey.Enter);
+
+            // Since this output is the same as the previous, make sure to wait for it to finish executing and not just
+            // check the previous result
+            VisualStudio.InteractiveWindow.WaitForLastReplInput("");
+
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"1\"");
             VisualStudio.SendKeys.Send(Alt(VirtualKey.Up));
             VisualStudio.InteractiveWindow.Verify.LastReplInput("1.ToString()");

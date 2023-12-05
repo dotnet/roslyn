@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         [Theory]
         [MemberData(nameof(AllPublicClassificationTypeNames))]
-        [WorkItem(25716, "https://github.com/dotnet/roslyn/issues/25716")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25716")]
         public void ClassificationTypeExported(string fieldName, object constantValue)
         {
             var classificationTypeName = Assert.IsType<string>(constantValue);

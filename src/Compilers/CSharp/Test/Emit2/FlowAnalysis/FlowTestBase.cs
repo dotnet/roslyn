@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var method in AllMethods(compilation.SourceModule.GlobalNamespace))
             {
                 var sourceSymbol = method as SourceMemberMethodSymbol;
-                if (sourceSymbol == null)
+                if (sourceSymbol == null || sourceSymbol.ContainingType.IsDelegateType())
                 {
                     continue;
                 }
 
                 var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
-                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
+                var boundBody = MethodCompiler.BindSynthesizedMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
                 if (boundBody != null)
                 {
                     FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
@@ -203,8 +203,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return GetSyntaxNodeList(tree).OfType<T>().Where(n => n.Span.Contains(offset)).Last();
         }
 
-        protected static string GetSymbolNamesJoined<T>(IEnumerable<T> symbols) where T : ISymbol
+        protected static string GetSymbolNamesJoined<T>(IEnumerable<T> symbols, bool sort = false) where T : ISymbol
         {
+            if (sort)
+            {
+                symbols = symbols.OrderBy(n => n.Name);
+            }
+
             return symbols.Any() ? string.Join(", ", symbols.Select(symbol => symbol.Name)) : null;
         }
 

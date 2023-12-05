@@ -141,9 +141,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool IsValidSetMethod(IMethodSymbol setMethod, IMethodSymbol getMethod)
         {
             return IsValidSetMethod(setMethod) &&
-                setMethod.Parameters.Length == 1 &&
-                setMethod.Parameters[0].RefKind == RefKind.None &&
-                SymbolEqualityComparer.IncludeNullability.Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                setMethod.Parameters is [{ RefKind: RefKind.None } parameter] &&
+                SymbolEqualityComparer.IncludeNullability.Equals(parameter.Type, getMethod.ReturnType) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 

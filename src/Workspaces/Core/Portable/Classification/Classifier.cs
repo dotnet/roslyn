@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken)
         {
             var projectServices = services.GetLanguageServices(semanticModel.Language);
-            var classsificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
+            var classificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
             var embeddedLanguageService = projectServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
-            var syntaxClassifiers = classsificationService.GetDefaultSyntaxClassifiers();
+            var syntaxClassifiers = classificationService.GetDefaultSyntaxClassifiers();
 
             var extensionManager = services.GetRequiredService<IExtensionManager>();
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
-            classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+            classificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
+            classificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
 
             // intentionally adding to the semanticClassifications array here.
             embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);

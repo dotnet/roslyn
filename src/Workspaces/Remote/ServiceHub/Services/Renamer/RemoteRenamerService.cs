@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
@@ -33,21 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private CodeCleanupOptionsProvider GetClientOptionsProvider(RemoteServiceCallbackId callbackId)
             => new ClientCodeCleanupOptionsProvider(
                 (callbackId, language, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(callbackId, language, cancellationToken), cancellationToken), callbackId);
-
-        public ValueTask KeepAliveAsync(
-            Checksum solutionChecksum,
-            CancellationToken cancellationToken)
-        {
-            // First get the solution, ensuring that it is currently pinned.
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                // Wait for our caller to tell us to cancel.  That way we can release this solution and allow it
-                // to be collected if not needed anymore.
-                //
-                // This was provided by stoub as an idiomatic way to wait indefinitely until a cancellation token triggers.
-                await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
 
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
             Checksum solutionChecksum,

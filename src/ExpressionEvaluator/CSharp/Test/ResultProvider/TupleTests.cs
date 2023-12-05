@@ -380,7 +380,7 @@ class C
             }
         }
 
-        [Fact, WorkItem(13625, "https://github.com/dotnet/roslyn/issues/13625")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13625")]
         public void Names_LongTuple()
         {
             var source =
@@ -729,7 +729,7 @@ class B
         // Different number of tuple elements
         // in value and declared type.
         [Fact(Skip = "13420")]
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount()
         {
             var source =
@@ -793,7 +793,7 @@ class C
         }
 
         [Fact(Skip = "13420")]
-        [WorkItem(13420, "https://github.com/dotnet/roslyn/issues/13420")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13420")]
         public void ValueAndTypeDifferentElementCount_LongTuple()
         {
             var source =
@@ -1042,7 +1042,7 @@ class async
             }
         }
 
-        [Fact, WorkItem(13715, "https://github.com/dotnet/roslyn/issues/13715")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13715")]
         public void OtherPayload()
         {
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(GenerateTupleAssembly())));

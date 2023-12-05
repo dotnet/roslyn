@@ -5869,7 +5869,6 @@ Class D
     End Sub
 End Class]]>
     </file>
-
 </compilation>, {metadataComp.EmitToImageReference()})
             finalComp.AssertTheseDiagnostics()
 

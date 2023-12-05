@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string? FilePath { get; }
 
         /// <summary>
+        /// The path to the intermediate output file this project generates.
+        /// </summary>
+        public string? IntermediateOutputFilePath { get; }
+
+        /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
         public string? OutputFilePath { get; }
@@ -99,6 +104,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? filePath,
             string? outputFilePath,
             string? outputRefFilePath,
+            string? intermediateOutputFilePath,
             string? defaultNamespace,
             string? targetFramework,
             ImmutableArray<string> commandLineArgs,
@@ -115,6 +121,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
+            this.IntermediateOutputFilePath = intermediateOutputFilePath;
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.CommandLineArgs = commandLineArgs;
@@ -130,6 +137,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? filePath,
             string? outputFilePath,
             string? outputRefFilePath,
+            string? intermediateOutputFilePath,
             string? defaultNamespace,
             string? targetFramework,
             ImmutableArray<string> commandLineArgs,
@@ -144,6 +152,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath,
                 outputRefFilePath,
+                intermediateOutputFilePath,
                 defaultNamespace,
                 targetFramework,
                 commandLineArgs,
@@ -160,6 +169,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 filePath,
                 outputFilePath: null,
                 outputRefFilePath: null,
+                intermediateOutputFilePath: null,
                 defaultNamespace: null,
                 targetFramework: null,
                 commandLineArgs: ImmutableArray<string>.Empty,

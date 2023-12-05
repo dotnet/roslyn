@@ -30,18 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
                 LanguageNames.CSharp);
         }
 
-        private static ImmutableArray<(string feature, ImmutableArray<IOption> options)> GetEditorConfigOptions()
+        private static ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
         {
-            var builder = ArrayBuilder<(string, ImmutableArray<IOption>)>.GetInstance();
+            var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
             builder.AddRange(GridOptionPreviewControl.GetLanguageAgnosticEditorConfigOptions());
-            builder.Add((CSharpVSResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions.As<IOption>()));
-            builder.Add((CSharpVSResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions.As<IOption>()));
+            builder.Add((CSharpVSResources.CSharp_Coding_Conventions, CSharpCodeStyleOptions.AllOptions));
+            builder.Add((CSharpVSResources.CSharp_Formatting_Rules, CSharpFormattingOptions2.AllOptions));
             return builder.ToImmutableAndFree();
         }
 
         internal readonly struct TestAccessor
         {
-            internal static ImmutableArray<(string feature, ImmutableArray<IOption> options)> GetEditorConfigOptions()
+            internal static ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetEditorConfigOptions()
                 => CodeStylePage.GetEditorConfigOptions();
         }
     }

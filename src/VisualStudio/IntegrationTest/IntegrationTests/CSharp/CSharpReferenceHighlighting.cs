@@ -87,7 +87,7 @@ class C
             VisualStudio.Editor.Verify.CurrentLineText("x$$ = 3;", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/52041")]
         [WpfFact]
         public void HighlightBasedOnSelection()
         {
@@ -119,7 +119,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);
@@ -143,7 +143,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);

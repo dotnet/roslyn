@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     [DataContract]
-    internal readonly struct InheritanceMarginItem
+    internal readonly struct InheritanceMarginItem : IEquatable<InheritanceMarginItem>
     {
         /// <summary>
         /// Line number used to show the margin for the member.
@@ -57,6 +57,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Glyph = glyph;
             TargetItems = targetItems;
         }
+
+        public override int GetHashCode()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override bool Equals(object? obj)
+            => obj is InheritanceMarginItem item && Equals(item);
+
+        public bool Equals(InheritanceMarginItem other)
+            => this.LineNumber == other.LineNumber &&
+               this.TopLevelDisplayText == other.TopLevelDisplayText &&
+               this.Glyph == other.Glyph &&
+               this.DisplayTexts.SequenceEqual(other.DisplayTexts) &&
+               this.TargetItems.SequenceEqual(other.TargetItems);
 
         public static InheritanceMarginItem? CreateOrdered(
             int lineNumber,

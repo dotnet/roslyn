@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Simple type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
-        internal virtual NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName)
+        internal virtual NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName emittedTypeName)
         {
             Debug.Assert(!emittedTypeName.IsNull);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
-                return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                return null;
             }
 
             NamedTypeSymbol? namedType = null;
@@ -356,18 +356,6 @@ Done:
 
                         namedType = named;
                     }
-                }
-            }
-
-            if ((object?)namedType == null)
-            {
-                if (isTopLevel)
-                {
-                    return new MissingMetadataTypeSymbol.TopLevel(scope.ContainingModule, ref emittedTypeName);
-                }
-                else
-                {
-                    return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
                 }
             }
 

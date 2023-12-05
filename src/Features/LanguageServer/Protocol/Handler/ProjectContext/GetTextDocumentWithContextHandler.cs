@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
     [Method(VSMethods.GetProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
+    internal class GetTextDocumentWithContextHandler : ILspServiceDocumentRequestHandler<VSGetProjectContextsParams, VSProjectContextList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+        public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
         public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -48,21 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var projectContext = new VSProjectContext
-                {
-                    Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
-                    Label = project.Name
-                };
-
-                if (project.Language == LanguageNames.CSharp)
-                {
-                    projectContext.Kind = VSProjectKind.CSharp;
-                }
-                else if (project.Language == LanguageNames.VisualBasic)
-                {
-                    projectContext.Kind = VSProjectKind.VisualBasic;
-                }
-
+                var projectContext = ProtocolConversions.ProjectToProjectContext(project);
                 contexts.Add(projectContext);
             }
 

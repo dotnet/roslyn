@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new ManagedHotReloadServiceImpl(_debuggerService),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
@@ -80,7 +81,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             _encService.EndDebuggingSession(GetSessionId(), out _);
             _sessionId = default;
         }
-
 
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {

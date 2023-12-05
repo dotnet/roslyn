@@ -2307,7 +2307,6 @@ Done:
             Dim inputType As TypeSymbol = method.Parameters(0).Type
             Dim outputType As TypeSymbol = method.ReturnType
 
-
             If Not suppressViabilityChecks Then
                 If Not IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType, useSiteInfo) Then
                     conversionIn = Nothing
@@ -3366,7 +3365,6 @@ Next_i:
                     Return _parameterToLift.MarshallingInformation
                 End Get
             End Property
-
 
             Friend Overrides ReadOnly Property HasOptionCompare As Boolean
                 Get

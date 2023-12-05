@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
         {
-            throw ExceptionUtilities.Unreachable; //Should be handled by VisitFixedStatement
+            throw ExceptionUtilities.Unreachable(); //Should be handled by VisitFixedStatement
         }
 
         private BoundStatement InitializeFixedStatementLocal(
@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNotNull: pinAndGetPtr,
                     whenNullOpt: null, // just return default(T*)
                     currentConditionalAccessID,
+                    forceCopyOfNullableValueType: false,
                     localType);
             }
 

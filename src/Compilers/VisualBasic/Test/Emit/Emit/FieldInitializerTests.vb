@@ -289,7 +289,6 @@ partial Class C1
     End sub
 End Class
     </file>
-
     <file name="b.vb">
 Option strict on
 imports system
@@ -300,8 +299,6 @@ partial Class C1
 
 End Class
     </file>
-
-
 </compilation>
 
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(source)
@@ -337,7 +334,6 @@ partial Class C1
     End sub
 End Class
     </file>
-
     <file name="b.vb">
 Option strict on
 
@@ -347,8 +343,6 @@ partial Class C1
 
 End Class
     </file>
-
-
 </compilation>
 
             ' not referencing vb runtime to get an error in the synthesized assignments
@@ -503,7 +497,6 @@ End Class
 -42.00000000000000000000000
 ]]>)
         End Sub
-
 
         <Fact>
         Public Sub OptionInferConstTypeInference_1()

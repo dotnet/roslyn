@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -43,6 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Watcher = new FileChangeWatcher(listenerProvider, fileChangeService);
         }
 
-        public FileChangeWatcher Watcher { get; }
+        public IFileChangeWatcher Watcher { get; }
     }
 }

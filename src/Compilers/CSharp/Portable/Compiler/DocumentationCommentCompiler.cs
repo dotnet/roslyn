@@ -316,8 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _cancellationToken.ThrowIfCancellationRequested();
 
-            bool reportParameterOrTypeParameterDiagnostics = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol) != null;
-
             string withUnprocessedIncludes;
             bool haveParseError;
             HashSet<TypeParameterSymbol> documentedTypeParameters;
@@ -327,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol,
                     shouldSkipPartialDefinitionComments,
                     docCommentNodes,
-                    reportParameterOrTypeParameterDiagnostics,
                     out withUnprocessedIncludes,
                     out haveParseError,
                     out documentedTypeParameters,
@@ -367,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Write(withUnprocessedIncludes);
             }
 
+            bool reportParameterOrTypeParameterDiagnostics = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol) != null;
             if (reportParameterOrTypeParameterDiagnostics)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -487,7 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             bool shouldSkipPartialDefinitionComments,
             ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
-            bool reportParameterOrTypeParameterDiagnostics,
             out string withUnprocessedIncludes,
             out bool haveParseError,
             out HashSet<TypeParameterSymbol> documentedTypeParameters,

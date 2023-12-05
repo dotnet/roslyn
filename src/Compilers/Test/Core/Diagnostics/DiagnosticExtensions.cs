@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis
 
             if (unmatchedActualDescription.Count > 0 || unmatchedExpected.Count > 0)
             {
-                Assert.True(false, DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a)));
+                var text = DiagnosticDescription.GetAssertText(expected, actual, unmatchedExpected.ToArray(), actual.Select((a, i) => (a, i)).Join(unmatchedActualIndex, ai => ai.i, i => i, (ai, _) => ai.a));
+                Assert.True(false, text);
             }
 
             unmatchedExpected.Free();
@@ -310,7 +311,8 @@ namespace Microsoft.CodeAnalysis
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException,
-                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, out var newCompilation, cancellationToken);
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter: SeverityFilter.None, trackSuppressedDiagnosticIds: false,
+                out var newCompilation, cancellationToken);
             Debug.Assert(newCompilation.SemanticModelProvider != null);
             var compilerDiagnostics = newCompilation.GetDiagnostics(cancellationToken);
             var analyzerDiagnostics = driver.GetDiagnosticsAsync(newCompilation).Result;

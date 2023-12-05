@@ -1,8 +1,3 @@
-T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption2' instead
-T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions2' instead
-T:Microsoft.CodeAnalysis.Options.PerLanguageOption`1; Use 'Microsoft.CodeAnalysis.Options.PerLanguageOption2' instead
-T:Microsoft.CodeAnalysis.Options.Option`1; Use 'Microsoft.CodeAnalysis.Options.Option2' instead
-
 T:System.ComponentModel.Composition.ExportAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.ExportMetadataAttribute; Use types from System.Composition instead
 T:System.ComponentModel.Composition.ImportAttribute; Use types from System.Composition instead

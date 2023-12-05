@@ -19,12 +19,12 @@ internal static class OmniSharpInlineHintsService
         var service = document.GetRequiredLanguageService<IInlineHintsService>();
         var roslynOptions = options.ToInlineHintsOptions();
 
-        var hints = await service.GetInlineHintsAsync(document, textSpan, roslynOptions, cancellationToken).ConfigureAwait(false);
+        var hints = await service.GetInlineHintsAsync(document, textSpan, roslynOptions, displayAllOverride: false, cancellationToken).ConfigureAwait(false);
         return hints.SelectAsArray(static h => new OmniSharpInlineHint(
             h.Span,
             h.DisplayParts,
             h.ReplacementTextChange,
-            (document, cancellationToken) => h.GetDescriptionAsync(document, cancellationToken)));
+            h.GetDescriptionAsync));
     }
 }
 

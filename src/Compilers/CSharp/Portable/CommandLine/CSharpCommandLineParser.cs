@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
             Encoding? codepage = null;
-            var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
@@ -443,7 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 nullableContextOptions = NullableContextOptions.Enable;
                             }
                             continue;
-
 
                         case "nullable+":
                             if (valueMemory is not null)

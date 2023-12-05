@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpFormattingOptions2.NewLinesForBracesInProperties, false },
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Properties },
             };
 
         private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
             => new OptionsCollection(GetLanguage())
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false },
+                { CSharpFormattingOptions2.NewLineBeforeOpenBrace, NewLineBeforeOpenBracePlacement.All & ~NewLineBeforeOpenBracePlacement.Accessors },
             };
 
         private OptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
