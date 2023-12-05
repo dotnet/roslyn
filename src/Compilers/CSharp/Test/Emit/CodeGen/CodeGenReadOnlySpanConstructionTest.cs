@@ -3224,7 +3224,7 @@ public class C
             CompileAndVerify(compilation, expectedOutput: "1 !", verify: Verification.Skipped).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/69472")]
         public void ReadOnlySpanFromArrayOfConstants_Bool()
         {
             var src = $$"""
