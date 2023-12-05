@@ -3125,6 +3125,56 @@ class C
             var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
             Assert.Equal("new C() { F = { [Id(r1)] = { [Id(r2)] = { } } } }", node.ToString());
 
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... = { } } } }')
+  Arguments(0)
+  Initializer:
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ F = { [Id ... = { } } } }')
+      Initializers(1):
+          IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Int32[][]) (Syntax: 'F = { [Id(r ... ] = { } } }')
+            InitializedMember:
+              IFieldReferenceOperation: System.Int32[][] C.F (OperationKind.FieldReference, Type: System.Int32[][]) (Syntax: 'F')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
+            Initializer:
+              IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32[][]) (Syntax: '{ [Id(r1)]  ... ] = { } } }')
+                Initializers(1):
+                    IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Int32[][]) (Syntax: '[Id(r1)] =  ... 2)] = { } }')
+                      InitializedMember:
+                        IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32[][]) (Syntax: '[Id(r1)]')
+                          Array reference:
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Int32[][], IsImplicit) (Syntax: 'F')
+                          Indices(1):
+                              IInvocationOperation (System.Range C.Id(System.Range r)) (OperationKind.Invocation, Type: System.Range) (Syntax: 'Id(r1)')
+                                Instance Receiver:
+                                  null
+                                Arguments(1):
+                                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: r) (OperationKind.Argument, Type: null) (Syntax: 'r1')
+                                      IParameterReferenceOperation: r1 (OperationKind.ParameterReference, Type: System.Range) (Syntax: 'r1')
+                                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32[][]) (Syntax: '{ [Id(r2)] = { } }')
+                          Initializers(1):
+                              IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Int32[][]) (Syntax: '[Id(r2)] = { }')
+                                InitializedMember:
+                                  IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32[][]) (Syntax: '[Id(r2)]')
+                                    Array reference:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Int32[][], IsImplicit) (Syntax: '[Id(r1)]')
+                                    Indices(1):
+                                        IInvocationOperation (System.Range C.Id(System.Range r)) (OperationKind.Invocation, Type: System.Range) (Syntax: 'Id(r2)')
+                                          Instance Receiver:
+                                            null
+                                          Arguments(1):
+                                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: r) (OperationKind.Argument, Type: null) (Syntax: 'r2')
+                                                IParameterReferenceOperation: r2 (OperationKind.ParameterReference, Type: System.Range) (Syntax: 'r2')
+                                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Initializer:
+                                  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32[][]) (Syntax: '{ }')
+                                    Initializers(0)
+""");
+
             var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
             ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
@@ -3219,6 +3269,75 @@ class C
   IL_0028:  callvirt   "void D.X.set"
   IL_002d:  ret
 }
+""");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r1)] = { [Id(0)] = { X = Id(42) } } } }", node.ToString());
+
+            comp.VerifyOperationTree(node, expectedOperationTree: """
+IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... 42) } } } }')
+Arguments(0)
+Initializer:
+  IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ F = { [Id ... 42) } } } }')
+    Initializers(1):
+        IMemberInitializerOperation (OperationKind.MemberInitializer, Type: D[]) (Syntax: 'F = { [Id(r ... d(42) } } }')
+          InitializedMember:
+            IFieldReferenceOperation: D[] C.F (OperationKind.FieldReference, Type: D[]) (Syntax: 'F')
+              Instance Receiver:
+                IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F')
+          Initializer:
+            IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: D[]) (Syntax: '{ [Id(r1)]  ... d(42) } } }')
+              Initializers(1):
+                  IMemberInitializerOperation (OperationKind.MemberInitializer, Type: D[]) (Syntax: '[Id(r1)] =  ...  Id(42) } }')
+                    InitializedMember:
+                      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: D[]) (Syntax: '[Id(r1)]')
+                        Array reference:
+                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: D[], IsImplicit) (Syntax: 'F')
+                        Indices(1):
+                            IInvocationOperation (System.Range C.Id(System.Range r)) (OperationKind.Invocation, Type: System.Range) (Syntax: 'Id(r1)')
+                              Instance Receiver:
+                                null
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: r) (OperationKind.Argument, Type: null) (Syntax: 'r1')
+                                    IParameterReferenceOperation: r1 (OperationKind.ParameterReference, Type: System.Range) (Syntax: 'r1')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer:
+                      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: D[]) (Syntax: '{ [Id(0)] = ...  Id(42) } }')
+                        Initializers(1):
+                            IMemberInitializerOperation (OperationKind.MemberInitializer, Type: D) (Syntax: '[Id(0)] = { X = Id(42) }')
+                              InitializedMember:
+                                IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: D) (Syntax: '[Id(0)]')
+                                  Array reference:
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: D[], IsImplicit) (Syntax: '[Id(r1)]')
+                                  Indices(1):
+                                      IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(0)')
+                                        Instance Receiver:
+                                          null
+                                        Arguments(1):
+                                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '0')
+                                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              Initializer:
+                                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: D) (Syntax: '{ X = Id(42) }')
+                                  Initializers(1):
+                                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = Id(42)')
+                                        Left:
+                                          IPropertyReferenceOperation: System.Int32 D.X { set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+                                            Instance Receiver:
+                                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: D, IsImplicit) (Syntax: 'X')
+                                        Right:
+                                          IInvocationOperation (System.Int32 C.Id(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Id(42)')
+                                            Instance Receiver:
+                                              null
+                                            Arguments(1):
+                                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '42')
+                                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 """);
         }
 

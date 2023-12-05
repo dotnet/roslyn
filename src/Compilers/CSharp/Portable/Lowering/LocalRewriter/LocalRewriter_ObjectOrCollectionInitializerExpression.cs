@@ -481,9 +481,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             cacheAllArgumentsOnly: true,
                             result, temps);
 
-                        if (rewrittenAccess is BoundIndexerAccess indexerAccess1)
+                        if (rewrittenAccess is BoundIndexerAccess indexerAccess)
                         {
-                            rewrittenAccess = TransformIndexerAccessContinued(indexerAccess1, indexerAccess1.ReceiverOpt!, indexerAccess1.Arguments, result, temps);
+                            rewrittenAccess = TransformIndexerAccessContinued(indexerAccess, indexerAccess.ReceiverOpt!, indexerAccess.Arguments, result, temps);
                         }
                     }
                     else
