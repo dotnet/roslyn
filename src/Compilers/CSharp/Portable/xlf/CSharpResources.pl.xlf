@@ -2633,13 +2633,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Funkcja języka "Inline arrays" nie jest obsługiwana w przypadku wbudowanych typów tablic z polem elementu, które jest polem "ref" lub ma typ, który nie jest prawidłowy jako argument typu.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Funkcja języka "Inline arrays" nie jest obsługiwana w przypadku wbudowanych typów tablic z polem elementu, które jest polem "ref" lub ma typ, który nie jest prawidłowy jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Funkcja języka "Inline arrays" nie jest obsługiwana w przypadku wbudowanych typów tablic z polem elementu, które jest polem "ref" lub ma typ, który nie jest prawidłowy jako argument typu.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Funkcja języka "Inline arrays" nie jest obsługiwana w przypadku wbudowanych typów tablic z polem elementu, które jest polem "ref" lub ma typ, który nie jest prawidłowy jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

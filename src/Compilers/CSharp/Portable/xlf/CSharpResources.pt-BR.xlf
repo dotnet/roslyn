@@ -2633,13 +2633,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">O recurso de linguagem 'Matrizes embutidas' não tem suporte para tipos de matriz embutidos com o campo de elemento que é um campo 'ref' ou tem um tipo que não é válido como um argumento de tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">O recurso de linguagem 'Matrizes embutidas' não tem suporte para tipos de matriz embutidos com o campo de elemento que é um campo 'ref' ou tem um tipo que não é válido como um argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">O recurso de linguagem 'Matrizes embutidas' não tem suporte para tipos de matriz embutidos com o campo de elemento que é um campo 'ref' ou tem um tipo que não é válido como um argumento de tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">O recurso de linguagem 'Matrizes embutidas' não tem suporte para tipos de matriz embutidos com o campo de elemento que é um campo 'ref' ou tem um tipo que não é válido como um argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

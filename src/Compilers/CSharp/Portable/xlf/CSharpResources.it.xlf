@@ -2633,13 +2633,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La funzionalità di linguaggio 'Matrici inline' non è supportata per i tipi di matrice inline con un campo elemento che è un campo 'ref' o ha un tipo non valido come argomento di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
