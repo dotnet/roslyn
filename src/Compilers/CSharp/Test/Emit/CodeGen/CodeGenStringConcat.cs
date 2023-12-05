@@ -2107,7 +2107,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatTwo_ReadOnlySpan_LValue()
+        public void ConcatTwo_ReadOnlySpan_DirectReference()
         {
             var source = """
                 using System;
@@ -2157,7 +2157,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatTwo_ReadOnlySpan_RValue()
+        public void ConcatTwo_ReadOnlySpan_IndirectReference()
         {
             var source = """
                 using System;
@@ -2269,7 +2269,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatThree_ReadOnlySpan_LValue()
+        public void ConcatThree_ReadOnlySpan_DirectReference()
         {
             var source = """
                 using System;
@@ -2355,7 +2355,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatThree_ReadOnlySpan_RValue()
+        public void ConcatThree_ReadOnlySpan_IndirectReference()
         {
             var source = """
                 using System;
@@ -2581,7 +2581,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatFour_ReadOnlySpan_LValue()
+        public void ConcatFour_ReadOnlySpan_DirectReference()
         {
             var source = """
                 using System;
@@ -2729,7 +2729,7 @@ class Test
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66827")]
-        public void ConcatFour_ReadOnlySpan_RValue()
+        public void ConcatFour_ReadOnlySpan_IndirectReference()
         {
             var source = """
                 using System;
