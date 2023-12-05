@@ -1239,15 +1239,31 @@ namespace Microsoft.CodeAnalysis
 
 #nullable enable
         /// <summary>
-        /// Same order of priority as <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
+        /// Indicates whether the first attribute should be prioritized over the second one.
+        /// Same order of priority as
+        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
         /// </summary>
-        static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind oldKind, ObsoleteAttributeKind newKind)
+        internal static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind oldKind, ObsoleteAttributeKind newKind)
         {
             if (oldKind is ObsoleteAttributeKind.Deprecated)
                 return true;
             if (newKind is ObsoleteAttributeKind.Deprecated)
                 return false;
 
+            if (oldKind is ObsoleteAttributeKind.Obsolete)
+                return true;
+            if (newKind is ObsoleteAttributeKind.Obsolete)
+                return false;
+
+            if (oldKind is ObsoleteAttributeKind.WindowsExperimental)
+                return true;
+            if (newKind is ObsoleteAttributeKind.WindowsExperimental)
+                return false;
+
+            if (oldKind is ObsoleteAttributeKind.Experimental)
+                return true;
+
+            Debug.Assert(newKind is ObsoleteAttributeKind.Experimental);
             return false;
         }
 

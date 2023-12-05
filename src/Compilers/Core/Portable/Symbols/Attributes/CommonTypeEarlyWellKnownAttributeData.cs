@@ -86,21 +86,12 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
-                if (isMoreImportant(_obsoleteAttributeData.Kind, value.Kind)) return;
+                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                    return;
 
                 _obsoleteAttributeData = value;
                 SetDataStored();
                 return;
-
-                // Same order of priority as PEModule.TryGetDeprecatedOrExperimentalOrObsoleteAttribute
-                static bool isMoreImportant(ObsoleteAttributeKind oldKind, ObsoleteAttributeKind newKind)
-                {
-                    if (oldKind is ObsoleteAttributeKind.Deprecated)
-                        return true;
-                    if (newKind is ObsoleteAttributeKind.Deprecated)
-                        return false;
-
-                }
             }
         }
         #endregion
