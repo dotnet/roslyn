@@ -262,7 +262,7 @@ public class AugmentingGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(pipeline, static (context, model) =>
         {
             var sourceText = SourceText.From($$"""
-                namespace {{model.Namespace}}
+                namespace {{model.Namespace}};
                 partial class {{model.ClassName}}
                 {
                     partial void {{model.Name}}()
