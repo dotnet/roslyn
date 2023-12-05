@@ -27,6 +27,17 @@ public class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
     }
 
     [Fact]
+    public async Task TestInvocationExpressionTwoArgumentsInTwoLines()
+    {
+        var code = """
+            var x = M$$("Hello",
+                "World");
+            """;
+
+        await VerifyBlockSpansAsync(code);
+    }
+
+    [Fact]
     public async Task TestInvocationExpressionThreeLines()
     {
         var code = """
