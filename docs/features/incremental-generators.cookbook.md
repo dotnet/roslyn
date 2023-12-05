@@ -40,7 +40,6 @@ As a reminder, the high level design goals of source generators are:
 
 - Generators produce one or more strings that represent C# source code to be added to the compilation.
 - Explicitly _additive_ only. Generators can add new source code to a compilation but may **not** modify existing user code.
-- Can produce diagnostics. When unable to generate source, the generator can inform the user of the problem.
 - May access _additional files_, that is, non-C# source texts.
 - Run _un-ordered_, each generator will see the same input compilation, with no access to files created by other source generators.
 - A user specifies the generators to run via list of assemblies, much like analyzers.
@@ -79,7 +78,49 @@ or even be removed.
 
 ## Conventions
 
-TODO: List a set of general conventions that apply to all designs below. E.g. Re-using namespaces, generated file names etc.
+### Pipeline model design
+
+As a general guideline, source generator pipelines need to pass along models that are _value equatable_. This is critical to the incrementality of an
+`IIncrementalGenerator`; as soon as a pipeline step returns the same information that it returned in the previous run, the generator driver can stop running
+the generator and reuse the same cached data that the generator produced in the previous run. Most times a generator is triggered (particularly generators that
+need to look at type or method definitions, using `ForAttributeWithMetadataName`) the edit that triggered the generator will not actually have affected the
+things that your generator is looking at. However, because semantics can change on basically any edit, the generator driver _must_ rerun your generator again
+to ensure that this is the case. If your generator then produces a model with the same values as it did previously, this short-circuits the pipeline and allows
+us to avoid a lot of work. Here are some general guidelines around designing your models to ensure that you maintain this equality:
+
+* Use `record`s, rather than `class`es, so that value equality is generated for you.
+* Symbols (`ISymbol` and anything that inherits from that interface) are never equatable, and including them in your model can potentially root old compilations
+  and force Roslyn to hold onto lots of memory that it could otherwise free. Never put these in your model types. Instead, extract the information you need from
+  the symbols you inspect to an equatable representation: `string`s often work quite well here.
+* `SyntaxNode`s are also usually not equatable between runs. They're not as strongly discouraged from the initial stages of a pipeline as symbols, and an example
+  [later down](#access-analyzer-config-properties) shows a case where you will need to include a `SyntaxNode` in model. They also don't potentially root as much
+  memory as symbols will. However, any edit in a file will ensure that all `SyntaxNode`s from that file are no longer equatable, so they should be removed from
+  your models as soon as possible.
+* The previous bullet applies to `Location`s as well.
+* Be careful of collection types in your models. Most built-in collection types in .NET do not do value equality by default. Arrays, `ImmutableArray<T>` and
+  `List<T>`, for example, use reference equality, not value equality. We suggest that most generator authors use a wrapper type around arrays to augment them
+  with value-based equality.
+
+### Use `ForAttributeWithMetadataName`
+
+We highly recommend that all generator authors that need to inspect syntax do so by using a marker attribute to indicate the types or members that need to be
+inspected. This has multiple benefits, both for you as an author, and also for your users:
+
+* As an author, you can use `SyntaxProvider.ForAttributeWithMetadataName`. This utility method is at least 99x more efficient than `SyntaxProvider.CreateSyntaxProvider`,
+  and in many cases even more efficient. This will help you avoid causing performance issues for your users in editors.
+* Your users can clearly indicate that they _intend_ to use your source generator. This intention is extremely helpful for designing a good user experience; it
+  means that you can author Roslyn analyzers to help your users when they intended to use your generator but violated your rules in some fashion. For example, if
+  you are generating some method body, and your generator requires that the user return a specific type, the presence of a `GenerateMe` attribute means you can
+  write an analyzer to tell the user if their method declaration returns something that it shouldn't.
+
+### Use an indented text writer, not `SyntaxNode`s, for generation
+
+We do not recommend generating `SyntaxNode`s when generating syntax for `AddSource`. Doing so can be complex, and it can be difficult to format it well; calling
+`NormalizeWhitespace` is often quite expensive, and the API is not really designed for this use-case. Additionally, to ensure immutability guarantees, `AddSource` does
+not accept `SyntaxNode`s. It instead requires getting the `string` representation and putting that into a `SourceText`. Instead of `SyntaxNode`, we recommend using a
+wrapper around `StringBuilder` that will keep track of indent level and prepend the right amount of indentation when `AppendLine` is called. See
+[thix](https://github.com/dotnet/roslyn/issues/52914#issuecomment-1732680995) conversation on the performance of `NormalizeWhitespace` for more examples, performance
+measurements, and discussion on why we don't believe that `SyntaxNode`s are a good abstraction for this use case.
 
 ## Designs
 
@@ -127,6 +168,9 @@ public class CustomGenerator : IIncrementalGenerator
 }
 ```
 
+**Alternative Solution**: If you are also providing a library to your users, in addition to a source generator, simply have that library include the
+attribute definition.
+
 ### Additional file transformation
 
 **User scenario:** As a generator author I want to be able to transform an external non-C# file into an equivalent C# representation.
@@ -154,7 +198,10 @@ public class FileTransformGenerator : IIncrementalGenerator
         .Where((pair, ct) => pair is not null);
 
         context.RegisterSourceOutput(pipeline,
-            static (context, pair) => context.AddSource($"{pair.Name}generated.cs", SourceText.From(pair.Code, Encoding.UTF8)))
+            static (context, pair) => 
+                // Note: this AddSource is simplified. You will likely want to include the path in the name of the file to avoid
+                // issues with duplicate file names in different paths in the same project.
+                context.AddSource($"{pair.Name}generated.cs", SourceText.From(pair.Code, Encoding.UTF8)))
     }
 }
 ```
@@ -165,7 +212,7 @@ public class FileTransformGenerator : IIncrementalGenerator
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with a unique attribute.
 Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on that attribute with
-`ForAttributeWithMetadataName` to collection the information needed to generate code, and use tuples (or create an equatable model)
+`ForAttributeWithMetadataName` to collect the information needed to generate code, and use tuples (or create an equatable model)
  to pass along that information. That information should be extracted from syntax and symbols; **do not put syntax or symbols into
  your models**.
 
@@ -198,12 +245,14 @@ public class AugmentingGenerator : IIncrementalGenerator
                 """, Encoding.UTF8));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
-            predicate: static (_, _) => true,
+            fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute"
+            predicate: static (syntaxNode, cancellationToken) => true, // FAWMN already does the hard work for us here
             transform: static (context, cancellationToken) =>
             {
                 var containingClass = context.TargetSymbol.ContainingType;
                 return new Model(
-                    Namespace: containingClass.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    // Note: this is a simplified example. You will also need to handle the case where the type is in a global namespace.
+                    Namespace: containingClass.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     ClassName: containingClass.Name,
                     MethodName: context.TargetSymbol.Name);
             }
@@ -214,9 +263,9 @@ public class AugmentingGenerator : IIncrementalGenerator
         {
             var sourceText = SourceText.From($$"""
                 namespace {{model.Namespace}}
-                public partial class {{model.ClassName}}
+                partial class {{model.ClassName}}
                 {
-                    private void {{model.Name}}()
+                    partial void {{model.Name}}()
                     {
                         // generated code
                     }
@@ -233,7 +282,7 @@ public class AugmentingGenerator : IIncrementalGenerator
 
 ### Issue Diagnostics
 
-**User Scenario:** As a generator author I want to be able to add diagnostics to the users compilation.
+**User Scenario:** As a generator author I want to be able to add diagnostics to the user's compilation.
 
 **Solution:** We do not recommend issuing diagnostics within generators. It is possible, but doing so without breaking incrementality is advanced topic
 beyond the scope of this cookbook. Instead, we suggest writing a separate analyzer for reporting diagnostics.
@@ -433,9 +482,9 @@ public class JsonUsingGenerator : IIncrementalGenerator
 Note that this is one of the few cases that it is necessary to put a `SyntaxNode` into a pipeline, as you need the tree in order to get the generator option.
 Try to get the `SyntaxNode` out of the pipeline as fast as possible to avoid making the model not correctly equatable.
 
-A generator is free to use a global option to customize its output. For example, consider a generator that can optionally emit logging. The author may choose to check the value of a global analyzer config value in order to control whether or not to emit the logging code. A user can then choose to enable the setting per project via an `.editorconfig` file:
+A generator is free to use a global option to customize its output. For example, consider a generator that can optionally emit logging. The author may choose to check the value of a global analyzer config value in order to control whether or not to emit the logging code. A user can then choose to enable the setting per project via an `.globalconfig` file:
 
-```.editorconfig
+```.globalconfig
 mygenerator_emit_logging = true
 ```
 
@@ -586,206 +635,6 @@ The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://gith
 
 PROTOTYPE: Write more here
 
-### Serialization
-
-**User Scenario**
-
-Serialization is often implemented using _dynamic analysis_, i.e. serializers often
-use reflection to examine the runtime state of a given type and generate serialization
-logic. This can be expensive and brittle. If the compile-time type and the runtime-type
-are similar, it could be useful to move much of the cost to compile-time, instead of
-run-time.
-
-Source generators provide a way to do this. Since source generators can be delivered via
-NuGet the same way analyzers can, we anticipate this would be a use-case for a source
-generator library, as opposed to everyone building their own.
-
-**Solution**
-
-To start, the generator will need some way to discover which types are meant
-to be serializable. One indicator could be an attribute, e.g.
-
-```C#
-[GeneratorSerializable]
-partial class MyRecord
-{
-    public string Item1 { get; }
-    public int Item2 { get; }
-}
-```
-
-This attribute could also be used for [Participate in the IDE experience](#participate-in-the-ide-experience),
-when the full scope of that feature is fully designed. In that scenario,
-instead of the generator finding every type marked with the given attribute,
-the compiler would notify the generator of every type marked with the given
-attribute. For now we'll assume that the types are provided to us.
-
-The first task is to decide what we want our serialization to return. Let's say
-we do a simple JSON serialization that produces a string like the following
-
-```json
-{
-    "Item1": "abc",
-    "Item2": 11,
-}
-```
-
-For that we could add a `Serialize` method to our record type like the following:
-
-```C#
-public string Serialize()
-{
-    var sb = new StringBuilder();
-    sb.AppendLine("{");
-    int indent = 8;
-
-    // Body
-    addWithIndent($"\"Item1\": \"{this.Item1.ToString()}\",");
-    addWithIndent($"\"Item2\": {this.Item2.ToString()},");
-
-    sb.AppendLine("}");
-
-    return sb.ToString();
-
-    void addWithIndent(string s)
-    {
-        sb.Append(' ', indent);
-        sb.AppendLine(s);
-    }
-}
-```
-
-Obviously this is heavily simplified -- this example only handles the `string` and `int`
-types properly, adds a trailing comma to the json output and has no error recovery, but
-it should serve to demonstrate the kind of code a source generator could add to a compilation.
-
-Our next task is design a generator to generate the above code, since the
-above code is itself customized in the `// Body` section according to the
-actual properties in the class. In other words, we need to generate the code
-which will generate the JSON format. This is a generator-generator.
-
-Let's start with a basic template. We are adding a full source generator, so we'll need
-to generate a class with the same name as the input class, with a public method called
-`Serialize`, and a filler area where we write out the properties.
-
-```C#
-string template = @"
-using System.Text;
-partial class {0}
-{{
-    public string Serialize()
-    {{
-        var sb = new StringBuilder();
-        sb.AppendLine(""{{"");
-        int indent = 8;
-
-        // Body
-{1}
-
-        sb.AppendLine(""}}"");
-
-        return sb.ToString();
-
-        void addWithIndent(string s)
-        {{
-            sb.Append(' ', indent);
-            sb.AppendLine(s);
-        }}
-    }}
-}}";
-```
-
-Now that we know the general structure of the code, we need to examine the input
-type and find all the right info to fill in. This information is all available in
-a C# SyntaxTree in our example. Let's say we were given a `ClassDeclarationSyntax`
-that was confirmed to have a generation attribute attached. Then we could grab the
-name of the class and the name of it's properties as follows:
-
-```C#
-private static string Generate(ClassDeclarationSyntax c)
-{
-    var className = c.Identifier.ToString();
-    var propertyNames = new List<string>();
-    foreach (var member in c.Members)
-    {
-        if (member is PropertyDeclarationSyntax p)
-        {
-            propertyNames.Add(p.Identifier.ToString());
-        }
-    }
-}
-```
-
-This is really all we need. If the serialized values of the properties
-is their string value, the generated code just needs to call `ToString()` on
-them. The only remaining question is what `using`s to put at the top of the file.
-Since our template uses a string builder, we'll need `System.Text` for that, but
-all other types appear to be primitives, so that's all we'll need. Putting it all
-together:
-
-```C#
-private static string Generate(ClassDeclarationSyntax c)
-{
-    var sb = new StringBuilder();
-    int indent = 8;
-    foreach (var member in c.Members)
-    {
-        if (member is PropertyDeclarationSyntax p)
-        {
-            var name = p.Identifier.ToString();
-            appendWithIndent($"addWithIndent($\"\\\"{name}\\\": ");
-            if (p.Type.ToString() != "int")
-            {
-                sb.Append("\\\"");
-            }
-            sb.Append($"{{this.{name}.ToString()}}");
-            if (p.Type.ToString() != "int")
-            {
-                sb.Append("\\\"");
-            }
-            sb.AppendLine(",\");");
-        }
-    }
-
-    return $@"
-using System.Text;
-partial class {c.Identifier.ToString()}
-{{
-    public string Serialize()
-    {{
-        var sb = new StringBuilder();
-        sb.AppendLine(""{{"");
-        int indent = 8;
-
-        // Body
-{sb.ToString()}
-
-        sb.AppendLine(""}}"");
-
-        return sb.ToString();
-
-        void addWithIndent(string s)
-        {{
-            sb.Append(' ', indent);
-            sb.AppendLine(s);
-        }}
-    }}
-}}";
-    void appendWithIndent(string s)
-    {
-        sb.Append(' ', indent);
-        sb.Append(s);
-    }
-}
-```
-
-This ties cleanly into the other serialization examples. By finding all the
-appropriate class declarations in the Compilation's SyntaxTrees and passing
-them to the above Generate method we can build new partial classes for each
-type that opt-ed in to generated serialization. Unlike other technologies,
-this serialization mechanism happens entirely at compile time and can be
-specialized exactly to what was written in the user class.
-
 ### Auto interface implementation
 
 TODO:
@@ -801,10 +650,5 @@ This section track other miscellaneous TODO items:
 **Framework targets**: May want to mention if we have framework requirements for the generators, e.g. they must target netstandard2.0 or similar.
 
 **Conventions**: (See TODO in [conventions](#conventions) section above). What standard conventions are we suggesting to users?
-
-**Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
-
-- Control of name. The developer can control the name of the member
-- Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
 
 **Feature detection**: Show how to create a generator that relies on specific target framework features, without depending on the TargetFramework property.

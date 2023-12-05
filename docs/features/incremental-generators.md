@@ -799,10 +799,10 @@ public readonly struct SyntaxValueProvider
 This area is particularly nice for optimization, as we can efficiently eliminate
 a significant number of syntax nodes and edits before even needing to call the
 provided `predicate` from the user, avoiding realizing a significant number of
-`SyntaxNode` instances.  Roslyn can even further optimize this by tracking whether
-not a given attribute could possibly the attribute the generator cares about by
-maintaining a small alias cache and comparing type names as an initial heuristic.
-This cache is cheap to maintain and, importantly, can only have false postives, not
+`SyntaxNode` instances. Roslyn can even further optimize this by tracking whether or
+not a given attribute could possibly be the attribute the generator cares about by
+maintaining a small index and comparing type names as an initial heuristic.
+This index is cheap to maintain and, importantly, can only have false postives, not
 false negatives. This allows us to eliminate 99% of syntax in a Compilation from ever
 needing to be checked for semantic information (to eliminate false positives from the
 heuristic cache) or by the user `predicate` function (saving a significant number of
@@ -810,8 +810,9 @@ allocations of `SyntaxNode` instances).
 
 Given this, when at all possible, it is recommended to use attributes to drive source
 generators, rather than other syntax constructs. Real world testing has indicated this
-approach can be 99x more efficient than `CreateSyntaxProvider`, even when the
-generator is otherwise not well-behaved.
+approach is usually 99x more efficient than `CreateSyntaxProvider`, even when the
+generator is otherwise not well-behaved; some pathological scenarios are even more efficient
+than that.
 
 Attributes are provided by the user as the fully-qualified metadata name, without the
 assembly name portion. For example, given the C# type `My.Namespace.MyAttribute<T>`,
