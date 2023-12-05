@@ -316,26 +316,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _documentTracker.AssertIsForeground();
 
-                if (ErrorHandler.Succeeded(Frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocCookie, out var boxedDocCookie)))
+                // NB: -5055 => __VSFPROPID12.VSFPROPID_IsDocDataInitialized available in 17.9
+                if (ErrorHandler.Succeeded(Frame.GetProperty((-5055), out var boxedIsDocDataInitialized)))
                 {
-                    uint docCookie;
-
-                    if (boxedDocCookie is int docCookieInt)
+                    if (boxedIsDocDataInitialized is not bool isDocDataInitialized)
                     {
-                        docCookie = (uint)docCookieInt;
-                    }
-                    else if (boxedDocCookie is uint docCookieUint)
-                    {
-                        docCookie = docCookieUint;
-                    }
-                    else
-                    {
-                        // Return if we failed to unbox the cookie. We'll try again on the next OnShow event.
+                        // If we failed to unbox the bool. We'll try again on the next OnShow event.
                         return;
                     }
 
-                    var flags = (_VSRDTFLAGS)_runningDocumentTable.GetDocumentFlags(docCookie);
-                    if ((flags & (_VSRDTFLAGS)_VSRDTFLAGS4.RDT_PendingInitialization) != 0)
+                    if (!isDocDataInitialized)
                     {
                         // This document is not yet initialized. Defer initialization to the next OnShow event.
                         return;
