@@ -42,6 +42,17 @@ internal static class UseCollectionExpressionHelpers
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
+        return CanReplaceWithCollectionExpression(semanticModel, expression, s_emptyCollectionExpression, expressionType, skipVerificationForReplacedNode, cancellationToken);
+    }
+
+    public static bool CanReplaceWithCollectionExpression(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
+        INamedTypeSymbol? expressionType,
+        bool skipVerificationForReplacedNode,
+        CancellationToken cancellationToken)
+    {
         var compilation = semanticModel.Compilation;
 
         var topMostExpression = expression.WalkUpParentheses();
@@ -97,7 +108,7 @@ internal static class UseCollectionExpressionHelpers
         // types that could accept the collection expression).
         var speculationAnalyzer = new SpeculationAnalyzer(
             topMostExpression,
-            s_emptyCollectionExpression,
+            replacementExpression,
             semanticModel,
             cancellationToken,
             skipVerificationForReplacedNode,

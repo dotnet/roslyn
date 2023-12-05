@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
+
+using static SyntaxFactory;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
@@ -116,8 +119,14 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             ? (ExpressionSyntax)initializer.GetRequiredParent()
             : initializer;
 
+        // Have to actually examine what would happen when we do the replacement, as the replaced value may interact
+        // with inference based on the values within.
+        var replacementCollectionExpression = CollectionExpression(
+            SeparatedList<CollectionElementSyntax>(initializer.Expressions.Select(ExpressionElement)));
+
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, arrayCreationExpression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, arrayCreationExpression, replacementCollectionExpression,
+                expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return;
         }
