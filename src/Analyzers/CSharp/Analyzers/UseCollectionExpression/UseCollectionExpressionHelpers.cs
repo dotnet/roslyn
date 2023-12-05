@@ -42,6 +42,10 @@ internal static class UseCollectionExpressionHelpers
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
+        // To keep things simple, all we do is replace the existing expression with the `[]` literal.This is an
+        // 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
+        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
+        // types that could accept the collection expression).
         return CanReplaceWithCollectionExpression(semanticModel, expression, s_emptyCollectionExpression, expressionType, skipVerificationForReplacedNode, cancellationToken);
     }
 
@@ -102,10 +106,7 @@ internal static class UseCollectionExpressionHelpers
             return IsConstructibleCollectionType(semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
-        // any issues.  To keep things simple, all we do is replace the existing expression with the `[]` literal. This
-        // is an 'untyped' collection expression literal, so it tells us if the new code will have any issues moving to
-        // something untyped.  This will also tell us if we have any ambiguities (because there are multiple destination
-        // types that could accept the collection expression).
+        // any issues.
         var speculationAnalyzer = new SpeculationAnalyzer(
             topMostExpression,
             replacementExpression,
