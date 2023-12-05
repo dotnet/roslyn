@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             SpecialType.System_Collections_IEnumerable,
             SpecialType.System_Collections_Generic_IEnumerable_T,
-            SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
-            SpecialType.System_Collections_Generic_IReadOnlyList_T,
             SpecialType.System_Collections_Generic_ICollection_T,
             SpecialType.System_Collections_Generic_IList_T,
         };
@@ -63,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_Collections_IList__Insert,
             WellKnownMember.System_Collections_IList__Remove,
             WellKnownMember.System_Collections_IList__RemoveAt,
-            WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count,
-            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item,
             WellKnownMember.System_Collections_Generic_ICollection_T__Count,
             WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly,
             WellKnownMember.System_Collections_Generic_ICollection_T__Add,
@@ -218,15 +214,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var iCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs);
             var iListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs);
 
-            _interfaces = ImmutableArray.Create(
-                iEnumerable,
-                iCollection,
-                iList,
-                iEnumerableT,
-                iReadOnlyCollectionT,
-                iReadOnlyListT,
-                iCollectionT,
-                iListT);
+            _interfaces = iReadOnlyCollectionT.IsErrorType() || iReadOnlyListT.IsErrorType()
+                ? ImmutableArray.Create(
+                    iEnumerable,
+                    iCollection,
+                    iList,
+                    iEnumerableT,
+                    iCollectionT,
+                    iListT)
+                : ImmutableArray.Create(
+                    iEnumerable,
+                    iCollection,
+                    iList,
+                    iEnumerableT,
+                    iReadOnlyCollectionT,
+                    iReadOnlyListT,
+                    iCollectionT,
+                    iListT);
 
             var membersBuilder = ArrayBuilder<Symbol>.GetInstance();
             membersBuilder.Add(
@@ -314,16 +318,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)!).AsMember(iEnumerableT),
                     generateGetEnumeratorT));
-            addProperty(membersBuilder,
-                new SynthesizedReadOnlyListProperty(
-                    this,
-                    ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count)!).AsMember(iReadOnlyCollectionT),
-                    generateCount));
-            addProperty(membersBuilder,
-                new SynthesizedReadOnlyListProperty(
-                    this,
-                    ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item)!).AssociatedSymbol).AsMember(iReadOnlyListT),
-                    generateIndexer));
+            if ((PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count) is { } wellKnownReadOnlyCollectionCount
+                && (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item) is { } wellKnownReadOnlyListIndexer)
+            {
+                addProperty(membersBuilder,
+                    new SynthesizedReadOnlyListProperty(
+                        this,
+                        wellKnownReadOnlyCollectionCount.AsMember(iReadOnlyCollectionT),
+                        generateCount));
+                addProperty(membersBuilder,
+                    new SynthesizedReadOnlyListProperty(
+                        this,
+                        ((PropertySymbol)wellKnownReadOnlyListIndexer.AssociatedSymbol).AsMember(iReadOnlyListT),
+                        generateIndexer));
+            }
             addProperty(membersBuilder,
                 new SynthesizedReadOnlyListProperty(
                     this,
