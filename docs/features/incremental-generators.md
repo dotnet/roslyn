@@ -802,7 +802,7 @@ provided `predicate` from the user, avoiding realizing a significant number of
 `SyntaxNode` instances. Roslyn can even further optimize this by tracking whether or
 not a given attribute could possibly be the attribute the generator cares about by
 maintaining a small index and comparing type names as an initial heuristic.
-This index is cheap to maintain and, importantly, can only have false postives, not
+This index is cheap to maintain and, importantly, can only have false positives, not
 false negatives. This allows us to eliminate 99% of syntax in a Compilation from ever
 needing to be checked for semantic information (to eliminate false positives from the
 heuristic cache) or by the user `predicate` function (saving a significant number of
