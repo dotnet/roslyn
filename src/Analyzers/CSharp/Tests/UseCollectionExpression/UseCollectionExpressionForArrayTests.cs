@@ -4251,4 +4251,62 @@ public class UseCollectionExpressionForArrayTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70998")]
+    public async Task ForMismatchedTupleNames1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M()
+                    {
+                        return [|[|new|][]|] { (A: 1, 2) };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M()
+                    {
+                        return [(A: 1, 2)];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70998")]
+    public async Task ForMismatchedTupleNames2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M = [|{|] (A: 1, 2) };
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    (int A, int B)[] M = [(A: 1, 2)];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

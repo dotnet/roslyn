@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,6 +24,16 @@ using static SyntaxFactory;
 internal static class UseCollectionExpressionHelpers
 {
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
+
+    private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
+        // Not relevant.  We are not comparing method signatures.
+        distinguishRefFromOut: true,
+        // Not relevant.  We are not comparing method signatures.
+        objectAndDynamicCompareEqually: false,
+        // The value we're tweaking.
+        tupleNamesMustMatch: false,
+        // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
+        ignoreNullableAnnotations: false);
 
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
@@ -214,6 +225,10 @@ internal static class UseCollectionExpressionHelpers
             {
                 return IsSafeConversionOfArrayToSpanType(semanticModel, expression, cancellationToken);
             }
+
+            // Allow tuple names to be different.  Because we are target typing the names can be picked up by the target type.
+            if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
+                return true;
 
             // Add more cases to support here.
             return false;
