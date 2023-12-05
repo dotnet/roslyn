@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -89,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InserForEachSnippetInConstructorTest()
+        public async Task InsertForEachSnippetInConstructorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InserForEachSnippetWithCollectionTest()
+        public async Task InsertForEachSnippetWithCollectionTest()
         {
             var markupBeforeCommit =
 @"using System;
@@ -250,6 +246,187 @@ static void Main(string[] args)
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [WpfFact]
+        public async Task InsertInlineForEachSnippetForCorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(List<int> list)
+                    {
+                        list.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(List<int> list)
+                    {
+                        foreach (var item in list)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineForEachSnippetForIncorrectTypeTest()
+        {
+            var markupBeforeCommit = """
+                class Program
+                {
+                    void M(int arg)
+                    {
+                        arg.$$
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfFact]
+        public async Task NoInlineForEachSnippetWhenNotDirectlyExpressionStatementTest()
+        {
+            var markupBeforeCommit = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    void M(List<int> list)
+                    {
+                        Console.WriteLine(list.$$);
+                    }
+                }
+                """;
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        [InlineData("#region test")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                        {{trivia}}
+                        arr.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                        {{trivia}}
+                        foreach (var item in arr)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                {{trivia}}
+                        arr.$$
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                class Program
+                {
+                    void M(int[] arr)
+                    {
+                {{trivia}}
+                        foreach (var item in arr)
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("// comment")]
+        [InlineData("/* comment */")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                (new int[10]).$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                {{trivia}}
+                foreach (var item in new int[10])
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory]
+        [InlineData("#region test")]
+        [InlineData("#if true")]
+        [InlineData("#pragma warning disable CS0108")]
+        [InlineData("#nullable enable")]
+        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+        {
+            var markupBeforeCommit = $$"""
+                {{trivia}}
+                (new int[10]).$$
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+
+                {{trivia}}
+                foreach (var item in new int[10])
+                {
+                    $$
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
     }
 }

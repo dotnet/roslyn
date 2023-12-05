@@ -1086,7 +1086,7 @@ $@"{typeKind} Program
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner(string typeKind)
+        public async Task TestDoNotMoveBanner(string typeKind)
         {
             var initial =
 $@"{typeKind} Program
@@ -1121,7 +1121,7 @@ $@"{typeKind} Program
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")]
         [InlineData("class")]
         [InlineData("record")]
-        public async Task TestDontMoveBanner2(string typeKind)
+        public async Task TestDoNotMoveBanner2(string typeKind)
         {
             var initial =
 $@"{typeKind} Program

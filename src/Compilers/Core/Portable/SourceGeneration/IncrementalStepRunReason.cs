@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     public enum IncrementalStepRunReason
     {
         /// <summary>
-        /// The output of this step is a new output produced from a new input.
+        /// The input to this step was added or modified from a previous run, and it produced a new output.
         /// </summary>
         New,
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         Cached,
 
         /// <summary>
-        /// The input that this output is generated from was removed from the input step's outputs, so this value will be removed from the output step results.
+        /// The input to this step was removed or modified from a previous run, and the output it used to generate is no longer present.
         /// </summary>
         Removed
     }

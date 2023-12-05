@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
@@ -36,7 +36,7 @@
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
   <ItemGroup>
     <!-- Need to include the PerformanceSensitiveAttribute definition in source build, since we can't get it from the analyzer package. -->

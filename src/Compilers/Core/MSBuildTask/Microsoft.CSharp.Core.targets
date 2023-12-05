@@ -133,6 +133,7 @@
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
          ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"

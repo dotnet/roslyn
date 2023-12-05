@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,17 +21,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             public AllSymbolsProjectSearchScope(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Project project,
-                bool exact,
-                CancellationToken cancellationToken)
-                : base(provider, project, exact, cancellationToken)
+                bool exact)
+                : base(provider, project, exact)
             {
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
             {
                 var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
-                    _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
+                    _project, searchQuery, filter, cancellationToken).ConfigureAwait(false);
 
                 return declarations;
             }

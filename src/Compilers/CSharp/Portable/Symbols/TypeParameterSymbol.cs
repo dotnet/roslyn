@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Type parameters do not have members
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         // Type parameters do not have members
-        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -710,6 +710,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
         }
     }
 }

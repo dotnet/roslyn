@@ -1055,7 +1055,7 @@ class C : Attribute
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
         [WpfFact]
-        public void DontSmartFormatBracesOnSmartIndentNone()
+        public void DoNotSmartFormatBracesOnSmartIndentNone()
         {
             var code = @"class Program<T>
 {
@@ -2580,6 +2580,18 @@ class C
     {
     }
 }";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatCollectionLiteralAfterEquals()
+        {
+            var code = @"$$
+var   v  =   [  1  , 2  , 3  ]  ;";
+
+            var expected = @"$$
+var v = [1, 2, 3];";
 
             AssertFormatWithView(expected, code);
         }

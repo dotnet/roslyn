@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (!supportsVSExtensions)
                 return await DefaultLspHoverResultCreationService.CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var language = document.Project.Language;
 
             var classificationOptions = _globalOptions.GetClassificationOptions(language);

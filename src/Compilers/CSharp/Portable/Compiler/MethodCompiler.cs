@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
 
+            hasDeclarationErrors |= compilation.CheckDuplicateInterceptions(diagnostics);
+
             if (compilation.PreviousSubmission != null)
             {
                 // In case there is a previous submission, we should ensure
@@ -1183,7 +1185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
-                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol.GetPublicSymbol(), semanticModelWithCachedBoundNodes));
+                            _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
+                                _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
                     }
                     finally
@@ -1624,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localVariables.Length > 0xFFFE)
                 {
-                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.Locations.First());
+                    diagnosticsForThisMethod.Add(ErrorCode.ERR_TooManyLocals, method.GetFirstLocation());
                 }
 
                 if (diagnosticsForThisMethod.HasAnyErrors())

@@ -10,32 +10,34 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal static class SolutionCrawlerOptionsStorage
 {
+    private static readonly OptionGroup s_backgroundAnalysisOptionGroup = new(name: "background_analysis", description: "");
+
     /// <summary>
     /// Option to turn configure background analysis scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-        "dotnet_solution_crawler_background_analysis_scope", defaultValue: BackgroundAnalysisScope.Default, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
+        "dotnet_analyzer_diagnostics_scope", defaultValue: BackgroundAnalysisScope.Default, group: s_backgroundAnalysisOptionGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<BackgroundAnalysisScope>());
 
     /// <summary>
     /// Option to turn configure background analysis scope for the current solution.
     /// </summary>
     public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
-        "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption", defaultValue: null, serializer: EditorConfigValueSerializer.CreateSerializerForNullableEnum<BackgroundAnalysisScope>());
+        "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption", defaultValue: null, group: s_backgroundAnalysisOptionGroup, serializer: EditorConfigValueSerializer.CreateSerializerForNullableEnum<BackgroundAnalysisScope>());
 
     /// <summary>
     /// Option to configure compiler diagnostics scope for the current user.
     /// </summary>
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
-        "dotnet_compiler_diagnostics_scope", defaultValue: CompilerDiagnosticsScope.OpenFiles, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
+        "dotnet_compiler_diagnostics_scope", defaultValue: CompilerDiagnosticsScope.OpenFiles, group: s_backgroundAnalysisOptionGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
     public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
-        "remove_document_diagnostics_on_document_close", defaultValue: false);
+        "remove_document_diagnostics_on_document_close", defaultValue: false, group: s_backgroundAnalysisOptionGroup);
 
     public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
-        "dotnet_enable_diagnostics_in_source_generated_files", defaultValue: null);
+        "dotnet_enable_diagnostics_in_source_generated_files", defaultValue: null, group: s_backgroundAnalysisOptionGroup);
 
     public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
-        "dotnet_enable_diagnostics_in_source_generated_files_feature_flag", defaultValue: false);
+        "dotnet_enable_diagnostics_in_source_generated_files_feature_flag", defaultValue: false, group: s_backgroundAnalysisOptionGroup);
 
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.

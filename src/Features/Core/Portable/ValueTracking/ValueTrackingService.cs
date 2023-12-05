@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 }
 
                 return await result.Value.SelectAsArrayAsync(
-                    (item, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
             }
 
             var progressTracker = new ValueTrackingProgressCollector();
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 }
 
                 return await result.Value.SelectAsArrayAsync(
-                    (item, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    static (item, solution, cancellationToken) => item.RehydrateAsync(solution, cancellationToken), solution, cancellationToken).ConfigureAwait(false);
             }
 
             var progressTracker = new ValueTrackingProgressCollector();

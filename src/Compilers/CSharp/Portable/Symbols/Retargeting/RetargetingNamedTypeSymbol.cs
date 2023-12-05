@@ -206,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers());
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers(name));
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetTypeMembers(name, arity));
         }
@@ -389,6 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
+        internal override bool IsFileLocal => _underlyingType.IsFileLocal;
         internal override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
@@ -411,6 +412,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     yield return (newBody, newImplemented);
                 }
             }
+        }
+
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
         }
     }
 }

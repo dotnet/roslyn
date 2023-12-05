@@ -115,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Completion
             // TODO(cyrusn): Figure out a way to cancel this.
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
 
-            if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
+            if (!sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTexts))
             {
                 return CompletionDescription.Empty;
             }
 
             var textContentBuilder = new List<TaggedText>();
-            textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
+            textContentBuilder.AddRange(mainDescriptionTexts);
 
             switch (symbol.Kind)
             {

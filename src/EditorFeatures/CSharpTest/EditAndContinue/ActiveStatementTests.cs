@@ -7,7 +7,7 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4222,6 +4222,210 @@ class C
 
             edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in G(a => a))", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_01()
+        {
+            var src1 = @"
+class C
+{
+    static void Main()
+    {
+        var aa = new int[4];
+        var bb = new int[4];
+        
+        foreach (var a in aa)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void Main()
+    {
+        var aa = new int[4];
+        var bb = new int[4];
+        
+        foreach (var a in bb)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in bb)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_02()
+        {
+            var src1 = @"
+class C
+{
+    static void Main()
+    {
+        Buffer4 aa = default;
+        Buffer4 bb = default;
+        
+        foreach (var a in aa)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class C
+{
+    static void Main()
+    {
+        Buffer4 aa = default;
+        Buffer4 bb = default;
+        
+        foreach (var a in bb)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var a in bb)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_03()
+        {
+            var src1 = @"
+class C
+{
+    public readonly Buffer4 F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x, C z)
+    {
+        foreach (var y in x.F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class C
+{
+    public readonly Buffer4 F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x, C z)
+    {
+        foreach (var y in z.F)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var y in z.F)", CSharpFeaturesResources.foreach_statement));
+        }
+
+        [Fact]
+        public void ForEach_Update_Collection_04()
+        {
+            var src1 = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (var y in GetBuffer1())
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+
+    static Buffer4 GetBuffer1() => default;
+    static Buffer4 GetBuffer2() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var src2 = @"
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test()
+    {
+        foreach (var y in GetBuffer2())
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+            yield return -1;
+        }
+    }
+
+    static Buffer4 GetBuffer1() => default;
+    static Buffer4 GetBuffer2() => default;
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+struct Buffer4
+{
+    private int _f;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "foreach (var y in GetBuffer2())", CSharpFeaturesResources.foreach_statement));
         }
 
         [Fact]
@@ -9810,7 +10014,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(active);
+            edits.VerifySemanticDiagnostics(active,
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -10104,7 +10309,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             _ = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -10139,7 +10345,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             _ = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -10178,7 +10385,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             _ = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.NetCoreApp },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]

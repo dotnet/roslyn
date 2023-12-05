@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Formatting_ContextInitialization = 85,
         Formatting_Format = 86,
         Formatting_ApplyResultToBuffer = 87,
-        Formatting_IterateNodes = 88,
-        Formatting_CollectIndentBlock = 89,
-        Formatting_CollectSuppressOperation = 90,
-        Formatting_CollectAlignOperation = 91,
-        Formatting_CollectAnchorOperation = 92,
+        // obsolete: Formatting_IterateNodes = 88,
+        // obsolete: Formatting_CollectIndentBlock = 89,
+        // obsolete: Formatting_CollectSuppressOperation = 90,
+        // obsolete: Formatting_CollectAlignOperation = 91,
+        // obsolete: Formatting_CollectAnchorOperation = 92,
         Formatting_CollectTokenOperation = 93,
         Formatting_BuildContext = 94,
         Formatting_ApplySpaceAndLine = 95,
@@ -594,5 +594,27 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // 680-690 LSP Initialization info ids.
         LSP_Initialize = 680,
+
+        // 700-799 Performance logging. Typically pairs with Delay/Summary values.
+        //  Summary is a aggregation of all times collected.
+        //  Delay is used as a non-aggregated value for an unexpectedly poor performing scenario.
+        CodeFix_Delay = 700,
+        CodeFix_Summary = 701,
+
+        CodeRefactoring_Delay = 710,
+        CodeRefactoring_Summary = 711,
+
+        PerformAnalysis_Delay = 720,
+        PerformAnalysis_Summary = 721,
+
+        RequestDiagnostics_Delay = 730,
+        RequestDiagnostics_Summary = 731,
+
+        SuggestedAction_Delay = 740,
+        SuggestedAction_Summary = 741,
+        SuggestedAction_Application_Delay = 742,
+        SuggestedAction_Application_Summary = 743,
+        SuggestedAction_Preview_Delay = 744,
+        SuggestedAction_Preview_Summary = 745,
     }
 }

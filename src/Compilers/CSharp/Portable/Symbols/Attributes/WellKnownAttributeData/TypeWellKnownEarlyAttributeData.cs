@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -26,5 +28,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
         #endregion
+
+        #region InlineArrayAttribute
+
+        private int _inlineArrayLength;
+        public int InlineArrayLength
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _inlineArrayLength;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+
+                Debug.Assert(value is -1 or > 0);
+                if (_inlineArrayLength == 0)
+                {
+                    _inlineArrayLength = value;
+                }
+
+                SetDataStored();
+            }
+        }
+
+        #endregion
+
     }
 }

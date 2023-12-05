@@ -184,5 +184,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return name;
         }
+
+        public static string GenerateUniqueName(IEnumerable<string> baseNames, Func<string, bool> canUse)
+        {
+            int? index = null;
+
+            while (true)
+            {
+                foreach (var name in baseNames)
+                {
+                    var modifiedName = name + index;
+
+                    if (canUse(modifiedName))
+                        return modifiedName;
+                }
+
+                index = index is null ? 1 : index + 1;
+            }
+        }
     }
 }

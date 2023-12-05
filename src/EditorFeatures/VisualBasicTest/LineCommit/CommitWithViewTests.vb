@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         End Sub
 
         <WpfFact>
-        Public Sub TestDontCrashOnPastingCarriageReturnContainingString()
+        Public Sub TestDoNotCrashOnPastingCarriageReturnContainingString()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">

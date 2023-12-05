@@ -25,26 +25,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly ModuleSymbol _containingModule;
         private readonly PrivateImplementationDetails _privateImplType;
-        private readonly TypeSymbol _returnType;
+        private TypeSymbol _returnType;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
 
-        internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string name)
+        internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, string name)
         {
             Debug.Assert((object)containingModule != null);
             Debug.Assert(privateImplType != null);
-            Debug.Assert((object)returnType != null);
             Debug.Assert(name != null);
 
             _containingModule = containingModule;
             _privateImplType = privateImplType;
-            _returnType = returnType;
             _name = name;
+        }
+
+        internal SynthesizedGlobalMethodSymbol(ModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string name)
+            : this(containingModule, privateImplType, name)
+        {
+            Debug.Assert((object)returnType != null);
+            _returnType = returnType;
+            _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+        }
+
+        protected void SetReturnType(TypeSymbol returnType)
+        {
+            Debug.Assert(returnType is not null);
+            Debug.Assert(_returnType is null);
+            _returnType = returnType;
         }
 
         protected void SetParameters(ImmutableArray<ParameterSymbol> parameters)
         {
-            ImmutableInterlocked.InterlockedExchange(ref _parameters, parameters);
+            Debug.Assert(!parameters.IsDefault);
+            Debug.Assert(_parameters.IsDefault);
+            _parameters = parameters;
+        }
+
+        protected void SetTypeParameters(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            Debug.Assert(!typeParameters.IsDefault);
+            Debug.Assert(_typeParameters.IsDefault);
+            _typeParameters = typeParameters;
         }
 
         public sealed override bool IsImplicitlyDeclared
@@ -160,7 +183,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            get { return ImmutableArray<TypeParameterSymbol>.Empty; }
+            get
+            {
+                Debug.Assert(!_typeParameters.IsDefault, $"Expected {nameof(SetTypeParameters)} prior to accessing this property.");
+                if (_typeParameters.IsDefault)
+                {
+                    return ImmutableArray<TypeParameterSymbol>.Empty;
+                }
+
+                return _typeParameters;
+            }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -227,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int Arity
         {
-            get { return 0; }
+            get { return TypeParameters.Length; }
         }
 
         public override bool ReturnsVoid
@@ -305,7 +337,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override Cci.CallingConvention CallingConvention
         {
-            get { return 0; }
+            get
+            {
+                if (IsGenericMethod)
+                {
+                    return Cci.CallingConvention.Generic;
+                }
+
+                return Cci.CallingConvention.Default;
+            }
         }
 
         internal override bool IsExplicitInterfaceImplementation

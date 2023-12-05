@@ -100,11 +100,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">명시적 또는 순차 레이아웃이 있는 클래스에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
-        <source>Adding {0} into a generic type requires restarting the application.</source>
-        <target state="translated">제네릭 형식에 {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
         <source>Adding {0} into an interface method requires restarting the application.</source>
         <target state="translated">인터페이스 메소드에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -138,11 +133,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
         <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
         <target state="translated">익명 함수가 포함된 필드 또는 속성 이니셜라이저가 있는 형식에 생성자를 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
-        <source>Adding a generic {0} requires restarting the application.</source>
-        <target state="translated">제네릭 {0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application">
@@ -710,11 +700,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">예:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
-      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
-        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="translated">명시적으로 구현된 레코드 메서드에는 컴파일러에서 생성된 것과 일치하는 매개 변수 이름 '{0}'이 있어야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
         <target state="translated">기본 클래스 추출...</target>
@@ -928,16 +913,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
         <target state="translated">'{0}'을(를) 통해 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
-        <target state="translated">레코드 위치 매개 변수 '{0}'을(를) 구현하려면 읽기 전용으로 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
-        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="translated">설정된 접근자를 사용하여 레코드 위치 매개 변수 '{0}'를 구현하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -1198,21 +1173,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
         <target state="translated">실험 언어 기능이 활성화된 원본를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
-        <source>Modifying the initializer of {0} in a generic type requires restarting the application.</source>
-        <target state="translated">제네릭 형식의 {0}의 이니셜라이저를 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application">
-        <source>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</source>
-        <target state="translated">제네릭 형식의 컨텍스트 내에서 {0}의 공백 또는 주석을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application">
-        <source>Modifying whitespace or comments in a generic {0} requires restarting the application.</source>
-        <target state="translated">제네릭 {0}에서 공백 또는 주석을 수정하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -2830,6 +2790,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}'을(를) 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">런타임에서 지원하지 않기 때문에 제네릭 형식 또는 메서드 내에서 {0}을(를) 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating a {0} around an active statement requires restarting the application.</source>
         <target state="translated">활성 문 주변의 {0}을(를) 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -2849,6 +2814,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
         <target state="translated">활성 문 주변의 async 또는 iterator 수정자를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Updating async or iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">런타임에서 지원하지 않기 때문에 비동기 또는 반복기를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
@@ -4349,6 +4319,11 @@ When this standard format specifier is used, the formatting or parsing operation
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'기호'는 네임스페이스일 수 없습니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="symbol_kind_and_name_of_member_kind_and_name">
+        <source>{0} '{1}' of {2} '{3}'</source>
+        <target state="translated">{2} '{3}' 중 {0} '{1}'</target>
+        <note>e.g. "parameter 'T param' of method 'M'"</note>
       </trans-unit>
       <trans-unit id="time_separator">
         <source>time separator</source>

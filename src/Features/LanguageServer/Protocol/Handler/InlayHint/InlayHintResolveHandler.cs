@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -32,12 +33,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
-            => GetCacheEntry(request).CacheEntry.TextDocumentIdentifier;
+            => GetInlayHintResolveData(request).TextDocument;
 
         public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
-            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(request);
+            var resolveData = GetInlayHintResolveData(request);
+            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(resolveData);
 
             var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
@@ -56,14 +58,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             return request;
         }
 
-        private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(LSP.InlayHint request)
+        private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData)
         {
-            var resolveData = (request.Data as JToken)?.ToObject<InlayHintResolveData>();
-            Contract.ThrowIfNull(resolveData, "Missing data for inlay hint resolve request");
-
             var cacheEntry = _inlayHintCache.GetCachedEntry(resolveData.ResultId);
             Contract.ThrowIfNull(cacheEntry, "Missing cache entry for inlay hint resolve request");
             return (cacheEntry, cacheEntry.InlayHintMembers[resolveData.ListIndex]);
+        }
+
+        private static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)
+        {
+            var resolveData = (inlayHint.Data as JToken)?.ToObject<InlayHintResolveData>();
+            Contract.ThrowIfNull(resolveData, "Missing data for inlay hint resolve request");
+            return resolveData;
         }
     }
 }

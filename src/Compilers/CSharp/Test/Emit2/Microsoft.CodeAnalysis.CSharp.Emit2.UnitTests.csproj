@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net50" Version="$(BasicReferenceAssembliesNet50Version)" />
     <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" Version="$(BasicReferenceAssembliesNet80Version)" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

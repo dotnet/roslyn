@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,12 +20,12 @@ namespace Microsoft.CodeAnalysis
         /// Create a <see cref="ProjectInfo"/> structure initialized from a compilers command line arguments.
         /// </summary>
 #pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
-        public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace? workspace = null)
 #pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-            var tmpWorkspace = workspace ?? new AdhocWorkspace();
-            var languageServices = tmpWorkspace.Services.SolutionServices.GetLanguageServices(language);
+            workspace ??= new AdhocWorkspace();
+            var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
             if (languageServices == null)
             {
                 throw new ArgumentException(WorkspacesResources.Unrecognized_language_name);
@@ -106,62 +103,6 @@ namespace Microsoft.CodeAnalysis
 
             var projectId = ProjectId.CreateNewId(debugName: projectName);
 
-            var loadTextOptions = new LoadTextOptions(commandLineArguments.ChecksumAlgorithm);
-
-            // construct file infos
-            var docs = new List<DocumentInfo>();
-            foreach (var fileArg in commandLineArguments.SourceFiles)
-            {
-                var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
-                    ? Path.GetFullPath(fileArg.Path)
-                    : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
-
-                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
-
-                var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
-                var folders = isWithinProject ? GetFolders(relativePath) : null;
-                var name = Path.GetFileName(relativePath);
-                var id = DocumentId.CreateNewId(projectId, absolutePath);
-
-                var doc = DocumentInfo.Create(
-                   id,
-                   name,
-                   folders: folders,
-                   sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
-                   loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
-
-                docs.Add(doc);
-            }
-
-            // construct file infos for additional files.
-            var additionalDocs = new List<DocumentInfo>();
-            foreach (var fileArg in commandLineArguments.AdditionalFiles)
-            {
-                var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
-                        ? Path.GetFullPath(fileArg.Path)
-                        : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
-
-                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
-
-                var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
-                var folders = isWithinProject ? GetFolders(relativePath) : null;
-                var name = Path.GetFileName(relativePath);
-                var id = DocumentId.CreateNewId(projectId, absolutePath);
-
-                var doc = DocumentInfo.Create(
-                   id: id,
-                   name: name,
-                   folders: folders,
-                   sourceCodeKind: SourceCodeKind.Regular,
-                   loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
-
-                additionalDocs.Add(doc);
-            }
-
             // If /out is not specified and the project is a console app the csc.exe finds out the Main method
             // and names the compilation after the file that contains it. We don't want to create a compilation, 
             // bind Mains etc. here. Besides the msbuild always includes /out in the command line it produces.
@@ -187,22 +128,54 @@ namespace Microsoft.CodeAnalysis
                     // TODO (https://github.com/dotnet/roslyn/issues/4967): 
                     .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory))),
                 parseOptions: commandLineArguments.ParseOptions,
-                documents: docs,
+                documents: CreateDocuments(commandLineArguments.SourceFiles),
                 projectReferences: null,
                 metadataReferences: boundMetadataReferences,
                 analyzerReferences: boundAnalyzerReferences,
-                additionalDocuments: additionalDocs,
-                analyzerConfigDocuments: null,
+                additionalDocuments: CreateDocuments(commandLineArguments.AdditionalFiles),
+                analyzerConfigDocuments: CreateDocuments(commandLineArguments.AnalyzerConfigPaths.SelectAsArray(p => new CommandLineSourceFile(p, isScript: false))),
                 hostObjectType: null);
 
             return projectInfo;
+
+            IList<DocumentInfo> CreateDocuments(ImmutableArray<CommandLineSourceFile> files)
+            {
+                var documents = new List<DocumentInfo>();
+
+                foreach (var fileArg in files)
+                {
+                    var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
+                        ? Path.GetFullPath(fileArg.Path)
+                        : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
+
+                    var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                    var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
+
+                    var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
+                    var folders = isWithinProject ? GetFolders(relativePath) : null;
+                    var name = Path.GetFileName(relativePath);
+                    var id = DocumentId.CreateNewId(projectId, absolutePath);
+
+                    var doc = DocumentInfo.Create(
+                       id,
+                       name,
+                       folders: folders,
+                       sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
+                       loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, absolutePath, commandLineArguments.Encoding),
+                       filePath: absolutePath);
+
+                    documents.Add(doc);
+                }
+
+                return documents;
+            }
         }
 
         /// <summary>
         /// Create a <see cref="ProjectInfo"/> structure initialized with data from a compiler command line.
         /// </summary>
 #pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
-        public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace workspace = null)
+        public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace? workspace = null)
 #pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);

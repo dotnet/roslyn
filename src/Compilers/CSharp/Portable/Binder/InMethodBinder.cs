@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             var locations = parameter.Locations;
             Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
-            var oldLocation = locations.FirstOrNone();
+            var oldLocation = parameter.GetFirstLocationOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
 #endif 

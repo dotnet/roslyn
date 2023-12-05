@@ -347,7 +347,7 @@ public {record} R(MyClass $$
         [Theory]
         [InlineData("class")]
         [InlineData("struct")]
-        public async Task DontTreatPrimaryConstructorParameterAsProperty(string record)
+        public async Task DoNotTreatPrimaryConstructorParameterAsProperty(string record)
         {
             var markup = $@"
 public class MyClass

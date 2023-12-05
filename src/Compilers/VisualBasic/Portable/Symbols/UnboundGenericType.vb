@@ -338,6 +338,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
+        Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 

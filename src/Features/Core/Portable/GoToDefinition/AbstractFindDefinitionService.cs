@@ -20,11 +20,13 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
             var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
-            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+            var solution = project.Solution;
+            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
             // Try to compute source definitions from symbol.
             return symbol != null
-                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(project.Solution, symbol, displayTaggedParts: FindUsagesHelpers.GetDisplayParts(symbol), cancellationToken: cancellationToken)
+                ? NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, symbol, displayTaggedParts: FindUsagesHelpers.GetDisplayParts(symbol), cancellationToken: cancellationToken)
                 : ImmutableArray<INavigableItem>.Empty;
         }
     }

@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
         }
 
         [Fact]
-        public async Task TestAddNewToDisorderedModifiers() =>
-            await TestInRegularAndScript1Async(
+        public async Task TestAddNewToDisorderedModifiers()
+            => await TestInRegularAndScript1Async(
                 """
                 class Application
                 {
@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.HideBase
                 """);
 
         [Fact]
-        public async Task TestAddNewToOrderedModifiersWithTrivia() =>
-            await TestInRegularAndScript1Async(
+        public async Task TestAddNewToOrderedModifiersWithTrivia()
+            => await TestInRegularAndScript1Async(
                 """
                 class Application
                 {

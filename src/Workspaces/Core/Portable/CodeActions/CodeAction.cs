@@ -17,13 +17,14 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -169,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
             Solution originalSolution, CancellationToken cancellationToken)
         {
+            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Preview_Summary, $"Total");
+
             var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)

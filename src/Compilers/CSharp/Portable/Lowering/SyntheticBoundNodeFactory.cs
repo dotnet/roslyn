@@ -788,14 +788,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiver, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, bool useStrictArgumentRefKinds = false)
         {
-            return Call(receiver, method, ImmutableArray.Create(arg0));
+            return Call(receiver, method, ImmutableArray.Create(arg0), useStrictArgumentRefKinds);
         }
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, BoundExpression arg0, BoundExpression arg1, bool useStrictArgumentRefKinds = false)
         {
-            return Call(receiver, method, ImmutableArray.Create(arg0, arg1));
+            return Call(receiver, method, ImmutableArray.Create(arg0, arg1), useStrictArgumentRefKinds);
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, params BoundExpression[] args)
@@ -806,16 +806,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundCall Call(BoundExpression? receiver, WellKnownMember method, BoundExpression arg0)
             => Call(receiver, WellKnownMethod(method), ImmutableArray.Create(arg0));
 
-        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
+        public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<BoundExpression> args, bool useStrictArgumentRefKinds = false)
         {
             Debug.Assert(method.ParameterCount == args.Length);
 
             return new BoundCall(
                 Syntax, receiver, method, args,
-                argumentNamesOpt: default(ImmutableArray<String>), argumentRefKindsOpt: method.ParameterRefKinds, isDelegateCall: false, expanded: false,
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: getArgumentRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
+
+            static ImmutableArray<RefKind> getArgumentRefKinds(MethodSymbol method, bool useStrictArgumentRefKinds)
+            {
+                var result = method.ParameterRefKinds;
+
+                if (useStrictArgumentRefKinds && result.Contains(RefKind.In))
+                {
+                    var builder = ArrayBuilder<RefKind>.GetInstance(result.Length);
+
+                    foreach (var refKind in result)
+                    {
+                        builder.Add(refKind == RefKind.In ? RefKindExtensions.StrictIn : refKind);
+                    }
+
+                    return builder.ToImmutableAndFree();
+                }
+
+                return result;
+            }
         }
 
         public BoundCall Call(BoundExpression? receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService
+    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
@@ -45,26 +45,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
+        public bool SupportsMutation => true;
+
         /// <summary>
         /// Takes in a file URI and text and creates a misc project and document for the file.
         /// 
         /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, ILspLogger logger)
+        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-            if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
+            var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+            var languageInformation = GetLanguageInformation(documentFilePath, languageId);
+            if (languageInformation == null)
             {
                 // Only log here since throwing here could take down the LSP server.
-                logger.LogError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
+                logger.LogError($"Could not find language information for {uri} with absolute path {documentFilePath}");
                 return null;
             }
 
-            var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
+            var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
 
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, uri.AbsolutePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
+                this, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -74,15 +77,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
-        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, ILspLogger)"/> are made
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)
         {
-            var uriAbsolutePath = uri.AbsolutePath;
-
-            // We only add misc files to this workspace using the absolute file path.
-            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
+            // We'll only ever have a single document matching this URI in the misc solution.
+            var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
             {
                 OnDocumentRemoved(matchingDocument);
@@ -94,23 +95,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private sealed class SourceTextLoader : TextLoader
+        public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
         {
-            private readonly SourceText _sourceText;
-            private readonly string _fileUri;
+            this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
+            return ValueTaskFactory.CompletedTask;
+        }
 
-            public SourceTextLoader(SourceText sourceText, string fileUri)
+        private static LanguageInformation? GetLanguageInformation(string documentPath, string languageId)
+        {
+            if (s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(documentPath), out var languageInformation))
             {
-                _sourceText = sourceText;
-                _fileUri = fileUri;
+                return languageInformation;
             }
 
-            internal override string? FilePath
-                => _fileUri;
-
-            // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
+            // It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
+            // In that case, we use the languageId that the client gave us.
+            return languageId switch
+            {
+                "csharp" => s_csharpLanguageInformation,
+                "vb" => s_vbLanguageInformation,
+                _ => null,
+            };
         }
     }
 }

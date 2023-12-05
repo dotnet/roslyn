@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="35B9F49B-CC6A-4102-923E-2A41C179BF1F" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>Roslyn Services for .NET ServiceHub Host</DisplayName>
+    <Description xml:space="preserve">Roslyn Services for .NET ServiceHub Host</Description>
+    <PackageId>Microsoft.CodeAnalysis.VisualStudio.ServiceHub.Setup.arm64</PackageId>
+    <License>EULA.rtf</License>
+    <AllowClientRole>true</AllowClientRole>
+  </Metadata>
+  <Installation Experimental="true">
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,]">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinDesktopExpress" Version="[17.0,]">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VWDExpress" Version="[17.0,]">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.VSWinExpress" Version="[17.0,]">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <!-- ServiceHub assets are added by msbuild target -->
+    <!--#SERVICEHUB_ASSETS#-->
+  </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+</PackageManifest>

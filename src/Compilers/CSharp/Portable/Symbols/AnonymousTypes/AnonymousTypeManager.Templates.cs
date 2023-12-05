@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckSourceLocationSeen(AnonymousTypePublicSymbol anonymous)
         {
 #if DEBUG
-            Location location = anonymous.Locations[0];
+            Location location = anonymous.GetFirstLocation();
             if (location.IsInSource)
             {
                 if (this.AreTemplatesSealed)

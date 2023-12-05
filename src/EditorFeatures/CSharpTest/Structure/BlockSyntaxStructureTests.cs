@@ -287,6 +287,27 @@ class C
         }
 
         [Fact]
+        public async Task TestElseClause2()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|primaryhint:if (true){|primarytextspan:
+        {
+        }|}|}
+        {|hint:else{|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", "primaryhint", "primarytextspan", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact]
         public async Task TestIfElse1()
         {
             const string code = @"

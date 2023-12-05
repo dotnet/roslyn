@@ -11,6 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
     /// </summary>
     internal sealed class DocumentOutlineOptionsStorage
     {
-        public static readonly Option2<bool> EnableDocumentOutline = new("visual_studio_enable_document_outline", defaultValue: false);
+        public static readonly Option2<bool?> EnableDocumentOutline = new("visual_studio_enable_document_outline", defaultValue: null);
+
+        public static readonly Option2<bool> DisableDocumentOutlineFeatureFlag = new("visual_studio_disable_document_outline_feature_flag", defaultValue: false);
+
+        public static readonly Option2<SortOption> DocumentOutlineSortOrder = new("visual_studio_document_outline_sort_order", defaultValue: SortOption.Location);
     }
 }

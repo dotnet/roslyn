@@ -17,10 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _withSyntax As WithStatementSyntax
 
         Public Structure Result
-            Public Sub New(expression As BoundExpression, locals As ImmutableArray(Of LocalSymbol), initializers As ImmutableArray(Of BoundExpression))
+            Public Sub New(expression As BoundExpression, locals As ImmutableArray(Of LocalSymbol), initializers As ImmutableArray(Of BoundExpression), capturedLvalueByRefCallOrProperty As BoundExpression)
                 Me.Expression = expression
                 Me.Locals = locals
                 Me.Initializers = initializers
+                Me.CapturedLvalueByRefCallOrProperty = capturedLvalueByRefCallOrProperty
             End Sub
 
             ''' <summary> Expression to be used instead of With statement expression placeholder </summary>
@@ -31,6 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary> Locals initialization expressions </summary>
             Public ReadOnly Initializers As ImmutableArray(Of BoundExpression)
+
+            Public ReadOnly CapturedLvalueByRefCallOrProperty As BoundExpression
         End Structure
 
         Friend Sub New(withSyntax As WithStatementSyntax)
@@ -44,15 +47,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly DoNotUseByRefLocal As Boolean
             Public ReadOnly Binder As Binder
             Public ReadOnly PreserveIdentityOfLValues As Boolean
+            Public ReadOnly IsDraftRewrite As Boolean
 
             Private _locals As ArrayBuilder(Of LocalSymbol) = Nothing
             Private _initializers As ArrayBuilder(Of BoundExpression) = Nothing
+            Public _capturedLvalueByRefCallOrProperty As BoundExpression = Nothing
 
-            Public Sub New(containingMember As Symbol, doNotUseByRefLocal As Boolean, binder As Binder, preserveIdentityOfLValues As Boolean)
+            Public Sub New(containingMember As Symbol, doNotUseByRefLocal As Boolean, binder As Binder, preserveIdentityOfLValues As Boolean, isDraftRewrite As Boolean)
                 Me.ContainingMember = containingMember
                 Me.DoNotUseByRefLocal = doNotUseByRefLocal
                 Me.Binder = binder
                 Me.PreserveIdentityOfLValues = preserveIdentityOfLValues
+                Me.IsDraftRewrite = isDraftRewrite
             End Sub
 
             Public Sub AddLocal(local As LocalSymbol, initializer As BoundExpression)
@@ -73,7 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Function CreateResult(expression As BoundExpression) As Result
                 Return New Result(expression,
                                   If(Me._locals Is Nothing, ImmutableArray(Of LocalSymbol).Empty, Me._locals.ToImmutableAndFree()),
-                                  If(Me._initializers Is Nothing, ImmutableArray(Of BoundExpression).Empty, Me._initializers.ToImmutableAndFree()))
+                                  If(Me._initializers Is Nothing, ImmutableArray(Of BoundExpression).Empty, Me._initializers.ToImmutableAndFree()),
+                                  Me._capturedLvalueByRefCallOrProperty)
 
             End Function
         End Class
@@ -262,10 +269,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             containingMember As Symbol,
             value As BoundExpression,
             doNotUseByRefLocal As Boolean,
+            isDraftRewrite As Boolean,
             binder As Binder,
             Optional preserveIdentityOfLValues As Boolean = False
         ) As Result
-            Dim state As New State(containingMember, doNotUseByRefLocal, binder, preserveIdentityOfLValues)
+            Dim state As New State(containingMember, doNotUseByRefLocal, binder, preserveIdentityOfLValues, isDraftRewrite)
             Return state.CreateResult(CaptureWithExpression(value, state))
         End Function
 
@@ -325,6 +333,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.FieldAccess
                     expression = CaptureFieldAccess(DirectCast(value, BoundFieldAccess), state)
+
+                Case BoundKind.PropertyAccess
+                    If Not state.IsDraftRewrite OrElse Not DirectCast(value, BoundPropertyAccess).PropertySymbol.ReturnsByRef Then
+                        Throw ExceptionUtilities.UnexpectedValue(value.Kind)
+                    End If
+
+                    Debug.Assert(state.DoNotUseByRefLocal)
+                    If state._capturedLvalueByRefCallOrProperty Is Nothing Then
+                        state._capturedLvalueByRefCallOrProperty = value
+                    End If
+
+                    expression = CaptureInATemp(value, state) ' Capture by value for the purpose of draft rewrite
+
+                Case BoundKind.Call
+                    If Not state.IsDraftRewrite OrElse Not DirectCast(value, BoundCall).Method.ReturnsByRef Then
+                        Throw ExceptionUtilities.UnexpectedValue(value.Kind)
+                    End If
+
+                    Debug.Assert(state.DoNotUseByRefLocal)
+                    If state._capturedLvalueByRefCallOrProperty Is Nothing Then
+                        state._capturedLvalueByRefCallOrProperty = value
+                    End If
+
+                    expression = CaptureInATemp(value, state) ' Capture by value for the purpose of draft rewrite
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value.Kind)

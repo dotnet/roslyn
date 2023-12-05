@@ -2526,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
-        public async Task TestThis_DontOfferToFixTheConstructorWithTheDiagnosticOnIt()
+        public async Task TestThis_DoNotOfferToFixTheConstructorWithTheDiagnosticOnIt()
         {
             // error CS1729: 'C' does not contain a constructor that takes 1 arguments
             var code =

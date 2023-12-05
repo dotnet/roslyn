@@ -122,6 +122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Assembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return Assembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
                 PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)

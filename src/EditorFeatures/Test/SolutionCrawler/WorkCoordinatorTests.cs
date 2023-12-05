@@ -1827,12 +1827,12 @@ class C
                 this.BlockEvent = new ManualResetEventSlim(initialState: false);
                 this.RunningEvent = new ManualResetEventSlim(initialState: false);
 
-                _globalOptions.OptionChanged += GlobalOptionChanged;
+                _globalOptions.AddOptionChangedHandler(this, GlobalOptionChanged);
             }
 
             public void Shutdown()
             {
-                _globalOptions.OptionChanged -= GlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, GlobalOptionChanged);
             }
 
             private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)

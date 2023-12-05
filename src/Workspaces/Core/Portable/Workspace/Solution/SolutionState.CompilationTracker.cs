@@ -47,6 +47,12 @@ namespace Microsoft.CodeAnalysis
 
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
 
+            /// <summary>
+            /// Set via a feature flag to enable strict validation of the compilations that are produced, in that they match the original states. This validation is expensive, so we don't want it
+            /// running in normal production scenarios.
+            /// </summary>
+            private readonly bool _validateStates;
+
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState state,
@@ -57,6 +63,10 @@ namespace Microsoft.CodeAnalysis
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
                 this.SkeletonReferenceCache = cachedSkeletonReferences;
+
+                _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
+
+                ValidateState(state);
             }
 
             /// <summary>
@@ -72,7 +82,10 @@ namespace Microsoft.CodeAnalysis
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(CompilationTrackerState state)
-                => Volatile.Write(ref _stateDoNotAccessDirectly, state);
+            {
+                Volatile.Write(ref _stateDoNotAccessDirectly, state);
+                ValidateState(state);
+            }
 
             public GeneratorDriver? GeneratorDriver
             {
@@ -670,18 +683,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private readonly struct CompilationInfo
+            private readonly struct CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
             {
-                public Compilation Compilation { get; }
-                public bool HasSuccessfullyLoaded { get; }
-                public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
-
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, CompilationTrackerGeneratorInfo generatorInfo)
-                {
-                    Compilation = compilation;
-                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    GeneratorInfo = generatorInfo;
-                }
+                public Compilation Compilation { get; } = compilation;
+                public bool HasSuccessfullyLoaded { get; } = hasSuccessfullyLoaded;
+                public CompilationTrackerGeneratorInfo GeneratorInfo { get; } = generatorInfo;
             }
 
             /// <summary>
@@ -1123,6 +1129,86 @@ namespace Microsoft.CodeAnalysis
             // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
             // need to be cleaned up.
 
+            /// <summary>
+            /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.
+            /// </summary>
+            private void ValidateState(CompilationTrackerState state)
+            {
+                if (!_validateStates)
+                    return;
+
+                if (state is FinalState finalState)
+                {
+                    ValidateCompilationTreesMatchesProjectState(finalState.FinalCompilationWithGeneratedDocuments, ProjectState, state.GeneratorInfo);
+                }
+                else if (state is InProgressState inProgressState)
+                {
+                    ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments!, inProgressState.IntermediateProjects[0].oldState, generatorInfo: null);
+
+                    if (inProgressState.CompilationWithGeneratedDocuments != null)
+                    {
+                        ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithGeneratedDocuments, inProgressState.IntermediateProjects[0].oldState, inProgressState.GeneratorInfo);
+                    }
+                }
+            }
+
+            private static void ValidateCompilationTreesMatchesProjectState(Compilation compilation, ProjectState projectState, CompilationTrackerGeneratorInfo? generatorInfo)
+            {
+                // We'll do this all in a try/catch so it makes validations easy to do with ThrowExceptionIfFalse().
+                try
+                {
+                    // Assert that all the trees we expect to see are in the Compilation...
+                    var syntaxTreesInWorkspaceStates = new HashSet<SyntaxTree>(
+#if NET
+                        capacity: projectState.DocumentStates.Count + generatorInfo?.Documents.Count ?? 0
+#endif
+                        );
+
+                    foreach (var documentInProjectState in projectState.DocumentStates.States)
+                    {
+                        ThrowExceptionIfFalse(documentInProjectState.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                        syntaxTreesInWorkspaceStates.Add(tree);
+                        ThrowExceptionIfFalse(compilation.ContainsSyntaxTree(tree), "The tree in the ProjectState should have been in the compilation.");
+                    }
+
+                    if (generatorInfo != null)
+                    {
+                        foreach (var generatedDocument in generatorInfo.Value.Documents.States)
+                        {
+                            ThrowExceptionIfFalse(generatedDocument.Value.TryGetSyntaxTree(out var tree), "We should have a tree since we have a compilation that should contain it.");
+                            syntaxTreesInWorkspaceStates.Add(tree);
+                            ThrowExceptionIfFalse(compilation.ContainsSyntaxTree(tree), "The tree for the generated document should have been in the compilation.");
+                        }
+                    }
+
+                    // ...and that the reverse is true too.
+                    foreach (var tree in compilation.SyntaxTrees)
+                        ThrowExceptionIfFalse(syntaxTreesInWorkspaceStates.Contains(tree), "The tree in the Compilation should have been from the workspace.");
+                }
+                catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
+                {
+                }
+            }
+
+            /// <summary>
+            /// This is just the same as <see cref="Contract.ThrowIfFalse(bool, string, int)"/> but throws a custom exception type to make this easier to find in telemetry since the exception type
+            /// is easily seen in telemetry.
+            /// </summary>
+            private static void ThrowExceptionIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message)
+            {
+                if (!condition)
+                {
+                    throw new CompilationTrackerValidationException(message);
+                }
+            }
+
+            public class CompilationTrackerValidationException : Exception
+            {
+                public CompilationTrackerValidationException() { }
+                public CompilationTrackerValidationException(string message) : base(message) { }
+                public CompilationTrackerValidationException(string message, Exception inner) : base(message, inner) { }
+            }
+
             #region Versions and Checksums
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
@@ -1137,7 +1223,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentVersionAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(c => ComputeDependentVersionAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentVersion.GetValueAsync(cancellationToken);
@@ -1170,7 +1256,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, new AsyncLazy<VersionStamp>(c => ComputeDependentSemanticVersionAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(c => ComputeDependentSemanticVersionAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
@@ -1201,7 +1287,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var tmp = solution; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
                 }
 
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);

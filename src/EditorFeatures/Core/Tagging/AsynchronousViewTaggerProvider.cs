@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
@@ -13,6 +15,11 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
+    /// <summary>
+    /// Base type for async taggers that need access to an <see cref="ITextView"/>.  Used when a tagger needs things to
+    /// operate like determining what is visible to the user, or where the caret is.
+    /// </summary>
+    /// <typeparam name="TTag"></typeparam>
     internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
         where TTag : ITag
     {

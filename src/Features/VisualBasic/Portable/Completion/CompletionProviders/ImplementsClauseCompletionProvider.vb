@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return memberKindKeyword = SyntaxKind.EventKeyword
         End Function
 
-        Private Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
+        Private Shared Function GetDottedMembers(position As Integer, qualifiedName As QualifiedNameSyntax, semanticModel As SemanticModel, memberKindKeyword As SyntaxKind, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken)
             If containingType Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return result
         End Function
 
-        Private Sub AddAliasesAndContainers(symbol As ISymbol, interfacesAndContainers As ICollection(Of ISymbol), node As SyntaxNode, semanticModel As SemanticModel)
+        Private Shared Sub AddAliasesAndContainers(symbol As ISymbol, interfacesAndContainers As ICollection(Of ISymbol), node As SyntaxNode, semanticModel As SemanticModel)
             ' Add aliases, if any for 'symbol'
             AddAlias(symbol, interfacesAndContainers, node, semanticModel)
 

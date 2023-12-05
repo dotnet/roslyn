@@ -64,6 +64,11 @@
         <target state="translated">Funkce Upravit a pokračovat nemůže obnovit pozastavený iterátor, protože odpovídající příkaz yield return byl odstraněn.</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="translated">Hodnota end nesmí být menší než hodnota start. start={0} end={1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">Generátor</target>
@@ -93,6 +98,32 @@
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">{0} hintName přidaného zdrojového souboru musí být v rámci generátoru jedinečná.</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">Aktuální sestavení: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">Tisk informací InternalsVisibleToAttribute pro aktuální kompilaci a všechna odkazovaná sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">Odkaz na sestavení: {0}
+  Uděluje IVT aktuálnímu sestavení: {1}
+  Uděluje IVT:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    Název sestavení: {0}
+    Veřejné klíče:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -124,6 +155,11 @@
         <target state="translated">Parametr {0} musí být symbol z této kompilace nebo některé odkazované sestavení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="translated">Požadované číslo řádku {0} musí být menší než počet řádků {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Byl očekáván symbol metody.</target>
@@ -142,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Daná operace má nadřazenou položku, která není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">Nic</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -504,11 +545,6 @@
         <target state="translated">'Začátek musí být záporný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'Konec musí být míň než začátek.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">Neplatný typ obsahu</target>
@@ -692,17 +728,17 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">Chyba analyzátoru</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
         <target state="translated">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

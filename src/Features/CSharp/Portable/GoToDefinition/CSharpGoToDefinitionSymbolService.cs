@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition
                             return foundReturnableConstruct.GetFirstToken().Span.Start;
                         }
 
-                        return symbol.Locations.FirstOrNone().SourceSpan.Start;
+                        return symbol.Locations.FirstOrDefault()?.SourceSpan.Start ?? 0;
                     }
             }
 

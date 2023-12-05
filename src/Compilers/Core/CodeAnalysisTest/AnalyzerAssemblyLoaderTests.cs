@@ -338,9 +338,8 @@ Delta: Gamma: Beta: Test B
 
             Assert.Equal(
                 expected,
-                Roslyn.Utilities
-                    .EnumerableExtensions
-                    .Order(assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location)))
+                assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location))
+                    .OrderBy(static x => x)
                     .ToArray());
 
             if (loader is ShadowCopyAnalyzerAssemblyLoader shadowLoader)

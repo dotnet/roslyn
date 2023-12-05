@@ -326,6 +326,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             CancellationToken cancellationToken)
         {
             var (compilationWithAnalyzers, analyzerToIdMap) = await GetOrCreateCompilationWithAnalyzersAsync(cancellationToken).ConfigureAwait(false);
+            if (compilationWithAnalyzers == null)
+            {
+                return SerializableDiagnosticAnalysisResults.Empty;
+            }
 
             var analyzers = GetAnalyzers(analyzerToIdMap, analyzerIds);
             if (analyzers.IsEmpty)
@@ -467,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private async Task<(CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
+        private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
         {
             var cacheEntry = await GetOrCreateCacheEntryAsync().ConfigureAwait(false);
             return (cacheEntry.CompilationWithAnalyzers, cacheEntry.AnalyzerToIdMap);
@@ -522,7 +526,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 analyzerMapBuilder.AppendAnalyzerMap(analyzers);
             }
 
-            var compilationWithAnalyzers = await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            var compilationWithAnalyzers = analyzerBuilder.Count > 0
+                ? await CreateCompilationWithAnalyzerAsync(analyzerBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false)
+                : null;
             var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
             return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
@@ -530,6 +536,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private async Task<CompilationWithAnalyzers> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(!analyzers.IsEmpty);
+
             // Always run analyzers concurrently in OOP
             const bool concurrentAnalysis = true;
 
@@ -560,10 +568,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             public Checksum SolutionChecksum { get; }
             public Project Project { get; }
-            public CompilationWithAnalyzers CompilationWithAnalyzers { get; }
+            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
             public BidirectionalMap<string, DiagnosticAnalyzer> AnalyzerToIdMap { get; }
 
-            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
+            public CompilationWithAnalyzersCacheEntry(Checksum solutionChecksum, Project project, CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
             {
                 SolutionChecksum = solutionChecksum;
                 Project = project;

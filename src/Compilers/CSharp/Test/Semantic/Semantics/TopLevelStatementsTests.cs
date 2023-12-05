@@ -6445,7 +6445,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[globalStatement.Parent];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(globalStatement.Statement));
             }
@@ -6923,7 +6923,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -6991,7 +6991,7 @@ class B : A
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
             }
@@ -7077,7 +7077,7 @@ class Test
 
                 MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[decl];
 
-                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsEmpty);
 
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
             }

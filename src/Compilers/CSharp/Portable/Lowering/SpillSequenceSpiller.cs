@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        if (refKind != RefKind.None)
+                        if (refKind != RefKind.None || expression.Type?.IsRefLikeType == true)
                         {
                             var sequence = (BoundSequence)expression;
 
@@ -429,6 +429,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // later, if needed
                         return expression;
 
+                    case BoundKind.Call:
+                        var call = (BoundCall)expression;
+
+                        // If the method is known to have no observable side-effects, we can spill its receiver and arguments,
+                        // and call it later, after some other (unrelated) side-effects are evaluated.
+                        // It is similar to spilling a field/array access.
+                        if (refKind != RefKind.None)
+                        {
+                            if (call.Method.OriginalDefinition is SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod)
+                            {
+                                Debug.Assert(call.Arguments.Length == 1);
+                                return call.Update(ImmutableArray.Create(Spill(builder, call.Arguments[0], call.ArgumentRefKindsOpt[0])));
+                            }
+                            else if (call.Method.OriginalDefinition is SynthesizedInlineArrayElementRefMethod or SynthesizedInlineArrayElementRefReadOnlyMethod)
+                            {
+                                return spillInlineArrayHelperWithTwoArguments(builder, call);
+                            }
+                            else if (call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__get_Item) ||
+                                call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item))
+                            {
+                                Debug.Assert(call.Arguments.Length == 1);
+                                return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                                   call.Method,
+                                                   ImmutableArray.Create(Spill(builder, call.Arguments[0])));
+                            }
+                        }
+                        else if (call.Method.OriginalDefinition is SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayAsReadOnlySpanMethod)
+                        {
+                            return spillInlineArrayHelperWithTwoArguments(builder, call);
+                        }
+                        else if (call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__Slice_Int_Int) ||
+                                 call.Method.OriginalDefinition == _F.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int))
+                        {
+                            Debug.Assert(call.Arguments.Length == 2);
+                            return call.Update(Spill(builder, call.ReceiverOpt, ReceiverSpillRefKind(call.ReceiverOpt)),
+                                               call.Method,
+                                               ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
+                        }
+
+                        goto default;
+
                     default:
                         if (expression.Type.IsVoidType() || sideEffectsOnly)
                         {
@@ -451,6 +492,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return replacement;
                         }
                 }
+            }
+
+            BoundExpression spillInlineArrayHelperWithTwoArguments(BoundSpillSequenceBuilder builder, BoundCall call)
+            {
+                Debug.Assert(call.Arguments.Length == 2);
+                return call.Update(ImmutableArray.Create(Spill(builder, call.Arguments[0], call.ArgumentRefKindsOpt[0]),
+                                                         call.Arguments[1].ConstantValueOpt is { } ? call.Arguments[1] : Spill(builder, call.Arguments[1])));
             }
         }
 

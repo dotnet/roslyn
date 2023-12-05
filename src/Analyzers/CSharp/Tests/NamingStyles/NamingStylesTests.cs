@@ -1333,6 +1333,8 @@ namespace Microsoft.CodeAnalysis.Host
         [InlineData("_")]
         [InlineData("_1")]
         [InlineData("_123")]
+        [InlineData("__")]
+        [InlineData("___")]
         public async Task TestDiscardParameterAsync(string identifier)
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1348,6 +1350,8 @@ $@"class C
         [InlineData("_")]
         [InlineData("_1")]
         [InlineData("_123")]
+        [InlineData("__")]
+        [InlineData("___")]
         public async Task TestDiscardLocalAsync(string identifier)
         {
             await TestMissingInRegularAndScriptAsync(

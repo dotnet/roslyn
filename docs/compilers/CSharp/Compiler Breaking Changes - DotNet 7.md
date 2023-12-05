@@ -30,9 +30,10 @@ See https://github.com/dotnet/roslyn/pull/66264
 In earlier SDKs, the compiler would occasionally allow locations where pointers could be referenced, without explicitly marking that location as unsafe. 
 Now, the `unsafe` modifier must be present.  
 For example `using Alias = List<int*[]>;` should be changed to `using unsafe Alias = List<int*[]>;` to be legal.  
-And a usage such as `void Method(Alias a) ...` should be changed to `unsafe void Method(Alias a) ...`.  
+A usage such as `void Method(Alias a) ...` should be changed to `unsafe void Method(Alias a) ...`.  
 
-This rule only takes effect if the language version is chosen as C# 12 or higher.  Language versions lower than this get the previous behavior that allowed this code.
+The rule is unconditional, except for `using` alias declarations (which didn't allow an `unsafe` modifier before C# 12).  
+So for `using` declarations, the rule only takes effect if the language version is chosen as C# 12 or higher.
 
 ## System.TypedReference considered managed
 

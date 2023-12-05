@@ -64,6 +64,11 @@
         <target state="translated">編輯和繼續無法繼續暫停的列舉程式，因為對應的 yield return 陳述式已刪除</target>
         <note />
       </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
+        <target state="translated">'end' 不可小於 'start'。start='{0}' end='{1}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">產生器</target>
@@ -93,6 +98,32 @@
         <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
         <target state="translated">新增來源檔案的 hintName '{0}' 在產生器中必須是唯一的。</target>
         <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">目前的組件: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">正在列印目前編譯及所有參考組件的 'InternalsVisibleToAttribute' 資訊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">組件參考: '{0}'
+ 將 IVT 授與至目前的組件:{1}
+ 將 IIV 授與至:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    組件名稱: '{0}'
+   公開金鑰:</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
@@ -124,6 +155,11 @@
         <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineCannotBeGreaterThanEnd">
+        <source>The requested line number {0} must be less than the number of lines {1}.</source>
+        <target state="translated">要求的行號 {0} 必須小於 {1} 的行數。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">預期的方法符號</target>
@@ -142,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">指定的作業有非 null 的父代。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">無</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">
@@ -504,11 +545,6 @@
         <target state="translated">'start' 不可為負值</target>
         <note />
       </trans-unit>
-      <trans-unit id="EndMustNotBeLessThanStart">
-        <source>'end' must not be less than 'start'</source>
-        <target state="translated">'end' 不可小於 'start'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="InvalidContentType">
         <source>Invalid content type</source>
         <target state="translated">內容類型無效</target>
@@ -692,17 +728,17 @@
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
         <target state="translated">分析器失敗</target>
-        <note>{0}: Analyzer name
-{1}: Type name
-{2}: Localized exception message
-{3}: Localized detail message</note>
+        <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
         <target state="translated">分析器 '{0}' 擲回了類型為 '{1}' 的例外狀況。訊息: '{2}'。
 {3}</target>
-        <note />
+        <note>{0}: Analyzer name
+{1}: Type name
+{2}: Localized exception message
+{3}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="AnalyzerDriverFailure">
         <source>Analyzer Driver Failure</source>

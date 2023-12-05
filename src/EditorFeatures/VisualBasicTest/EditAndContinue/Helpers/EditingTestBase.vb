@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
@@ -39,7 +39,44 @@ End Namespace
             Iterator
         End Enum
 
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String) As String
+            Dim resource = TryGetResource(keyword)
+
+            If resource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Return String.Format(FeaturesResources.member_kind_and_name, resource, symbolDisplayName)
+        End Function
+
+        Public Shared Function GetResource(keyword As String, symbolDisplayName As String, containerKeyword As String, containerDisplayName As String) As String
+            Dim keywordResource = TryGetResource(keyword)
+            If keywordResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+
+            Dim containerResource = TryGetResource(containerKeyword)
+            If containerResource Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(containerKeyword)
+            End If
+
+            Return String.Format(
+                FeaturesResources.symbol_kind_and_name_of_member_kind_and_name,
+                keywordResource,
+                symbolDisplayName,
+                containerResource,
+                containerDisplayName)
+        End Function
+
         Public Shared Function GetResource(keyword As String) As String
+            Dim result = TryGetResource(keyword)
+            If result Is Nothing Then
+                Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End If
+            Return result
+        End Function
+
+        Public Shared Function TryGetResource(keyword As String) As String
             Select Case keyword
                 Case "Enum"
                     Return FeaturesResources.enum_
@@ -53,8 +90,26 @@ End Namespace
                     Return FeaturesResources.interface_
                 Case "Delegate"
                     Return FeaturesResources.delegate_
+                Case "Lambda"
+                    Return VBFeaturesResources.Lambda
+                Case "field"
+                    Return FeaturesResources.field
+                Case "property"
+                    Return FeaturesResources.property_
+                Case "method"
+                    Return FeaturesResources.method
+                Case "constructor"
+                    Return FeaturesResources.constructor
+                Case "shared constructor"
+                    Return VBFeaturesResources.Shared_constructor
+                Case "parameter"
+                    Return FeaturesResources.parameter
+                Case "type parameter"
+                    Return FeaturesResources.type_parameter
+                Case "WithEvents field"
+                    Return VBFeaturesResources.WithEvents_field
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(keyword)
+                    Return Nothing
             End Select
         End Function
 
@@ -141,17 +196,14 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
+            Dim analyzer = CreateAnalyzer()
+            Dim match = analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)())
 
-            Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
-            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
-            Dim needsSyntaxMap = oldHasStateMachineSuspensionPoint AndAlso newHasStateMachineSuspensionPoint
+            Dim stateMachineInfo1 = analyzer.GetStateMachineInfo(m1)
+            Dim stateMachineInfo2 = analyzer.GetStateMachineInfo(m2)
+            Dim needsSyntaxMap = stateMachineInfo1.HasSuspensionPoints AndAlso stateMachineInfo2.HasSuspensionPoints
 
             Assert.Equal(methodKind <> MethodKind.Regular, needsSyntaxMap)
-
-            If methodKind = MethodKind.Regular Then
-                Assert.Empty(diagnostics)
-            End If
 
             Return match
         End Function

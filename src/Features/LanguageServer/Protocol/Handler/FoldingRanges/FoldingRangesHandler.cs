@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (blockStructure == null)
                 return Array.Empty<FoldingRange>();
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return GetFoldingRanges(blockStructure, text);
         }
 

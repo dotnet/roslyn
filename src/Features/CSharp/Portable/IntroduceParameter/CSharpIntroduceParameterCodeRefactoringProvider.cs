@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceParameter
         ExpressionSyntax,
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax,
-        IdentifierNameSyntax>
+        IdentifierNameSyntax,
+        ArgumentSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceParameter
             return false;
         }
 
-        protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
+        protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<ArgumentSyntax> arguments)
             => ((ArgumentListSyntax)argumentList).WithArguments(arguments);
     }
 }

@@ -8053,7 +8053,7 @@ namespace NS2
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsInTheMiddle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -8082,7 +8082,7 @@ namespace NS
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/39519")>
         <WpfTheory, CombinatorialData>
-        Public Async Function TestSuggestedNamesDontStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestSuggestedNamesDoNotStartWithDigit_DigitsOnTheRight(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS
@@ -8178,7 +8178,7 @@ namespace NS
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 context.AddItem(CompletionItem.Create(
                     "CustomItem",
-                    rules:=CompletionItemRules.Default.WithMatchPriority(1000)))
+                    rules:=CompletionItemRules.Default.WithMatchPriority(1000), isComplexTextEdit:=True))
                 Return Task.CompletedTask
             End Function
 
@@ -11485,6 +11485,66 @@ class Program
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsDoNotContainAny("first", "second")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Flat() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof($$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property0", "Field0", "Event0")
+                Await state.AssertCompletionItemsDoNotContainAny("Property1", "Field1", "Event1")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")>
+        Public Async Function NameOf_Nested() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+public class C
+{
+    public C1 Property0 { get; }
+    public C1 Field0;
+    public event System.Action Event0;
+                
+    public static string StaticField =
+        nameof(Property0.$$);
+}
+                
+public class C1
+{
+    public int Property1 { get; }
+    public int Field1;
+    public event System.Action Event1;
+}
+]]>
+                </Document>,
+                languageVersion:=LanguageVersion.Preview)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Property1", "Field1", "Event1")
+                Await state.AssertCompletionItemsDoNotContainAny("Property0", "Field0", "Event0")
             End Using
         End Function
     End Class

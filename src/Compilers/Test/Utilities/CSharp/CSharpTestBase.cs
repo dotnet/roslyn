@@ -1756,12 +1756,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
                 }
 
+                var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+
                 try
                 {
-                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, new BindingDiagnosticBag(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, bindingDiagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
                 }
                 finally
                 {
+                    diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
+                    bindingDiagnostics.Free();
+
                     if (ensureEnglishUICulture)
                     {
                         CultureInfo.CurrentUICulture = saveUICulture;

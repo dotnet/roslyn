@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Rewrite collection initializer element Add method call:
-        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 };
+        //  new List<int> { 1, 2, 3 };  OR  new List<int> { { 1, 2 }, 3 }; OR [1, 2, 3]
         //                  ~                               ~~~~~~~~
         private BoundExpression? MakeCollectionInitializer(BoundExpression? rewrittenReceiver, BoundCollectionElementInitializer initializer)
         {
@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(temps.Count == 0);
                 temps.Free();
-                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
         private BoundExpression VisitObjectInitializerMember(BoundObjectInitializerMember node, ref BoundExpression rewrittenReceiver, ArrayBuilder<BoundExpression> sideEffects, ref ArrayBuilder<LocalSymbol>? temps)

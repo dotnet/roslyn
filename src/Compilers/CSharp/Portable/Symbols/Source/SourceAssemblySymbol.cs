@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // Skip synthetic <Module> type which every .NET module has.
                             if (x.Arity != 0 || !x.ContainingNamespace.IsGlobalNamespace || x.Name != "<Module>")
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.Locations.FirstOrNone(),
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, y.GetFirstLocationOrNone(),
                                                 y.ToDisplayString(SymbolDisplayFormat.ShortFormat),
                                                 y.ContainingNamespace);
                             }
@@ -2119,6 +2119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (result != null) ? result.Keys : SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            EnsureAttributesAreBound();
+
+            if (_lazyInternalsVisibleToMap == null)
+                return SpecializedCollections.EmptyEnumerable<string>();
+
+            return _lazyInternalsVisibleToMap.Keys;
+        }
+
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)
         {
             // Ensure that optimistic IVT access is only granted to requests that originated on the thread
@@ -2680,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         handledUnreadFields.Add(field);
                     }
 
-                    if (containingType.HasStructLayoutAttribute)
+                    if (containingType.HasStructLayoutAttribute || containingType.HasInlineArrayAttribute(out _))
                     {
                         continue;
                     }
@@ -2690,16 +2700,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (unread)
                         {
-                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.Locations.FirstOrNone(), associatedPropertyOrEvent);
+                            diagnostics.Add(ErrorCode.WRN_UnreferencedEvent, associatedPropertyOrEvent.GetFirstLocationOrNone(), associatedPropertyOrEvent);
                         }
                     }
                     else if (unread)
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.Locations.FirstOrNone(), field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.GetFirstLocationOrNone(), field);
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.Locations.FirstOrNone(), field, DefaultValue(field.Type));
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.GetFirstLocationOrNone(), field, DefaultValue(field.Type));
                     }
                 }
 
@@ -2717,9 +2727,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     var containingType = field.ContainingType as SourceNamedTypeSymbol;
-                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute)
+                    if ((object)containingType != null && !containingType.HasStructLayoutAttribute && !containingType.HasInlineArrayAttribute(out _))
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.Locations.FirstOrNone(), field);
+                        diagnostics.Add(ErrorCode.WRN_UnreferencedFieldAssg, field.GetFirstLocationOrNone(), field);
                     }
                 }
 

@@ -351,6 +351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
 End Namespace

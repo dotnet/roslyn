@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
 
-        private bool TryFindAssignmentExpression(
+        private static bool TryFindAssignmentExpression(
             IBlockOperation containingBlock, IConditionalOperation ifOperation, ISymbol localOrParameter,
             [NotNullWhen(true)] out IExpressionStatementOperation? expressionStatement,
             [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool TryDecomposeIfCondition(
+        private static bool TryDecomposeIfCondition(
             IConditionalOperation ifStatement,
              [NotNullWhen(true)] out ISymbol? localOrParameter)
         {
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool TryGetLocalOrParameterSymbol(
+        private static bool TryGetLocalOrParameterSymbol(
             IOperation operation,
             [NotNullWhen(true)] out ISymbol? localOrParameter)
         {

@@ -88,7 +88,7 @@ class Test { }", "Form");
 
             var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
             var actual = await DesignerAttributeDiscoveryService.ComputeDesignerAttributeCategoryAsync(
-                compilation.DesignerCategoryAttributeType() != null, document, CancellationToken.None);
+                compilation.DesignerCategoryAttributeType() != null, document.Project, document.Id, CancellationToken.None);
 
             Assert.Equal(category, actual);
         }

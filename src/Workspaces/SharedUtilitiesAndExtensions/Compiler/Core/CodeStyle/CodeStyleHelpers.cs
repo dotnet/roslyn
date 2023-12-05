@@ -77,10 +77,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 // If we have two args, then the second must be a notification option.  If 
                 // it isn't, then this isn't a valid code style option at all.
-                var secondValue = arg.Substring(firstColonIndex + 1);
-                if (TryParseNotification(secondValue, out var localNotification))
+                if (TryParseNotification(arg.AsSpan(firstColonIndex + 1), out var localNotification))
                 {
-                    var firstValue = arg.Substring(0, firstColonIndex);
+                    var firstValue = arg[..firstColonIndex];
                     value = firstValue.Trim();
                     notification = localNotification;
                     return true;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        private static bool TryParseNotification(string value, out NotificationOption2 notification)
+        private static bool TryParseNotification(ReadOnlySpan<char> value, out NotificationOption2 notification)
         {
             switch (value.Trim())
             {

@@ -25,11 +25,13 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
         TExpressionSyntax,
         TInvocationExpressionSyntax,
         TObjectCreationExpressionSyntax,
-        TIdentifierNameSyntax> : CodeRefactoringProvider
+        TIdentifierNameSyntax,
+        TArgumentSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TExpressionSyntax
+        where TArgumentSyntax : SyntaxNode
     {
         private enum IntroduceParameterCodeActionKind
         {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter
         }
 
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
-        protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments);
+        protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<TArgumentSyntax> arguments);
         protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
         protected abstract bool IsDestructor(IMethodSymbol methodSymbol);
 

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             var initializationFileName = UseDefaultInitializationFile ? "CSharpInteractive.rsp" : null;
 
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, DefaultPlatform));
+            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, DefaultPlatform));
 
             // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             ClearOutput();
 
-            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
+            await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
         }
 
         public async Task<string> ReadOutputToEnd(bool isError = false)

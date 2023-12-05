@@ -57,6 +57,15 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int RemoveUnusedReferences = 0x0202;
             public const int GoToValueTrackingWindow = 0x0203;
             public const int SyncNamespaces = 0x0204;
+
+            // Document Outline
+            public const int DocumentOutlineToolbar = 0x300;
+            public const int DocumentOutlineExpandAll = 0x311;
+            public const int DocumentOutlineCollapseAll = 0x312;
+            public const int DocumentOutlineSortByName = 0x313;
+            public const int DocumentOutlineSortByOrder = 0x314;
+            public const int DocumentOutlineSortByType = 0x315;
+            public const int DocumentOutlineToolbarGroup = 0x350;
         }
     }
 }

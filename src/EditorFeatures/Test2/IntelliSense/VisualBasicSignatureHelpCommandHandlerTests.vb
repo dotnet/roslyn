@@ -273,7 +273,7 @@ End Class
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/5174")>
         <WpfFact>
-        Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
+        Public Async Function DoNotShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
 Class C

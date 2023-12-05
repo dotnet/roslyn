@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal void OnNewTypeDeclarationsLoaded(
-            Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
+            Dictionary<ReadOnlyMemory<char>, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
             bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
 
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal NamedTypeSymbol LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
             NamedTypeSymbol? result;
-            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            var scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegmentsMemory);
 
             if ((object?)scope == null)
             {

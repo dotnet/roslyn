@@ -170,8 +170,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task<ImmutableArray<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol?> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var similarNames = TemporaryArray<string>.Empty;
+            using var result = TemporaryArray<ISymbol>.Empty;
+
+            _spellChecker.FindSimilarWords(ref similarNames.AsRef(), name, substringsAreSimilar: false);
 
             foreach (var similarName in similarNames)
             {
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.AddRange(symbols);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>

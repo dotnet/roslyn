@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsCopyConstructor(Symbol member)
         {
-            if (member is MethodSymbol { ContainingType.IsRecordStruct: false, MethodKind: MethodKind.Constructor } method)
+            if (member is MethodSymbol { ContainingType.IsRecord: true, MethodKind: MethodKind.Constructor } method)
             {
                 return HasCopyConstructorSignature(method);
             }

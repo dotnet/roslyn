@@ -1006,7 +1006,7 @@ class C
         }
 
         [Fact]
-        public async Task SelectValidSubexpressionAndHenceDontExpand()
+        public async Task SelectValidSubexpressionAndHenceDoNotExpand()
         {
             var code = @"class A
 {
@@ -1275,7 +1275,7 @@ class P
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540787")]
-        public async Task DontCrash()
+        public async Task DoNotCrash()
             => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
         [Fact, WorkItem(9931, "DevDiv_Projects/Roslyn")]
@@ -1592,7 +1592,7 @@ class B
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
-        public async Task DontCrashPastEndOfLine()
+        public async Task DoNotCrashPastEndOfLine()
         {
             //                    11 1
             //          012345678901 2

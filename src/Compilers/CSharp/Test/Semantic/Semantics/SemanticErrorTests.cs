@@ -15401,7 +15401,7 @@ public unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,39): error CS1637: Iterators cannot have unsafe parameters or yield types
+                // (6,39): error CS1637: Iterators cannot have pointer type parameters
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p"));
         }
 

@@ -125,6 +125,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInNullableAttribute\CSharpUseNameofInNullableAttributeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\UsePatternMatchingHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />

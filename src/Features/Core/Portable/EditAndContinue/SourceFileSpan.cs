@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Returns true if the span represents a valid location.
         /// </summary>
         public bool IsValid
-            => Path != null; // invalid span can be constructed by new FileLinePositionSpan()
+            => Path != null; // invalid span can be constructed by new SourceFileSpan()
 
         /// <summary>
         /// Gets the <see cref="LinePosition"/> of the start of the span.

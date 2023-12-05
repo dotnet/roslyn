@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, parameterType, ordinal, refKind, scope, name, locations)
+            : base(owner, parameterType, ordinal, refKind, scope, name, location)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
@@ -367,14 +367,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax, defaultSyntax.EqualsToken.GetLocation());
+            MessageID.IDS_FeatureOptionalParameter.CheckFeatureAvailability(diagnostics, defaultSyntax.EqualsToken);
 
             binder = GetDefaultParameterValueBinder(defaultSyntax);
-            Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
-            Debug.Assert(binderForDefault.InParameterDefaultValue);
-            Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
+            binder = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
+            Debug.Assert(binder.InParameterDefaultValue);
+            Debug.Assert(binder.ContainingMemberOrLambda == ContainingSymbol);
 
-            parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
+            parameterEqualsValue = binder.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
@@ -1000,14 +1000,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (diagnose)
                 {
                     diagnosticsOpt.Add(ErrorCode.ERR_DefaultValueTypeMustMatch, node.Name.Location);
-                    diagnosticsOpt.Add(node.Name.Location, useSiteInfo);
+                    diagnosticsOpt.Add(node.Name, useSiteInfo);
                 }
                 return ConstantValue.Bad;
             }
 
             if (diagnose)
             {
-                diagnosticsOpt.Add(node.Name.Location, useSiteInfo);
+                diagnosticsOpt.Add(node.Name, useSiteInfo);
             }
 
             return ConstantValue.Create(arg.ValueInternal, constantValueDiscriminator);
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, node.Name.Location);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerFilePathAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerMemberNameAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
-            diagnostics.Add(node.Name.Location, useSiteInfo);
+            diagnostics.Add(node.Name, useSiteInfo);
         }
 
         private void ValidateCancellationTokenAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
@@ -1394,21 +1394,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (data.HasOutAttribute && !data.HasInAttribute)
                         {
                             // error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
-                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.GetFirstLocation());
                         }
                         break;
                     case RefKind.Out:
                         if (data.HasInAttribute)
                         {
                             // error CS0036: An out parameter cannot have the In attribute.
-                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.GetFirstLocation());
                         }
                         break;
                     case RefKind.In:
                         if (data.HasOutAttribute)
                         {
                             // error CS8355: An in parameter cannot have the Out attribute.
-                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.GetFirstLocation());
                         }
                         break;
                 }
@@ -1510,12 +1510,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
 
@@ -1533,12 +1533,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind refKind,
             ImmutableArray<CustomModifier> refCustomModifiers,
             string name,
-            ImmutableArray<Location> locations,
+            Location location,
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
             ScopedKind scope)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
+            : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);
 

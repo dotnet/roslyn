@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Roslyn.Utilities;
@@ -14,11 +12,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
     {
         private readonly RudeEditKind _rudeEditKind;
-        private readonly string _firstLine;
-        private readonly string _squiggle;
+        private readonly string? _firstLine;
+        private readonly string? _squiggle;
         private readonly string[] _arguments;
 
-        internal RudeEditDiagnosticDescription(RudeEditKind rudeEditKind, string squiggle, string[] arguments, string firstLine)
+        internal RudeEditDiagnosticDescription(RudeEditKind rudeEditKind, string? squiggle, string[] arguments, string? firstLine)
         {
             _rudeEditKind = rudeEditKind;
             _squiggle = squiggle;
@@ -26,10 +24,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             _arguments = arguments ?? Array.Empty<string>();
         }
 
-        public string FirstLine => _firstLine;
+        public string? FirstLine => _firstLine;
 
         public RudeEditDiagnosticDescription WithFirstLine(string value)
-            => new RudeEditDiagnosticDescription(_rudeEditKind, _squiggle, _arguments, value.Trim());
+            => new(_rudeEditKind, _squiggle, _arguments, value.Trim());
 
         public bool Equals(RudeEditDiagnosticDescription other)
         {
@@ -50,11 +48,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public override string ToString()
+            => ToString(tryGetResource: null);
+
+        public string ToString(Func<string, string?>? tryGetResource)
         {
-            var arguments = string.Join(", ", new[] { (_squiggle != null) ? "\"" + _squiggle.Replace("\r\n", "\\r\\n") + "\"" : "null" }.Concat(_arguments.Select(a => "\"" + a + "\"")));
+            var arguments =
+                new[] { (_squiggle != null) ? "\"" + _squiggle.Replace("\r\n", "\\r\\n") + "\"" : "null" }
+                .Concat(_arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\""));
+
             var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
 
-            return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {arguments}){withLine}";
+            return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {string.Join(", ", arguments)}){withLine}";
         }
 
         internal void VerifyMessageFormat()

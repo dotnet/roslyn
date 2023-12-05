@@ -5,7 +5,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
+using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -189,5 +192,43 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
 @"record {|codeLens:A|}(int SomeInt)";
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, CapabilitiesWithVSExtensions);
         await VerifyCodeLensAsync(testLspServer, expectedNumberOfReferences: 0);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestDoesNotCrashWhenSyntaxVersionsMismatch(bool mutatingLspWorkspace)
+    {
+        var markup =
+@"class A
+{
+    void {|codeLens:M|}()
+    {
+    }
+
+    void UseM()
+    {
+        M();
+    }
+}";
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var documentUri = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single().GetURI();
+        var codeLensParamsDoc1 = new LSP.CodeLensParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(documentUri)
+        };
+
+        var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
+        var firstCodeLens = actualCodeLenses.First();
+        var data = JsonConvert.DeserializeObject<CodeLensResolveData>(firstCodeLens.Data!.ToString());
+        AssertEx.NotNull(data);
+
+        // Update the document so the syntax version changes
+        await testLspServer.OpenDocumentAsync(documentUri);
+        await testLspServer.InsertTextAsync(documentUri, (0, 0, "A"));
+
+        // Assert that we don't crash when sending an old request to a new document
+        var firstDocumentResult2 = await testLspServer.ExecuteRequestAsync<LSP.CodeLens, LSP.CodeLens>(LSP.Methods.CodeLensResolveName, firstCodeLens, CancellationToken.None);
+        Assert.NotNull(firstDocumentResult2?.Command?.Title);
     }
 }

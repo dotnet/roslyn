@@ -35,13 +35,13 @@ internal partial class SolutionAssetStorage
     {
         lock (_gate)
         {
-            if (!_checksumToScope.ContainsKey(solutionChecksum))
+            if (!_checksumToScope.TryGetValue(solutionChecksum, out var scope))
             {
                 Debug.Fail($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
                 throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
             }
 
-            return _checksumToScope[solutionChecksum];
+            return scope;
         }
     }
 

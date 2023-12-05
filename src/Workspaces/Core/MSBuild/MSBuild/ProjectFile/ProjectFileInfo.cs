@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string? TargetFramework { get; }
 
         /// <summary>
+        /// The target framework identifier of this project.
+        /// Used to determine if a project is targeting .net core.
+        /// </summary>
+        public string? TargetFrameworkIdentifier { get; }
+
+        /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
         public ImmutableArray<string> CommandLineArgs { get; }
@@ -107,6 +113,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? intermediateOutputFilePath,
             string? defaultNamespace,
             string? targetFramework,
+            string? targetFrameworkIdentifier,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -124,6 +131,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.IntermediateOutputFilePath = intermediateOutputFilePath;
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
+            this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
@@ -140,6 +148,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? intermediateOutputFilePath,
             string? defaultNamespace,
             string? targetFramework,
+            string? targetFrameworkIdentifier,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -155,6 +164,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 intermediateOutputFilePath,
                 defaultNamespace,
                 targetFramework,
+                targetFrameworkIdentifier,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
@@ -172,6 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 intermediateOutputFilePath: null,
                 defaultNamespace: null,
                 targetFramework: null,
+                targetFrameworkIdentifier: null,
                 commandLineArgs: ImmutableArray<string>.Empty,
                 documents: ImmutableArray<DocumentFileInfo>.Empty,
                 additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,

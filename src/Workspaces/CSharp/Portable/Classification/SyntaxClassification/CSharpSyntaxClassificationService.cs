@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => s_defaultSyntaxClassifiers;
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
             => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public override void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public override void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
             => Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
 
         public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)

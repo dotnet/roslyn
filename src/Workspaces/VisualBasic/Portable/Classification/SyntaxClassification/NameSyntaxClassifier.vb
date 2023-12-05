@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
                 syntax As SyntaxNode,
                 semanticModel As SemanticModel,
                 options As ClassificationOptions,
-                result As ArrayBuilder(Of ClassifiedSpan),
+                result As SegmentedList(Of ClassifiedSpan),
                 cancellationToken As CancellationToken)
 
             Dim nameSyntax = TryCast(syntax, NameSyntax)
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Private Sub ClassifyNameSyntax(
                 node As NameSyntax,
                 semanticModel As SemanticModel,
-                result As ArrayBuilder(Of ClassifiedSpan),
+                result As SegmentedList(Of ClassifiedSpan),
                 cancellationToken As CancellationToken)
 
             Dim classifiedSpan As ClassifiedSpan
@@ -234,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Private Shared Sub ClassifyModifiedIdentifier(
                 modifiedIdentifier As ModifiedIdentifierSyntax,
-                result As ArrayBuilder(Of ClassifiedSpan))
+                result As SegmentedList(Of ClassifiedSpan))
 
             If modifiedIdentifier.ArrayBounds IsNot Nothing OrElse
                modifiedIdentifier.ArrayRankSpecifiers.Count > 0 OrElse
@@ -274,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End Select
         End Function
 
-        Private Shared Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan))
+        Private Shared Sub ClassifyMethodStatement(methodStatement As MethodStatementSyntax, semanticModel As SemanticModel, result As SegmentedList(Of ClassifiedSpan))
             ' Ensure that extension method declarations are classified properly.
             ' Note that the method statement name is likely already classified as a method name
             ' by the syntactic classifier. However, there isn't away to determine whether a VB
@@ -287,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Private Shared Sub ClassifyLabelSyntax(
             node As LabelSyntax,
-            result As ArrayBuilder(Of ClassifiedSpan))
+            result As SegmentedList(Of ClassifiedSpan))
 
             result.Add(New ClassifiedSpan(node.LabelToken.Span, ClassificationTypeNames.LabelName))
         End Sub

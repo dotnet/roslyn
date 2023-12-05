@@ -3,9 +3,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
-    <!-- We build this against net7.0 to build the console app version, and against netstandard2.0 for
+    <!-- We build this against net8.0 to build the console app version, and against netstandard2.0 for
          the Source Generator version. -->
-    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
     <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>

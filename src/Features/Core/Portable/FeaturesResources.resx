@@ -414,9 +414,6 @@
   <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a generic type requires restarting the application.</value>
-  </data>
   <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface method requires restarting the application.</value>
   </data>
@@ -496,9 +493,6 @@
   <data name="Adding_a_user_defined_0_requires_restarting_the_application" xml:space="preserve">
     <value>Adding a user defined {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_a_generic_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding a generic {0} requires restarting the application.</value>
-  </data>
   <data name="Adding_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} around an active statement requires restarting the application.</value>
   </data>
@@ -524,17 +518,8 @@
   <data name="Modifying_a_generic_method_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying a generic method requires restarting the application.</value>
   </data>
-  <data name="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying whitespace or comments in a generic {0} requires restarting the application.</value>
-  </data>
   <data name="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying a method inside the context of a generic type requires restarting the application.</value>
-  </data>
-  <data name="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</value>
-  </data>
-  <data name="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying the initializer of {0} in a generic type requires restarting the application.</value>
   </data>
   <data name="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application" xml:space="preserve">
     <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</value>
@@ -2724,6 +2709,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>
   </data>
+  <data name="symbol_kind_and_name_of_member_kind_and_name" xml:space="preserve">
+    <value>{0} '{1}' of {2} '{3}'</value>
+    <comment>e.g. "parameter 'T param' of method 'M'"</comment>
+  </data>
   <data name="code" xml:space="preserve">
     <value>code</value>
   </data>
@@ -2744,15 +2733,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="and_update_call_sites_directly" xml:space="preserve">
     <value>and update call sites directly</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' as read only requires restarting the application,</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</value>
-  </data>
-  <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
-    <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
   </data>
   <data name="Convert_to_record_struct" xml:space="preserve">
     <value>Convert to record struct</value>
@@ -3120,6 +3100,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Deleting {0} requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating async or iterator requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Extract_base_record" xml:space="preserve">
     <value>Extract base record...</value>

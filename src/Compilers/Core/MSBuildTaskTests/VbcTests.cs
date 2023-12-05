@@ -511,5 +511,13 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
             });
             Assert.False(string.IsNullOrEmpty(engine.Log));
         }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var vbc = new Vbc();
+            vbc.ReportIVTs = true;
+            AssertEx.Equal("/optionstrict:custom /reportivts", vbc.GenerateResponseFileContents());
+        }
     }
 }

@@ -36,6 +36,8 @@ using Microsoft.CodeAnalysis.Options;
 
 using System.Diagnostics;
 using System.IO;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Testing;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -320,11 +322,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
+        internal abstract Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters);
+
         protected Task TestSmartTagTextAsync(string initialMarkup, string displayText, int index)
             => TestSmartTagTextAsync(initialMarkup, displayText, new TestParameters(index: index));
 
         protected Task TestSmartTagGlyphTagsAsync(string initialMarkup, ImmutableArray<string> glyphTags, int index)
             => TestSmartTagGlyphTagsAsync(initialMarkup, glyphTags, new TestParameters(index: index));
+
+        protected async Task TestCodeRefactoringApplicableTextSpan(
+            string markup,
+            string textSpanMarker,
+            TestParameters parameters = null)
+        {
+            var ps = parameters ?? TestParameters.Default;
+            using var workspace = CreateWorkspaceFromOptions(markup, ps);
+            var refactoring = await GetCodeRefactoringAsync(workspace, ps).ConfigureAwait(false);
+
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out _, out var spans);
+            Assert.True(spans.ContainsKey(textSpanMarker));
+
+            var expectedTextSpans = spans[textSpanMarker].Sort();
+            var actualTextSpans = refactoring.CodeActions.WhereAsArray(action => action.applicableToSpan is not null).SelectAsArray(action => action.applicableToSpan).Sort();
+            Assert.Equal(expectedTextSpans.Length, actualTextSpans.Length);
+            for (var i = 0; i < expectedTextSpans.Length; i++)
+            {
+                Assert.Equal(expectedTextSpans[i], actualTextSpans[i]);
+            }
+        }
 
         protected async Task TestSmartTagTextAsync(
             string initialMarkup,

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
@@ -42,12 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Labels
 
-        // Assumptions:
-        // - Each listed label corresponds to one or more syntax kinds.
-        // - Nodes with same labels might produce Update edits, nodes with different labels don't. 
-        // - If IsTiedToParent(label) is true for a label then all its possible parent labels must precede the label.
-        //   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
-        // - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// <summary>
+        /// Assumptions:
+        /// - Each listed label corresponds to one or more syntax kinds.
+        /// - Nodes with same labels might produce Update edits, nodes with different labels don't. 
+        /// - If <see cref="TiedToAncestor(Label)"/> is true for a label then all its possible parent labels must precede the label.
+        ///   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
+        /// - All descendants of a node whose kind is listed here will be ignored regardless of their labels
+        /// </summary>
         internal enum Label
         {
             // Top level syntax kinds
@@ -61,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             TypeDeclaration,
             EnumDeclaration,
+            BaseList,                          // tied to parent
+            PrimaryConstructorBase,            // tied to parent
             DelegateDeclaration,
 
             FieldDeclaration,                  // tied to parent
@@ -184,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.IndexerDeclaration:
                 case Label.EventDeclaration:
                 case Label.EnumMemberDeclaration:
+                case Label.BaseList:
                 case Label.AccessorDeclaration:
                 case Label.AccessorList:
                 case Label.TypeParameterList:
@@ -590,6 +596,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return Label.TypeDeclaration;
+
+                case SyntaxKind.BaseList:
+                    return Label.BaseList;
+
+                case SyntaxKind.PrimaryConstructorBaseType:
+                    // For top syntax, primary constructor base initializer is a leaf node
+                    isLeaf = true;
+                    return Label.PrimaryConstructorBase;
 
                 case SyntaxKind.MethodDeclaration:
                     return Label.MethodDeclaration;
@@ -1593,7 +1607,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         /// </remarks>
         public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
-            => LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
+            => LongestCommonSubstring.ComputePrefixDistance(
+                oldToken.Text, Math.Min(oldToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation),
+                newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
+
+        private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
+            => enumerable is null ? ImmutableArray<T>.Empty : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -1602,16 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
-            => LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
+            => LcsTokens.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldTokens), CreateArrayForDistanceCalculation(newTokens));
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
@@ -1620,16 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
-        /// </summary>
-        /// <remarks>
-        /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
-        /// </remarks>
-        public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-            => LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
+            => LcsNodes.Instance.ComputeDistance(CreateArrayForDistanceCalculation(oldNodes), CreateArrayForDistanceCalculation(newNodes));
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.

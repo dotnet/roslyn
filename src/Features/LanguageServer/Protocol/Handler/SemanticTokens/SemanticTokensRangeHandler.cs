@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
+            var capabilities = context.GetRequiredClientCapabilities();
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                capabilities,
                 document,
-                SemanticTokensHelpers.TokenTypeToIndex,
                 request.Range,
                 options,
-                includeSyntacticClassifications: contextDocument.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 
             // The above call to get semantic tokens may be inaccurate (because we use frozen partial semantics).  Kick

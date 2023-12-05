@@ -4,13 +4,15 @@
 
 #nullable disable
 
-using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -955,6 +957,315 @@ public class Program
         }
 
         [Fact]
+        public void SymbolInfo_InstanceMemberFromStatic_Flat()
+        {
+            var source = """
+                public class C
+                {
+                    public int Property { get; }
+                    public int Field;
+                    public event System.Action Event;
+
+                    public static string StaticField =
+                        nameof(Property) +
+                        nameof(Field) +
+                        nameof(Event);
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var cProperty = comp.GetMember("C.Property");
+            var cField = comp.GetMember("C.Field");
+            var cEvent = comp.GetMember("C.Event");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(3, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(3, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property", cProperty);
+            verify(1, "Field", cField);
+            verify(2, "Event", cEvent);
+
+            void verify(int index, string expression, Symbol symbol)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(SymbolInfo symbolInfo)
+                {
+                    Assert.NotNull(symbolInfo.Symbol);
+                    Assert.Same(symbol.GetPublicSymbol(), symbolInfo.Symbol);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact]
+        public void SymbolInfo_InstanceMemberFromStatic_Flat_MethodGroup()
+        {
+            var source = """
+                public class C
+                {
+                    public void Method1() { }
+                    public void Method1(int i) { }
+                    public void Method2() { }
+                    public static void Method2(int i) { }
+                
+                    public static string StaticField =
+                        nameof(Method1) +
+                        nameof(Method2);
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var cMethods1 = comp.GetMembers("C.Method1");
+            Assert.Equal(2, cMethods1.Length);
+            var cMethods2 = comp.GetMembers("C.Method2");
+            Assert.Equal(2, cMethods2.Length);
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(2, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(2, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Method1", cMethods1);
+            verify(1, "Method2", cMethods2);
+
+            void verify(int index, string expression, ImmutableArray<Symbol> symbols)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(CandidateReason.OverloadResolutionFailure, model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(CandidateReason reason, SymbolInfo symbolInfo)
+                {
+                    Assert.Equal(reason, symbolInfo.CandidateReason);
+                    AssertEx.SetEqual(
+                        symbols.Select(s => s.GetPublicSymbol()),
+                        symbolInfo.CandidateSymbols,
+                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")]
+        public void SymbolInfo_InstanceMemberFromStatic_Nested()
+        {
+            var source = """
+                public class C
+                {
+                    public C1 Property { get; }
+                    public C1 Field;
+
+                    public static string StaticField =
+                        nameof(Property.Property) +
+                        nameof(Property.Field) +
+                        nameof(Property.Event) +
+                        nameof(Field.Property) +
+                        nameof(Field.Field) +
+                        nameof(Field.Event);
+                }
+                
+                public class C1
+                {
+                    public int Property { get; }
+                    public int Field;
+                    public event System.Action Event;
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c1Property = comp.GetMember("C1.Property");
+            var c1Field = comp.GetMember("C1.Field");
+            var c1Event = comp.GetMember("C1.Event");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(6, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(6, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property.Property", c1Property);
+            verify(1, "Property.Field", c1Field);
+            verify(2, "Property.Event", c1Event);
+            verify(3, "Field.Property", c1Property);
+            verify(4, "Field.Field", c1Field);
+            verify(5, "Field.Event", c1Event);
+
+            void verify(int index, string expression, Symbol symbol)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(SymbolInfo symbolInfo)
+                {
+                    Assert.NotNull(symbolInfo.Symbol);
+                    Assert.Same(symbol.GetPublicSymbol(), symbolInfo.Symbol);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67565")]
+        public void SymbolInfo_InstanceMemberFromStatic_Nested_MethodGroup()
+        {
+            var source = """
+                public class C
+                {
+                    public C1 Property { get; }
+                    public C1 Field;
+                    public event System.Action Event;
+                
+                    public static string StaticField =
+                        nameof(Property.Method) +
+                        nameof(Field.Method) +
+                        nameof(Event.Invoke);
+                }
+                
+                public class C1
+                {
+                    public void Method() { }
+                    public void Method(int i) { }
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c1Methods = comp.GetMembers("C1.Method").ToArray();
+            Assert.Equal(2, c1Methods.Length);
+            var c1Event = comp.GetMember("C1.Event");
+            var actionInvoke = comp.GetWellKnownType(WellKnownType.System_Action).GetMember("Invoke");
+
+            var tree = comp.SyntaxTrees.Single();
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source + " ");
+
+            var initializer = tree2.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+            var nameofCalls = getNameOfCalls(tree);
+            Assert.Equal(3, nameofCalls.Length);
+            var nameofCalls2 = getNameOfCalls(tree2);
+            Assert.Equal(3, nameofCalls2.Length);
+
+            var model = comp.GetSemanticModel(tree);
+
+            verify(0, "Property.Method", c1Methods);
+            verify(1, "Field.Method", c1Methods);
+            verify(2, "Event.Invoke", actionInvoke);
+
+            void verify(int index, string expression, params Symbol[] symbols)
+            {
+                var argument = nameofCalls[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument.ToString());
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model.GetSymbolInfo(argument));
+
+                var argument2 = nameofCalls2[index].ArgumentList.Arguments.Single().Expression;
+                Assert.Equal(expression, argument2.ToString());
+
+                Assert.True(model.TryGetSpeculativeSemanticModel(initializer.Position, initializer, out var model2));
+
+                verifySymbolInfo(CandidateReason.MemberGroup, model2.GetSymbolInfo(argument2));
+
+                verifySymbolInfo(CandidateReason.OverloadResolutionFailure, model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsExpression));
+
+                Assert.True(model.GetSpeculativeSymbolInfo(argument2.Position, argument2, SpeculativeBindingOption.BindAsTypeOrNamespace).IsEmpty);
+
+                void verifySymbolInfo(CandidateReason reason, SymbolInfo symbolInfo)
+                {
+                    Assert.Equal(reason, symbolInfo.CandidateReason);
+                    AssertEx.SetEqual(
+                        symbols.Select(s => s.GetPublicSymbol()),
+                        symbolInfo.CandidateSymbols,
+                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                }
+            }
+
+            static ImmutableArray<InvocationExpressionSyntax> getNameOfCalls(SyntaxTree tree)
+            {
+                return tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                    .Where(e => e.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" })
+                    .ToImmutableArray();
+            }
+        }
+
+        [Fact]
         public void ExtensionMethodConstraintFailed()
         {
             var source =
@@ -1486,6 +1797,581 @@ public class C
 }";
             var option = TestOptions.ReleaseDll;
             CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof_Flat()
+        {
+            var source = @"
+System.Console.Write(C.M());
+public class C
+{
+    public object Property { get; }
+    public object Field;
+    public event System.Action Event;
+    public void M2() { }
+    public static string M() => nameof(Property)
+        + "","" + nameof(Field)
+        + "","" + nameof(Event)
+        + "","" + nameof(M2)
+        ;
+}";
+            var expectedOutput = "Property,Field,Event,M2";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromStaticMemberInNameof_Nested()
+        {
+            var source = @"
+System.Console.Write(C.M());
+public class C
+{
+    public C1 Property { get; }
+    public C1 Field;
+    public event System.Action Event;
+    public static string M() => nameof(Property.Property) 
+        + "","" + nameof(Property.Field)
+        + "","" + nameof(Property.Method)
+        + "","" + nameof(Property.Event)
+        + "","" + nameof(Field.Property) 
+        + "","" + nameof(Field.Field)
+        + "","" + nameof(Field.Method)
+        + "","" + nameof(Field.Event)
+        + "","" + nameof(Event.Invoke)
+        ;
+}
+
+public class C1
+{
+    public int Property { get; }
+    public int Field;
+    public void Method(){}
+    public event System.Action Event;
+}";
+            var expectedOutput = "Property,Field,Method,Event,Property,Field,Method,Event,Invoke";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Property.Property) 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(8, 40),
+                // (9,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Field)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(9, 24),
+                // (10,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Method)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(10, 24),
+                // (11,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Property.Event)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("instance member in 'nameof'").WithLocation(11, 24),
+                // (12,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Property) 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(12, 24),
+                // (13,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Field)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(13, 24),
+                // (14,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Method)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(14, 24),
+                // (15,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Field.Event)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("instance member in 'nameof'").WithLocation(15, 24),
+                // (16,24): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         + "," + nameof(Event.Invoke)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(16, 24));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void InstanceFromStatic_Lambdas()
+        {
+            var source = """
+                using System;
+                Console.Write(C.Names());
+                public class C
+                {
+                    public object Property { get; }
+                    public object Field;
+                    public event Action Event;
+                    public void Method() { }
+                    public static string Names()
+                    {
+                        var lambda1 = static () => nameof(Property);
+                        var lambda2 = static (string f = nameof(Field)) => f;
+                        var lambda3 = static () => nameof(Event.Invoke);
+                        var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                        return lambda1() + "," + lambda2() + "," + lambda3() + "," + lambda4();
+                    }
+                }
+                """;
+            var expectedOutput = "Property,Field,Invoke,Invoke";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (12,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda2 = static (string f = nameof(Field)) => f;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(12, 40),
+                // (13,43): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda3 = static () => nameof(Event.Invoke);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 43),
+                // (14,40): error CS8652: The feature 'lambda optional parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=").WithArguments("lambda optional parameters").WithLocation(14, 40),
+                // (14,49): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var lambda4 = static (string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 49));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void InstanceFromStatic_LocalFunctions()
+        {
+            var source = """
+                using System;
+                Console.Write(C.Names());
+                public class C
+                {
+                    public object Property { get; }
+                    public object Field;
+                    public event Action Event;
+                    public void Method() { }
+                    public static string Names()
+                    {
+                        static string local1() => nameof(Property);
+                        static string local2(string f = nameof(Field)) => f;
+                        static string local3() => nameof(Event.Invoke);
+                        static string local4(string i = nameof(Event.Invoke)) => i;
+                        return local1() + "," + local2() + "," + local3() + "," + local4();
+                    }
+                }
+                """;
+            var expectedOutput = "Property,Field,Invoke,Invoke";
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (13,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static string local3() => nameof(Event.Invoke);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(13, 42),
+                // (14,48): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static string local4(string i = nameof(Event.Invoke)) => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Event").WithArguments("instance member in 'nameof'").WithLocation(14, 48));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromFieldInitializerInNameof()
+        {
+            var source = @"
+System.Console.Write(new C().S);
+public class C
+{
+    public string S { get; } = nameof(S.Length);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string S { get; } = nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 39));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromAttributeInNameof()
+        {
+            var source = @"
+var p = new C().P; // 1
+public class C
+{
+    [System.Obsolete(nameof(S.Length))]
+    public int P { get; }
+    public string S { get; }
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (2,9): warning CS0618: 'C.P' is obsolete: 'Length'
+                // var p = new C().P; // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new C().P").WithArguments("C.P", "Length").WithLocation(2, 9)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [System.Obsolete(nameof(S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 29));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceInstanceMembersFromConstructorInitializersInNameof()
+        {
+            var source = @"
+System.Console.WriteLine(new C().S);
+public class C
+{
+    public C(string s){ S = s; }
+    public C() : this(nameof(S.Length)){}
+    public string S { get; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public C() : this(nameof(S.Length)){}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(6, 30));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanAccessStructInstancePropertyInLambdaInNameof()
+        {
+            var source = @"
+using System;
+
+string s = ""str"";
+new S().M(ref s);
+
+public struct S
+{
+    public string P { get; }
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(P.Length);
+        Console.WriteLine(func());
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (12,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<string> func = () => nameof(P.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(12, 42));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof1()
+        {
+            var source = @"
+System.Console.WriteLine(new C().M());
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public string M() => nameof(Prop.StaticProp);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 33));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof2()
+        {
+            var source = @"
+System.Console.WriteLine(C.M());
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public static string M() => nameof(Prop.StaticProp);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticProp").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 40),
+                // (7,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(7, 40));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof3()
+        {
+            var source = @"
+System.Console.WriteLine(C.M());
+public class C
+{
+    public C Prop { get; }
+    public static string M() => nameof(Prop.M);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "M").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "M").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(Prop.M);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(6, 40));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof4()
+        {
+            var source = @"
+System.Console.WriteLine(new C().M());
+public class C
+{
+    public C Prop { get; }
+    public static void StaticMethod(){}
+    public string M() => nameof(Prop.StaticMethod);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromStaticMemberInNameofInCSharp11()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; }
+    public static string M() => nameof(S.Length);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,40): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 40));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromFieldInitializerInNameofInCSharp11()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; } = nameof(S.Length);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,39): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string S { get; } = nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 39));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromAttributeInNameofInCSharp11()
+        {
+            var source = @"
+public class C
+{
+    [System.Obsolete(nameof(S.Length))]
+    public int P { get; }
+    public string S { get; }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (4,29): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [System.Obsolete(nameof(S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(4, 29));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromConstructorInitializersInNameofInCSharp11()
+        {
+            var source = @"
+public class C
+{
+    public C(string s){}
+    public C() : this(nameof(S.Length)){}
+    public string S { get; }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,30): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public C() : this(nameof(S.Length)){}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("instance member in 'nameof'").WithLocation(5, 30));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotAccessStructInstancePropertyInLambdaInNameofInCSharp11()
+        {
+            var source = @"
+using System;
+
+public struct S
+{
+    public string P { get; }
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(P.Length);
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (9,42): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<string> func = () => nameof(P.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("instance member in 'nameof'").WithLocation(9, 42));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceStaticPropertyFromInstanceMemberInNameofInCSharp11()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public string M() => nameof(Prop.StaticProp);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (6,33): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("instance member in 'nameof'").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void TestCanReferenceStaticMethodFromInstanceMemberInNameofInCSharp11()
+        {
+            var source = @"
+System.Console.WriteLine(new C().M());
+public class C
+{
+    public C Prop { get; }
+    public static void StaticMethod(){}
+    public string M() => nameof(Prop.StaticMethod);
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestCanAccessRefParameterInLambdaInNameof()
+        {
+            var source = @"
+using System;
+
+string s = ""str"";
+new S().M(ref s);
+
+public struct S
+{
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(x.Length);
+        Console.WriteLine(func());
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular11, expectedOutput: "Length").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Length").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes1()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetProperty(""Prop"").GetCustomAttribute<Attr>().S);
+class C
+{
+    [Attr(nameof(Prop.StaticMethod))]
+    public C Prop { get; }
+    public static void StaticMethod(){}
+}
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "StaticMethod").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [Attr(nameof(Prop.StaticMethod))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes2()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetProperty(""Prop"").GetCustomAttribute<Attr>().S);
+class C
+{
+    [Attr(nameof(Prop.Prop))]
+    public static C Prop { get; }
+}
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,18): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [Attr(nameof(Prop.Prop))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(7, 18));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes3()
+        {
+            var source = @"
+using System;
+using System.Reflection;
+Console.WriteLine(typeof(C).GetCustomAttribute<Attr>().S);
+[Attr(nameof(C.Prop.Prop))]
+class C
+{
+    public static C Prop { get; }
+}
+class Attr : Attribute
+{
+    public readonly string S;
+    public Attr(string s) { S = s; }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: "Prop").VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "Prop").VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (5,14): error CS8652: The feature 'instance member in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // [Attr(nameof(C.Prop.Prop))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C.Prop.Prop").WithArguments("instance member in 'nameof'").WithLocation(5, 14));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler1()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Method().Method))]
+    T Method<T>() where T : C => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     [Attr(nameof(Method().Method))]
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Method<C>().Method))]
+    T Method<T>() where T : C => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            var expectedDiagnostics = new[]
+            {
+                // (4,18): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //     [Attr(nameof(Method<C>().Method))]
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "Method<C>()").WithLocation(4, 18)
+            };
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -232,8 +233,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        Compilation compilation,
                                                        AnalyzerOptions options,
                                                        bool isGeneratedCode,
+                                                       SyntaxTree? filterTree,
+                                                       TextSpan? filterSpan,
                                                        CancellationToken cancellationToken)
-            : base(owningSymbol, compilation, options, isGeneratedCode, cancellationToken)
+            : base(owningSymbol, compilation, options, isGeneratedCode, filterTree, filterSpan, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -296,9 +299,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                        ISymbol owningSymbol,
                                                        SemanticModel semanticModel,
                                                        AnalyzerOptions options,
+                                                       TextSpan? filterSpan,
                                                        bool isGeneratedCode,
                                                        CancellationToken cancellationToken)
-            : base(codeBlock, owningSymbol, semanticModel, options, isGeneratedCode, cancellationToken)
+            : base(codeBlock, owningSymbol, semanticModel, options, filterSpan, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -332,9 +336,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                             Compilation compilation,
                                                             AnalyzerOptions options,
                                                             Func<IOperation, ControlFlowGraph> getControlFlowGraph,
+                                                            SyntaxTree filterTree,
+                                                            TextSpan? filterSpan,
                                                             bool isGeneratedCode,
                                                             CancellationToken cancellationToken)
-            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, isGeneratedCode, cancellationToken)
+            : base(operationBlocks, owningSymbol, compilation, options, getControlFlowGraph, filterTree, filterSpan, isGeneratedCode, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -573,6 +579,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     context.ReportDiagnostic,
                                     context.IsSupportedDiagnostic,
                                     context.IsGeneratedCode,
+                                    context.FilterTree,
+                                    context.FilterSpan,
                                     context.CancellationToken));
                             }
                         }

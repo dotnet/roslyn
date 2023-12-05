@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)currType == implementingType || implementingTypeImplementsInterface)
                     {
-                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.Locations[0], interfaceMember);
+                        diagnostics.Add(ErrorCode.ERR_DuplicateExplicitImpl, implementingType.GetFirstLocation(), interfaceMember);
                     }
 
                     implementationInInterfacesMightChangeResult = false;
@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         if (arg.isExplicit)
                                                                                         {
                                                                                             diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnExplicitImplementation,
-                                                                                                            implementingEvent.Locations[0], new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                                                                            implementingEvent.GetFirstLocation(), new FormattedSymbol(implementedEvent, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                                                                         }
                                                                                         else
                                                                                         {
@@ -1795,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0], new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                    implementingMethod.GetFirstLocation(), new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
                                 else
                                 {
@@ -1816,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     diagnostics.Add(topLevel ?
                                                         ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation :
                                                         ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
-                                                    implementingMethod.Locations[0],
+                                                    implementingMethod.GetFirstLocation(),
                                                     new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                     new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                                 }
@@ -2037,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 snt = implementingType as SourceMemberContainerTypeSymbol;
             }
 
-            return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations.FirstOrNone();
+            return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocationOrNone();
         }
 
         private static bool ReportAnyMismatchedConstraints(MethodSymbol interfaceMethod, TypeSymbol implementingType, MethodSymbol implicitImpl, BindingDiagnosticBag diagnostics)
@@ -2089,13 +2089,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (TypeSymbol.Equals(member.ContainingType, implementingType, TypeCompareKind.ConsiderEverything2))
             {
-                return member.Locations[0];
+                return member.GetFirstLocation();
             }
             else
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                return snt?.GetImplementsLocation(@interface) ?? implementingType.GetFirstLocation();
             }
         }
 
@@ -2466,5 +2466,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsRecord { get; }
 
         internal abstract bool IsRecordStruct { get; }
+
+        internal abstract bool HasInlineArrayAttribute(out int length);
+
+#nullable enable
+        internal FieldSymbol? TryGetPossiblyUnsupportedByLanguageInlineArrayElementField()
+        {
+            Debug.Assert(HasInlineArrayAttribute(out var length) && length > 0);
+
+            FieldSymbol? elementField = null;
+
+            if (this.TypeKind == TypeKind.Struct)
+            {
+                foreach (FieldSymbol field in ((NamedTypeSymbol)this).OriginalDefinition.GetFieldsToEmit())
+                {
+                    if (!field.IsStatic)
+                    {
+                        if (elementField is not null)
+                        {
+                            return null;
+                        }
+                        else
+                        {
+                            elementField = field;
+                        }
+                    }
+                }
+            }
+
+            if (elementField is not null && elementField.ContainingType.IsGenericType)
+            {
+                elementField = elementField.AsMember((NamedTypeSymbol)this);
+            }
+
+            return elementField;
+        }
+
+        internal FieldSymbol? TryGetInlineArrayElementField()
+        {
+            return TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is { RefKind: RefKind.None } field ? field : null;
+        }
     }
 }

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return true;
         }
 
-        private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
+        private static bool TryFindMatchingLocalDeclarationImmediatelyAbove(
             IConditionalOperation ifOperation,
             ISimpleAssignmentOperation? trueAssignment,
             ISimpleAssignmentOperation? falseAssignment,
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return !ReferencesLocalVariable(ifOperation.Condition, variable);
         }
 
-        private bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
+        private static bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
         {
             if (operation is ILocalReferenceOperation localReference &&
                 Equals(variable, localReference.Local))

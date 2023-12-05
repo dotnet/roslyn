@@ -456,5 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
                 ?? throw new InvalidOperationException();
         }
+
+        public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, ConstructorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken)
+        {
+            return semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken)
+                ?? throw new InvalidOperationException();
+        }
     }
 }

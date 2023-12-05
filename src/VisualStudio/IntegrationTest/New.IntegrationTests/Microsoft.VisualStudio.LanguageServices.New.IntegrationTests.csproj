@@ -61,7 +61,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" />
     <PackageReference Include="UIAComWrapper" Version="$(UIAComWrapperVersion)" />
-    <PackageReference Include="xunit.assert" Version="$(xunitassertVersion)" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
   </ItemGroup>

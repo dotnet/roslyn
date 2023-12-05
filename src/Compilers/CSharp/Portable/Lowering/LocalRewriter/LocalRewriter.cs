@@ -222,6 +222,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)
         {
+            if (node is BoundNameOfOperator nameofOperator)
+            {
+                Debug.Assert(!nameofOperator.WasCompilerGenerated);
+                var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                {
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
+                }
+            }
+
             ConstantValue? constantValue = node.ConstantValueOpt;
             if (constantValue != null)
             {
@@ -971,6 +981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     // That placeholder is always replaced with a temp local
                     return true;
+
+                case BoundKind.InlineArrayAccess:
+                    return ((BoundInlineArrayAccess)expr) is { IsValue: false, GetItemOrSliceHelper: WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item };
 
                 case BoundKind.ImplicitIndexerValuePlaceholder:
                     // Implicit Index or Range indexers only have by-value parameters:

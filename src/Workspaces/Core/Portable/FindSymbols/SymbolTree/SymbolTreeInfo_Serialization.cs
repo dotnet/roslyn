@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var nodeArray = nodes.ToImmutableAndClear();
 
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellChecker.Value, inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
             catch
             {

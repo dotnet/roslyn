@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return languageService.IsTypeNameValid(typeName);
         }
 
-        private bool DoesTypeFullyBind(ITypeSymbol? type)
+        private static bool DoesTypeFullyBind(ITypeSymbol? type)
         {
             if (type == null || type.IsErrorType())
             {

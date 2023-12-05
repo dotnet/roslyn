@@ -23,6 +23,7 @@
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test.Common" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />

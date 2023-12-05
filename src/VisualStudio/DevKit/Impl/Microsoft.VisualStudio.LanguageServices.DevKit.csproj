@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") Language Server Protocol internal.
+    </PackageDescription>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Utilities\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Utilities\TemporaryArray`1.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="Utilities\NonCopyableAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\Workspace\Mef\MefConstruction.cs" Link="Utilities\MefConstruction.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceImpl.cs" Link="EditAndContinue\ManagedHotReloadServiceImpl.cs" />
+    <Compile Include="..\..\..\Workspaces\Remote\Core\BrokeredServiceDescriptors.cs" Link="BrokeredServiceDescriptors.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Can only reference internal Microsoft.CodeAnalysis.Contracts namespace (via Restricted IVT) or public APIs. -->
+    <ProjectReference Include="..\..\..\Features\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+
+    <!-- Can only reference internal Microsoft.CodeAnalysis.Contracts namespace (via Restricted IVT) or public APIs. -->
+    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
+
+    <!-- Hide workspaces behind extern alias to avoid ambiguities in linked files -->
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+      <Aliases>DoNotUse</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NpmPack" PrivateAssets="all" Version="$(MicrosoftVisualStudioInternalMicroBuildNpmPackVersion)" Condition="'$(IsNpmPackable)' == 'true'" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+
+    <!-- 
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Telemetry 
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_RemoteControl
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgMicrosoft_VisualStudio_Utilities_Internal
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" Version="$(MicrosoftVisualStudioUtilitiesInternalVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
+    -->
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" GeneratePathProperty="True" />
+
+    <!--
+    Runtime dependency is required to pack in npm. Do not remove GeneratePathProperty="True" as it defines PkgSystem_Configuration_ConfigurationManager
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" GeneratePathProperty="True" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit.UnitTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+
+  <PropertyGroup>
+    <StageForNpmPackDependsOn>$(StageForNpmPackDependsOn);CollectNpmInputs</StageForNpmPackDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetBuildVersion">
+    <PropertyGroup>
+      <NpmPackageVersion>$(PackageVersion)</NpmPackageVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="CollectNpmInputs" DependsOnTargets="Build" Returns="@(NpmContent)">
+    <Message Text="Package version is $(PackageVersion)" />
+    <Message Text="Version is $(Version)" />
+    <ItemGroup>
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Telemetry)\lib\netstandard2.0\Microsoft.VisualStudio.Telemetry.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_RemoteControl)\lib\netstandard2.0\Microsoft.VisualStudio.RemoteControl.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Utilities_Internal)\lib\netstandard2.0\Microsoft.VisualStudio.Utilities.Internal.dll" />
+      <NpmContent Include="$(PkgSystem_Configuration_ConfigurationManager)\lib\netstandard2.0\System.Configuration.ConfigurationManager.dll" />
+      <NpmContent Include="$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll" />
+      <NpmContent Include="$(TargetPath)" />
+      <NpmContent Include="@(AppConfigWithTargetPath->'$(OutDir)%(TargetPath)')" />
+      <NpmContent Include="$(ProjectDepsFilePath)" />
+      <NpmContent Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" PackagePath="%(ReferenceCopyLocalPaths.DestinationSubDirectory)" Condition="'%(Extension)'!='.xml'" />
+      <NpmContent Include="@(None)" PackagePath="%(None.TargetPath)" Condition="'%(None.CopyToOutputDirectory)'=='PreserveNewest'" />
+    </ItemGroup>
+  </Target>
+  <ItemGroup>
+    <Content Include="package.json" />
+  </ItemGroup>
+</Project>

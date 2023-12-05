@@ -135,17 +135,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
 
             var nameText = nameToken.ValueText;
-            var similarityChecker = WordSimilarityChecker.Allocate(nameText, substringsAreSimilar: true);
-            try
-            {
-                await CheckItemsAsync(
-                    context, nameToken, isGeneric,
-                    completionList, similarityChecker).ConfigureAwait(false);
-            }
-            finally
-            {
-                similarityChecker.Free();
-            }
+            using var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true);
+
+            await CheckItemsAsync(
+                context, nameToken, isGeneric,
+                completionList, similarityChecker).ConfigureAwait(false);
         }
 
         private async Task CheckItemsAsync(

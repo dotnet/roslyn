@@ -61,7 +61,7 @@ End Class
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Sub TestDontCommitOnMultiLinePasteWithPrettyListingOff()
+        Public Sub TestDoNotCommitOnMultiLinePasteWithPrettyListingOff()
             Using testData = CommitTestData.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -117,7 +117,7 @@ End Class
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
-        Public Sub TestDontCommitOnSavePrettyListingOff()
+        Public Sub TestDoNotCommitOnSavePrettyListingOff()
             Using testData = CommitTestData.Create(<Workspace>
                                                        <Project Language="Visual Basic" CommonReferences="true">
                                                            <Document>

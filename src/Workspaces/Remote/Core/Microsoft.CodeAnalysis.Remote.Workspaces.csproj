@@ -30,6 +30,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -45,8 +46,8 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" Key="$(MicrosoftCodeAnalysisLanguageServerKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" Key="$(MicrosoftCodeAnalysisLanguageServerKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />

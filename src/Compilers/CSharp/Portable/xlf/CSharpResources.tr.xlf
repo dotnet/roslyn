@@ -287,6 +287,11 @@
         <target state="translated">Yalnızca 'using static' veya 'using alias' 'unsafe' olabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="translated">'{0}' türü 'using static' için geçerli değil. Yalnızca bir sınıf, yapı, arabirim, sabit liste, temsilci veya ad alanı kullanılabilir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
@@ -392,6 +397,16 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">'{1}' tür parametresinde 'unmanaged' kısıtlaması olduğundan '{1}', '{0}' için kısıtlama olarak kullanılamaz</target>
@@ -487,6 +502,11 @@
         <target state="translated">'{0}' bir defadan fazla açıkça uygulanmış.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="translated">Belirtilen çağrı birden çok kez engellendi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}', '{2}' türünün arabirim listesinde zaten '{1}' olarak listelenmiş.</target>
@@ -572,9 +592,19 @@
         <target state="translated">İfade ağacı statik sanal veya soyut arabirim üyesi erişimi içermeyebilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">İfade ağacı, sondan dizin ('^') ifadesi içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="translated">İfade ağacı satır içi dizi erişimi veya dönüştürmesi içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -837,9 +867,134 @@
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="translated">Satır içi dizi türünün öğelerine yalnızca örtük olarak 'int', 'System.Index' veya 'System.Range' olarak dönüştürülebilir tek bir bağımsız değişkenle erişilebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="translated">Başvuruyla geçirilemediğinden veya döndürülemediğinden, ifade '{0}' ifadesine dönüştürülemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="translated">İfade, atanabilir değişken olmadığından '{0}' ifadesine dönüştürülemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="translated">Dizin satır içi dizinin sınırları dışında</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Arabirimlerdeki örnek özelliklerinin başlatıcıları olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
+        <target state="translated">'{0}' metodu, kendisinde veya kapsayan türünde tür parametreleri olduğundan engelleyici olarak kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="translated">Nameof işleci engellenemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="translated">Engelleyici 'UnmanagedCallersOnlyAttribute' ile işaretlenemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="translated">Verilen satır '{0}' karakter uzunluğunda ve bu, '{1}' olarak sağlanan karakter sayısından daha az.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="translated">Engelleyici 'null' dosya yoluna sahip olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="translated">InterceptsLocationAttribute için sağlanan satır ve karakter numaraları pozitif olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="translated">Verilen dosyada '{0}' satır var ve bu, '{1}' olarak sağlanan satır numarasından daha az.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="translated">Engelleyici metodu sıradan bir üye metodu olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="translated">Engelleyici '{1}' üzerinde '{0}' parametresiyle eşleşen bir 'this' parametresine sahip olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="translated">'{0}' 'this' parametresine sahip olmadığından, engelleyici 'this' parametresine sahip olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="translated">Sağlanan satır ve karakter numarası , '{0}' belirtecinin başlangıcına başvurmuyor. '{1}'. satır '{2}'. karakteri mi kullanmak istediniz?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="translated">Olası yöntem adı '{0}' çağrılmadığından engellenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="translated">Derlemedeki birden çok dosya bu yola sahip olduğundan '{0}' yoluna sahip dosyada çağrı engellenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="translated">Çağrı, '{1}' içinde erişilebilir olmadığından '{0}' ile engellenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="translated">Engellenemiyor: Derleme, '{0}' yoluna sahip bir dosya içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="translated">Engellenemiyor: Derleme, '{0}' yoluna sahip bir dosya içermiyor. '{1}' yolunu mu kullanmak istediniz?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="translated">Engellenemiyor: '{0}' yolu eşlenmemiş. '{1}' eşlenen yolu bekleniyordu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="translated">Sağlanan satır ve karakter numarası, engellenebilir bir yönteme değil, '{0}' belirtecine başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="translated">Kapsamlı özniteliklerindeki veya '[UnscopedRef]' özniteliklerindeki bir fark nedeniyle'{0}' hedefine çağrı '{1}' ile engellenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="translated">İmzalar eşleşmediğinden '{0}' metodu '{1}' engelleyicisi ile durdurulamıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
+        <target state="translated">'Engelleyiciler' deneysel özelliği etkin değil. Projenize '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' ekleyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -905,6 +1060,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Geçersiz karma algoritması adı: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="translated">Satır içi dizi yapısı yalnızca bir örnek alanı bildirilmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="translated">Satır içi dizi yapısında açık düzen olmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="translated">Satır içi dizi uzunluğu 0'dan büyük olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1085,6 +1255,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Yalnızca tek bir parçalı tür bildiriminde bir parametre listesi olabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="translated">Satır içi dizi erişiminin adlandırılmış bağımsız değişken belirticisi olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1497,6 +1672,11 @@
         <target state="translated">'{0}': Hedef çalışma zamanı, geçersiz kılmalarda birlikte değişken dönüş türlerini desteklemiyor. Dönüş türü, geçersiz kılınan '{1}' üyesiyle eşleşmek için '{2}' olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="translated">Hedef çalışma zamanı satır içi dizi türlerini desteklemiyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
@@ -1667,6 +1847,11 @@
         <target state="translated">Switch yönetim ifadesinin parantez içine alınması gerekir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}', '{1}' derlemesinde tanımlı.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">Düz metin arasına kod ekli ham dize sabit değeri, bu kadar çok ardışık kapatma küme ayracı içerik olarak izin vermek için yeterli '$' karakterle başlamıyor.</target>
@@ -1777,6 +1962,11 @@
         <target state="translated">Bir örnek üye içinde ref, out veya in '{0}' birincil oluşturucu parametresi kullanılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="translated">Bir örnek üye içinde ref benzeri türe sahip '{0}' birincil oluşturucu parametresi kullanılamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Bir örnek üye içinde ref benzeri türe sahip '{0}' birincil oluşturucu parametresi kullanılamaz</target>
@@ -1847,6 +2037,11 @@
         <target state="translated">kullanıcı tanımlı işleçler işaretlendi</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">birlikte değişken dönüşler</target>
@@ -1900,6 +2095,16 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">çıkarsanan temsilci türü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="translated">satır içi diziler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="translated">'nameof' içinde örnek üyesi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -2027,6 +2232,26 @@
         <target state="translated">işaretçi öğesi erişimi</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="translated">dizi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="translated">dinamik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="translated">işlev işaretçisi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="translated">işaretçi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' işleci, zaman uyumsuz yöntemlerdeki parametrelerde veya yerel değişkenlerde kullanılmamalı.</target>
@@ -2137,6 +2362,16 @@
         <target state="translated">CallerArgumentExpressionAttribute öğesinin etkisi olmaz; CallerMemberNameAttribute tarafından geçersiz kılındı</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">'{0}' parametresi yakalanıp kapsayan türün durumuna girer ve değeri bir alan, özellik veya olay başlatmak için de kullanılır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">Parametre yakalanıp kapsayan türün durumuna girer ve değeri bir alan, özellik veya olay başlatmak için de kullanılır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">'{0}' parametresi kapsayan türün durumuna yakalandı ve değeri temel oluşturucuya da geçirildi. Değer, temel sınıf tarafından da yakalanamıyor olabilir.</target>
@@ -2217,6 +2452,16 @@
         <target state="translated">Bu bağlamda değişken kullanımı, başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="translated">'{0}' hedefine olan çağrı '{1}' engelleyicisi ile engelleniyor, ancak imzalar eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="translated">Engellenebilirlerin ve engelleyicilerin imzaları eşleşmiyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">InterpolatedStringHandlerArgument, lambda parametrelerine uygulandığında hiçbir etkiye sahip değildir ve çağrı sitesinde yok sayılır.</target>
@@ -2265,6 +2510,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Ref koşullu operatörünün dalları, uyumsuz bildirim kapsamlarına sahip değişkenlere başvurur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="translated">'{0}' parametre türündeki başvuru türlerinin null atanabilirliği, '{1}' engellenebilir metodu ile eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="translated">Parametre türündeki başvuru türlerinin null atanabilirliği, engellenebilir metot ile eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null atanabilirliği, '{0}' engelleme metodu ile eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null atanabilirliği, engellenebilir metot ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2778,162 +3043,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
         <target state="translated">
-                             Visual C# Derleyici Seçenekleri
+                             Visual C# Derleyicisi Seçenekleri
 
                        - ÇIKIŞ DOSYALARI -
--out:&lt;dosya&gt;                  Çıkış dosyası adını belirt (varsayılan: ana sınıfı
-                              içeren dosyanın veya ilk dosyanın temel adı)
--target:exe                   Konsol yürütülebilir dosyası oluştur (varsayılan) (Kısa
-                              biçim: -t:exe)
--target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
+-out:&lt;file&gt;                   Çıkış dosyası adını belirtir (varsayılan: ana sınıf veya
+                              ilk dosyayla birlikte dosyanın temel adı)
+-target:exe                   Konsol yürütülebilir dosyası oluşturur (varsayılan) (Kısa
+                              form: -t:exe)
+-target:winexe                Windows yürütülebilir dosyası oluşturur (Kısa biçimi:
                               -t:winexe)
--target:library               Kitaplık oluştur (Kısa biçim: -t:library)
--target:module                Başka bir bütünleştirilmiş koda eklenebilecek bir
-                              modül oluştur (Kısa biçim: -t:module)
--target:appcontainerexe       Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
+-target:library               Kitaplık oluşturur (Kısa biçimi: -t:library)
+-target:module                Başka bir derlemeye eklenebilir
+                              bir modül oluşturur (Kısa biçimi: -t:module)
+-target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturur (Kısa biçimi:
                               -t:appcontainerexe)
--target:winmdobj              WinMDExp tarafından tüketilen bir Windows Çalışma Zamanı
-                              ara dosyası oluştur (Kısa biçim: -t:winmdobj)
--doc:&lt;dosya&gt;                  Oluşturulacak XML Belge dosyası
--refout:&lt;dosya&gt;               Oluşturulacak başvuru bütünleştirilmiş kodu çıkışı
--platform:&lt;dize&gt;              Bu kodun çalıştırılabileceği platformları sınırla: x86,
+-target:winmdobj              WinMDExp kullanan Windows Çalışma Zamanı
+                              ara dosyası oluşturur (Kısa biçimi: -t:winmdobj) tarafından
+-doc:&lt;file&gt;                   oluşturulacak XML belgeleri dosyası
+-refout:&lt;file&gt;                    Oluşturulacak başvuru derlemesi çıkışı
+-platform:&lt;string&gt;                Bu kodun çalışabileceği platformları sınırlar: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred veya
                               anycpu. Varsayılan: anycpu.
 
                        - GİRİŞ DOSYALARI -
--recurse:&lt;joker karakter&gt;     Geçerli dizindeki ve alt dizinlerdeki
-                              tüm dosyaları joker karakter belirtimlerine
-                              göre ekle
--reference:&lt;diğer ad&gt;=&lt;dosya&gt; Verilen diğer adı kullanarak belirtilen bütünleştirilmiş
-                              kod dosyasındaki meta verilere başvur (Kısa biçim: -r)
--reference:&lt;dosya listesi&gt;    Belirtilen bütünleştirilmiş kod dosyalarındaki meta verilere
-                              başvur (Kısa biçim: -r)
--addmodule:&lt;dosya listesi&gt;    Belirtilen modülleri bu bütünleştirilmiş koda bağla
--link:&lt;dosya listesi&gt;         Belirtilen birlikte çalışma bütünleştirilmiş kodu dosyalarındaki
-                              meta verileri ekle (Kısa biçim: -l)
--analyzer:&lt;dosya listesi&gt;     Çözümleyicileri bu bütünleştirilmiş koddan çalıştır
-                              (Kısa biçim: -a)
--additionalfile:&lt;dosya listesi&gt; Kod oluşturmayı doğrudan etkilemeyen ancak hata
-                              veya uyarılar oluşturmak için çözümleyicilerin
-                              kullanabileceği ek dosyalar.
--embed                        Tüm kaynak dosyalarını PDB'ye ekle.
--embed:&lt;dosya listesi&gt;        Belirli dosyaları PDB'ye ekle.
+-recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
+                              geçerli dizindeki ve alt dizinlerdeki tüm
+                              dosyaları ekler
+-reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanan belirtilen derleme dosyasından
+                              meta verilerine başvurur (Kısa biçimi: -r)
+-reference:&lt;file list&gt;        Belirtilen derleme dosyasından
+                              başvuru meta verileri (Kısa biçimi: -r)
+-addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağlar
+-link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derleme dosyalarından
+                              meta verileri ekler (Kısa biçimi: -l)
+-analyzer:&lt;file list&gt;             Bu derlemedeki çözümleyicileri çalıştırır
+                              (Kısa biçimi: -a)
+-additionalfile:&lt;file list&gt;       Kod oluşturmayı doğrudan etkilemeyen ancak
+                              hata veya uyarı üretimi için çözümleyiciler tarafından kullanılabilen
+                              ek dosyalar.
+-embed                        Tüm kaynak dosyaları PDB’ye ekler.
+-embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekler.
 
-                        - KAYNAKLAR -
--win32res:&lt;dosya&gt;                Win32 kaynak dosyası (.res) belirt
--win32icon:&lt;dosya&gt;               Çıkış için bu simgeyi kullan
--win32manifest:&lt;dosya&gt;           Win32 bildirim dosyası (.xml) belirt
--nowin32manifest                 Varsayılan Win32 bildirimini dahil etme
--resource:&lt;kaynak bilgileri&gt;     Belirtilen kaynağı ekle (Kısa biçim: -res)
--linkresource:&lt;kaynak bilgileri&gt; Belirtilen kaynağı bu bütünleştirilmiş koda bağla
-                                 (Kısa biçim: -linkres) Kaynak bilgileri biçimi:
-                                 &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]]
+                       - KAYNAKLAR -
+-win32res:&lt;file&gt;              Win32 kaynak dosyası (.res) belirtir
+-win32icon:&lt;file&gt;             Çıkış dosyası için bu simgeyi kullanır
+-win32manifest:&lt;file&gt;         Win32 bildirim dosyası (.xml) belirtir
+-nowin32manifest              Varsayılan Win32 bildirimini ekler
+-resource:&lt;resinfo&gt;           Belirtilen kaynağı ekler (Kısa biçimi: -res)
+-linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu derlemeye bağlar
+                              (Kısa biçimi: -linkres) Resinfo biçimi
+                              &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                        - KOD OLUŞTURMA -
--debug[+|-]                   Hata ayıklama bilgilerini göster
+                       - KOD OLUŞTURMA -
+-debug[+|-]                       Hata ayıklama bilgilerini gösterir
 -debug:{full|pdbonly|portable|embedded}
-                              Hata ayıklama türünü belirt ('full' varsayılan,
-                              'portable' platformlar arası biçim,
-                              'embedded' ise hedef .dll veya .exe dosyasına
-                              eklenmiş platformlar arası bir biçimdir)
--optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: -o)
--deterministic                Belirlenimci bütünleştirilmiş kod oluştur
+                              Hata ayıklama türünü belirtir ('full' varsayılandır,
+                              'portable' platformlar arası biçimdir,
+                              'embedded', platformlar arası biçimdir ve hedef
+                              .dll veya .exe dosyasına eklenir.
+-optimize[+|-]                İyileştirmeleri etkinleştirir (Kısa biçimi: -O)
+-deterministic                    Belirlenimci bir derleme üretir
                               (modül sürümü GUID'si ve zaman damgası dahil)
--refonly                      Ana çıkış yerine bir başvuru bütünleştirilmiş kodu oluştur
--instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
-                              izlenme eklenmiş bir bütünleştirilmiş kod oluştur
--sourcelink:&lt;dosya&gt;           PDB'ye eklenecek kaynak bağlantı bilgileri.
+-refonly                          Ana çıkış yerine bir başvuru derlemesi üretir
+-instrument:TestCoverage          Kapsam bilgilerini toplamak için işaretlenmiş
+                              bir derleme üretir
+-sourcelink:&lt;file&gt;                PDB dosyasına eklenecek kaynak bağlantısı bilgileri.
 
-                        - HATALAR VE UYARILAR -
--warnaserror[+|-]             Tüm uyarıları hata olarak bildir
--warnaserror[+|-]:&lt;uyarı listesi&gt; Belirli uyarıları hata olarak bildir
-                                  (null atanabilirlik uyarıları için "nullable" kullanın)
--warn:&lt;n&gt;                     Uyarı düzeyini ayarla (0 veya üzeri) (Kısa biçim: -w)
--nowarn:&lt;uyarı listesi&gt;       Belirli uyarı iletilerini devre dışı bırak
-                              (null atanabilirlik uyarıları için "nullable" kullanın)
--ruleset:&lt;dosya&gt;              Belirli tanılamaları devre dışı bırakan bir
-                              kural kümesi dosyası belirt.
--errorlog:&lt;dosya&gt;[,version=&lt;sarif_sürümü&gt;]
-                              Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
-                              bir dosya belirt.
-                              sarif_sürümü:{1|2|2.1} Varsayılan 1 sürümüdür. 2 ve 2.1
-                              sürümlerinin ikisi de SARIF 2.1.0 sürümü anlamına gelir.
--reportanalyzer               Yürütme zamanı gibi ek çözümleyici
-                              bilgilerini bildir.
--skipanalyzers[+|-]           Tanılama çözümleyicilerinin yürütülmesini atla.
+                       - HATALAR VE UYARILAR - 
+-warnaserror[+|-]                 Tüm uyarıları hata olarak bildirir.
+-warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildirir
+                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
+-warn:&lt;n&gt;                     Uyarı düzeyini ayarlar (0 veya üzeri) (Kısa biçimi: -w)
+-nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırakır
+                              (tüm null atanabilirlik uyarıları için "nullable" kullanın)
+-ruleset:&lt;file&gt;                   Belirli tanılamaları devre dışı bırakan bir
+                              kural kümesi dosyası belirtir.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Tüm derleyici ve çözümleyici tanılamalarının SARIF
+                              kural kümesi dosyası belirtir.
+                              sarif_version:{1|2|2.1} Varsayılan olarak 1. 2 ve 2.1
+                              Her ikisi ise 2.1.0 SARIF sürümünü ifade eder.
+-reportanalyzer                   Yürütme zamanı gibi ek çözümleyici bilgilerini
+                              raporlar.
+-skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
 
-                        - DİL -
+                       - DİL - 
 -checked[+|-]                 Taşma denetimleri oluştur
 -unsafe[+|-]                  'Güvenli olmayan' koda izin ver
--define:&lt;sembol listesi&gt;      Koşullu derleme sembolleri tanımla (Kısa
-                              biçim: -d)
--langversion:?                Dil sürümü için izin verilen değerleri görüntüle
--langversion:&lt;dize&gt;           Dil sürümünü belirt. Örneğin:
-                              `latest` (ikincil sürümleri de içeren en son sürüm),
-                              `default` (`latest` ile aynı),
-                              `latestmajor` (ikincil sürümler hariç en son sürüm),
-                              `preview` (desteklenmeyen önizlemedeki özellikleri içeren
-                              en son sürüm) ya da `6` veya `7.1` gibi belirli sürümler
--nullable[+|-]                Null atanabilir bağlam seçeneğini enable|disable (etkin|devre dışı) olarak belirt.
+-define:&lt;symbol list&gt;         Koşullu derleme sembollerini tanımlar (Kısa
+                              biçimi: -d)
+-langversion:?                Dil sürümü için izin verilen değerleri görüntüler
+-langversion:&lt;string&gt;             `default` (en son birincil sürüm) veya
+                              `14` veya `15.3` gibi belirli sürümler gibi
+                              'default' ('latest' ile aynı),
+                              `latestmajor` (alt sürümler hariç en son sürüm),
+                              'preview' (desteklenmeyen önizlemedeki özellikler dahil olmak üzere en son sürüm)
+                              veya `6` ya da `7.1` gibi belirli sürümler.
+-nullable[+|-]                Null atanabilir bağlam seçeneğini (etkin|devre dışı) belirtir.
 -nullable:{enable|disable|warnings|annotations}
-                              Null atanabilir bağlam seçeneğini enable|disable|warnings|annotations (etkin|devre dışı|uyarılar|ek açıklamalar) olarak belirt.
+                              Null atanabilir bağlam seçeneğini (etkin|devre dışı|uyarılar|ek açıklamalar) belirtir.
 
                        - GÜVENLİK -
--delaysign[+|-]               Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca
-                              genel kısmıyla geç imzala
--publicsign[+|-]              Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca
-                              genel kısmıyla genel olarak imzala
--keyfile:&lt;dosya&gt;              Tanımlayıcı ad anahtarı dosyası belirt
--keycontainer:&lt;dize&gt;          Tanımlayıcı ad anahtarı kapsayıcısı belirt
--highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
+-delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
+                              derlemeyi genel imzalar.
+-publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
+                              derlemeyi genel imzalar.
+-keyfile:&lt;file&gt;                   Tanımlayıcı ad anahtarı dosyasını belirtir.
+-keycontainer:&lt;string&gt;            Tanımlayıcı ad anahtarı kapsayıcısını belirtir.
+-highentropyva[+|-]               Yüksek entropili ASLR’yi etkinleştirir.
 
-                        - ÇEŞİTLİ -
-@&lt;dosya&gt;                      Daha fazla seçenek için yanıt dosyasını oku
--help                         Bu kullanım iletisini görüntüle (Kısa biçim: -?)
--nologo                       Derleyici telif hakkı iletisini görüntüleme
--noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
--parallel[+|-]                Eş zamanlı derleme.
--version                      Derleyici sürüm numarasını görüntüleyip çıkış yap.
+                       - DİĞER - 
+@&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okur
+-help                         Bu kullanım iletisini görüntüler (Kısa biçimi: -?)
+-nologo                       Derleyici telif hakkı iletisini gizler
+-noconfig                         VBC.RSP dosyasını otomatik olarak eklemez.
+-parallel[+|-]                    Eş zamanlı derleme.
+-version                          Derleyici sürüm numarasını görüntüler ve çıkar.
 
-                        - GELİŞMİŞ -
--baseaddress:&lt;adres&gt;          Oluşturulacak kitaplığın taban adresi
--checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosyanın sağlama toplamını
-                              hesaplama algoritmasını belirt. Desteklenen değerler:
+                       - GELİŞMİŞ - 
+-baseaddress:&lt;address&gt;        Oluşturulacak kitaplığın temel adresi
+-checksumalgorithm:&lt;alg&gt;          PDB’de depolanan sağlama toplamı kaynak dosyasını hesaplamak için
+                              kullanılan algoritmayı belirtir. Desteklenen değerler şunlardır:
                               SHA1 veya SHA256 (varsayılan).
--codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod
-                              sayfasını belirt
--utf8output                   Derleyici iletilerini UTF-8 kodlamasıyla görüntüle
--main:&lt;tür&gt;                   Giriş noktasını içeren türü belirt
-                              (diğer tüm olası giriş noktalarını yoksay)
-                              (Kısa biçim: -m)
--fullpaths                    Derleyici, tam yollar oluşturur
--filealign:&lt;n&gt;                Çıkış dosyasının bölümleri için kullanılan
-                              hizalamayı belirt
--pathmap:&lt;A1&gt;=&lt;D1&gt;,&lt;A2&gt;=&lt;D2&gt;,...
-                              Derleyici tarafından çıkış olarak verilen kaynak yolu
-                              adları için bir eşleme belirt.
--pdb:&lt;dosya&gt;                  Hata ayıklama bilgileri dosyasının adını belirt
-                              (varsayılan: çıktı dosyasının adı ve .pdb uzantısı)
--errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
-                              göster
--preferreduilang              Tercih edilen çıkış dilinin adını belirt.
--nosdkpath                    Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu aramayı devre dışı bırak.
--nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvuru yapma
--subsystemversion:&lt;dize&gt;      Bu bütünleştirilmiş kodun alt sistem sürümünü belirt
--lib:&lt;dosya listesi&gt;          İçinde başvuruların aranacağı ek dizinleri
-                              belirt
--errorreport:&lt;dize&gt;           İç derleyici hatalarının nasıl işleneceğini belirt:
-                              prompt, send, queue veya none. Varsayılan:
-                              queue.
--appconfig:&lt;dosya&gt;            Bütünleştirilmiş kod bağlama ayarlarını içeren
-                              bir uygulama yapılandırma dosyası belirt
--moduleassemblyname:&lt;dize&gt;    Bu modülün parçası olacağı bütünleştirilmiş kodun
+-codepage:&lt;n&gt;                 Kaynak açılırken kullanılacak kod sayfasını belirtir
+                              Dosyalar
+-utf8output                   UTF-8 kodlama kümesinde -utf8output Çıkış derleyicisi
+-main:&lt;type&gt;                  Giriş noktası türünü içeren türü
+                              (diğer tüm olası giriş noktalarını yoksay) (Kısa
+                              biçimi: -m)
+-fullpaths                    Derleyici mutlak yollar oluşturur
+-filealign:&lt;n&gt;               Çıkış dosyası bölümleri için kullanılan hizalamayı
+                              belirtir.
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Derleyicinin oluşturduğu kaynak yol adları için
+                              eşleştirme belirtir.
+-pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosya adını belirtir (varsayılan:
+                              .pdb uzantılı çıkış dosyası adı)
+-errorendlocation             Her hatanın çıkış satırı ve
+                              bitiş konumu sütunu
+-preferreduilang                  Tercih edilen çıkış dili adını belirtir.
+-nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakır.
+-nostdlib[+|-]                Standart kitaplıklara başvurmaz (mscorlib.dll)
+-subsystemversion:&lt;string&gt;       Bu derlemenin alt sistem sürümünü belirtir
+-lib:&lt;file list&gt;              Başvurular için aranacak ek dizinleri
+                              belirtir
+-errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
+                              istem, gönderme, kuyruğa alma veya hiçbiri. Varsayılan:
+                              kuyruğa alma.
+-appconfig:&lt;file&gt;             Derleme bağlama ayarlarını içeren
+                              uygulama yapılandırma dosyasını belirtir
+-moduleassemblyname:&lt;string&gt;  Bu modülün bir parçası olacağı derlemenin
                               adı
--modulename:&lt;dize&gt;            Kaynak modülün adını belirt
--generatedfilesout:&lt;dizin&gt;      Derleme sırasında oluşturulan dosyaları belirtilen
-                              dizine yerleştir.
+-modulename:&lt;string&gt;          Kaynak modülün adını belirtir
+-generatedfilesout:&lt;dir&gt;      Derleme sırasında oluşturulan dosyaları
+                              belirtilen dizine yerleştirir.
+-reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
+                              ve hangi derlemeden geldikleri dahil olmak üzere
+                              yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8525,8 +8796,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Yineleyicilerin unsafe parametreleri veya yield türleri olamaz</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">Yineleyici, işaretçi tür parametreleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +10139,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Zaman uyumsuz yöntemlerin güvenli olmayan parametreleri veya dönüş türleri olamaz</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">Zaman uyumsuz yöntemler, işaretçi tür parametreleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11672,11 +11943,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">'{0}' öğesi bir '{1}' olduğundan başvuru ile döndürülemez</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{0}' bir '{1}' olduğundan alanları başvuru ile döndürülemez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
         <source>A readonly field cannot be returned by writable reference</source>
         <target state="translated">Salt okunur bir alan, yazılabilir başvuru ile döndürülemez</target>
@@ -11788,8 +12054,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Await' öğesi başvuru ile döndürüldüğünden, '{0}' öğesine yönelik bir çağrı içeren ifadede kullanılamaz</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">'{0}' hedefine bir çağrı tarafından döndürülen başvuru, 'await' veya 'yield' sınırında korunamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

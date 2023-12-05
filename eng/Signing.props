@@ -42,6 +42,7 @@
     <FileSignInfo Include="Nerdbank.Streams.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Humanizer.dll" CertificateName="3PartySHA2" />
 
     <!-- Sign VS/Microsoft dlls we crossgen'd and included in the vsix for our .NET remote host with Microsoft cert -->
     <FileSignInfo Include="Microsoft.CodeAnalysis.Elfie.dll" CertificateName="MicrosoftSHA2" />

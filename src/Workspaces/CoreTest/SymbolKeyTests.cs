@@ -1412,7 +1412,7 @@ public class C
             throw new NotSupportedException();
         }
 
-        private List<ISymbol> GetAllSymbols(
+        private static List<ISymbol> GetAllSymbols(
             SemanticModel model, Func<SyntaxNode, bool> predicate = null)
         {
             var list = new List<ISymbol>();
@@ -1420,7 +1420,7 @@ public class C
             return list;
         }
 
-        private void GetAllSymbols(
+        private static void GetAllSymbols(
             SemanticModel model, SyntaxNode node,
             List<ISymbol> list, Func<SyntaxNode, bool> predicate)
         {
@@ -1448,14 +1448,14 @@ public class C
             }
         }
 
-        private List<ISymbol> GetDeclaredSymbols(Compilation compilation)
+        private static List<ISymbol> GetDeclaredSymbols(Compilation compilation)
         {
             var list = new List<ISymbol>();
             GetDeclaredSymbols(compilation.Assembly.GlobalNamespace, list);
             return list;
         }
 
-        private void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
+        private static void GetDeclaredSymbols(INamespaceOrTypeSymbol container, List<ISymbol> symbols)
         {
             foreach (var member in container.GetMembers())
             {

@@ -834,7 +834,7 @@ end class</element>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
-        Public Async Function TestDontMoveBanner() As Task
+        Public Async Function TestDoNotMoveBanner() As Task
             Dim initial =
 <element>class Program
     ' Banner
@@ -860,7 +860,7 @@ end class</element>
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
-        Public Async Function TestDontMoveBanner2() As Task
+        Public Async Function TestDoNotMoveBanner2() As Task
             Dim initial =
 <element>class Program
     ' Banner

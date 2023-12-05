@@ -7,6 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
+#if COMPILERCORE
+using Roslyn.Utilities;
+#endif
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
@@ -318,6 +322,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return tmp.ToImmutableAndFree();
         }
 
+        public ImmutableArray<U> ToDowncastedImmutableAndFree<U>() where U : T
+        {
+            var result = ToDowncastedImmutable<U>();
+            this.Free();
+            return result;
+        }
+
         /// <summary>
         /// Realizes the array and disposes the builder in one operation.
         /// </summary>
@@ -579,6 +590,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddMany(T item, int count)
         {
+            EnsureCapacity(Count + count);
+
             for (var i = 0; i < count; i++)
             {
                 Add(item);

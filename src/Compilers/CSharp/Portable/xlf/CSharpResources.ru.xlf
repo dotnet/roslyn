@@ -287,6 +287,11 @@
         <target state="translated">Только параметр "using static" или "using alias" может иметь значение "unsafe".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="translated">' {0} ' недопустим для 'использования статики'. Можно использовать только класс, структуру, интерфейс, перечисление, делегат или пространство имен.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Атрибут AsyncMethodBuilder запрещен для анонимных методов без явного типа возвращаемого значения.</target>
@@ -392,6 +397,16 @@
         <target state="translated">"{0}" не реализует элемент интерфейса "{1}". "{2}" не может реализовывать "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>
@@ -487,6 +502,11 @@
         <target state="translated">"{0}" явно реализуется больше одного раза.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="translated">Указанный вызов перехватывается несколько раз.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">"{0}" уже указан в списке интерфейсов в типе "{2}" в виде "{1}".</target>
@@ -572,9 +592,19 @@
         <target state="translated">Дерево выражения не может содержать доступ к статическому виртуальному или абстрактному элементу интерфейса.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">Дерево выражений не может содержать выражение индекса, отсчитываемого с конца ("^").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="translated">Дерево выражения не может содержать встроенный доступ к массиву или преобразование</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -837,9 +867,134 @@
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="translated">К элементам типа встроенного массива можно получить доступ только с одним аргументом, неявно преобразуемым в «int», «System.Index» или «System.Range».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="translated">Невозможно преобразовать выражение в ' {0} ', так как оно не может быть передано или возвращено по ссылке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="translated">Невозможно преобразовать выражение в ' {0} ', так как это не присваиваемая переменная</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="translated">Индекс находится за пределами встроенного массива</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Свойства экземпляра в интерфейсах не могут иметь инициализаторы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
+        <target state="translated">Метод ' {0} ' нельзя использовать в качестве перехватчика, так как он или содержащий его тип имеет параметры типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="translated">Имя оператора не может быть перехвачено.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="translated">Перехватчик не может быть помечен атрибутом UnmanagedCallersOnlyAttribute.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="translated">Данная строка имеет длину ' {0} ' символов, что меньше предоставленного количества символов ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="translated">Перехватчик не может иметь «нулевой» путь к файлу.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="translated">Номера строк и символов, предоставляемые InterceptsLocationAttribute, должны быть положительными.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="translated">В данном файле есть строки ' {0} ', что меньше предоставленного номера строки ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="translated">Метод-перехватчик должен быть обычным методом-элементом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="translated">Перехватчик должен иметь параметр this, соответствующий параметру ' {0} ' на ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="translated">У перехватчика не должно быть параметра this, потому что у {0} нет параметра this.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="translated">Предоставленный номер строки и символа не относится к началу токена ' {0} '. Вы хотели использовать строку ' {1} ' и символ ' {2} '?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="translated">Возможное имя метода " {0} " не может быть перехвачено, так как он не вызывается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="translated">Невозможно перехватить вызов в файле с путем ' {0} ', так как несколько файлов в компиляции имеют этот путь.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="translated">Невозможно перехватить вызов с ' {0} ', так как он недоступен внутри ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="translated">Невозможно перехватить: компиляция не содержит файла с путем ' {0} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="translated">Невозможно перехватить: компиляция не содержит файла с путем ' {0} '. Вы хотели использовать путь ' {1} '?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="translated">Невозможно перехватить: Путь ' {0} ' не сопоставлен. Ожидаемый сопоставленный путь ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="translated">Предоставленная строка и номер символа относятся не к имени перехватываемого метода, а скорее к токену ' {0} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="translated">Не удается перехватить вызов ' {0} ' с ' {1} ' из-за разницы в модификаторах 'scoped' или атрибутах '[UnscopedRef]'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="translated">Невозможно перехватить метод " {0} " с перехватчиком " {1} ", поскольку подписи не совпадают.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
+        <target state="translated">Экспериментальная функция «перехватчики» не включена. Добавьте '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' в свой проект.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -905,6 +1060,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Недопустимое имя хэш-алгоритма: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="translated">Структура встроенного массива должна объявлять одно и только одно поле экземпляра.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="translated">Структура встроенного массива не должна иметь явного макета.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="translated">Длина встроенного массива должна быть больше 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1085,6 +1255,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Только отдельное объявление разделяемого типа может содержать список параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="translated">Доступ к встроенному массиву может не иметь спецификатора именованного аргумента.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1497,6 +1672,11 @@
         <target state="translated">"{0}": целевая среда выполнения не поддерживает ковариантные возвращаемые типы в переопределениях. Для сопоставления переопределенного элемента "{1}" необходимо использовать возвращаемый тип "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="translated">Целевая среда выполнения не поддерживает встроенные типы массивов.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Целевая среда выполнения не поддерживает специальные возможности "защищенный", "внутренний защищенный" или "частный защищенный" для члена интерфейса.</target>
@@ -1667,6 +1847,11 @@
         <target state="translated">Вокруг главного выражения switch требуются скобки.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' определен в сборке '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">Интерполированный литерал необработанной строки не начинается с достаточного количества символов \"$\", чтобы разрешить использование такого же количества последовательных закрывающих фигурных скобок в качестве содержимого.</target>
@@ -1777,6 +1962,11 @@
         <target state="translated">Невозможно использовать параметр основного конструктора "{0}" с модификаторами ref, out или in внутри элемента экземпляра</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="translated">Невозможно использовать первичный параметр конструктора типа "{0}" внутри элемента экземпляра</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Невозможно использовать параметр основного конструктора "{0}" типа ref-like внутри элемента экземпляра</target>
@@ -1847,6 +2037,11 @@
         <target state="translated">проверенные операторы, определяемые пользователем</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">ковариантные возвращаемые значения</target>
@@ -1900,6 +2095,16 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">выводимый тип делегата</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="translated">встроенные массивы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="translated">элемент экземпляра в "nameof"</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -2027,6 +2232,26 @@
         <target state="translated">доступ к элементу указателя</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="translated">множество</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="translated">динамический</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="translated">указатель функции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="translated">указатель</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Оператор "&amp;" не следует использовать для параметров или локальных переменных в асинхронных методах.</target>
@@ -2137,6 +2362,16 @@
         <target state="translated">Класс CallerArgumentExpressionAttribute не подействует, он переопределен классом CallerMemberNameAttribute</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">Параметр ' {0} ' фиксируется в состоянии объемлющего типа, и его значение также используется для инициализации поля, свойства или события.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">Параметр фиксируется в состоянии объемлющего типа, и его значение также используется для инициализации поля, свойства или события.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">Параметр "{0}" записан в состоянии включающего типа, а его значение также передается базовому конструктору. Значение также может быть записано базовым классом.</target>
@@ -2217,6 +2452,16 @@
         <target state="translated">Использование переменной в этом контексте может представить ссылочные переменные за пределами области их объявления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="translated">Перехват вызова ' {0} ' с перехватчиком ' {1} ', но подписи не совпадают.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="translated">Сигнатуры методов перехвата и перехватчика не совпадают.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">Атрибут InterpolatedStringHandlerArgument не действует при применении к лямбда-параметрам и будет проигнорирован на сайте вызова.</target>
@@ -2265,6 +2510,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Ветви условного оператора ref ссылаются на переменные с несовместимыми областями объявления.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="translated">Обнуляемость ссылочных типов в типе параметра ' {0} ' не соответствует перехватываемому методу ' {1} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="translated">Обнуляемость ссылочных типов в типе параметра не соответствует перехватываемому методу.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="translated">Обнуляемость ссылочных типов в возвращаемом типе не соответствует перехватываемому методу ' {0} '.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="translated">Обнуляемость ссылочных типов в возвращаемом типе не соответствует перехватываемому методу.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2778,162 +3043,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
-                             Параметры компилятора Visual C#
+        <target state="new">
+                             Visual C# Compiler Options
 
-                       — Выходные файлы -
--out:&lt;file&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
-                              файла с классом main или имя первого файла)
--target:exe                   Выполнить сборку консольного исполняемого файла (по умолчанию) (краткая
-                              форма: -t:exe)
--target:winexe               Выполнить сборку исполняемого файла Windows (краткая форма:
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
                               -t:winexe)
--target:library               Выполнить сборку библиотеки (краткая форма: -t:library)
--target:module                Выполнить сборку модуля, который можно добавить в другую
-                              сборку (краткая форма: -t:module)
--target:appcontainerexe       Выполнить сборку исполняемого файла AppContainer (краткая форма:
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
                               -t:appcontainerexe)
--target:winmdobj              Выполнить сборку промежуточного файла среды выполнения Windows,
-                              используемого в WinMDExp (краткая форма: -t:winmdobj)
--doc:&lt;file&gt;                   Создаваемый XML-файл документации
--refout:&lt;file&gt;                Создаваемые выходные данные базовой сборки
--platform:&lt;string&gt;            Ограничить платформы, на которых может выполняться этот код: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred или
-                              anycpu. Значение по умолчанию — anycpu.
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
 
-                       — Входные файлы -
--recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
-                              подкаталогах в соответствии с заданным
-                              подстановочным знаком
--reference:&lt;alias&gt;=&lt;file&gt;     Сослаться на метаданные из заданного файла
-                              сборки с помощью определенного псевдонима (краткая форма: -r)
--reference:&lt;file list&gt;        Сослаться на метаданные из заданных файлов
-                              сборки (краткая форма: -r)
--addmodule:&lt;file list&gt;        Скомпоновать указанные модули в этой сборке
--link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
-                              сборок взаимодействия (краткая форма: -l)
--analyzer:&lt;file list&gt;         Запускать анализаторы из этой сборки
-                              (краткая форма: -a)
--additionalfile:&lt;file list&gt;   Дополнительные файлы, которые не оказывают прямого влияния на создание
-                              кода, но могут использоваться анализаторами для вывода
-                              ошибок или предупреждений.
--embed                        Внедрить все исходные файлы в PDB.
--embed:&lt;file list&gt;            Внедрить указанные файлы в PDB.
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
-                       — Ресурсы -
--win32res:&lt;file&gt;              Задать файл ресурсов Win32 (RES-файл)
--win32icon:&lt;file&gt;             Использовать этот значок для вывода
--win32manifest:&lt;file&gt;         Задать файл манифеста Win32 (XML-файл)
--nowin32manifest              Не включать манифест Win32 по умолчанию
--resource:&lt;resinfo&gt;           Внедрить указанный ресурс (краткая форма: -res)
--linkresource:&lt;resinfo&gt;       Скомпоновать указанный ресурс в этой сборке
-                              (краткая форма: -linkres), где данные о ресурсах имеют
-                              формат &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       — Создание кода -
--debug[+|-]                   Выдать отладочную информацию
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
 -debug:{full|pdbonly|portable|embedded}
-                              Задать тип отладки (по умолчанию — "full",
-                              "portable"  — кроссплатформенный формат,
-                              "embedded" — кроссплатформенный формат, внедряемый в
-                              целевой DLL- или EXE-файл)
--optimize[+|-]                Включить оптимизацию (краткая форма: -o)
--deterministic                Создать детерминированную сборку
-                              (включая GUID версии модуля и метку времени)
--refonly                      Создать базовую сборку вместо основных выходных данных
--instrument:TestCoverage      Создать сборку, инструментированную для сбора
-                              сведений об объеме протестированного кода
--sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
- 
-                       — Ошибки и предупреждения -
--warnaserror[+|-]             Регистрировать все предупреждения как ошибки
--warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
-                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
--warn:&lt;n&gt;                     Задать порог предупреждений (0 или выше) (краткая форма: -w)
--nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
-                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
--ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
-                              диагностические операции.
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+                              (use "nullable" for all nullability warnings)
+-warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+                              (use "nullable" for all nullability warnings)
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Указать файл для записи всех диагностических данных
-                              компилятора и анализатора.
-                              sarif_version:{1|2|2.1} По умолчанию используются значения 1.2 и 2.1,
-                              обозначающие версию SARIF 2.1.0.
--reportanalyzer               Сообщить дополнительные сведения об анализаторе, например
-                              время выполнения.
--skipanalyzers[+|-]           Пропустить выполнение анализаторов диагностики.
+                              Specify a file to log all compiler and analyzer
+                              diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+-skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
 
-                       — Язык -
--checked[+|-]                 Создать проверки переполнений
--unsafe[+|-]                  Допускать "небезопасный" код
--define:&lt;symbol list&gt;         Определить символы условной компиляции (краткая
-                              форма: -d)
--langversion:?                Отобразить разрешенные значения для версии языка
--langversion:&lt;string&gt;         Указать версию языка, например
-                              "latest" (последняя версия, включая дополнительные номера версии),
-                              "default" (то же, что и "latest"),
-                              "latestmajor" (последняя версия, исключая дополнительные номера версии),
-                              "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии),
-                              либо конкретные версии, например "6" или "7.1"
--nullable[+|-]                Указать параметр допускающего значение NULL контекста enable|disable.
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
-                              Указать параметр допускающего значение NULL контекста enable|disable|warnings|annotations.
+                              Specify nullable context option enable|disable|warnings|annotations.
 
-                       — Безопасность -
--delaysign[+|-]               Использовать отложенную подпись для сборки, применяя только открытую
-                              часть ключа строгого имени
--publicsign[+|-]              Выполнить общедоступную подпись сборки, используя только открытую
-                              часть ключа строгого имени
--keyfile:&lt;file&gt;               Указать файл ключей строгого имени
--keycontainer:&lt;string&gt;        Указать контейнер ключей строгого имени
--highentropyva[+|-]           Включить ASLR с высокой энтропией
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
 
-                       — Прочее -
-@&lt;file&gt;                       Считать файл ответов с дополнительными параметрами
--help                         Отобразить это сообщение об использовании (краткая форма: -?)
--nologo                       Запрещать отображение сообщения компилятора об авторских правах
--noconfig                     Не включать файл CSC.RSP автоматически
--parallel[+|-]                Параллельная сборка.
--version                      Отобразить номер версии компилятора и выйти.
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
 
-                       — Дополнительно -
--baseaddress:&lt;address&gt;        Базовый адрес библиотеки, для которой выполняется сборка
--checksumalgorithm:&lt;alg&gt;      Задать алгоритм для расчета контрольной суммы
-                              исходного файла, хранимой в формате PDB. Поддерживаемые значения:
-                              SHA1 или SHA256 (по умолчанию).
--codepage:&lt;n&gt;                 Задать кодовую страницу, используемую при открытии исходных
-                              файлов
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8
--main:&lt;type&gt;                  Указать тип, содержащий точку входа
-                              (все другие возможные точки входа игнорируются) (краткая
-                              форма: -m)
--fullpaths                    Компилятор создает полные пути
--filealign:&lt;n&gt;                Задать выравнивание для разделов выходных
-                              файлов
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Задать сопоставление для выходных данных имен исходного пути по
-                              компилятору.
--pdb:&lt;file&gt;                   Задать имя файла для отладочной информации (по умолчанию
-                              используется имя выходного файла с расширением PDB)
--errorendlocation             Выводить строку и столбец конечного расположения
-                              каждой ошибки
--preferreduilang              Указать имя предпочтительного языка вывода.
--nosdkpath                    Отключить поиск пути пакета SDK по умолчанию для стандартных сборок библиотеки.
--nostdlib[+|-]                Не обращаться к стандартной библиотеке (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Задать версию подсистемы этой сборки
--lib:&lt;file list&gt;              Задать дополнительные каталоги для поиска
-                              ссылок
--errorreport:&lt;string&gt;         Указать способ обработки внутренних ошибок компилятора:
-                              prompt, send, queue или none. По умолчанию используется
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
                               queue.
--appconfig:&lt;file&gt;             Указать файл конфигурации приложения,
-                              содержащий параметры привязки сборки
--moduleassemblyname:&lt;string&gt;  Имя сборки, частью которой будет являться
-                              этот модуль
--modulename:&lt;string&gt;          Задать имя исходного модуля
--generatedfilesout:&lt;dir&gt;      Размещать файлы, созданные во время компиляции, в
-                              указанном каталоге.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8525,8 +8796,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Итераторы не могут иметь небезопасные параметры или типы yield.</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">Итераторы не могут использовать параметры типа указателя</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +10139,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">У асинхронных методов не может быть небезопасных параметров или возвращаемых типов.</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">Асинхронные методы не могут использовать параметры типа указателя</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11672,11 +11943,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Невозможно вернуть "{0}" по ссылке, так как это "{1}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Невозможно вернуть поля "{0}" по ссылке, так как это "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
         <source>A readonly field cannot be returned by writable reference</source>
         <target state="translated">Поле, доступное только для чтения, невозможно вернуть по ссылке, доступной для записи</target>
@@ -11788,8 +12054,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'await нельзя использовать в выражении, содержащем вызов "{0}", так как он возвращает данные по ссылке</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">Ссылка, возвращенная вызовом ' {0} ', не может быть сохранена за границей 'wait' или 'yield'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

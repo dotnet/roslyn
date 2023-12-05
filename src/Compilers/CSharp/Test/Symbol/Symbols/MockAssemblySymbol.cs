@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             throw new NotImplementedException();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            throw new NotImplementedException();
+        }
+
         public override ICollection<string> TypeNames
         {
             get

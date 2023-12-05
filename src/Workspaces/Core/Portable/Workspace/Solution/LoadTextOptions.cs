@@ -11,12 +11,9 @@ namespace Microsoft.CodeAnalysis;
 /// <summary>
 /// Options used to load <see cref="SourceText"/>.
 /// </summary>
-public readonly struct LoadTextOptions : IEquatable<LoadTextOptions>
+public readonly struct LoadTextOptions(SourceHashAlgorithm checksumAlgorithm) : IEquatable<LoadTextOptions>
 {
-    public SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-    public LoadTextOptions(SourceHashAlgorithm checksumAlgorithm)
-        => ChecksumAlgorithm = checksumAlgorithm;
+    public SourceHashAlgorithm ChecksumAlgorithm { get; } = checksumAlgorithm;
 
     public bool Equals(LoadTextOptions other)
         => ChecksumAlgorithm == other.ChecksumAlgorithm;

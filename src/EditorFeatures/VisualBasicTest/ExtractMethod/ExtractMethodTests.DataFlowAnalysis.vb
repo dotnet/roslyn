@@ -5051,7 +5051,7 @@ End Module</text>
             End Function
 
             <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541409"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542687")>
-            Public Async Function DontCrashOnInvalidAddressOf() As Task
+            Public Async Function DoNotCrashOnInvalidAddressOf() As Task
                 Dim code = <text>Module Program
     Sub Main(args As String())
     End Sub
@@ -5064,7 +5064,7 @@ End Module</text>
             End Function
 
             <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541515")>
-            Public Async Function TestDontCrashWhenCanFindOutContainingScopeType() As Task
+            Public Async Function TestDoNotCrashWhenCanFindOutContainingScopeType() As Task
                 Dim code = <text>Class Program
     Sub Main()
         Dim x As New List(Of Program) From {[|New Program|]}

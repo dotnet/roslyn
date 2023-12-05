@@ -247,6 +247,11 @@
         <target state="translated">外部別名</target>
         <note />
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="translated">for 迴圈</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
         <target state="translated">init-only 屬性</target>
@@ -411,6 +416,11 @@
         <source>record struct</source>
         <target state="translated">記錄結構</target>
         <note />
+      </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="translated">反轉 for 迴圈</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>

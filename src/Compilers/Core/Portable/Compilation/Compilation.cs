@@ -875,6 +875,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
+
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
@@ -1830,9 +1833,16 @@ namespace Microsoft.CodeAnalysis
         internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(incoming is object);
-            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming, cancellationToken);
             incoming.Free();
             incoming = null;
+            return result;
+        }
+
+        internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, DiagnosticBag incoming, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(incoming is object);
+            bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null, cancellationToken);
             return result;
         }
 

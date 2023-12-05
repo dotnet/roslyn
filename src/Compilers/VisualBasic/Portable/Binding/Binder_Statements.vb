@@ -1239,9 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ReportDiagnostic(diagnostics, errSyntax, ERRID.ERR_ConstAsNonConstant)
                     Else
                         Dim bag = symbol.GetConstantValueDiagnostics(Me)
-                        If bag IsNot Nothing Then
-                            diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
-                        End If
+                        diagnostics.AddRange(bag, allowMismatchInDependencyAccumulation:=True)
                     End If
                 End If
             End If

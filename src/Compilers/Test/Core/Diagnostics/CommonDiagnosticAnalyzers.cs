@@ -997,6 +997,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SemanticModelAnalyzerWithId : DiagnosticAnalyzer
+        {
+            public SemanticModelAnalyzerWithId(string diagnosticId)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    diagnosticId,
+                    "Description1",
+                    string.Empty,
+                    "Analysis",
+                    DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context) =>
+                context.RegisterSemanticModelAction(context =>
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(Descriptor, context.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
+        }
+
         /// <summary>
         /// This analyzer is intended to be used only when concurrent execution is enabled for analyzers.
         /// This analyzer will deadlock if the driver runs analyzers on a single thread OR takes a lock around callbacks into this analyzer to prevent concurrent analyzer execution
@@ -1919,8 +1943,8 @@ namespace Microsoft.CodeAnalysis
                     if (!SymbolsStarted.SetEquals(symbolsEnded))
                     {
                         // Symbols Started: '{0}', Symbols Ended: '{1}', Analyzer: {2}
-                        var symbolsStartedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(SymbolsStarted.Select(s => s.ToDisplayString())));
-                        var symbolsEndedStr = string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(symbolsEnded.Select(s => s.ToDisplayString())));
+                        var symbolsStartedStr = string.Join(", ", SymbolsStarted.Select(s => s.ToDisplayString().Order()));
+                        var symbolsEndedStr = string.Join(", ", symbolsEnded.Select(s => s.ToDisplayString().Order()));
                         compilationEndContext.ReportDiagnostic(Diagnostic.Create(SymbolStartedEndedDifferRule, Location.None, symbolsStartedStr, symbolsEndedStr, _analyzerId));
                     }
 
@@ -2064,6 +2088,42 @@ namespace Microsoft.CodeAnalysis
                 {
                     Assert.Equal(SuppressionDescriptor.SuppressedDiagnosticId, diagnostic.Id);
                     context.ReportSuppression(Suppression.Create(SuppressionDescriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class DiagnosticSuppressorForMultipleIds : DiagnosticSuppressor
+        {
+            public DiagnosticSuppressorForMultipleIds(params string[] suppressedDiagnosticIds)
+            {
+                var builder = ImmutableArray.CreateBuilder<SuppressionDescriptor>();
+                int i = 1;
+                foreach (var suppressedDiagnosticId in suppressedDiagnosticIds)
+                {
+                    var descriptor = new SuppressionDescriptor(
+                        id: $"SPR000{i++}",
+                        suppressedDiagnosticId: suppressedDiagnosticId,
+                        justification: $"Suppress {suppressedDiagnosticId}");
+                    builder.Add(descriptor);
+                }
+
+                SupportedSuppressions = builder.ToImmutable();
+            }
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; }
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    foreach (var suppressionDescriptor in SupportedSuppressions)
+                    {
+                        if (suppressionDescriptor.SuppressedDiagnosticId == diagnostic.Id)
+                        {
+                            context.ReportSuppression(Suppression.Create(suppressionDescriptor, diagnostic));
+                        }
+                    }
                 }
             }
         }
@@ -2268,7 +2328,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
-            public string GetSortedSymbolCallbacksString() => string.Join(", ", Roslyn.Utilities.EnumerableExtensions.Order(_symbolCallbacks.Select(s => s.Name)));
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
 
             public override void Initialize(AnalysisContext context)
             {
@@ -2881,6 +2941,170 @@ namespace Microsoft.CodeAnalysis
                         codeBlockStartContext.RegisterSyntaxNodeAction(syntaxNodeContext => AnalyzedSyntaxNodesInsideCodeBlock.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement);
                         codeBlockStartContext.RegisterCodeBlockEndAction(codeBlockEndContext => AnalyzedCodeBlockEndSymbols.Add(codeBlockEndContext.OwningSymbol));
                     });
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public sealed class FilterSpanTestAnalyzer : DiagnosticAnalyzer
+        {
+            public enum AnalysisKind
+            {
+                SyntaxTree,
+                AdditionalFile,
+                SemanticModel,
+                Symbol,
+                SymbolStart,
+                Operation,
+                OperationBlockStart,
+                OperationBlock,
+                SyntaxNode,
+                CodeBlockStart,
+                CodeBlock,
+            }
+
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title",
+                    "Message",
+                    "Category",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+
+            private readonly AnalysisKind _analysisKind;
+
+            public FilterSpanTestAnalyzer(AnalysisKind analysisKind)
+            {
+                _analysisKind = analysisKind;
+            }
+
+            public TextSpan? CallbackFilterSpan { get; private set; }
+            public SyntaxTree CallbackFilterTree { get; private set; }
+            public AdditionalText CallbackFilterFile { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                switch (_analysisKind)
+                {
+                    case AnalysisKind.SyntaxTree:
+                        context.RegisterSyntaxTreeAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.Tree;
+                        });
+                        break;
+
+                    case AnalysisKind.AdditionalFile:
+                        context.RegisterAdditionalFileAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterFile = context.AdditionalFile;
+                        });
+                        break;
+
+                    case AnalysisKind.SemanticModel:
+                        context.RegisterSemanticModelAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    case AnalysisKind.Symbol:
+                        context.RegisterSymbolAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.SymbolStart:
+                        context.RegisterSymbolStartAction(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterSymbolEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.Operation:
+                        context.RegisterOperationAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, OperationKind.VariableDeclarationGroup);
+                        break;
+
+                    case AnalysisKind.OperationBlockStart:
+                        context.RegisterOperationBlockStartAction(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterOperationBlockEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.OperationBlock:
+                        context.RegisterOperationBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    case AnalysisKind.SyntaxNode:
+                        context.RegisterSyntaxNodeAction<SyntaxKind>(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        }, SyntaxKind.LocalDeclarationStatement);
+                        break;
+
+                    case AnalysisKind.CodeBlockStart:
+                        context.RegisterCodeBlockStartAction<SyntaxKind>(startContext =>
+                        {
+                            CallbackFilterSpan = startContext.FilterSpan;
+                            CallbackFilterTree = startContext.FilterTree;
+
+                            startContext.RegisterCodeBlockEndAction(endContext =>
+                            {
+                                if (startContext.FilterTree != endContext.FilterTree)
+                                    throw new InvalidOperationException("Mismatched FilterTree");
+
+                                if (startContext.FilterSpan != endContext.FilterSpan)
+                                    throw new InvalidOperationException("Mismatched FilterSpan");
+                            });
+                        });
+                        break;
+
+                    case AnalysisKind.CodeBlock:
+                        context.RegisterCodeBlockAction(context =>
+                        {
+                            CallbackFilterSpan = context.FilterSpan;
+                            CallbackFilterTree = context.FilterTree;
+                        });
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(_analysisKind);
                 }
             }
         }

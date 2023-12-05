@@ -2466,6 +2466,7 @@ Returned From Function 2");
 }");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68208")]
         [Fact]
         public void Typeof()
         {
@@ -2479,7 +2480,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: ExecutionConditionUtil.IsCoreClr ? "System.Void()" : "System.IntPtr");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
@@ -11463,6 +11464,9 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4),
                 // (11,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 14));
@@ -11512,6 +11516,9 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 12),
                 // (11,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 22));
@@ -11582,7 +11589,7 @@ class C<T> {}
                 }
 
                 [A(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
@@ -11608,7 +11615,7 @@ class C<T> {}
                 }
 
                 [A(default)]
-                class C { }
+                unsafe class C { }
                 """;
 
             // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
@@ -11619,6 +11626,31 @@ class C<T> {}
                 Assert.Empty(attr.ConstructorArguments);
             });
             verifier.VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
+        public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument_WithoutUnsafeContext([CombinatorialValues("class", "struct")] string kind)
+        {
+            var source = $$"""
+                class A : System.Attribute
+                {
+                    public unsafe A(B<delegate*<void>[]>.E e) { }
+                }
+
+                {{kind}} B<T>
+                {
+                    public enum E { }
+                }
+
+                [A(default)]
+                class C { }
+                """;
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A(default)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
+                );
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11958,6 +11990,12 @@ class C<T> {}
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>").WithLocation(12, 12),
+                // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>.C").WithLocation(12, 12),
                 // (12,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(12, 14));

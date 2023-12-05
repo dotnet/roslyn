@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var args = new ConstraintsHelper.CheckConstraintsArgsBoxed(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+            var args = ConstraintsHelper.CheckConstraintsArgsBoxed.Allocate(
+                DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 if (!diagnostics.ReportUseSite(constraintType.Type, args.Args.Location))
@@ -266,6 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     constraintType.Type.CheckAllConstraints(args);
                 }
             }
+
+            args.Free();
         }
 
         private void CheckUnmanagedConstraint(BindingDiagnosticBag diagnostics)

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class TypeInferenceSimplifierTests
         Inherits AbstractSimplificationTests
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734369")>
-        Public Async Function TestDontSimplify1() As Task
+        Public Async Function TestDoNotSimplify1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_Using() As Task
+        Public Async Function TestDoNotSimplify_Using() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_For_0() As Task
+        Public Async Function TestDoNotSimplify_For_0() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         End Function
 
         <Fact>
-        Public Async Function TestDontSimplify_For_1() As Task
+        Public Async Function TestDoNotSimplify_For_1() As Task
             Dim input =
         <Workspace>
             <Project Language="Visual Basic" CommonReferences="true">

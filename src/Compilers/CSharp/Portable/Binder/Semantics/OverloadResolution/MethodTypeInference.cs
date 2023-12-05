@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -558,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: phase. The first phase makes some initial inferences of bounds, whereas
             // SPEC: the second phase fixes type parameters to specific types and infers further
             // SPEC: bounds. The second phase may have to be repeated a number of times.
-            InferTypeArgsFirstPhase(ref useSiteInfo);
+            InferTypeArgsFirstPhase(binder, ref useSiteInfo);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteInfo);
             var inferredTypeArguments = GetResults(out bool inferredFromFunctionType);
             return new MethodTypeInferenceResult(success, inferredTypeArguments, inferredFromFunctionType);
@@ -569,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The first phase
         //
 
-        private void InferTypeArgsFirstPhase(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void InferTypeArgsFirstPhase(Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
@@ -585,11 +586,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations target = _formalParameterTypes[arg];
                 ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
-                MakeExplicitParameterTypeInferences(argument, target, kind, ref useSiteInfo);
+                MakeExplicitParameterTypeInferences(binder, argument, target, kind, ref useSiteInfo);
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+#nullable enable
+        private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: * If Ei is an anonymous function, and Ti is a delegate type or expression tree type,
             // SPEC:   an explicit type parameter inference is made from Ei to Ti and
@@ -609,8 +611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExplicitParameterTypeInference(argument, target, ref useSiteInfo);
                 ExplicitReturnTypeInference(argument, target, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+            {
+                MakeCollectionLiteralTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, target, kind, ref useSiteInfo);
+            }
             else if (argument.Kind != BoundKind.TupleLiteral ||
-                !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 var argumentType = _extensions.GetTypeWithAnnotations(argument);
@@ -626,7 +632,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool MakeExplicitParameterTypeInferences(BoundTupleLiteral argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void MakeCollectionLiteralTypeInferences(
+            Binder binder,
+            BoundUnconvertedCollectionLiteralExpression argument,
+            TypeWithAnnotations target,
+            ExactOrBoundsKind kind,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (target.Type is null)
+            {
+                return;
+            }
+
+            if (argument.Elements.Length == 0)
+            {
+                return;
+            }
+
+            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, target.Type, out TypeWithAnnotations targetElementType))
+            {
+                return;
+            }
+
+            foreach (var element in argument.Elements)
+            {
+                MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
+            }
+        }
+
+        private static bool TryGetCollectionIterationType(Binder binder, ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return binder.GetEnumeratorInfoAndInferCollectionElementType(
+                syntax,
+                syntax,
+                ref collectionExpr,
+                isAsync: false,
+                BindingDiagnosticBag.Discarded,
+                out iterationType,
+                builder: out _);
+        }
+#nullable disable
+
+        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
@@ -659,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var sourceArgument = sourceArguments[i];
                 var destType = destTypes[i];
-                MakeExplicitParameterTypeInferences(sourceArgument, destType, kind, ref useSiteInfo);
+                MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, kind, ref useSiteInfo);
             }
 
             return true;
@@ -788,6 +836,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteInfo);
             }
+            else if (argument.Kind == BoundKind.UnconvertedCollectionLiteralExpression)
+            {
+                MakeOutputTypeInferences(binder, (BoundUnconvertedCollectionLiteralExpression)argument, formalType, ref useSiteInfo);
+            }
             else
             {
                 if (HasUnfixedParamInOutputType(argument, formalType.Type) && !HasUnfixedParamInInputType(argument, formalType.Type))
@@ -798,6 +850,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //UNDONE: }
                     OutputTypeInference(binder, argument, formalType, ref useSiteInfo);
                 }
+            }
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionLiteralExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (argument.Elements.Length == 0)
+            {
+                return;
+            }
+
+            if (!TryGetCollectionIterationType(binder, (ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            {
+                return;
+            }
+
+            foreach (var element in argument.Elements)
+            {
+                MakeOutputTypeInferences(binder, element, targetElementType, ref useSiteInfo);
             }
         }
 

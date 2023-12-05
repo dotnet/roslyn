@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
             Document document, TextSpan span, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (options.ExtractOptions.DontPutOutOrRefOnStruct || !result.Reasons.IsSingle())
+            if (options.ExtractOptions.DoNotPutOutOrRefOnStruct || !result.Reasons.IsSingle())
                 return null;
 
             var reason = result.Reasons.FirstOrDefault();
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     document,
                     span,
                     localFunction: false,
-                    options with { ExtractOptions = options.ExtractOptions with { DontPutOutOrRefOnStruct = true } },
+                    options with { ExtractOptions = options.ExtractOptions with { DoNotPutOutOrRefOnStruct = true } },
                     cancellationToken).ConfigureAwait(false);
 
                 // retry succeeded, return new result

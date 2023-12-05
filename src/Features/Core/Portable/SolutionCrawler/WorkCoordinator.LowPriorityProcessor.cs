@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 : null;
 
                             if (_workItemQueue.TryTakeAnyWork(
-                                preferableProjectId, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                preferableProjectId, Processor.DependencyGraph,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);

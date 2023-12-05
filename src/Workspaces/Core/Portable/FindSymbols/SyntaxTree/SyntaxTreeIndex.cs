@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -31,13 +31,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetRequiredIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
+            => GetRequiredIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
+
+        public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
+            => GetRequiredIndexAsync(solutionKey, project, document, ReadIndex, CreateIndex, cancellationToken);
 
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly: false, cancellationToken);
+            => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, cancellationToken);
 
-        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, CancellationToken cancellationToken)
+            => GetIndexAsync(solutionKey, project, document, loadOnly: false, cancellationToken);
+
         public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
-            => GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
+            => GetIndexAsync(SolutionKey.ToSolutionKey(document.Project.Solution), document.Project.State, (DocumentState)document.State, loadOnly, cancellationToken);
+
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(SolutionKey solutionKey, ProjectState project, DocumentState document, bool loadOnly, CancellationToken cancellationToken)
+            => GetIndexAsync(solutionKey, project, document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
     }
 }

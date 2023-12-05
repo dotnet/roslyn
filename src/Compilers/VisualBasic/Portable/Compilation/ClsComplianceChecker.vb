@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
 
         Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
-            Debug.Assert(TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
+            Debug.Assert(diagnostics.DependenciesBag Is Nothing OrElse TypeOf diagnostics.DependenciesBag Is ConcurrentSet(Of AssemblySymbol))
 
             Me._compilation = compilation
             Me._filterTree = filterTree
@@ -70,11 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         ''' <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and <paramref name="filterSpanWithinTree"/> is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
         Public Shared Sub CheckCompliance(compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterTree As SyntaxTree = Nothing, Optional filterSpanWithinTree As TextSpan? = Nothing)
-            Dim queue = New BindingDiagnosticBag(diagnostics.DiagnosticBag, New ConcurrentSet(Of AssemblySymbol))
+            Dim queue = If(diagnostics.AccumulatesDependencies, BindingDiagnosticBag.GetConcurrentInstance(), BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False))
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
             checker.WaitForWorkers()
-            diagnostics.AddDependencies(queue.DependenciesBag)
+            diagnostics.AddRangeAndFree(queue)
         End Sub
 
         Private Sub WaitForWorkers()

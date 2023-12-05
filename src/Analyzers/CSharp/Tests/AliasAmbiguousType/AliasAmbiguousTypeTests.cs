@@ -130,7 +130,7 @@ namespace Test
         }
 
         [Fact]
-        public async Task TestAmbiguousClassObjectCreationGenericsDontOfferDiagnostic()
+        public async Task TestAmbiguousClassObjectCreationGenericsDoNotOfferDiagnostic()
         {
             var genericAmbiguousClassDefinition = GetAmbiguousDefinition("public class Ambiguous<T> { }");
             await TestMissingAsync(@"

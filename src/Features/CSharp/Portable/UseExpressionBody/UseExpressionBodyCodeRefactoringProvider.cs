@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             foreach (var helper in _helpers)

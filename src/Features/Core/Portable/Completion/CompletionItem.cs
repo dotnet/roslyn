@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// The span identifies the text in the document that is used to filter the initial list presented to the user,
         /// and typically represents the region of the document that will be changed if this item is committed.
+        /// The latter is not always true because individual provider is free to make more complex changes to the document.
+        /// If this is the case, the provider should set <see cref="IsComplexTextEdit"/> to true.
         /// </summary>
         public TextSpan Span { get; internal set; }
 
@@ -101,17 +103,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// Returns true if this item's text edit requires complex resolution that
-        /// may impact performance. For example, an edit may be complex if it needs
-        /// to format or type check the resulting code, or make complex non-local
-        /// changes to other parts of the file.
-        /// Complex resolution is used so we only do the minimum amount of work
-        /// needed to display completion items. It is performed only for the
-        /// committed item just prior to commit. Thus, it is ideal for any expensive
-        /// completion work that does not affect the display of the item in the
-        /// completion list, but is necessary for committing the item.
-        /// An example of an item type requiring complex resolution is C#/VB
-        /// override completion.
+        /// Returns true if this item's text edit requires complex resolution.
+        /// An edit is considered complex if the span of the change is different from
+        /// specified by <see cref="Span"/>.
+        /// 
+        /// Example of an item type requiring complex resolution is C#/VB override completion.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 

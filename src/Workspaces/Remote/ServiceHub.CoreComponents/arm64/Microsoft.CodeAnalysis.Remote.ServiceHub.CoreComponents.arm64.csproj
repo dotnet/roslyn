@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <TargetArch>arm64</TargetArch>
+
+    <MicrosoftNETCoreAppRuntimewinarm64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftNETCoreAppRuntimewinarm64Version>
+    <MicrosoftWindowsDesktopAppRuntimewinarm64Version>$(MicrosoftNetCoreAppPackagesVersion)</MicrosoftWindowsDesktopAppRuntimewinarm64Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.App.Runtime.win-arm64" Version="$(MicrosoftNETCoreAppRuntimewinarm64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.WindowsDesktop.App.Runtime.win-arm64" Version="$(MicrosoftWindowsDesktopAppRuntimewinarm64Version)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+  <PropertyGroup>
+    <_RuntimeLibrariesPath>$(PkgMicrosoft_NETCore_App_Runtime_win-arm64)\runtimes\win-arm64\</_RuntimeLibrariesPath>
+    <_WinRuntimeLibrariesPath>$(PkgMicrosoft_WindowsDesktop_App_Runtime_win-arm64)\runtimes\win-arm64\</_WinRuntimeLibrariesPath>
+  </PropertyGroup>
+  
+  <Import Project="..\CoreComponents.Shared.targets" />
+</Project>

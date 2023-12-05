@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // in uncommon cases an instance of this class is attached to the conversion.
         private class UncommonData
         {
+            public static readonly UncommonData NoApplicableOperators = new UncommonData(
+                isExtensionMethod: false,
+                isArrayIndex: false,
+                conversionResult: UserDefinedConversionResult.NoApplicableOperators(ImmutableArray<UserDefinedConversionAnalysis>.Empty),
+                conversionMethod: null,
+                nestedConversions: default);
+
             public UncommonData(
                 bool isExtensionMethod,
                 bool isArrayIndex,
@@ -107,12 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
 
-            _uncommonData = new UncommonData(
-                isExtensionMethod: false,
-                isArrayIndex: false,
-                conversionResult: conversionResult,
-                conversionMethod: null,
-                nestedConversions: default);
+            _uncommonData = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators && conversionResult.Results.IsEmpty
+                ? UncommonData.NoApplicableOperators
+                : new UncommonData(
+                    isExtensionMethod: false,
+                    isArrayIndex: false,
+                    conversionResult: conversionResult,
+                    conversionMethod: null,
+                    nestedConversions: default);
         }
 
         // For the method group, lambda and anonymous method conversions
@@ -205,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.InterpolatedStringHandler:
+                case ConversionKind.InlineArray:
                     isTrivial = true;
                     break;
 
@@ -231,6 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
+        internal static Conversion CollectionLiteral => new Conversion(ConversionKind.CollectionLiteral);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
@@ -253,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
         internal static Conversion ImplicitPointer => new Conversion(ConversionKind.ImplicitPointer);
         internal static Conversion FunctionType => new Conversion(ConversionKind.FunctionType);
+        internal static Conversion InlineArray => new Conversion(ConversionKind.InlineArray);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -262,6 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<Conversion> ExplicitNumericUnderlying => ConversionSingletons.ExplicitNumericUnderlying;
         internal static ImmutableArray<Conversion> ExplicitEnumerationUnderlying => ConversionSingletons.ExplicitEnumerationUnderlying;
         internal static ImmutableArray<Conversion> PointerToIntegerUnderlying => ConversionSingletons.PointerToIntegerUnderlying;
+
+        // Common combinations to avoid allocations:
+        internal static readonly Conversion ExplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ExplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ExplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ExplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ExplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ExplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ExplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ExplicitNullable, ImplicitConstantUnderlying);
+
+        internal static readonly Conversion ImplicitNullableWithExplicitEnumerationUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitEnumerationUnderlying);
+        internal static readonly Conversion ImplicitNullableWithPointerToIntegerUnderlying = new Conversion(ConversionKind.ImplicitNullable, PointerToIntegerUnderlying);
+        internal static readonly Conversion ImplicitNullableWithIdentityUnderlying = new Conversion(ConversionKind.ImplicitNullable, IdentityUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithExplicitNumericUnderlying = new Conversion(ConversionKind.ImplicitNullable, ExplicitNumericUnderlying);
+        internal static readonly Conversion ImplicitNullableWithImplicitConstantUnderlying = new Conversion(ConversionKind.ImplicitNullable, ImplicitConstantUnderlying);
 
         // these static fields are not directly inside the Conversion
         // because that causes CLR loader failure.
@@ -289,33 +316,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind == ConversionKind.ImplicitNullable || kind == ConversionKind.ExplicitNullable);
 
-            ImmutableArray<Conversion> nested;
-            switch (nestedConversion.Kind)
+            return nestedConversion.Kind switch
             {
-                case ConversionKind.Identity:
-                    nested = IdentityUnderlying;
-                    break;
-                case ConversionKind.ImplicitConstant:
-                    nested = ImplicitConstantUnderlying;
-                    break;
-                case ConversionKind.ImplicitNumeric:
-                    nested = ImplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitNumeric:
-                    nested = ExplicitNumericUnderlying;
-                    break;
-                case ConversionKind.ExplicitEnumeration:
-                    nested = ExplicitEnumerationUnderlying;
-                    break;
-                case ConversionKind.ExplicitPointerToInteger:
-                    nested = PointerToIntegerUnderlying;
-                    break;
-                default:
-                    nested = ImmutableArray.Create(nestedConversion);
-                    break;
-            }
-
-            return new Conversion(kind, nested);
+                ConversionKind.Identity => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithIdentityUnderlying : ExplicitNullableWithIdentityUnderlying,
+                ConversionKind.ImplicitConstant => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitConstantUnderlying : ExplicitNullableWithImplicitConstantUnderlying,
+                ConversionKind.ImplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithImplicitNumericUnderlying : ExplicitNullableWithImplicitNumericUnderlying,
+                ConversionKind.ExplicitNumeric => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitNumericUnderlying : ExplicitNullableWithExplicitNumericUnderlying,
+                ConversionKind.ExplicitEnumeration => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithExplicitEnumerationUnderlying : ExplicitNullableWithExplicitEnumerationUnderlying,
+                ConversionKind.ExplicitPointerToInteger => kind == ConversionKind.ImplicitNullable ? ImplicitNullableWithPointerToIntegerUnderlying : ExplicitNullableWithPointerToIntegerUnderlying,
+                _ => new Conversion(kind, ImmutableArray.Create(nestedConversion)),
+            };
         }
 
         internal static Conversion MakeSwitchExpression(ImmutableArray<Conversion> innerConversions)
@@ -382,14 +392,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     underlying.AssertUnderlyingConversionsCheckedRecursive();
                 }
             }
+
+            if (IsUserDefined)
+            {
+                UserDefinedFromConversion.AssertUnderlyingConversionsCheckedRecursive();
+                UserDefinedToConversion.AssertUnderlyingConversionsCheckedRecursive();
+            }
         }
 
         [Conditional("DEBUG")]
         internal void MarkUnderlyingConversionsChecked()
         {
 #if DEBUG
-            Debug.Assert(_uncommonData is not null);
-            _uncommonData._nestedConversionsChecked = true;
+            if (_uncommonData is not null)
+            {
+                _uncommonData._nestedConversionsChecked = true;
+            }
 #endif
         }
 
@@ -409,6 +427,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         underlying.MarkUnderlyingConversionsCheckedRecursive();
                     }
+                }
+
+                if (IsUserDefined)
+                {
+                    UserDefinedFromConversion.MarkUnderlyingConversionsCheckedRecursive();
+                    UserDefinedToConversion.MarkUnderlyingConversionsCheckedRecursive();
                 }
             }
 #endif
@@ -632,6 +656,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit collection literal expression conversion.
+        /// </summary>
+        public bool IsCollectionLiteral => Kind == ConversionKind.CollectionLiteral;
+
+        /// <summary>
         /// Returns true if the conversion is an implicit switch expression conversion.
         /// </summary>
         public bool IsSwitchExpression
@@ -676,6 +705,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.InterpolatedStringHandler;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an inline array conversion.
+        /// </summary>
+        public bool IsInlineArray
+        {
+            get
+            {
+                return Kind == ConversionKind.InlineArray;
             }
         }
 

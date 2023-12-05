@@ -45,19 +45,13 @@ namespace Microsoft.CodeAnalysis.Packaging
     }
 
     [DataContract]
-    internal readonly struct PackageSource : IEquatable<PackageSource>
+    internal readonly struct PackageSource(string name, string source) : IEquatable<PackageSource>
     {
         [DataMember(Order = 0)]
-        public readonly string Name;
+        public readonly string Name = name;
 
         [DataMember(Order = 1)]
-        public readonly string Source;
-
-        public PackageSource(string name, string source)
-        {
-            Name = name;
-            Source = source;
-        }
+        public readonly string Source = source;
 
         public override bool Equals(object? obj)
             => obj is PackageSource source && Equals(source);

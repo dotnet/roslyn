@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string TargetCompactFramework = nameof(TargetCompactFramework);
         public const string TargetFramework = nameof(TargetFramework);
         public const string TargetFrameworks = nameof(TargetFrameworks);
+        public const string TargetFrameworkIdentifier = nameof(TargetFrameworkIdentifier);
         public const string TargetPath = nameof(TargetPath);
         public const string TargetRefPath = nameof(TargetRefPath);
         public const string TreatWarningsAsErrors = nameof(TreatWarningsAsErrors);

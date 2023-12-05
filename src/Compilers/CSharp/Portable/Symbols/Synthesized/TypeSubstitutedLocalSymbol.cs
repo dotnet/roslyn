@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalVariable.GetDeclaratorSyntax();
         }
 
+        internal override bool HasSourceLocation
+            => _originalVariable.HasSourceLocation;
+
         public override ImmutableArray<Location> Locations
         {
             get { return _originalVariable.Locations; }

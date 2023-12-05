@@ -193,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName);
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return _underlyingAssembly.GetInternalsVisibleToAssemblyNames();
+        }
+
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
         {
             return _underlyingAssembly.AreInternalsVisibleToThisAssembly(other);

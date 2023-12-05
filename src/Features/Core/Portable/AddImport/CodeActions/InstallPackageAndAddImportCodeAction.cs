@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = await updatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = await updatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create<CodeActionOperation>(
                     new InstallPackageAndAddImportOperation(

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(InheritanceMarginTaggerProvider))]
-    internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
+    internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTaggerProvider<InheritanceMarginTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -71,24 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
         }
 
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            Contract.ThrowIfNull(textView);
-
-            var visibleSpan = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-            if (visibleSpan == null)
-            {
-                return base.GetSpansToTag(textView, subjectBuffer);
-            }
-
-            return SpecializedCollections.SingletonEnumerable(visibleSpan.Value);
-        }
-
         protected override async Task ProduceTagsAsync(
             TaggerContext<InheritanceMarginTag> context,
             DocumentSnapshotSpan spanToTag,
-            int? caretPosition,
             CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;

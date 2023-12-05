@@ -40,12 +40,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
         Normal = 3,
 
         /// <summary>
-        /// Only high priority refactoring, code fix providers should be run.  Specifically,
-        /// providers will be run when <see cref="T:CodeRefactoringProvider.RequestPriority"/> or
-        /// <see cref="T:CodeFixProvider.RequestPriority"/> is <see cref="Normal"/>.
-        /// The <see cref="DiagnosticAnalyzerExtensions.IsCompilerAnalyzer"/> <see cref="DiagnosticAnalyzer"/>
-        /// will be run.
+        /// Only high priority refactoring, code fix providers should be run.  Specifically, providers will be run when
+        /// <see cref="T:CodeRefactoringProvider.RequestPriority"/> or <see cref="T:CodeFixProvider.RequestPriority"/>
+        /// is <see cref="High"/>. The <see cref="DiagnosticAnalyzerExtensions.IsCompilerAnalyzer"/> <see
+        /// cref="DiagnosticAnalyzer"/> will be run.
         /// </summary>
+        /// <remarks>Providers that return this should ensure that the appropriate <see
+        /// cref="T:Microsoft.CodeAnalysis.CodeActions.CodeAction"/>s they return have a <see
+        /// cref="T:CodeAction.Priority"/> of <see cref="T:CodeActionPriority.High"/>
+        /// </remarks>
         High = 4,
     }
 }

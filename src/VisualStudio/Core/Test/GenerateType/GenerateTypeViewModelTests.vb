@@ -748,7 +748,7 @@ namespace A
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898563")>
-        Public Async Function TestGenerateType_DontGenerateIntoExistingFile() As Task
+        Public Async Function TestGenerateType_DoNotGenerateIntoExistingFile() As Task
             ' Get a Temp Folder Path
             Dim projectRootFolder = Path.GetTempPath()
 

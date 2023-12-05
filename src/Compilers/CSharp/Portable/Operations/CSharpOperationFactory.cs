@@ -100,6 +100,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                case BoundKind.CollectionLiteralExpression:
+                    return CreateBoundCollectionLiteralExpression((BoundCollectionLiteralExpression)boundNode);
+                case BoundKind.CollectionLiteralSpreadElement:
+                    return CreateBoundCollectionLiteralSpreadElement((BoundCollectionLiteralSpreadElement)boundNode);
                 case BoundKind.DefaultLiteral:
                     return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
@@ -137,6 +141,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
                 case BoundKind.ImplicitIndexerAccess:
                     return CreateBoundImplicitIndexerAccessOperation((BoundImplicitIndexerAccess)boundNode);
+                case BoundKind.InlineArrayAccess:
+                    return CreateBoundInlineArrayAccessOperation((BoundInlineArrayAccess)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -300,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.UnconvertedCollectionLiteralExpression:
 
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1214,6 +1221,48 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializerOperation(elementValues, _semanticModel, syntax, isImplicit);
         }
 
+        private IOperation CreateBoundCollectionLiteralExpression(BoundCollectionLiteralExpression boundCollectionLiteralExpression)
+        {
+            ImmutableArray<IOperation> elements = createChildren(boundCollectionLiteralExpression.Elements);
+            SyntaxNode syntax = boundCollectionLiteralExpression.Syntax;
+            ITypeSymbol? type = boundCollectionLiteralExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundCollectionLiteralExpression.WasCompilerGenerated;
+            return new NoneOperation(elements, _semanticModel, syntax, type: type, constantValue: null, isImplicit);
+
+            ImmutableArray<IOperation> createChildren(ImmutableArray<BoundExpression> elements)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    var child = createChild(element);
+                    if (child is { })
+                    {
+                        builder.Add(child);
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            IOperation? createChild(BoundExpression expression)
+            {
+                var element = expression switch
+                {
+                    BoundCollectionElementInitializer initializer => initializer.Arguments.First(),
+                    _ => expression,
+                };
+                return Create(element);
+            }
+        }
+
+        private IOperation CreateBoundCollectionLiteralSpreadElement(BoundCollectionLiteralSpreadElement boundSpreadExpression)
+        {
+            SyntaxNode syntax = boundSpreadExpression.Syntax;
+            ITypeSymbol? type = boundSpreadExpression.GetPublicTypeSymbol();
+            bool isImplicit = boundSpreadExpression.WasCompilerGenerated;
+            var children = ImmutableArray.Create<IOperation>(Create(boundSpreadExpression.Expression));
+            return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
+        }
+
         private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
         {
             SyntaxNode syntax = boundDefaultLiteral.Syntax;
@@ -1587,6 +1636,17 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ImplicitIndexerReferenceOperation(instance, argument, lengthSymbol, indexerSymbol, _semanticModel, syntax, type, isImplicit);
         }
 
+        private IInlineArrayAccessOperation CreateBoundInlineArrayAccessOperation(BoundInlineArrayAccess boundInlineArrayAccess)
+        {
+            IOperation arrayReference = Create(boundInlineArrayAccess.Expression);
+            IOperation argument = Create(boundInlineArrayAccess.Argument);
+            SyntaxNode syntax = boundInlineArrayAccess.Syntax;
+            ITypeSymbol? type = boundInlineArrayAccess.GetPublicTypeSymbol();
+            bool isImplicit = boundInlineArrayAccess.WasCompilerGenerated;
+
+            return new InlineArrayAccessOperation(arrayReference, argument, _semanticModel, syntax, type, isImplicit);
+        }
+
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {
             IOperation argument = Create(boundNameOfOperator.Argument);
@@ -1796,6 +1856,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
                                                     enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    inlineArrayConversion: enumeratorInfoOpt.InlineArraySpanType is WellKnownType.Unknown ? null : Conversion.InlineArray,
+                                                    collectionIsInlineArrayValue: enumeratorInfoOpt.InlineArrayUsedAsValue,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
@@ -1866,7 +1928,11 @@ namespace Microsoft.CodeAnalysis.Operations
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
             IOperation loopControlVariable = CreateBoundForEachStatementLoopControlVariable(boundForEachStatement);
-            IOperation collection = Create(boundForEachStatement.Expression);
+            // Strip identity conversion added by compiler on top of inline array. Conversion produces an rvalue, but we need the IOperation tree to preserve lvalue-ness of the original collection. 
+            IOperation collection = Create(boundForEachStatement.EnumeratorInfoOpt?.InlineArraySpanType is null or WellKnownType.Unknown ||
+                                           boundForEachStatement.Expression is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ?
+                                               boundForEachStatement.Expression :
+                                               operand);
             var nextVariables = ImmutableArray<IOperation>.Empty;
             IOperation body = Create(boundForEachStatement.Body);
             ForEachLoopOperationInfo? info = GetForEachLoopOperatorInfo(boundForEachStatement);

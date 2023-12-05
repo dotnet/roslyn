@@ -287,6 +287,11 @@
         <target state="translated">Tylko element „użycie statyczne” lub „użycie aliasu” może być „niebezpieczne”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="translated">Typ „{0}” jest nieprawidłowy dla „using static”. Można używać tylko klasy, struktury, interfejsu, wyliczenia, delegata lub przestrzeni nazw.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
@@ -392,6 +397,16 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralNoTargetType">
+        <source>There is no target type for the collection literal.</source>
+        <target state="new">There is no target type for the collection literal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionLiteralTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection literal because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection literal because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
@@ -487,6 +502,11 @@
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="translated">Wskazane wywołanie jest przechwytywane wiele razy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">Element „{0}” znajduje się już na liście interfejsów typu „{2}” jako „{1}”.</target>
@@ -572,9 +592,19 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do statycznej składowej abstrakcyjnej lub wirtualnej w interfejsie</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionLiteral">
+        <source>An expression tree may not contain a collection literal.</source>
+        <target state="new">An expression tree may not contain a collection literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia „od końca indeksu” („^”).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do tablicy śródwierszowej ani konwersji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -837,9 +867,134 @@
         <target state="translated">Metody dostępu „init” nie można oznaczyć jako „tylko do odczytu”. Zamiast tego oznacz jako tylko do odczytu element „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="translated">Dostęp do elementów typu tablicy śródwierszowej można uzyskiwać tylko z pojedynczym argumentem, który można niejawnie przekonwertować na wartości „int”, „System.Index” lub „System.Range”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="translated">Nie można przekonwertować wyrażenia na „{0}”, ponieważ może ono nie zostać przekazane lub zwrócone przez odwołanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="translated">Nie można przekonwertować wyrażenia na „{0}”, ponieważ nie jest to zmienna możliwa do przypisania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="translated">Indeks znajduje się poza granicami tablicy śródwierszowej.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Właściwości wystąpienia w interfejsach nie mogą mieć inicjatorów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because it or its containing type has type parameters.</source>
+        <target state="translated">Metoda „{0}” nie może być używana jako metoda interceptora, ponieważ jej typ zawierający ma parametry typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="translated">Nie można przechwycić operatora nameof.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="translated">Nie można oznaczyć interceptora atrybutem „UnmanagedCallersOnlyAttribute”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="translated">Podany wiersz ma długość składającą się z „{0}” znaków, czyli mniej niż podana liczba znaków „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="translated">Interceptor nie może mieć ścieżki pliku o wartości „null”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="translated">Liczba wierszy i znaków przekazana do atrybutu InterceptsLocationAttribute musi być dodatnia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="translated">Podany plik zawiera następującą liczbę wierszy: „{0}”, czyli mniej niż podana liczba wierszy „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="translated">Metoda interceptora musi być zwykłą metodą składową.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="translated">Interceptor musi mieć parametr „this” zgodny z parametrem „{0}” w „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="translated">Interceptor nie może mieć parametru „this”, ponieważ „{0}” nie ma parametru „this”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="translated">Podana liczba wierszy i znaków nie odwołuje się do początku tokenu „{0}”. Czy chodziło Ci o użycie wiersza „{1}” i znaku „{2}”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="translated">Nie można przechwycić możliwej nazwy metody „{0}”, ponieważ nie jest ona wywoływana.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="translated">Nie można przechwycić wywołania w pliku ze ścieżką „{0}”, ponieważ wiele plików w kompilacji ma tę ścieżkę.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="translated">Nie można przechwycić wywołania z „{0}”, ponieważ nie jest ono dostępne w obrębie „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="translated">Nie można przechwycić: kompilacja nie zawiera pliku ze ścieżką „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="translated">Nie można przechwycić: kompilacja nie zawiera pliku ze ścieżką „{0}”. Czy chodziło o użycie ścieżki „{1}”?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="translated">Nie można przechwycić: Ścieżka „{0}” jest niezmapowana. Oczekiwano zmapowanej ścieżki „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="translated">Podana liczba wierszy i znaków nie odwołuje się do nazwy metody możliwej do przechwycenia, ale do tokenu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="translated">Nie można przechwycić wywołania do „{0}” za pomocą „{1}” z powodu różnicy w modyfikatorach „scoped” lub atrybutach „[UnscopedRef]”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="translated">Nie można przechwycić metody „{0}” za pomocą interceptora „{1}” , ponieważ podpisy nie są zgodne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled. Add '&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;' to your project.</source>
+        <target state="translated">Funkcja eksperymentalna „interceptor” nie jest włączona. Dodaj element „&lt;Features&gt;InterceptorsPreview&lt;/Features&gt;” do projektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -905,6 +1060,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Nieprawidłowa nazwa algorytmu wyznaczania wartości skrótu: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="translated">Struktura tablicy śródwierszowej musi deklarować jedno i tylko jedno pole wystąpienia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="translated">Struktura tablicy śródwierszowej nie może mieć układu jawnego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="translated">Długość tablicy śródwierszowej musi być większa niż 0.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -994,7 +1164,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
-        <target state="translated">Pozycja końcowa dyrektywy #wiersza musi być większa lub równa pozycji początkowej</target>
+        <target state="translated">Pozycja końcowa dyrektywy #line musi być większa lub równa pozycji początkowej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
@@ -1085,6 +1255,11 @@
       <trans-unit id="ERR_MultipleRecordParameterLists">
         <source>Only a single partial type declaration may have a parameter list</source>
         <target state="translated">Tylko pojedyncza deklaracja typu częściowego może mieć listę parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="translated">Dostęp do tablicy śródwierszowej nie może mieć specyfikatora argumentu nazwanego</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -1497,6 +1672,11 @@
         <target state="translated">„{0}”: docelowe środowisko uruchomieniowe nie obsługuje kowariantnych typów zwracanych w przesłonięciach. Typem zwracanym musi być „{2}”, aby zachować zgodność z przesłoniętą składową „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje typów tablic śródwierszowych.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje specyfikatorów dostępu „protected”, „protected internal” i „private protected” dla składowej interfejsu.</target>
@@ -1667,6 +1847,11 @@
         <target state="translated">Wymagane są nawiasy wokół wyrażenia sterującego instrukcją switch.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">„{0}” jest zdefiniowany w zestawie „{1}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">Interpolowany literał nieprzetworzonego ciągu nie zaczyna się od wystarczającej liczby znaków „$”, aby zezwolić na następującą liczbę kolejnych zamykających nawiasów klamrowych jako zawartość.</target>
@@ -1777,6 +1962,11 @@
         <target state="translated">Nie można użyć ref, out lub w podstawowym parametrze konstruktora '{0}' wewnątrz elementu członkowskiego wystąpienia</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="translated">Nie można użyć podstawowego parametru konstruktora typu „{0}” wewnątrz składowej wystąpienia</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">Nie można użyć podstawowego parametru konstruktora '{0}', który ma typ przypominający odwołanie wewnątrz składowej wystąpienia</target>
@@ -1847,6 +2037,11 @@
         <target state="translated">zaznaczone operatory zdefiniowane przez użytkownika</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionLiterals">
+        <source>collection literals</source>
+        <target state="new">collection literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">zwroty kowariantne</target>
@@ -1900,6 +2095,16 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">Typ delegowania wywnioskowanego</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="translated">tablice śródwierszowe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="translated">składowa wystąpienia w elemencie „nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -2027,6 +2232,26 @@
         <target state="translated">dostęp do elementu wskaźnika</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="translated">tablica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="translated">dynamiczny</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="translated">wskaźnik funkcji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="translated">wskaźnik</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Operator „&amp;” nie powinien być używany w parametrach ani zmiennych lokalnych w metodach asynchronicznych.</target>
@@ -2137,6 +2362,16 @@
         <target state="translated">Atrybut CallerMemberNameAttribute nie odniesie żadnego skutku; ponieważ jest on zastąpiony przez atrybut CallerFilePathAttribute</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">Parametr „{0}” jest przechwytywany w stanie otaczającego typu, a jego wartość jest również używana do inicjowania pola, właściwości lub zdarzenia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">Parametr jest przechwytywany w stanie otaczającego typu, a jego wartość jest również używana do inicjowania pola, właściwości lub zdarzenia.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
         <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well.</source>
         <target state="translated">Parametr '{0}' jest przechwytywane do stanu otaczającego typu, a jego wartość jest również przekazywana do konstruktora podstawowego. Wartość może zostać również przechwycona przez klasę bazową.</target>
@@ -2217,6 +2452,16 @@
         <target state="translated">Nie można używać zmiennej w tym kontekście, ponieważ może uwidaczniać odwoływane zmienne poza ich zakresem deklaracji</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="translated">Przechwytywanie wywołania do „{0}” za pomocą interceptora „{1}”, ale sygnatury nie są zgodne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="translated">Podpisy metody możliwej do przechwycenia i metody interceptora nie są zgodne.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">Argument InterpolatedStringHandlerArgument nie odniesie żadnego skutku po zastosowaniu do parametrów lambda i zostanie zignorowany w lokacji wywołania.</target>
@@ -2265,6 +2510,26 @@
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
         <target state="translated">Gałęzie operatora warunkowego ref nie mogą przywoływać zmiennych z niezgodnymi zakresami deklaracji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="translated">Obsługa wartości null dla typów odwołania w typie parametru „{0}” jest niezgodna z metodą możliwą do przechwycenia „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="translated">Obsługa wartości null dla typów odwołania w typie parametru jest niezgodna z metodą możliwą do przechwycenia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="translated">Obsługa wartości null dla typów odwołania w typie zwracanym jest niezgodna z metodą możliwą do przechwycenia „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="translated">Obsługa wartości null dla typów odwołania w typie zwracanym jest niezgodna z metodą możliwą do przechwycenia.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2778,162 +3043,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
         <target state="translated">
-                             Opcje kompilatora Visual C#
+                             Opcje kompilatora języka Visual C#
 
-                        - PLIKI WYJŚCIOWE -
--out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
-                              pliku z klasą główną lub pierwszego pliku)
--target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
-                              wersja: -t:exe)
--target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
+                       - PLIKI WYJŚCIOWE - 
+-out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
+                              pliku z klasą główną lub pierwszym plikiem)
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (skrócona
+                              postać: -t:exe)
+-target:winexe                   Kompiluj plik wykonywalny systemu Windows (skrócona postać:
                               -t:winexe)
--target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
--target:module                Kompiluj moduł, który można dodać do innego 
-                              zestawu (krótka wersja: -t:module)
--target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
+-target:library               Utwórz bibliotekę (skrócona postać: -t:library)
+-target:module                Tworzenie modułu, który można będzie dodać do innego
+                              zestawu (skrócona postać: -t:module)
+-target:appcontainerexe       Tworzenie pliku wykonywalnego Appcontainer (skrócona postać:
                               -t:appcontainerexe)
--target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
-                              przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
--doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
--refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
--platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub 
-                              anycpu. Wartość domyślna to anycpu.
+-target:winmdobj              Tworzenie pośredniego pliku środowiska uruchomieniowego systemu Windows, który
+                              jest używany przez winMDExp (skrócona postać: -t:winmdobj)
+-doc:&lt;file&gt;                       Plik dokumentacji XML do wygenerowania
+-refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
+-platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchomić ten kod: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub
+                              anycpu. Domyślną jest anycpu.
 
-                        - PLIKI WEJŚCIOWE -
--recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i 
-                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
-                               symboli wieloznacznych
--reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
-                              zestawu przy użyciu podanego aliasu (krótka wersja: -r)
--reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych 
-                              plików zestawów (krótka wersja: -r)
--addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
--link:&lt;lista_plików&gt;          Osadź metadane z określonych plików 
-                              zestawów międzyoperacyjnych (krótka wersja: -l)
--analyzer:&lt;lista_plików&gt;      Uruchom analizatory z tego zestawu
-                              (krótka wersja: -a)
--additionalfile:&lt;lista_plików&gt; Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
-                               kodu, ale mogą być używane przez analizatory w celu tworzenia
-                               komunikatów o błędach lub ostrzeżeń.
--embed                        Osadź wszystkie pliki źródłowe w pliku PDB.
--embed:&lt;lista plików&gt;         Osadź określone pliki w pliku PDB
+                       - PLIKI WEJŚCIOWE -
+-recurse:&lt;wildcard&gt;               Uwzględnianie wszystkie plików w bieżącym katalogu oraz
+                              podkatalogach zgodnie ze specyfikacjami
+                              symbolu wieloznacznego
+-reference:&lt;alias&gt;=&lt;file&gt;     Odwołanie do metadanych z określonego pliku
+                              zestawu, używając danego aliasu (skrócona postać: -r)
+-reference:&lt;file list&gt;            Odwołanie do metadanych z określonych plików
+                              zestawu (skrócona postać: -r)
+-addmodule:&lt;file list&gt;        Łączenie określonych modułów w tym zestawie
+-link:&lt;file_list&gt;                 Osadzone metadane z określonych plików zestawu
+                              międzyoperacyjności (skrócona postać: -l)
+-analyzer:&lt;file_list&gt;             Uruchamianie analizatorów z tego zestawu
+                              (skrócona postać: -a)
+-additionalfile:&lt;file list&gt;   Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
+                              kodu, ale mogą być używane przez analizatory do generowania
+                              błędów i ostrzeżeń.
+-embed                        Osadzanie wszystkich plików źródłowych w pliku PDB.
+-embed:&lt;file list&gt;            Osadzanie określonych plików w pliku PDB.
 
-                        - ZASOBY -
--win32res:&lt;plik&gt;              Określ plik zasobu Win32 (res)
--win32icon:&lt;plik&gt;             Użyj tej ikony dla pliku wyjściowego
--win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
--nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
--resource:&lt;informacje_o_zasobie&gt; Osadź określony zasób (krótka wersja: -res)
--linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem 
-                               (krótka wersja: -linkres), gdzie format informacji o zasobie 
-                               to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
+                       - ZASOBY -
+-win32res:&lt;file&gt;              Określanie plik zasobów Win32 (.res)
+-win32icon:&lt;file&gt;             Używanie tej ikony dla danych wyjściowych
+-win32manifest:&lt;file&gt;             Określanie plik manifestu Win32 (xml)
+-nowin32manifest              Nie dołączaj domyślnego manifestu Win32
+-resource:&lt;resinfo&gt;           Osadzanie określonego zasobu (skrócona postać: -res)
+-linkresource:&lt;resinfo&gt;       Łączenie określonego zasobu z tym zestawem
+                              (skrócona postać: -linkres) Gdzie format resinfo
+                              jest &lt;file&gt;[,&lt;name&gt;[,public|private]]
 
-                        - GENEROWANIE KODU -
--debug[+|-]                   Emituj informacje o debugowaniu
+                       - GENEROWANIE KODU -
+-debug[+|-]                       Emitowanie informacji o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                              Określ typ debugowania (wartość domyślna to „full”, 
-                              wartość „portable” to format międzyplatformowy,
-                              a wartość „embedded” to format międzyplatformowy wbudowany w 
-                              docelowym pliku dll lub exe)
--optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
--deterministic                Utwórz zestaw deterministyczny
-                              (zawierający identyfikator GUID i sygnaturę czasową wersji modułu)
--refonly                      Utwórz zestaw odwołania zamiast głównych danych wyjściowych
--instrument:TestCoverage      Utwórz zestaw instrumentowany w celu gromadzenia
-                              informacji o pokryciu
--sourcelink:&lt;plik&gt;            Informacje o linku źródłowym do osadzenia w pliku PDB.
+                              Określanie typu debugowania (wartość „full” jest domyślna,
+                              „portable” jest formatem międzyplatformowym,
+                              „embedded” jest formatem międzyplatformowym osadzonym w
+                              docelowym pliku .dll lub .exe.)
+-optimize[+|-]                Włączanie optymalizacji (skrócona postać: -o)
+-deterministic                    Generowanie zestawu deterministycznego
+                              (w tym identyfikatora GUID i sygnatury czasowej wersji modułu)
+-refonly                          Tworzenie zestawu odwołania zamiast wyjścia głównego
+-instrument:TestCoverage          Generowanie zestawu instrumentowanego do zbierania
+                              informacji o pokryciach
+-sourcelink:&lt;file&gt;                Informacje o linku źródłowym do osadzenia w pliku PDB.
 
-                        - BŁĘDY I OSTRZEŻENIA -
--warnaserror[+|-]             Zgłaszaj wszystkie ostrzeżenia jako błędy
--warnaserror[+|-]:&lt;lista_ostrzeżeń&gt; Zgłaszaj określone ostrzeżenia jako błędy
-                              (użyj wartości „nullable” dla wszystkich ostrzeżeń nt. przyjmowania wartości null)
--warn:&lt;n&gt;                     Ustaw poziom ostrzeżeń (0 lub więcej) (krótka wersja: -w)
--nowarn:&lt;lista_ostrzeżeń&gt;     Wyłącz określone komunikaty ostrzeżeń
-                              (użyj wartości „nullable” dla wszystkich ostrzeżeń nt. przyjmowania wartości null)
--ruleset:&lt;plik&gt;               Określ plik zestawu reguł wyłączający określone
-                              funkcje diagnostyczne.
--errorlog:&lt;plik&gt;[,version=&lt;wersja_sarif&gt;]
-                              Określ plik w celu rejestrowania wszystkich
-                              danych diagnostycznych kompilatora i analizatora.
-                              wersja_sarif:{1|2|2.1} Domyślne wartości 1. 2 i 2.1
-                              oznaczają format SARIF w wersji 2.1.0.
--reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
-                              czas wykonywania.
--skipanalyzers[+|-]           Pomiń wykonywanie analizatorów diagnostycznych.
- 
-                        -JĘZYK -
--checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
--unsafe[+|-]                  Zezwalaj na niebezpieczny kod
--define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka 
-                              wersja: -d)
--langversion:?                Wyświetl dozwolone wartości dla wersji języka
--langversion:&lt;ciąg&gt;           Określ wersję języka, na przykład
-                              „latest” (najnowsza wersja z uwzględnieniem wersji pomocniczych),
-                              „default” (to samo co „latest”),
-                              „latestmajor” (najnowsza wersja z pominięciem wersji pomocniczych),
-                              „preview” (najnowsza wersja z uwzględnieniem funkcji w nieobsługiwanej wersji zapoznawczej),
-                              lub konkretną wersję, taką jak „6” lub „7.1”
--nullable[+|-]                Określ, czy opcja kontekstu dopuszczającego wartość null jest włączona, czy wyłączona.
+                       - BŁĘDY I OSTRZEŻENIA -
+-warnaserror[+|-]                 Raportowanie wszystkich ostrzeżeń jako błędy.
+-warnaserror[+|-]:&lt;warn list&gt; Raportowanie określonych ostrzeżeń jako błędy
+                              (użyj wartości „nullable” dla wszystkich ostrzeżeń dotyczących dopuszczania wartości null)
+-warn:&lt;n&gt;                     Ustawianie poziomu ostrzeżeń (0 lub wyższy) (skrócona postać: -w)
+-nowarn:&lt;warn list&gt;           Wyłączanie określonych komunikatów ostrzegawczych
+                              (użyj wartości „nullable” dla wszystkich ostrzeżeń dotyczących dopuszczania wartości null)
+-ruleset:&lt;file&gt;                   Określanie pliku zestawu reguł, który wyłącza określoną
+                              diagnostykę.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Określanie pliku do rejestrowania całej diagnostyki kompilatora
+                              i analizatora.
+                              sarif_version:{1|2|2.1} Wartość domyślna to 1. 2 i 2.1
+                              obie oznaczające wersję SARIF 2.1.0.
+-reportanalyzer                   Raportowanie dodatkowych informacje analizatora, takich jak
+                              czas wykonania.
+-skipanalyzers[+|-]               Pomijanie wykonywanie analizatorów diagnostycznych.
+
+                       - JĘZYK -
+-checked[+|-]                 Generowanie testów przepełnienia
+-unsafe[+|-]                  Zezwalanie na kod „unsafe”
+-define:&lt;symbol list&gt;             Definiowanie symboli kompilacji warunkowej (skrócona
+                              postać: -d)
+-langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
+-langversion:&lt;string&gt;             Określanie wersji języka, na przykład
+                              „latest” (najnowsza wersja, w tym wersje pomocnicze),
+                              „default” (tak samo jak „latest”),
+                              „latestmajor” (najnowsza wersja, z wyjątkiem wersji pomocniczych),
+                              „preview” (najnowsza wersja, w tym funkcje w nieobsługiwanym wersji zapoznawczej),
+                              lub dokładnych wersji, takich jak „6” lub „7.1”
+-nullable[+|-]                Określanie włączenia|wyłączenia opcji kontekstu dopuszczania wartości null.
 -nullable:{enable|disable|warnings|annotations}
-                              Określ opcję kontekstu dopuszczającego wartość null: enable|disable|warnings|annotations.
+                              Określanie opcji kontekstu dopuszczania wartości null enable|disable|warnings|annotations.
 
-                        - ZABEZPIECZENIA -
--delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
-                              części publicznej klucza o silnej nazwie
--publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
-                              części publicznej klucza o silnej nazwie
--keyfile:&lt;plik&gt;               Określ plik klucza o silnej nazwie
--keycontainer:&lt;ciąg&gt;          Określ kontener klucza o silnej nazwie
--highentropyva[+|-]           Włącz losowe generowanie układu przestrzeni adresowej o wysokiej entropii
+                       - ZABEZPIECZENIA -
+-delaysign[+|-]                   Podpisywanie z opóźnieniem zestawu tylko przy użyciu publicznego
+                              fragmentu silnego klucza nazwy
+-publicsign[+|-]                  Podpisywanie publiczne zestawu tylko przy użyciu publicznego
+                              fragmentu silnego klucza nazwy
+-keyfile:&lt;file&gt;                   Określanie pliku silnego klucza nazwy.
+-keycontainer:&lt;string&gt;            Określanie kontenera silnych kluczy nazw
+-highentropyva[+|-]               Włączanie funkcji ASLR o wysokiej entropii.
 
-                        - RÓŻNE -
-@&lt;plik&gt;                       Odczytaj plik odpowiedzi w celu uzyskania dodatkowych opcji
--help                         Wyświetl ten komunikat dotyczący użycia (krótka wersja: -?)
--nologo                       Pomiń komunikat kompilatora o prawach autorskich
--noconfig                     Nie dołączaj automatycznie pliku CSC.RSP
--parallel[+|-]                Kompilacja współbieżna
--version                      Wyświetl numer wersji kompilatora i zakończ
+                       - RÓŻNE -
+@&lt;file&gt;                       Odczytywanie pliku odpowiedzi w celu uzyskania dodatkowych opcji
+-help                         Wyświetlanie tego komunikatu o użyciu (skrócona postać: -?)
+-nologo                       Wstrzymywanie komunikatu kompilatora o prawach autorskich
+-noconfig                         Nie dołączaj automatycznie pliku CSC.RSP
+-parallel[+|-]                    Współbieżna kompilacja.
+-version                          Wyświetlanie numer wersji kompilatora i wyjście.
 
-                        - ZAAWANSOWANE -
--baseaddress:&lt;adres&gt;          Adres podstawowy dla biblioteki do skompilowania
--checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
-                              pliku źródłowego przechowywanej w pliku PDB.
-                              Obsługiwane wartości: SHA1 lub SHA256 (domyślnie).
--codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
-                              plików źródłowych
--utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
--main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
-                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka 
-                              wersja: -m)
+                       - ZAAWANSOWANE -
+-baseaddress:&lt;address&gt;        Adres podstawowy dla bibiloteki, która ma być utworzona
+-checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania pliku źródłowego
+                              pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
+                              SHA1 lub SHA256 (wartość domyślna).
+-codepage:&lt;n&gt;                 Określanie strony kodowej do używania podczas otwierania plików
+                              źródłowych
+-utf8output                   Komunikaty kompilatora danych wyjściowych w kodowaniu UTF-8
+-main:&lt;type&gt;                   Określanie typu zawierającego punktu wejścia
+                              (ignoruj wszystkie inne możliwe punkty wejścia) (skrócona
+                              postać: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
--filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
-                              plików wyjściowych
--pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
-                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
-                              kompilator.
--pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
-                              nazwa pliku wyjściowego z rozszerzeniem pdb)
--errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
+-filealign:&lt;n&gt;               Określanie wyrównania używanego dla sekcji
+                              pliku wyjściowego
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Określanie mapowania dla danych wyjściowych nazw ścieżek źródłowych przez
+                              kompilatora.
+-pdb:&lt;file&gt;                   Określanie nazwy pliku z informacjami o debugowaniu (domyślnie:
+                              nazwa pliku wyjściowego z rozszerzeniem .pdb)
+-errorendlocation             wiersz i kolumna danych wyjściowych lokalizacji końcowej
                               każdego błędu
--preferreduilang              Określ nazwę preferowanego języka wyjściowego.
--nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
--nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
--subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
--lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
+-preferreduilang                  Określanie preferowanej nazwy języka danych wyjściowych.
+-nosdkpath                        Wyłączanie wyszukiwania domyślnej ścieżki zestawu SDK dla zestawów bibliotek standardowych.
+-nostdlib[+|-]                Nie odwołuj do biblioteki standardowej (mscorlib.dll)
+-subsystemversion:&lt;version&gt;       Określanie wersji podsystemu zestawu
+-lib:&lt;file list&gt;              Określanie dodatkowych katalogów do wyszukania
                               odwołań
--errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
-                              prompt, send, queue lub none. Wartość domyślna to 
-                              queue.
--appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
-                              zawierający ustawienia powiązania zestawu
--moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
-                              ma być ten moduł
--modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
--generatedfilesout:&lt;katalog&gt;      Umieść pliki wygenerowane podczas kompilacji
-                              w określonym katalogu.
+-errorreport:&lt;string&gt;             Określanie sposobu obsługi wewnętrznych błędów kompilatora:
+                              monit, wysyłanie, kolejka lub brak. Wartością domyślną jest
+                              kolejka.
+-appconfig:&lt;file&gt;             Określanie pliku konfiguracji aplikacji
+                              zawierającego ustawienia powiązania zestawu
+-moduleassemblyname:&lt;string&gt;  Nazwa zestawu, którego częścią będzie
+                              ten moduł
+-modulename:&lt;string&gt;          Określanie nazwy modułu źródłowego
+-generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowane podczas kompilacji w
+                              określonym katalogu.
+-reportivts[+|-]                  Informacje dotyczące danych wyjściowych o wszystkich plikach IVT przyznanych temu
+                              zestawowi przez wszystkie zależności i adnotowanie błędów
+                              dotyczących dostępności zestawu, z którego one pochodzą.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -8525,8 +8796,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">Iteratory nie mogą mieć niebezpiecznych parametrów ani typów przekazywania.</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">Iteratory nie mogą mieć parametrów typu wskaźnika</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +10139,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">Metody asynchroniczne nie mogą zawierać niezabezpieczonych parametrów ani zwracanych typów.</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">Metody asynchroniczne nie mogą mieć parametrów typu wskaźnika</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11672,11 +11943,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Nie można zwrócić elementu „{0}” przez referencję, ponieważ to jest element „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">Nie można zwrócić pól elementu „{0}” przez referencję, ponieważ to jest element „{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
         <source>A readonly field cannot be returned by writable reference</source>
         <target state="translated">Nie można zwrócić pola tylko do odczytu przez zapisywalne odwołanie</target>
@@ -11788,8 +12054,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'Elementu „await” nie można użyć w wyrażeniu zawierającym wywołanie elementu „{0}”, ponieważ zwraca ono wartość przez referencję</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">Odwołanie zwrócone przez wywołanie „{0}” nie może zostać zachowane w granicach „await” lub „yield”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">

@@ -1250,6 +1250,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitTernaryConditionalExpression(expr As BoundTernaryConditionalExpression, used As Boolean)
             Debug.Assert(expr.ConstantValueOpt Is Nothing, "Constant value should have been emitted directly")
 
+            ' Generate branchless IL for If(b, 1, 0).
+            Dim isOneWhenTrue = False
+            Dim isOneWhenFalse = False
+            If used AndAlso _ilEmitStyle <> ILEmitStyle.Debug AndAlso
+                (IsSimpleType(expr.Type.PrimitiveTypeCode) OrElse expr.Type.PrimitiveTypeCode = Cci.PrimitiveTypeCode.Char) AndAlso
+                HasIntegralValueZeroOrOne(expr.WhenTrue, isOneWhenTrue) AndAlso
+                HasIntegralValueZeroOrOne(expr.WhenFalse, isOneWhenFalse) AndAlso
+                isOneWhenTrue <> isOneWhenFalse AndAlso
+                TryEmitComparison(expr.Condition, sense:=isOneWhenTrue) Then
+
+                Dim toType = expr.Type.PrimitiveTypeCode
+                If toType <> Cci.PrimitiveTypeCode.Boolean Then
+                    _builder.EmitNumericConversion(Cci.PrimitiveTypeCode.Int32, toType, checked:=False)
+                End If
+
+                Return
+            End If
+
             Dim consequenceLabel = New Object()
             Dim doneLabel = New Object()
 
@@ -1305,6 +1323,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             _builder.MarkLabel(doneLabel)
         End Sub
+
+        Private Function HasIntegralValueZeroOrOne(expr As BoundExpression, ByRef isOne As Boolean) As Boolean
+            If expr.IsConstant Then
+                Dim constantValue = expr.ConstantValueOpt
+
+                If constantValue.IsIntegral AndAlso constantValue.UInt64Value <= 1 Then
+                    isOne = (constantValue.UInt64Value = 1)
+                    Return True
+                End If
+
+                If constantValue.IsBoolean Then
+                    isOne = constantValue.BooleanValue
+                    Return True
+                End If
+
+                If constantValue.IsChar AndAlso AscW(constantValue.CharValue) <= 1 Then
+                    isOne = (AscW(constantValue.CharValue) = 1)
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
 
         ''' <summary>
         ''' Emit code for a null-coalescing operator.

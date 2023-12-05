@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         DefaultLiteral, // a conversion from a `default` literal to any type
         ObjectCreation, // a conversion from a `new()` expression to any type
+        CollectionLiteral, // a conversion from a collection literal to any type
 
         InterpolatedStringHandler, // A conversion from an interpolated string literal to a type attributed with InterpolatedStringBuilderAttribute
+
+        InlineArray, // A conversion from an inline array to Span/ReadOnlySpan
     }
 }

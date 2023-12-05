@@ -613,8 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (method.ContainingType is null)
             {
-                Debug.Assert(method is SynthesizedGlobalMethodSymbol);
-                return method;
+                Debug.Assert(method.OriginalDefinition is SynthesizedGlobalMethodSymbol);
+                return method.OriginalDefinition.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
             }
             else if (method.ContainingType.IsAnonymousType)
             {

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -84,6 +85,18 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 #pragma warning disable RS0042 // Do not copy value
             this = array;
 #pragma warning restore RS0042 // Do not copy value
+        }
+
+        public static TemporaryArray<T> GetInstance(int capacity)
+        {
+            // Capacity <= 4 is already supported by the Empty array value. so can just return that without allocating anything.
+            if (capacity <= InlineCapacity)
+                return Empty;
+
+            return new TemporaryArray<T>()
+            {
+                _builder = ArrayBuilder<T>.GetInstance(capacity)
+            };
         }
 
         public static TemporaryArray<T> Empty => default;
@@ -212,6 +225,39 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 this = Empty;
             }
+        }
+
+        public T RemoveLast()
+        {
+            var count = this.Count;
+
+            var last = this[count - 1];
+            this[count - 1] = default!;
+
+            if (_builder != null)
+            {
+                _builder.Count--;
+            }
+            else
+            {
+                _count--;
+            }
+
+            return last;
+        }
+
+        public readonly bool Contains(T value)
+        {
+            if (_builder != null)
+                return _builder.Contains(value);
+
+            foreach (var v in this)
+            {
+                if (EqualityComparer<T>.Default.Equals(v, value))
+                    return true;
+            }
+
+            return false;
         }
 
         public readonly Enumerator GetEnumerator()

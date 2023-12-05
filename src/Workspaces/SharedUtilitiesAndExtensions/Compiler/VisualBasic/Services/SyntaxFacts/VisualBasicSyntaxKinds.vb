@@ -33,9 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property SingleLineDocCommentTrivia As Integer = SyntaxKind.DocumentationCommentTrivia Implements ISyntaxKinds.SingleLineDocCommentTrivia
         Public ReadOnly Property MultiLineDocCommentTrivia As Integer? Implements ISyntaxKinds.MultiLineDocCommentTrivia
-        Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
 
         Public ReadOnly Property IfDirectiveTrivia As Integer = SyntaxKind.IfDirectiveTrivia Implements ISyntaxKinds.IfDirectiveTrivia
+        Public ReadOnly Property ElifDirectiveTrivia As Integer = SyntaxKind.ElseIfDirectiveTrivia Implements ISyntaxKinds.ElifDirectiveTrivia
+        Public ReadOnly Property ElseDirectiveTrivia As Integer = SyntaxKind.ElseDirectiveTrivia Implements ISyntaxKinds.ElseDirectiveTrivia
+        Public ReadOnly Property EndIfDirectiveTrivia As Integer = SyntaxKind.EndIfDirectiveTrivia Implements ISyntaxKinds.EndIfDirectiveTrivia
+        Public ReadOnly Property RegionDirectiveTrivia As Integer = SyntaxKind.RegionDirectiveTrivia Implements ISyntaxKinds.RegionDirectiveTrivia
+        Public ReadOnly Property EndRegionDirectiveTrivia As Integer = SyntaxKind.EndRegionDirectiveTrivia Implements ISyntaxKinds.EndRegionDirectiveTrivia
+        Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property CloseBracketToken As Integer? = Nothing Implements ISyntaxKinds.CloseBracketToken
@@ -113,6 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property AndPattern As Integer? Implements ISyntaxKinds.AndPattern
         Public ReadOnly Property ConstantPattern As Integer? Implements ISyntaxKinds.ConstantPattern
         Public ReadOnly Property DeclarationPattern As Integer? Implements ISyntaxKinds.DeclarationPattern
+        Public ReadOnly Property ListPattern As Integer? Implements ISyntaxKinds.ListPattern
         Public ReadOnly Property NotPattern As Integer? Implements ISyntaxKinds.NotPattern
         Public ReadOnly Property OrPattern As Integer? Implements ISyntaxKinds.OrPattern
         Public ReadOnly Property ParenthesizedPattern As Integer? Implements ISyntaxKinds.ParenthesizedPattern
@@ -132,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKinds.ExpressionStatement
         Public ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement Implements ISyntaxKinds.ForEachStatement
+        Public ReadOnly Property ForStatement As Integer = SyntaxKind.ForStatement Implements ISyntaxKinds.ForStatement
         Public ReadOnly Property IfStatement As Integer = SyntaxKind.IfStatement Implements ISyntaxKinds.IfStatement
         Public ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement Implements ISyntaxKinds.LocalDeclarationStatement
         Public ReadOnly Property LocalFunctionStatement As Integer? Implements ISyntaxKinds.LocalFunctionStatement

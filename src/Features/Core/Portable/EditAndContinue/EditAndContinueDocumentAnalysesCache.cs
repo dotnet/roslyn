@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return analysis.results;
             }
 
-            var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
+            var lazyResults = AsyncLazy.Create(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
                     try
@@ -200,8 +200,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
-                },
-                cacheResult: true);
+                });
 
             // Previous results for this document id are discarded as they are no longer relevant.
             // The only relevant analysis is for the latest base and document snapshots.

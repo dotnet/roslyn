@@ -55,7 +55,22 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-            => _eventQueue.AddWork(e);
+        {
+            // Legacy workspace events exist solely to let unit testing continue to work using their own fork of solution
+            // crawler.  As such, they only need events for the project types they care about.  Specifically, that is only
+            // for VB and C#.  This is relevant as well as we don't sync any other project types to OOP.  So sending 
+            // notifications about other projects that don't even exist on the other side isn't helpful.
+
+            var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
+            if (projectId != null)
+            {
+                var project = e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
+                if (project != null && !RemoteSupportedLanguages.IsSupported(project.Language))
+                    return;
+            }
+
+            _eventQueue.AddWork(e);
+        }
 
         private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
         {

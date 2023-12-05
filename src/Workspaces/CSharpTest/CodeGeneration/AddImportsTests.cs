@@ -172,7 +172,7 @@ class C
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestDontAddSystemImportFirst(bool useSymbolAnnotations)
+        public async Task TestDoNotAddSystemImportFirst(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using N;

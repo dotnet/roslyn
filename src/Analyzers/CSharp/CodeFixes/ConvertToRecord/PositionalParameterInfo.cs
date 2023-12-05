@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
             CancellationToken cancellationToken)
         {
             var baseType = currentType.BaseType;
-            if (baseType != null && baseType.TryGetRecordPrimaryConstructor(out var basePrimary))
+            if (baseType != null && baseType.TryGetPrimaryConstructor(out var basePrimary))
             {
                 return basePrimary.Parameters
                     .Select(param => param.GetAssociatedSynthesizedRecordProperty(cancellationToken))

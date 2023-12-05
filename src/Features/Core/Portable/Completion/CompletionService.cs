@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
                 var change = await provider.GetChangeAsync(document, item, commitCharacter, cancellationToken).ConfigureAwait(false);
                 GC.KeepAlive(semanticModel);
+
+                Debug.Assert(item.Span == change.TextChange.Span || item.IsComplexTextEdit);
                 return change;
             }
             else
@@ -370,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 CompletionOptions options,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
 
                 return await CompletionService.GetContextAsync(

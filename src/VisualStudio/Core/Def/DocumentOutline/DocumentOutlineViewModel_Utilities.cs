@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -156,7 +155,11 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
             // Returns whether the child symbol is in range of the parent symbol.
             static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
-                => child.Range.Start.Line > parent.Range.Start.Line && child.Range.End.Line < parent.Range.End.Line;
+            {
+                var parentRange = ProtocolConversions.RangeToLinePositionSpan(parent.Range);
+                var childRange = ProtocolConversions.RangeToLinePositionSpan(child.Range);
+                return childRange.Start > parentRange.Start && childRange.End <= parentRange.End;
+            }
 
             // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.
             SnapshotSpan GetSymbolRangeSpan(Range symbolRange)

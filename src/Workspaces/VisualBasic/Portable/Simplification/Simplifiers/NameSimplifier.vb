@@ -369,8 +369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 If name.Parent.Kind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
 
-                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    If identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation) Then
+                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DoNotSimplifyAnnotation
+                    If identifierToken.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation) Then
                         newIdentifierText = identifierToken.ValueText + "Attribute"
                     ElseIf identifierToken.ValueText.TryReduceAttributeSuffix(newIdentifierText) Then
                         issueSpan = New TextSpan(name.Span.End - 9, 9)

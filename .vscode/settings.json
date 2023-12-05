@@ -25,7 +25,6 @@
     "omnisharp.defaultLaunchSolution": "Roslyn.sln",
     "omnisharp.disableMSBuildDiagnosticWarning": true,
     "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableImportCompletion": true,
     "omnisharp.useModernNet": true,
     "omnisharp.enableAsyncCompletion": true,
     // ms-vscode.powershell settings
@@ -34,5 +33,6 @@
     "powershell.startAutomatically": false,
     // ms-azure-devops.azure-pipelines settings
     "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
-    "dotnet.defaultSolution": "Roslyn.sln"
+    "dotnet.defaultSolution": "Roslyn.sln",
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
 }

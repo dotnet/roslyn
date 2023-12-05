@@ -710,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public NotInferredTypeArguments As BitVector
 
-            Public TypeArgumentInferenceDiagnosticsOpt As BindingDiagnosticBag
+            Public TypeArgumentInferenceDiagnosticsOpt As ImmutableBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(candidate As Candidate, state As CandidateAnalysisResultState)
                 Me.Candidate = candidate
@@ -4875,6 +4875,8 @@ ContinueCandidatesLoop:
                 Dim inferredTypeByAssumption As BitVector = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
+                Dim inferenceDiagnosticsBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
+
                 If TypeArgumentInference.Infer(DirectCast(candidate.Candidate.UnderlyingSymbol, MethodSymbol),
                                                arguments, parameterToArgumentMap, paramArrayItems,
                                                delegateReturnType:=delegateReturnType,
@@ -4888,7 +4890,7 @@ ContinueCandidatesLoop:
                                                typeArgumentsLocation:=typeArgumentsLocation,
                                                asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
                                                useSiteInfo:=useSiteInfo,
-                                               diagnostic:=candidate.TypeArgumentInferenceDiagnosticsOpt) Then
+                                               diagnostic:=inferenceDiagnosticsBag) Then
                     candidate.SetInferenceLevel(inferenceLevel)
                     candidate.Candidate = candidate.Candidate.Construct(typeArguments)
 
@@ -4898,14 +4900,7 @@ ContinueCandidatesLoop:
 
                             If inferredTypeByAssumption(i) Then
 
-                                Dim diagnostics = candidate.TypeArgumentInferenceDiagnosticsOpt
-
-                                If diagnostics Is Nothing Then
-                                    diagnostics = BindingDiagnosticBag.Create(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
-                                    candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
-                                End If
-
-                                Binder.ReportDiagnostic(diagnostics,
+                                Binder.ReportDiagnostic(inferenceDiagnosticsBag,
                                                         typeArgumentsLocation(i),
                                                         ERRID.WRN_TypeInferenceAssumed3,
                                                         candidate.Candidate.TypeParameters(i),
@@ -4942,6 +4937,8 @@ ContinueCandidatesLoop:
                         End If
                     Next
                 End If
+
+                candidate.TypeArgumentInferenceDiagnosticsOpt = inferenceDiagnosticsBag.ToReadOnlyAndFree()
 
             Else
                 candidate.SetSomeInferenceFailed()

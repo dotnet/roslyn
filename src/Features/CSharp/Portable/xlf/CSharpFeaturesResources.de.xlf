@@ -247,6 +247,11 @@
         <target state="translated">externer Alias</target>
         <note />
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="translated">for-Schleife</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
         <target state="translated">„init-only“-Eigenschaft</target>
@@ -411,6 +416,11 @@
         <source>record struct</source>
         <target state="translated">Datensatzstruktur</target>
         <note />
+      </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="translated">reversed for-Schleife</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>

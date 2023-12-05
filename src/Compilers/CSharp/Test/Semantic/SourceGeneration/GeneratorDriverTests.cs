@@ -1283,7 +1283,7 @@ class C { }
         [Fact, WorkItem(66337, "https://github.com/dotnet/roslyn/issues/66337")]
         public void Diagnostics_Respect_SuppressMessageAttribute()
         {
-            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, isEnabledByDefault: true, warningLevel: 2);
 
             // reported diagnostics can have a location in source
             verify("""
@@ -1330,9 +1330,20 @@ class C { }
                 Diagnostic("GEN001", "com").WithLocation(4, 7),
                 Diagnostic("GEN001", "ano").WithLocation(5, 7));
 
+            // diagnostics are suppressed via SuppressMessageAttribute on a primary constructor
+            verify("""
+                [method: System.Diagnostics.CodeAnalysis.SuppressMessage("", "GEN001")]
+                class C(int i)
+                {
+                    public int I { get; } = i;
+                }
+                """,
+                new[] { (gen001, "int") },
+                Diagnostic("GEN001", "int", isSuppressed: true).WithLocation(2, 9));
+
             static void verify(string source, IReadOnlyList<(Diagnostic Diagnostic, string Location)> reportDiagnostics, params DiagnosticDescription[] expected)
             {
-                var parseOptions = TestOptions.Regular;
+                var parseOptions = TestOptions.RegularPreview;
                 source = source.Replace(Environment.NewLine, "\r\n");
                 var compilation = CreateCompilation(source, parseOptions: parseOptions);
                 compilation.VerifyDiagnostics();
@@ -1469,6 +1480,51 @@ class C { }
             Assert.Single(runResults.Results);
             Assert.Empty(runResults.GeneratedTrees);
             Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67386")]
+        public void Incremental_Generators_Exception_In_Comparer()
+        {
+            var source = """
+                class Attr : System.Attribute { }
+                [Attr] class C { }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var e = new InvalidOperationException("abc");
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                var name = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("Attr")
+                    .Select((c, _) => c.Identifier.ValueText)
+                    .WithComparer(new LambdaComparer<string>((_, _) => throw e));
+                ctx.RegisterSourceOutput(name, (spc, n) => spc.AddSource(n, "// generated"));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Empty(runResults.Diagnostics);
+            Assert.Equal("// generated", runResults.Results.Single().GeneratedSources.Single().SourceText.ToString());
+
+            compilation = compilation.ReplaceSyntaxTree(syntaxTree, CSharpSyntaxTree.ParseText("""
+                class Attr : System.Attribute { }
+                [Attr] class D { }
+                """, parseOptions));
+            compilation.VerifyDiagnostics();
+
+            driver = driver.RunGenerators(compilation);
+            runResults = driver.GetRunResult();
+
+            AssertEx.Equal(
+                "warning CS8785: Generator 'PipelineCallbackGenerator' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type 'InvalidOperationException' with message 'abc'",
+                runResults.Diagnostics.Single().ToString());
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results.Single().Exception);
         }
 
         [Fact]
@@ -2210,6 +2266,114 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67633")]
+        public void IncrementalGenerator_SyntaxProvider_InputRemoved()
+        {
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(static ctx =>
+            {
+                var invokedMethodsProvider = ctx.SyntaxProvider
+                    .CreateSyntaxProvider(
+                        static (node, _) => node is InvocationExpressionSyntax,
+                        static (ctx, ct) => ctx.SemanticModel.GetSymbolInfo(ctx.Node, ct).Symbol?.Name ?? "(method not found)")
+                    .Select((n, _) => n)
+                    .WithTrackingName("Select");
+
+                ctx.RegisterSourceOutput(invokedMethodsProvider, static (spc, invokedMethod) =>
+                {
+                    spc.AddSource(invokedMethod, "// " + invokedMethod);
+                });
+            }));
+
+            var source1 = """
+                System.Console.WriteLine();
+                System.Console.ReadLine();
+                """;
+
+            var source2 = """
+                class C {
+                    public void M()
+                    {
+                        System.Console.Clear();
+                        System.Console.Beep();
+                    }
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugExeThrowing, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// ReadLine",
+                "// Clear",
+                "// Beep"
+            });
+
+            // edit part of source 1
+            replace(ref compilation, parseOptions, """
+                System.Console.WriteLine();
+                System.Console.Write(' ');
+                """);
+
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// Write",
+                "// Clear",
+                "// Beep"
+            });
+
+            Assert.Equal(new (object, IncrementalStepRunReason)[]
+            {
+                ("WriteLine", IncrementalStepRunReason.Cached),
+                ("Write", IncrementalStepRunReason.Modified),
+                ("Clear", IncrementalStepRunReason.Cached),
+                ("Beep", IncrementalStepRunReason.Cached)
+            },
+            driver.GetRunResult().Results.Single().TrackedSteps["Select"].Select(r => r.Outputs.Single()));
+
+            // remove second line of source 1
+            replace(ref compilation, parseOptions, """
+                System.Console.WriteLine();
+                """);
+
+            verify(ref driver, compilation, new[]
+            {
+                "// WriteLine",
+                "// Clear",
+                "// Beep"
+            });
+
+            Assert.Equal(new (object, IncrementalStepRunReason)[]
+            {
+                ("WriteLine", IncrementalStepRunReason.Cached),
+                ("Write", IncrementalStepRunReason.Removed),
+                ("Clear", IncrementalStepRunReason.Cached),
+                ("Beep", IncrementalStepRunReason.Cached)
+            },
+            driver.GetRunResult().Results.Single().TrackedSteps["Select"].Select(r => r.Outputs.Single()));
+
+            static void verify(ref GeneratorDriver driver, Compilation compilation, string[] generatedContent)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                generatorDiagnostics.Verify();
+                var trees = driver.GetRunResult().GeneratedTrees;
+                Assert.Equal(generatedContent.Length, trees.Length);
+                for (int i = 0; i < generatedContent.Length; i++)
+                {
+                    AssertEx.EqualOrDiff(generatedContent[i], trees[i].ToString());
+                }
+            }
+
+            static void replace(ref Compilation compilation, CSharpParseOptions parseOptions, string source)
+            {
+                compilation = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText(source, parseOptions));
+            }
         }
 
         [Fact]

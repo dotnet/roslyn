@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="parts">The array of parts.</param>
         /// <returns>The concatenation of the parts into a single string.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/67203", AllowImplicitBoxing = false)]
         public static string ToDisplayString(this ImmutableArray<SymbolDisplayPart> parts)
         {
             if (parts.IsDefault)
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis
                 var actualBuilder = pool.Builder;
                 foreach (var part in parts)
                 {
-                    actualBuilder.Append(part);
+                    actualBuilder.Append(part.ToString());
                 }
 
                 return actualBuilder.ToString();
