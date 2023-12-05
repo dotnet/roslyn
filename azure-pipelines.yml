@@ -234,7 +234,7 @@ stages:
       jobName: Test_Windows_CoreClr_Debug_Spanish
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: -testCoreClr -helixQueueName Windows.10.Amd64.Server2022.ES.Open
+      testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsSpanishQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
 
