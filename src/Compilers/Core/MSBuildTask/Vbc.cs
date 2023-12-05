@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Looks at all the parameters that have been set, and builds up the string
         /// containing all the command-line switches.
         /// </summary>
-        protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());
             commandLine.AppendSwitchIfNotNull("/libpath:", this.AdditionalLibPaths, ",");

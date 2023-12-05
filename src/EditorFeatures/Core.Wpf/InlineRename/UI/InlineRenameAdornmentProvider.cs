@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -14,6 +15,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -31,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IThreadingContext _threadingContext;
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+
+        private readonly Lazy<ISmartRenameSessionFactory> _smartRenameSessionFactory;
+#pragma warning restore CS0618
+
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 
         [Export]
@@ -53,7 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             [Import(AllowDefault = true)] IWpfThemeService? themeingService,
             IGlobalOptionService globalOptionService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
+            Lazy<ISmartRenameSessionFactory> smartRenameSessionFactory)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -62,12 +72,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _globalOptionService = globalOptionService;
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
+            _smartRenameSessionFactory = smartRenameSessionFactory;
+            _threadingContext = threadingContext;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _themeingService, _asyncQuickInfoBroker, _listenerProvider));
+            textView.GetOrCreateAutoClosingProperty(v => new InlineRenameAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v, _globalOptionService, _themeingService, _asyncQuickInfoBroker, _listenerProvider, _threadingContext, _smartRenameSessionFactory));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

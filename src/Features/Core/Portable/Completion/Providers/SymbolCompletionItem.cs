@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private const string InsertionTextProperty = "InsertionText";
 
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolEncoding = AddSymbolEncoding;
-        private static readonly Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> s_addSymbolInfo = AddSymbolInfo;
-        private static readonly char[] s_projectSeperators = new[] { ';' };
+        private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
+        private static readonly Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
+        private static readonly char[] s_projectSeperators = [';'];
 
         private static CompletionItem CreateWorker(
             string displayText,
@@ -30,26 +30,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             IReadOnlyList<ISymbol> symbols,
             CompletionItemRules rules,
             int contextPosition,
-            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
+            Action<IReadOnlyList<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> symbolEncoder,
             string? sortText = null,
             string? insertionText = null,
             string? filterText = null,
             SupportedPlatformData? supportedPlatforms = null,
-            ImmutableDictionary<string, string>? properties = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
             ImmutableArray<string> tags = default,
             string? displayTextPrefix = null,
             string? inlineDescription = null,
             Glyph? glyph = null,
             bool isComplexTextEdit = false)
         {
-            var props = properties ?? ImmutableDictionary<string, string>.Empty;
+            using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
+
+            if (!properties.IsDefault)
+                builder.AddRange(properties);
 
             if (insertionText != null)
             {
-                props = props.Add(InsertionTextProperty, insertionText);
+                builder.Add(new KeyValuePair<string, string>(InsertionTextProperty, insertionText));
             }
 
-            props = props.Add("ContextPosition", contextPosition.ToString());
+            builder.Add(new KeyValuePair<string, string>("ContextPosition", contextPosition.ToString()));
+            AddSupportedPlatforms(builder, supportedPlatforms);
+            symbolEncoder(symbols, builder);
 
             var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
@@ -62,26 +67,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText: sortText ?? firstSymbol.Name,
                 glyph: glyph ?? firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
-                properties: props,
+                properties: builder.ToImmutable(),
                 tags: tags,
                 isComplexTextEdit: isComplexTextEdit);
 
-            item = WithSupportedPlatforms(item, supportedPlatforms);
-            return symbolEncoder(symbols, item);
+            return item;
         }
 
-        public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-            => item.AddProperty("Symbols", EncodeSymbols(symbols));
+        private static void AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
+            => properties.Add(new KeyValuePair<string, string>("Symbols", EncodeSymbols(symbols)));
 
-        public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
+        private static void AddSymbolInfo(IReadOnlyList<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-            item = item
-                .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
-                .AddProperty("SymbolName", symbol.Name);
+            properties.Add(new KeyValuePair<string, string>("SymbolKind", ((int)symbol.Kind).ToString()));
+            properties.Add(new KeyValuePair<string, string>("SymbolName", symbol.Name));
 
-            return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+            if (isGeneric)
+                properties.Add(new KeyValuePair<string, string>("IsGeneric", isGeneric.ToString()));
         }
 
         public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out _))
+            if (item.TryGetProperty("ShouldProvideParenthesisCompletion", out _))
             {
                 return true;
             }
@@ -117,13 +121,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => SymbolKey.CreateString(symbol);
 
         public static bool HasSymbols(CompletionItem item)
-            => item.Properties.ContainsKey("Symbols");
+            => item.TryGetProperty("Symbols", out var _);
 
-        private static readonly char[] s_symbolSplitters = new[] { '|' };
+        private static readonly char[] s_symbolSplitters = ['|'];
 
         public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetValue("Symbols", out var symbolIds))
+            if (item.TryGetProperty("Symbols", out var symbolIds))
             {
                 var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
@@ -212,24 +216,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return document;
         }
 
-        private static CompletionItem WithSupportedPlatforms(CompletionItem completionItem, SupportedPlatformData? supportedPlatforms)
+        private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, string>> properties, SupportedPlatformData? supportedPlatforms)
         {
             if (supportedPlatforms != null)
             {
-                return completionItem
-                    .AddProperty("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id)))
-                    .AddProperty("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id)));
-            }
-            else
-            {
-                return completionItem;
+                properties.Add(new KeyValuePair<string, string>("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
+                properties.Add(new KeyValuePair<string, string>("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
             }
         }
 
         public static SupportedPlatformData? GetSupportedPlatforms(CompletionItem item, Solution solution)
         {
-            if (item.Properties.TryGetValue("InvalidProjects", out var invalidProjects)
-                && item.Properties.TryGetValue("CandidateProjects", out var candidateProjects))
+            if (item.TryGetProperty("InvalidProjects", out var invalidProjects)
+                && item.TryGetProperty("CandidateProjects", out var candidateProjects))
             {
                 return new SupportedPlatformData(
                     solution,
@@ -242,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static int GetContextPosition(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ContextPosition", out var text) &&
+            if (item.TryGetProperty("ContextPosition", out var text) &&
                 int.TryParse(text, out var number))
             {
                 return number;
@@ -257,10 +256,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
-            => item.Properties[InsertionTextProperty];
+            => item.GetProperty(InsertionTextProperty);
 
         public static bool TryGetInsertionText(CompletionItem item, [NotNullWhen(true)] out string? insertionText)
-            => item.Properties.TryGetValue(InsertionTextProperty, out insertionText);
+            => item.TryGetProperty(InsertionTextProperty, out insertionText);
 
         // COMPAT OVERLOAD: This is used by IntelliCode.
         public static CompletionItem CreateWithSymbolId(
@@ -289,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 inlineDescription: null,
                 glyph: null,
                 supportedPlatforms,
-                properties,
+                properties.AsImmutableOrNull(),
                 tags,
                 isComplexTextEdit);
         }
@@ -307,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string? inlineDescription = null,
             Glyph? glyph = null,
             SupportedPlatformData? supportedPlatforms = null,
-            ImmutableDictionary<string, string>? properties = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
             ImmutableArray<string> tags = default,
             bool isComplexTextEdit = false)
         {
@@ -331,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string? inlineDescription = null,
             Glyph? glyph = null,
             SupportedPlatformData? supportedPlatforms = null,
-            ImmutableDictionary<string, string>? properties = null,
+            ImmutableArray<KeyValuePair<string, string>> properties = default,
             ImmutableArray<string> tags = default,
             bool isComplexTextEdit = false)
         {
@@ -343,13 +342,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         internal static string? GetSymbolName(CompletionItem item)
-            => item.Properties.TryGetValue("SymbolName", out var name) ? name : null;
+            => item.TryGetProperty("SymbolName", out var name) ? name : null;
 
         internal static SymbolKind? GetKind(CompletionItem item)
-            => item.Properties.TryGetValue("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
+            => item.TryGetProperty("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
 
         internal static bool GetSymbolIsGeneric(CompletionItem item)
-            => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
+            => item.TryGetProperty("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, SymbolDescriptionOptions options, CancellationToken cancellationToken)

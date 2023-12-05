@@ -6,20 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -725,8 +723,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         edit.Kind,
                         oldSymbol: oldSymbol,
                         newSymbol: newSymbol,
-                        syntaxMap: edit.SyntaxMap,
-                        preserveLocalVariables: edit.SyntaxMap != null));
+                        syntaxMap: edit.SyntaxMap));
                 }
             }
 
@@ -741,24 +738,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Calculate merged syntax map for each partial type symbol:
 
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
+            var mergedUpdateEditSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
 
-            var editsByPartialType = edits
-                .Where(edit => edit.PartialType != null)
+            var updatesByPartialType = edits
+                .Where(edit => edit is { PartialType: not null, Kind: SemanticEditKind.Update })
                 .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
 
-            foreach (var partialTypeEdits in editsByPartialType)
+            foreach (var partialTypeEdits in updatesByPartialType)
             {
-                // Either all edits have syntax map or none has.
-                Debug.Assert(
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null) ||
-                    partialTypeEdits.All(edit => edit.SyntaxMapTree == null && edit.SyntaxMap == null));
+                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMapTree is null == edit.SyntaxMap is null));
 
                 Func<SyntaxNode, SyntaxNode?>? mergedSyntaxMap;
-                if (partialTypeEdits.First().SyntaxMap != null)
+                if (partialTypeEdits.Any(static e => e.SyntaxMap != null))
                 {
-                    var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
-                    var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                    var newTrees = partialTypeEdits.Where(edit => edit.SyntaxMapTree != null).SelectAsArray(edit => edit.SyntaxMapTree!);
+                    var syntaxMaps = partialTypeEdits.Where(edit => edit.SyntaxMap != null).SelectAsArray(edit => edit.SyntaxMap!);
                     mergedSyntaxMap = node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node);
                 }
                 else
@@ -766,7 +760,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mergedSyntaxMap = null;
                 }
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
+                mergedUpdateEditSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
             }
 
             // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
@@ -782,8 +776,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (oldSymbol, newSymbol) = resolvedSymbols[i];
                     if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
-                        var syntaxMap = mergedSyntaxMaps[edit.PartialType.Value];
-                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
+                        var syntaxMap = (edit.Kind == SemanticEditKind.Update) ? mergedUpdateEditSyntaxMaps[edit.PartialType.Value] : null;
+                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap));
                     }
                 }
             }
@@ -794,10 +788,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
         {
+            var log = EditAndContinueService.Log;
+
             try
             {
-                var log = EditAndContinueService.Log;
-
                 log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
 
                 using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
@@ -885,19 +879,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         diagnostics.Add(new(newProject.Id, documentDiagnostics));
                     }
 
-                    var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
-                    if (projectSummary == ProjectAnalysisSummary.NoChanges)
-                    {
-                        continue;
-                    }
-
                     foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
                     {
                         if (changedDocumentAnalysis.HasChanges)
                         {
                             log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
                         }
+
+                        Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
+                    }
+
+                    var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
+                    log.Write("Project summary for '{0}': {1}", newProject.Id, projectSummary);
+
+                    if (projectSummary == ProjectAnalysisSummary.NoChanges)
+                    {
+                        continue;
                     }
 
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
@@ -940,7 +937,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
+                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldCompilation);
+
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(oldProject, oldCompilation, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -975,9 +975,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     log.Write("Emitting update of '{0}'", newProject.Id);
 
-                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldCompilation);
                     Contract.ThrowIfNull(newCompilation);
 
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -1010,6 +1008,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         DebuggingSession.ThrowIfDisposed();
 
+                        var emitDifferenceTimer = SharedStopwatch.StartNew();
+
                         emitResult = newCompilation.EmitDifference(
                             projectBaseline.EmitBaseline,
                             projectChanges.SemanticEdits,
@@ -1018,6 +1018,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             ilStream,
                             pdbStream,
                             cancellationToken);
+
+                        Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);
                     }
 
                     if (emitResult.Success)
@@ -1112,9 +1114,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return update;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
+            }
+
+            bool LogException(Exception e)
+            {
+                log.Write("Exception while emitting update: {0}", e.ToString());
+                return true;
             }
         }
 

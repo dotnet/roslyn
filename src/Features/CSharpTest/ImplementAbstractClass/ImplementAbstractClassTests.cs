@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
@@ -25,18 +22,13 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-    public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
     {
-        public ImplementAbstractClassTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
         private OptionsCollection AllOptionsOff
-            => new OptionsCollection(GetLanguage())
+            => new(GetLanguage())
             {
                  { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                  { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -50,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            OptionsCollection options = null,
-            ParseOptions parseOptions = null)
+            OptionsCollection? options = null,
+            ParseOptions? parseOptions = null)
         {
-            options = options ?? new OptionsCollection(GetLanguage());
+            options ??= new OptionsCollection(GetLanguage());
             options.AddRange(AllOptionsOff);
 
             return TestInRegularAndScriptAsync(
@@ -1838,27 +1830,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """, parameters: new TestParameters(globalOptions: options));
         }
 
-        [Fact]
-        public async Task TestInWithMethod_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithMethod_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract void Method(in int p);
+                    public abstract void Method({{modifier}} int p);
                 }
                 public class [|Test|] : TestParent
                 {
                 }
                 """,
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract void Method(in int p);
+                    public abstract void Method({{modifier}} int p);
                 }
                 public class Test : TestParent
                 {
-                    public override void Method(in int p)
+                    public override void Method({{modifier}} int p)
                     {
                         throw new System.NotImplementedException();
                     }
@@ -1919,27 +1911,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 """);
         }
 
-        [Fact]
-        public async Task TestInWithIndexer_Parameters()
+        [Theory, CombinatorialData]
+        public async Task TestRefWithIndexer_Parameters([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
         {
             await TestInRegularAndScriptAsync(
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract int this[in int p] { set; }
+                    public abstract int this[{{modifier}} int p] { set; }
                 }
                 public class [|Test|] : TestParent
                 {
                 }
                 """,
-                """
+                $$"""
                 abstract class TestParent
                 {
-                    public abstract int this[in int p] { set; }
+                    public abstract int this[{{modifier}} int p] { set; }
                 }
                 public class Test : TestParent
                 {
-                    public override int this[in int p] { set => throw new System.NotImplementedException(); }
+                    public override int this[{{modifier}} int p] { set => throw new System.NotImplementedException(); }
                 }
                 """);
         }
@@ -2415,6 +2407,66 @@ class D<T> : B<{passToBase}>{constraint}
                         {
                             throw new System.NotImplementedException();
                         }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
+        public async Task TestRecordInheritance1()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                abstract record A()
+                {
+                    protected abstract void M();
+                }
+
+                class [|C|]() : A()
+                {
+                }
+                """,
+                """
+                abstract record A()
+                {
+                    protected abstract void M();
+                }
+                
+                class C() : A()
+                {
+                    protected override void M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70530")]
+        public async Task TestRecordInheritance2()
+        {
+            await TestAllOptionsOffAsync(
+                """
+                abstract record A()
+                {
+                    protected abstract void M();
+                }
+
+                record [|C|]() : A()
+                {
+                }
+                """,
+                """
+                abstract record A()
+                {
+                    protected abstract void M();
+                }
+                
+                record C() : A()
+                {
+                    protected override void M()
+                    {
+                        throw new System.NotImplementedException();
                     }
                 }
                 """);

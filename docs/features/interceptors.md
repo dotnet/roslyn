@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature planned to ship in .NET 8. The feature may be subject to breaking changes or removal in a future release.
+*Interceptors* are an experimental compiler feature planned to ship in .NET 8 (with support for C# only). The feature may be subject to breaking changes or removal in a future release.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -64,8 +64,7 @@ Any "ordinary method" (i.e. with `MethodKind.Ordinary`) can have its calls inter
 
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
-PROTOTYPE(ic): We may want to recognize `file class InterceptsLocationAttribute` as a valid declaration of the attribute, to allow generators to bring the attribute in without conflicting with other generators which may also be bringing the attribute in. See open question in [User opt-in](#user-opt-in).
-https://github.com/dotnet/roslyn/issues/67079 is a bug which causes file-local source declarations of well-known attributes to be generally treated as known. When that bug is fixed, we may want to single out `InterceptsLocationAttribute` as "recognized, even though they are file-local".
+File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
 
 #### File paths
 
@@ -156,7 +155,8 @@ static class D
 ### Signature matching
 
 When a call is intercepted, the interceptor and interceptable methods must meet the signature matching requirements detailed below:
-- When an interceptable instance method is compared to a classic extension method, we use the extension method in reduced form for comparison. The extension method parameter with the `this` modifier is compared to the instance method `this` parameter.
+- When an interceptable instance method is compared to a static interceptor method (including a classic extension method), we use the method as if it is an extension in reduced form for comparison. The first parameter of the static method is compared to the instance method `this` parameter.
+    - The implementation currently requires the interceptor to be an extension method for this comparison to work. We plan on addressing this before releasing .NET 8.
 - The returns and parameters, including the `this` parameter, must have the same ref kinds and types.
 - A warning is reported instead of an error if a type difference is found where the types are not distinct to the runtime. For example, `object` and `dynamic`.
 - No warning or error is reported for a *safe* nullability difference, such as when the interceptable method accepts a `string` parameter, and the interceptor accepts a `string?` parameter.
@@ -191,7 +191,12 @@ Interceptors are treated like a post-compilation step in this design. Diagnostic
 
 ### User opt-in
 
-Interceptors will require a feature flag during the experimental phase. The flag can be enabled with `/features=InterceptorsPreview` on the command line or `<Features>InterceptorsPreview</Features>` in msbuild.
+To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+```xml
+<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsPreviewNamespaces>
+```
+
+It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
 
 ### Implementation strategy
 

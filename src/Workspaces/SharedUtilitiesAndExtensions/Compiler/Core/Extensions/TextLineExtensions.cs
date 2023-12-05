@@ -11,15 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static int? GetLastNonWhitespacePosition(this TextLine line)
         {
+            var text = line.Text!;
             var startPosition = line.Start;
-            var text = line.ToString();
 
-            for (var i = text.Length - 1; i >= 0; i--)
+            for (var i = line.End - 1; i >= startPosition; i--)
             {
                 if (!char.IsWhiteSpace(text[i]))
-                {
-                    return startPosition + i;
-                }
+                    return i;
             }
 
             return null;

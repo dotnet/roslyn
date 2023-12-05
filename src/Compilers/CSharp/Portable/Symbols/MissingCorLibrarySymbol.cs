@@ -29,10 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks></remarks>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
+        private TypeConversions _lazyTypeConversions;
+
         private MissingCorLibrarySymbol()
             : base(new AssemblyIdentity("<Missing Core Assembly>"))
         {
             this.SetCorLibrary(this);
+        }
+
+        internal override TypeConversions TypeConversions
+        {
+            get
+            {
+                Debug.Assert(this == CorLibrary);
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
+            }
         }
 
         /// <summary>

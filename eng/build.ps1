@@ -256,10 +256,7 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
- # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-  # in our CI builds
-  # https://github.com/NuGet/Home/issues/12373
-  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+  $restoreUseStaticGraphEvaluation = $true
   
   $isNpmAvailable = IsNpmAvailable
 
@@ -333,7 +330,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
@@ -431,7 +428,6 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
-    $args += " --retry"
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -608,6 +604,9 @@ function Deploy-VsixViaTool() {
 
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
 
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()

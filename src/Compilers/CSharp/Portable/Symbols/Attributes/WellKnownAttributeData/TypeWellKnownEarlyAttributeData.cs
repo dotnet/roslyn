@@ -6,6 +6,20 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal sealed class CollectionBuilderAttributeData
+    {
+        public static readonly CollectionBuilderAttributeData Uninitialized = new CollectionBuilderAttributeData(null, null);
+
+        public CollectionBuilderAttributeData(TypeSymbol? builderType, string? methodName)
+        {
+            BuilderType = builderType;
+            MethodName = methodName;
+        }
+
+        public readonly TypeSymbol? BuilderType;
+        public readonly string? MethodName;
+    }
+
     /// <summary>
     /// Information decoded early from well-known custom attributes applied on a type.
     /// </summary>
@@ -55,5 +69,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        #region CollectionBuilderAttribute
+        private CollectionBuilderAttributeData? _collectionBuilder;
+        public CollectionBuilderAttributeData? CollectionBuilder
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _collectionBuilder;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _collectionBuilder ??= value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

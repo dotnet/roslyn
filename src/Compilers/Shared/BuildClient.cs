@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Returns the directory that contains mscorlib, or null when running on CoreCLR.
         /// </summary>
-        public static string GetSystemSdkDirectory()
+        public static string? GetSystemSdkDirectory()
         {
             return RuntimeHostInfo.IsCoreClrRuntime
                 ? null
@@ -124,22 +122,22 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter? textWriter = null, string? pipeName = null)
         {
             textWriter = textWriter ?? Console.Out;
 
             var args = originalArguments.Select(arg => arg.Trim()).ToArray();
 
-            List<string> parsedArgs;
+            List<string>? parsedArgs;
             bool hasShared;
-            string keepAliveOpt;
-            string errorMessageOpt;
+            string? keepAliveOpt;
+            string? errorMessageOpt;
             if (CommandLineParser.TryParseClientArgs(
                     args,
                     out parsedArgs,
                     out hasShared,
                     out keepAliveOpt,
-                    out string commandLinePipeName,
+                    out string? commandLinePipeName,
                     out errorMessageOpt))
             {
                 pipeName ??= commandLinePipeName;
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return new RunCompilationResult(exitCode);
         }
 
-        public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
+        public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter? textWriter = null)
         {
             var tcs = new TaskCompletionSource<RunCompilationResult>();
             ThreadStart action = () =>
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string pipeName, string keepAlive)
+        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string? libDirectory, string pipeName, string? keepAlive)
         {
             BuildResponse buildResponse;
 
@@ -317,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (!PlatformInformation.IsRunningOnMono)
                 return true;
 
-            IDisposable npcs = null;
+            IDisposable? npcs = null;
             try
             {
                 var testPipeName = $"mono-{Guid.NewGuid()}";
@@ -361,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // This memory is owned by the operating system hence we shouldn't (and can't)
             // free the memory.  
-            var commandLine = Marshal.PtrToStringUni(ptr);
+            var commandLine = Marshal.PtrToStringUni(ptr)!;
 
             // The first argument will be the executable name hence we skip it. 
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 '  use the operand twice
                 temporaries = ArrayBuilder(Of SynthesizedLocal).GetInstance()
-                Dim result As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, temporaries)
+                Dim result As UseTwiceRewriter.Result = UseTwiceRewriter.UseTwice(Me._currentMethodOrLambda, assignmentTarget, isForRegularCompoundAssignment:=True, temporaries)
 
                 '  the first to be used as an assignment target
                 assignmentTarget = result.First

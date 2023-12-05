@@ -315,6 +315,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IParameterSymbolInternal_Type As ITypeSymbolInternal Implements IParameterSymbolInternal.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterSymbol_NullableAnnotation As NullableAnnotation Implements IParameterSymbol.NullableAnnotation
             Get
                 Return NullableAnnotation.None

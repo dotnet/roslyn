@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using FileSystemWatcher = Microsoft.VisualStudio.LanguageServer.Protocol.FileSystemWatcher;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -33,7 +35,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
     public static bool SupportsLanguageServerHost(LanguageServerHost languageServerHost)
     {
         // We can only use the LSP client for doing file watching if we support dynamic registration for it
-        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IClientCapabilitiesProvider>();
+        var clientCapabilitiesProvider = languageServerHost.GetRequiredLspService<IInitializeManager>();
         return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
     }
 
@@ -76,7 +78,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 {
                     GlobPattern = new RelativePattern
                     {
-                        BaseUri = ProtocolConversions.GetUriFromFilePath(d.Path),
+                        BaseUri = ProtocolConversions.CreateAbsoluteUri(d.Path),
                         Pattern = d.ExtensionFilter is not null ? "**/*" + d.ExtensionFilter : "**/*"
                     }
                 }).ToArray();
@@ -139,7 +141,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 // TODO: figure out how I just can do an absolute path watch
                 GlobPattern = new RelativePattern
                 {
-                    BaseUri = ProtocolConversions.GetUriFromFilePath(Path.GetDirectoryName(filePath)!),
+                    BaseUri = ProtocolConversions.CreateAbsoluteUri(Path.GetDirectoryName(filePath)!),
                     Pattern = Path.GetFileName(filePath)
                 }
             };
@@ -200,8 +202,8 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             var registrationParams = new RegistrationParams()
             {
-                Registrations = new Registration[]
-                {
+                Registrations =
+                [
                     new Registration
                     {
                         Id = _id,
@@ -211,7 +213,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                             Watchers = fileSystemWatchers
                         }
                     }
-                }
+                ]
             };
 
             var asyncToken = _changeWatcher._asynchronousOperationListener.BeginAsyncOperation(nameof(LspFileWatchRegistration));
@@ -231,17 +233,25 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             {
                 var unregistrationParams = new UnregistrationParamsWithMisspelling()
                 {
-                    Unregistrations = new Unregistration[]
-                    {
+                    Unregistrations =
+                    [
                         new Unregistration()
                         {
                             Id = _id,
                             Method = "workspace/didChangeWatchedFiles"
                         }
-                    }
+                    ]
                 };
 
-                await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                try
+                {
+                    await _changeWatcher._clientLanguageServerManager.SendRequestAsync("client/unregisterCapability", unregistrationParams, CancellationToken.None);
+                }
+                catch (ConnectionLostException)
+                {
+                    // It is very possible we are disposing of this when we're shutting down and the pipe has closed.
+                    // There is no need to spam non fatal faults when this happens.
+                }
             }, CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
         }
     }

@@ -130,11 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string DocumentOutlineSearchCategoryIdString = "C80E47CF-B95A-46D4-8BE4-6ADA02888333";
         public static readonly Guid DocumentOutlineSearchCategoryId = new(DocumentOutlineSearchCategoryIdString);
 
-        // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
-        // Interactive guids
-        public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
-        public static readonly Guid InteractiveCommandSetId = new(InteractiveCommandSetIdString);
-
         /// <summary>
         /// The package GUID for GlobalHubClientPackage, which proffers ServiceHub brokered services in Visual Studio.
         /// </summary>

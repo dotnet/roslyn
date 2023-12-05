@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess node,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps);
 
                 rewrittenArguments = MakeArguments(
-                    syntax,
                     rewrittenArguments,
                     indexer,
                     expanded,
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref argumentRefKindsOpt,
                     ref temps);
 
-                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
+                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
 
                 if (temps.Count == 0)
                 {
@@ -547,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(locals is not null);
 
                     rewrittenIndexerAccess = indexerAccess.Update(
-                        receiver, indexerAccess.Indexer, rewrittenArguments,
+                        receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexerAccess.Indexer, rewrittenArguments,
                         indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.Expanded,
                         indexerAccess.ArgsToParamsOpt,

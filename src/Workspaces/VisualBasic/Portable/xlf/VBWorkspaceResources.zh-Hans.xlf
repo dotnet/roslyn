@@ -22,6 +22,11 @@
         <target state="translated">对导入项排序(&amp;S)</target>
         <note />
       </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">vb 编码约定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;事件&gt;</target>

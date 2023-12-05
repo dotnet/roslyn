@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +26,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract class AbstractAddImportsPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
+    internal abstract class AbstractAddImportsPasteCommandHandler(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        IAsynchronousOperationListenerProvider listenerProvider) : IChainedCommandHandler<PasteCommandArgs>
     {
         /// <summary>
         /// The command handler display name
@@ -37,19 +41,9 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         protected abstract string DialogText { get; }
 
-        private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IAsynchronousOperationListener _listener;
-
-        public AbstractAddImportsPasteCommandHandler(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
-            _listener = listenerProvider.GetListener(FeatureAttribute.AddImportsOnPaste);
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.AddImportsOnPaste);
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
@@ -166,7 +160,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
 
             var textSpan = snapshotSpan.Span.ToTextSpan();
-            var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(
+                document, textSpan, options, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
 
             if (updatedDocument is null)
             {

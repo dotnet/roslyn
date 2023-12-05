@@ -31,6 +31,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
+        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var targetToken = syntaxContext.TargetToken;
+
+            // Allow `foreach` snippet after `await` as expression statement
+            // So `await $$` is a valid position, but `var result = await $$` is not
+            // The second check if for case when completions are invoked after `await` in non-async context. In such cases parser treats `await` as identifier
+            if (targetToken is { RawKind: (int)SyntaxKind.AwaitKeyword, Parent: ExpressionSyntax { Parent: ExpressionStatementSyntax } } ||
+                targetToken is { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await", Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax } })
+            {
+                return true;
+            }
+
+            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+        }
+
         protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
         {
             var semanticModel = syntaxContext.SemanticModel;
@@ -41,8 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
             if (collectionIdentifier is null)
             {
+                var isAsync = syntaxContext.TargetToken is { RawKind: (int)SyntaxKind.AwaitKeyword } or { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await" };
                 var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() is { } symbolType &&
-                    symbolType.CanBeEnumerated() &&
+                    (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
                     symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
                 collectionIdentifier = enumerationSymbol is null
                     ? SyntaxFactory.IdentifierName("collection")
@@ -52,7 +71,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             var itemString = NameGenerator.GenerateUniqueName(
                 "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
 
-            return SyntaxFactory.ForEachStatement(varIdentifier, itemString, collectionIdentifier.WithoutLeadingTrivia(), SyntaxFactory.Block()).NormalizeWhitespace();
+            ForEachStatementSyntax forEachStatement;
+
+            if (inlineExpression is not null &&
+                semanticModel.GetTypeInfo(inlineExpression).Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
+            {
+                forEachStatement = SyntaxFactory.ForEachStatement(
+                    SyntaxFactory.Token(SyntaxKind.AwaitKeyword),
+                    SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    varIdentifier,
+                    SyntaxFactory.Identifier(itemString),
+                    SyntaxFactory.Token(SyntaxKind.InKeyword),
+                    collectionIdentifier.WithoutLeadingTrivia(),
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+                    SyntaxFactory.Block());
+            }
+            else
+            {
+                forEachStatement = SyntaxFactory.ForEachStatement(
+                    varIdentifier,
+                    itemString,
+                    collectionIdentifier.WithoutLeadingTrivia(),
+                    SyntaxFactory.Block());
+            }
+
+            return forEachStatement.NormalizeWhitespace();
         }
 
         /// <summary>
@@ -69,31 +113,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                 arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
 
             return arrayBuilder.ToImmutableArray();
+        }
 
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+        {
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForEachStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
         }
 
         protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            return СSharpSnippetIndentationHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
                 document,
                 FindSnippetAnnotation,
                 static s => (BlockSyntax)s.Statement,
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Gets the start of the BlockSyntax of the for statement
-        /// to be able to insert the caret position at that location.
-        /// </summary>
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var foreachStatement = (ForEachStatementSyntax)caretTarget;
-            var blockStatement = (BlockSyntax)foreachStatement.Statement;
-
-            var triviaSpan = blockStatement.CloseBraceToken.LeadingTrivia.Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
         }
 
         private static void GetPartsOfForEachStatement(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode expression, out SyntaxNode statement)

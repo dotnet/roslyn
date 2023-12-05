@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         }
 
         internal override bool IsFileLocal => _underlyingType.IsFileLocal;
-        internal override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+        internal override FileIdentifier AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
@@ -535,5 +535,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             return _underlyingType.HasInlineArrayAttribute(out length);
         }
+
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            bool result = _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+            if (builderType is { })
+            {
+                builderType = this.RetargetingTranslator.Retarget(builderType, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+            }
+            return result;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            if (_underlyingType.HasAsyncMethodBuilderAttribute(out builderArgument))
+            {
+                builderArgument = this.RetargetingTranslator.Retarget(builderArgument, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return true;
+            }
+
+            builderArgument = null;
+            return false;
+        }
+#nullable disable
     }
 }

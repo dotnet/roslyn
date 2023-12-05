@@ -38,12 +38,18 @@ namespace Microsoft.CodeAnalysis.ExtractClass
         private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
         private readonly IExtractClassOptionsService _service = service;
 
+        // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
+        // class.  on a member however, we deprioritize this as there are likely more member-specific operations
+        // they'd prefer to invoke instead.
+        private readonly CodeActionPriority _priority = selectedMembers.IsEmpty ? CodeActionPriority.Default : CodeActionPriority.Low;
+
         public TextSpan Span { get; } = span;
         public override string Title => _selectedType.IsRecord
             ? FeaturesResources.Extract_base_record
             : FeaturesResources.Extract_base_class;
 
-        internal override CodeActionPriority Priority { get; } = selectedMembers.IsEmpty ? CodeActionPriority.Medium : CodeActionPriority.Low;
+        protected sealed override CodeActionPriority ComputePriority()
+            => _priority;
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
@@ -52,7 +58,8 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not ExtractClassOptions extractClassOptions)
             {

@@ -192,12 +192,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Interface:
                     return GetNextDeclaredBase((NamedTypeSymbol)type, basesBeingResolved, compilation, ref visited);
 
-                default:
-                    // PROTOTYPE revisit when doing changes for lookup
-                    // Enums and delegates know their own base types
+                case TypeKind.Dynamic:
+                case TypeKind.Enum:
+                case TypeKind.Delegate:
+                case TypeKind.Array:
+                case TypeKind.Submission:
+                case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
+                    // Enums, arrays, submissions and delegates know their own base types
                     // intrinsically (and do not include interface lists)
                     // so there is no possibility of a cycle.
+                    // PROTOTYPE revisit when doing changes for lookup
                     return type.BaseTypeNoUseSiteDiagnostics;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
         }
 

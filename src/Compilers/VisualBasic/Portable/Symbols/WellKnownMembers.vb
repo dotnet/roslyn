@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 namedStringArguments = builder.ToImmutableAndFree()
             End If
 
-            Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
+            Return New SynthesizedAttributeData(Me, constructorSymbol, arguments, namedStringArguments)
         End Function
 
         Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          constructor.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso
                          constructor.ContainingType.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
-            Return SynthesizedAttributeData.Create(constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
+            Return SynthesizedAttributeData.Create(Me, constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
         End Function
 
         Friend Function SynthesizeStateMachineAttribute(method As MethodSymbol, compilationState As ModuleCompilationState) As SynthesizedAttributeData

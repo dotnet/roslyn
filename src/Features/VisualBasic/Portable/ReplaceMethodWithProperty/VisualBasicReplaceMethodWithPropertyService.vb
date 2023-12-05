@@ -2,16 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplaceMethodWithPropertyService), LanguageNames.VisualBasic), [Shared]>
@@ -35,12 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceGetMethodWithProperty(
-            options As CodeGenerationOptions,
-            parseOptions As ParseOptions,
-            editor As SyntaxEditor,
-            semanticModel As SemanticModel,
-            getAndSetMethods As GetAndSetMethods,
-            propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
+                options As CodeGenerationOptions,
+                parseOptions As ParseOptions,
+                editor As SyntaxEditor,
+                semanticModel As SemanticModel,
+                getAndSetMethods As GetAndSetMethods,
+                propertyName As String, nameChanged As Boolean,
+                cancellationToken As CancellationToken) Implements IReplaceMethodWithPropertyService.ReplaceGetMethodWithProperty
 
             Dim getMethodDeclaration = TryCast(getAndSetMethods.GetMethodDeclaration, MethodStatementSyntax)
             If getMethodDeclaration Is Nothing Then

@@ -5,8 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.SpellCheck
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Classification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
     <ExportLanguageService(GetType(ISpellCheckSpanService), LanguageNames.VisualBasic), [Shared]>
@@ -16,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
+            MyBase.New(escapeCharacter:=Nothing)
         End Sub
     End Class
 End Namespace

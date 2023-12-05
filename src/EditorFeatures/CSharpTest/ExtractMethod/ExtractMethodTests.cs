@@ -11992,7 +11992,7 @@ $@"namespace ClassLibrary9
                     }
                 }
                 """;
-            await TestExtractMethodAsync(code, expected, allowBestEffort: true);
+            await TestExtractMethodAsync(code, expected);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30750")]

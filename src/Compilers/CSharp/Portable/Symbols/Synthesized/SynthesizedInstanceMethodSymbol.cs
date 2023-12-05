@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,6 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             thisParameter = _lazyThisParameter;
             return true;
+        }
+
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => false;
+
+        internal override bool IsNullableAnalysisEnabled() => false;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
         }
     }
 }

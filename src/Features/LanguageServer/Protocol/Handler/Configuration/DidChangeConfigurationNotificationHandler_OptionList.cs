@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -26,7 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ProvideRegexCompletions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             FormattingOptions2.InsertFinalNewLine,
             // Background analysis
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
-            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption);
+            SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+            // Code lens options
+            LspOptionsStorage.LspEnableReferencesCodeLens,
+            LspOptionsStorage.LspEnableTestsCodeLens,
+            // Project system
+            LanguageServerProjectSystemOptionsStorage.BinaryLogPath);
     }
 }

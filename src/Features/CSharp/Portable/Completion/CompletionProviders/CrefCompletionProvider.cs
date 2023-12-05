@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = GetCompletionItemSpan(text, position);
-                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, options.HideAdvancedMembers.ToString());
+                var serializedOptions = ImmutableArray.Create(new KeyValuePair<string, string>(HideAdvancedMembers, options.HideAdvancedMembers.ToString()));
 
                 var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static IEnumerable<CompletionItem> CreateCompletionItems(
-            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
+            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableArray<KeyValuePair<string, string>> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool TryCreateSpecialTypeItem(
             SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, int position, StringBuilder builder,
-            ImmutableDictionary<string, string> options, [NotNullWhen(true)] out CompletionItem? item)
+            ImmutableArray<KeyValuePair<string, string>> options, [NotNullWhen(true)] out CompletionItem? item)
         {
             // If the type is a SpecialType, create an additional item using 
             // its actual name (as opposed to intrinsic type keyword)
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxToken token,
             int position,
             StringBuilder builder,
-            ImmutableDictionary<string, string> options,
+            ImmutableArray<KeyValuePair<string, string>> options,
             SymbolDisplayFormat unqualifiedCrefFormat)
         {
             builder.Clear();
@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 RefKind.Ref => "ref ",
                                 RefKind.Out => "out ",
                                 RefKind.In => "in ",
+                                RefKind.RefReadOnlyParameter => "ref readonly ",
                                 _ => "",
                             });
                             builder.Append(p.Type.ToMinimalDisplayString(semanticModel, position, MinimalParameterTypeFormat));
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CreateItemFromBuilder(symbol, position, builder, options);
         }
 
-        private static CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableDictionary<string, string> options)
+        private static CompletionItem CreateItemFromBuilder(ISymbol symbol, int position, StringBuilder builder, ImmutableArray<KeyValuePair<string, string>> options)
         {
             var symbolText = builder.ToString();
 
@@ -391,12 +392,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(CrefCompletionProvider crefCompletionProvider)
         {
-            private readonly CrefCompletionProvider _crefCompletionProvider;
-
-            public TestAccessor(CrefCompletionProvider crefCompletionProvider)
-                => _crefCompletionProvider = crefCompletionProvider;
+            private readonly CrefCompletionProvider _crefCompletionProvider = crefCompletionProvider;
 
             public void SetSpeculativeNodeCallback(Action<SyntaxNode?> value)
                 => _crefCompletionProvider._testSpeculativeNodeCallback = value;

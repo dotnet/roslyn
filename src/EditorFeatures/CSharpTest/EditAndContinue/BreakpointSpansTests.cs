@@ -54,7 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             else
             {
                 Assert.True(hasBreakpoint);
-                Assert.Equal(expectedSpan.Value, breakpointSpan);
+                AssertEx.AreEqual(
+                    expectedSpan.Value,
+                    breakpointSpan,
+                    message: $"Expected: [|{source.Substring(expectedSpan.Value.Start, expectedSpan.Value.Length)}|], Actual: [|{source.Substring(breakpointSpan.Start, breakpointSpan.Length)}|]");
             }
         }
 
@@ -68,8 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         private static void VerifyAllSpansInDeclaration<TDeclaration>(string markup)
             where TDeclaration : SyntaxNode
         {
-            MarkupTestFile.GetPositionAndSpans(markup,
-                out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetPositionAndSpans(markup, out var source, out var position, out var expectedSpans);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var root = tree.GetRoot();
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var expectedEnvelope = expectedSpans.IsEmpty ? default : TextSpan.FromBounds(expectedSpans[0].Start, expectedSpans[^1].End);
             Assert.NotNull(declarationNode);
 
-            var actualEnvelope = BreakpointSpans.GetEnvelope(declarationNode);
+            var actualEnvelope = SyntaxUtilities.TryGetDeclarationBody(declarationNode, symbol: null)?.Envelope ?? default;
             Assert.Equal(expectedEnvelope, actualEnvelope);
         }
 
@@ -94,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             var endPosition = root.Span.End;
             for (var p = position; p < endPosition; p++)
             {
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, minLength: 0, out var span) && span.Start > lastSpan.Start)
                 {
                     lastSpan = span;
                     yield return span;
@@ -252,16 +254,6 @@ class C
             [|}|]    
         [|}|]
     [|}|]
-}");
-        }
-
-        [Fact]
-        public void GetBreakpointSequence_InstanceContructor_NoBody()
-        {
-            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
-class Class
-{
-    [|Clas$$s()|]
 }");
         }
 
@@ -1291,7 +1283,7 @@ $$    (
 
         #endregion
 
-        #region Field and Veriable Declarators
+        #region Field and Variable Declarators
 
         [Fact]
         public void FieldDeclarator_WithoutInitializer_All()
@@ -4407,6 +4399,160 @@ $$    using ([|var vv = goo()|])
     {
     }
 }");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class [|C()|];",
+                "$$class [|C()|];",
+                "class$$ [|C()|];",
+                "class [|C($$)|];",
+                "$$class [|C(int a)|];",
+                "$$class [|C(int a, int b)|];",
+                "class [|C(int a, int b)|]$$;",
+                "class [|C(int a, int b)|]$$ { }",
+                "class [|C(int a, int b)|]$$ : B { }",
+                "class [|C(int a, int b)|] : B$$ { }",
+                "class [|C(int a, int b)|] : B, $$I { }",
+                "class [|C<T>(int a, int b)|]$$ where T : notnull;",
+                "class [|C<T>(int a, int b)|] where $$T : notnull;",
+                "class [|C<T>(int a, int b)|] where T : notnull$$;",
+                "class [|C<T>(int a, int b)|] where T : notnull$$ { }")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
+            [CombinatorialValues("class", "struct")] string keyword,
+            [CombinatorialValues(
+                "class [|$$C(int a, int b)|];",
+                "class [|C$$(int a, int b)|];",
+                "class [|C$$<T>(int a, int b)|];",
+                "class [|C<$$T>(int a, int b)|];",
+                "class [|C<$$[A]T>(int a, int b)|];",
+                "class [|C<T>$$(int a, int b)|];",
+                "class [|C<T>($$int a, int b)|];",
+                "class [|C<T>($$[A]int a, int b)|];",
+                "class [|C<T>(int a, int b$$)|];")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
+            [CombinatorialValues("record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "record [|$$C|](int a, int b);",          // copy-ctor
+                "record [|C$$|](int a, int b);",          // copy-ctor
+                "record [|C$$<T>|](int a, int b);",       // copy-ctor
+                "record [|C<$$T>|](int a, int b);",       // copy-ctor
+                "record [|C<$$[A]T>|](int a, int b);",    // copy-ctor
+                "record [|C<T>$$|](int a, int b);",       // copy-ctor
+                "record C<T>([|$$int a|], int b);",       // property getter and setter
+                "record C<T>($$[A][|int a|], int b);",    // property getter and setter
+                "record C<T>($$   [A][|int a|], int b);", // property getter and setter
+                "record C<T>(int a, [|int b$$|]);",       // property getter and setter
+                "record C<T>(int a,  $$ [|int b|]);",     // property getter and setter
+                "record C<T>(int a, [|params int[] b|]  $$);",     // property getter and setter
+                "record C<T>(int a, [|int b|] = default$$);")] string source) // property getter and setter
+        {
+            TestSpan(source.Replace("record", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ImplicitBaseInitializer_NoBreakpoint(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class C;",
+                "$$class C;",
+                "class C$$;",
+                "class C;$$",
+                "class C(int a, int b);$$",
+                "class C(int a, int b) : B;$$",
+                "class C(int a, int b) : B { }$$")] string source)
+        {
+            TestMissing(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OutsideOfIdentifierAndNonEmptyParameters(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "$$[A]class C() : [|B()|];",
+                "$$class C() : [|B()|];",
+                "$$class C(int a) : [|B()|];",
+                "$$class C(int a, int b) : [|B()|];",
+                "class C(int a, int b)$$ : [|B()|];",
+                "class C(int a, int b) :$$ [|B()|];",
+                "class C(int a, int b) : [|$$B()|];",
+                "class C(int a, int b) : [|B($$)|];",
+                "class C(int a, int b) : [|B()$$|];",
+                "class C(int a, int b) : [|B()|] $$;",
+                "class C(int a, int b) : [|B()|] $$ {}",
+                "class C(int a, int b) : [|B()|], $$I {}",
+                "class C(int a, int b) : [|B()|], I$$ {}",
+                "class C<T>(int a, int b) : [|B()|] $$ where T : notnull;",
+                "class C<T>(int a, int b) : [|B()|], $$I where T : notnull { }",
+                "class C<T>(int a, int b) : [|B()|], I$$ where T : notnull { }",
+                "class C<T>(int a, int b) : [|B()|]  where $$T : notnull;",
+                "class C<T>(int a, int b) : [|B()|]  where T : notnull$$;",
+                "class C<T>(int a, int b) : [|B()|]  where T : notnull$$ { }")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_NonRecord(
+            [CombinatorialValues("class", "struct")] string keyword,
+            [CombinatorialValues(
+                "class $$C(int a, int b) : [|B()|];",
+                "class C$$(int a, int b) : [|B()|];",
+                "class C<$$[A]T>(int a, int b) : [|B()|];",
+                "class C<T>$$(int a, int b) : [|B()|];",
+                "class C<T>($$int a, int b) : [|B()|];",
+                "class C<T>(int a, $$int b) : [|B()|];",
+                "class C<T>(int a, int b =$$ 1) : [|B()|];")] string source)
+        {
+            TestSpan(source.Replace("class", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_OnIdentifierOrNonEmptyParameters_Record(
+            [CombinatorialValues("record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "record [|$$C|](int a, int b) : B();",        // copy-constructor
+                "record [|C$$|](int a, int b) : B();",        // copy-constructor
+                "record [|C<$$[A]T>|](int a, int b) : B();",  // copy-constructor
+                "record [|C<T>$$|](int a, int b) : B();",     // copy-constructor
+                "record C<T>([|$$int a|], int b) : B();",     // property getter and setter
+                "record C<T>(int a, [|$$int b|]) : B();",     // property getter and setter
+                "record C<T>(int a, [|$$int b|] = 1) : B();")] string source) // property getter and setter
+        {
+            TestSpan(source.Replace("record", keyword));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InstanceConstructor_Primary_ExplicitBaseInitializer_NoBreakpoint(
+            [CombinatorialValues("class", "struct", "record", "record struct")] string keyword,
+            [CombinatorialValues(
+                "class C(int a, int b) : B() {$$ }",
+                "class C(int a, int b) : B();$$",
+                "class C(int a, int b) : B() { }$$",
+                "class C(int a, int b) : B {$$ }",
+                "class C(int a, int b) : B(), I { }$$")] string source)
+        {
+            TestMissing(source.Replace("class", keyword));
         }
 
         [Fact]

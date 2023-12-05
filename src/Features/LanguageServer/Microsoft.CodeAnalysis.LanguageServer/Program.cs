@@ -5,17 +5,18 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -32,34 +33,28 @@ WindowsErrorReporting.SetErrorModeOnWindows();
 var parser = CreateCommandLineParser();
 return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
-static async Task RunAsync(
-    bool launchDebugger,
-    LogLevel minimumLogLevel,
-    string? starredCompletionPath,
-    string? telemetryLevel,
-    string? sessionId,
-    string? sharedDependenciesPath,
-    IEnumerable<string> extensionAssemblyPaths,
-    CancellationToken cancellationToken)
+static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
     // Before we initialize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
-        builder.SetMinimumLevel(minimumLogLevel);
+        builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
         builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
             // Add a console logger as a fallback for when the LSP server has not finished initializing.
             LoggerFactory.Create(builder =>
             {
-                builder.SetMinimumLevel(minimumLogLevel);
-                builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+                builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
+                builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
             })
         ));
     });
 
-    if (launchDebugger)
+    var logger = loggerFactory.CreateLogger<Program>();
+
+    if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -68,7 +63,6 @@ static async Task RunAsync(
         }
         else
         {
-            var logger = loggerFactory.CreateLogger<Program>();
             var timeout = TimeSpan.FromMinutes(1);
             logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
@@ -80,11 +74,19 @@ static async Task RunAsync(
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths, sharedDependenciesPath, loggerFactory);
+    logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
+
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
+
+    // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
+    Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
+
+    // Initialize the server configuration MEF exported value.
+    exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
 
     // Initialize the fault handler if it's available
     var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-    RoslynLogger.Initialize(telemetryReporter, telemetryLevel, sessionId);
+    RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
 
     // Create the workspace first, since right now the language server will assume there's at least one Workspace
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
@@ -97,13 +99,29 @@ static async Task RunAsync(
     await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(starredCompletionPath, loggerFactory, serviceBrokerFactory);
-
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
+
+    var (clientPipeName, serverPipeName) = CreateNewPipeNames();
+    var pipeServer = new NamedPipeServerStream(serverPipeName,
+        PipeDirection.InOut,
+        maxNumberOfServerInstances: 1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+
+    // Send the named pipe connection info to the client 
+    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
+
+    // Wait for connection from client
+    await pipeServer.WaitForConnectionAsync(cancellationToken);
+
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger);
     server.Start();
+
+    logger.LogInformation("Language server initialized");
 
     try
     {
@@ -149,6 +167,11 @@ static CliRootCommand CreateCommandLineParser()
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         Required = false,
     };
+    var extensionLogDirectoryOption = new CliOption<string>("--extensionLogDirectory")
+    {
+        Description = "The directory where we should write log files to",
+        Required = true,
+    };
 
     var sessionIdOption = new CliOption<string?>("--sessionId")
     {
@@ -178,6 +201,7 @@ static CliRootCommand CreateCommandLineParser()
         sessionIdOption,
         sharedDependenciesOption,
         extensionAssemblyPathsOption,
+        extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
@@ -188,10 +212,41 @@ static CliRootCommand CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
-        return RunAsync(launchDebugger, logLevel, starredCompletionsPath, telemetryLevel, sessionId, sharedDependenciesPath, extensionAssemblyPaths, cancellationToken);
+        var serverConfiguration = new ServerConfiguration(
+            LaunchDebugger: launchDebugger,
+            MinimumLogLevel: logLevel,
+            StarredCompletionsPath: starredCompletionsPath,
+            TelemetryLevel: telemetryLevel,
+            SessionId: sessionId,
+            SharedDependenciesPath: sharedDependenciesPath,
+            ExtensionAssemblyPaths: extensionAssemblyPaths,
+            ExtensionLogDirectory: extensionLogDirectory);
+
+        return RunAsync(serverConfiguration, cancellationToken);
     });
-
     return rootCommand;
 }
 
+static (string clientPipe, string serverPipe) CreateNewPipeNames()
+{
+    // On windows, .NET and Nodejs use different formats for the pipe name
+    const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
+    const string WINDOWS_DOTNET_PREFIX = @"\\.\";
+
+    // The pipe name constructed by some systems is very long (due to temp path).
+    // Shorten the unique id for the pipe. 
+    var newGuid = Guid.NewGuid().ToString();
+    var pipeName = newGuid.Split('-')[0];
+
+    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
+        : (GetUnixTypePipeName(pipeName), GetUnixTypePipeName(pipeName));
+}
+
+static string GetUnixTypePipeName(string pipeName)
+{
+    // Unix-type pipes are actually writing to a file
+    return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}

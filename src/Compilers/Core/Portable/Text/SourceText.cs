@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
+
+        /// <summary>
+        /// Backing store of <see cref="GetChecksum"/>
+        /// </summary>
         private ImmutableArray<byte> _lazyChecksum;
         private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
@@ -560,6 +564,27 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        /// <summary>
+        /// SHA1 or SHA256 checksum (determined by <see cref="ChecksumAlgorithm"/>.  Computed using the original bytes
+        /// that were used to produce this <see cref="SourceText"/> (if any of the <c>From</c> methods were used that
+        /// take a <c>byte[]</c> or <see cref="Stream"/>).  Otherwise, computed by writing this <see cref="SourceText"/>
+        /// back to a <see cref="Stream"/> (using the provided <see cref="Encoding"/>), and computing the hash off of
+        /// that.
+        /// </summary>
+        /// <remarks>
+        /// Two different <see cref="SourceText"/> instances with the same content (see <see cref="ContentEquals"/>) may
+        /// have different results for this method.  This is because different originating bytes may end up with the
+        /// same final content.  For example, a utf8 stream with a byte-order-mark will produce the same contents as a
+        /// utf8 stream without one.  However, these preamble bytes will be part of the checksum, leading to different
+        /// results.
+        /// <para/>
+        /// Similarly, two different <see cref="SourceText"/> instances with <em>different</em> contents can have the
+        /// same checksum in <em>normal</em> scenarios.  This is because the use of the <see cref="Encoding"/> can lead
+        /// to different characters being mapped to the same sequence of <em>encoded</em> bytes.
+        /// <para/>
+        /// As such, this function should only be used by clients who need to know the exact SHA hash from the original
+        /// content bytes, and for no other purposes. 
+        /// </remarks>
         public ImmutableArray<byte> GetChecksum()
         {
             if (_lazyChecksum.IsDefault)

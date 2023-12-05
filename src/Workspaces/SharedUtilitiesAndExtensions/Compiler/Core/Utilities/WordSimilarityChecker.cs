@@ -32,6 +32,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly bool _substringsAreSimilar;
 
+        public readonly bool IsDefault => _source is null;
+
         public WordSimilarityChecker(string text, bool substringsAreSimilar)
         {
             _source = text ?? throw new ArgumentNullException(nameof(text));
@@ -41,7 +43,12 @@ namespace Roslyn.Utilities
         }
 
         public readonly void Dispose()
-            => _editDistance.Dispose();
+        {
+            if (this.IsDefault)
+                return;
+
+            _editDistance.Dispose();
+        }
 
         public static bool AreSimilar(string originalText, string candidateText)
             => AreSimilar(originalText, candidateText, substringsAreSimilar: false);
@@ -156,5 +163,8 @@ namespace Roslyn.Utilities
 
             return 0;
         }
+
+        public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
+            => _lastAreSimilarResult.AreSimilar == areSimilar && _lastAreSimilarResult.CandidateText == candidateText;
     }
 }

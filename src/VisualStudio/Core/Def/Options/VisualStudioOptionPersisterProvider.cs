@@ -9,11 +9,14 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options
 {
@@ -21,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
     [Export(typeof(VisualStudioOptionPersisterProvider))]
     internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IVsService<ILocalRegistry4> _localRegistryService;
-        private readonly IVsService<ISettingsManager> _settingsManagerService;
-        private readonly IVsService<IVsFeatureFlags> _featureFlagsService;
+        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
 
         // maps config name to a read fallback:
@@ -36,16 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioOptionPersisterProvider(
-            IVsService<SLocalRegistry, ILocalRegistry4> localRegistryService,
-            IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
-            IVsService<SVsFeatureFlags, IVsFeatureFlags> featureFlagsService,
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
             IThreadingContext threadingContext,
             ILegacyGlobalOptionService legacyGlobalOptions)
         {
-            _localRegistryService = localRegistryService;
-            _settingsManagerService = settingsManagerService;
-            _featureFlagsService = featureFlagsService;
+            _serviceProvider = serviceProvider;
             _legacyGlobalOptions = legacyGlobalOptions;
             _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
             _lazyPersister = new Threading.AsyncLazy<IOptionPersister>(() => CreatePersisterAsync(threadingContext.DisposalToken), threadingContext.JoinableTaskFactory);
@@ -59,9 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
             // Obtain services before creating instances. This avoids state corruption in the event cancellation is
             // requested (some of the constructors register event handlers that could leak if cancellation occurred
             // in the middle of construction).
-            var settingsManager = await _settingsManagerService.GetValueAsync(cancellationToken).ConfigureAwait(true);
-            var localRegistry = await _localRegistryService.GetValueAsync(cancellationToken).ConfigureAwait(true);
-            var featureFlags = await _featureFlagsService.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+            var settingsManager = await GetFreeThreadedServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
+            Assumes.Present(settingsManager);
+            var localRegistry = await GetFreeThreadedServiceAsync<SLocalRegistry, ILocalRegistry4>().ConfigureAwait(false);
+            Assumes.Present(localRegistry);
+            var featureFlags = await GetFreeThreadedServiceAsync<SVsFeatureFlags, IVsFeatureFlags>().ConfigureAwait(false);
 
             // Cancellation is not allowed after this point
             cancellationToken = CancellationToken.None;
@@ -79,6 +78,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Options
                 // We may be updating the values of internally defined public options.
                 // Update solution snapshots of all workspaces to reflect the new values.
                 _legacyGlobalOptions.UpdateRegisteredWorkspaces();
+            }
+        }
+
+        /// <summary>
+        /// Returns a service without doing a transition to the UI thread to cast the service to the interface type. This should only be called for services that are
+        /// well-understood to be castable off the UI thread, either because they are managed or free-threaded COM.
+        /// </summary>
+        private async ValueTask<I?> GetFreeThreadedServiceAsync<T, I>() where I : class
+        {
+            try
+            {
+                return (I?)await _serviceProvider.GetServiceAsync(typeof(T)).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

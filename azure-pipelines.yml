@@ -80,9 +80,9 @@ variables:
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: OSX.1015.Amd64.Open
+      value: OSX.13.Amd64.Open
     ${{ else }}:
-      value: OSX.1015.Amd64
+      value: OSX.13.Amd64
 
 stages:
 - stage: Windows_Debug_Build

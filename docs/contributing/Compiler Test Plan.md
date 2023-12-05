@@ -37,13 +37,19 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- type declarations
+  - class with or without primary constructor
+  - record class/struct with or without positional members
+  - struct with or without primary constructor
+  - interface
+  - type parameter
 - file-local types
 - methods
+  - Primary constructors
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
-- Parameter modifiers (ref, out, in, params)
+- Parameter modifiers (ref, out, in, ref readonly, params)
 - Attributes (including generic attributes and security attributes)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
@@ -107,6 +113,7 @@ This document provides guidance for thinking about language interactions and tes
 - If you add a new expression form that requires spilling, test it in the catch filter.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
+- Inline array element access and slicing.
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -218,7 +225,8 @@ A variable is a storage location. These are all the different ways to refer to a
 - Formal param, out 
 - Local variable 
 - Pointer dereference 
-- __refvalue 
+- __refvalue
+- Inline array access
 
 ## Operators 
 
@@ -334,6 +342,7 @@ __makeref( x )
 - Implicit object creation (target-typed new)
 - Function type (in type inference comparing function types of lambdas or method groups)
 - UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
+- Inline arrays (conversions to Span and ReadOnlySpan)
 
 ## Types 
 

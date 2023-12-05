@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// Tells if accessing type of a member access expression is valid for that snippet
         /// </summary>
         /// <param name="type">Type of right-hand side of a member access expression</param>
-        protected abstract bool IsValidAccessingType(ITypeSymbol type);
+        /// <param name="compilation">Current compilation instance</param>
+        protected abstract bool IsValidAccessingType(ITypeSymbol type, Compilation compilation);
 
         /// <summary>
         /// Generate statement node
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         /// </summary>
         protected bool ConstructedFromInlineExpression { get; private set; }
 
-        protected sealed override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 var accessingType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
 
                 if (accessingType is not null)
-                    return IsValidAccessingType(accessingType);
+                    return IsValidAccessingType(accessingType, semanticModel.Compilation);
             }
 
             return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);

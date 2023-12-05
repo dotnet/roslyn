@@ -52,12 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         }
 
         protected override Cci.TypeMemberVisibility Visibility
-        {
-            get
-            {
-                return PEModuleBuilder.MemberVisibility(UnderlyingEvent.AdaptedEventSymbol);
-            }
-        }
+            => UnderlyingEvent.AdaptedEventSymbol.MetadataVisibility;
 
         protected override string Name
         {
@@ -77,12 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             foreach (var attrData in underlyingContainingType.GetAttributes())
             {
-                if (attrData.IsTargetAttribute(underlyingContainingType, AttributeDescription.ComEventInterfaceAttribute))
+                int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute);
+                if (signatureIndex == 0)
                 {
                     bool foundMatch = false;
                     NamedTypeSymbol sourceInterface = null;
 
-                    if (attrData.CommonConstructorArguments.Length == 2)
+                    DiagnosticInfo errorInfo = attrData.ErrorInfo;
+                    if (errorInfo is not null)
+                    {
+                        diagnostics.Add(errorInfo, syntaxNodeOpt?.Location ?? NoLocation.Singleton);
+                    }
+
+                    if (!attrData.HasErrors)
                     {
                         sourceInterface = attrData.CommonConstructorArguments[0].ValueInternal as NamedTypeSymbol;
 

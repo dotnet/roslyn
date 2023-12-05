@@ -341,25 +341,27 @@ namespace Microsoft.CodeAnalysis
 
         private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, TimeSpan? runTime = null, bool isInit = false)
         {
+            if (CodeAnalysisEventSource.Log.IsEnabled())
+            {
+                CodeAnalysisEventSource.Log.GeneratorException(generator.GetGeneratorType().Name, e.ToString());
+            }
+
             var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
 
-            // ISSUE: Diagnostics don't currently allow descriptions with arguments, so we have to manually create the diagnostic description
+            // ISSUE: We should not call `e.CreateDiagnosticDescription()`, and instead pass formattable parts like `StackTrace`.
             // ISSUE: Exceptions also don't support IFormattable, so will always be in the current UI Culture.
             // ISSUE: See https://github.com/dotnet/roslyn/issues/46939
-
-            var description = string.Format(provider.GetDescription(errorCode).ToString(CultureInfo.CurrentUICulture), e);
 
             var descriptor = new DiagnosticDescriptor(
                 provider.GetIdForErrorCode(errorCode),
                 provider.GetTitle(errorCode),
                 provider.GetMessageFormat(errorCode),
-                description: description,
                 category: "Compiler",
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message, e.CreateDiagnosticDescription());
             var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
 
             if (filtered is not null)

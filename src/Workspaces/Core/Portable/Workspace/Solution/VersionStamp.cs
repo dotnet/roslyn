@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// VersionStamp should be only used to compare versions returned by same API.
     /// </summary>
-    public readonly struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
+    public readonly struct VersionStamp : IEquatable<VersionStamp>
     {
         public static VersionStamp Default => default;
 
@@ -186,11 +186,6 @@ namespace Microsoft.CodeAnalysis
 
             return baseVersion._utcLastModified == persistedVersion._utcLastModified;
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-            => WriteTo(writer);
 
         internal void WriteTo(ObjectWriter writer)
         {

@@ -270,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
                 Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
                                                                                      includeSuppressedDiagnostics:=False,
+                                                                                     includeLocalDocumentDiagnostics:=True,
                                                                                      includeNonLocalDocumentDiagnostics:=True,
                                                                                      CancellationToken.None).Result
 

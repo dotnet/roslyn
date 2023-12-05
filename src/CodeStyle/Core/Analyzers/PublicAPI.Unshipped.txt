@@ -31,7 +31,6 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Struct = 3 -> Microsoft.
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Variable = 21 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.DeclarationModifiers() -> void
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAbstract.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAsync.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsConst.get -> bool
@@ -98,3 +97,4 @@ static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Virtual.get 
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithEvents.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WriteOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers other) -> bool

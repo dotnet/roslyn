@@ -14,14 +14,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
+    internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
             SyntaxNode syntax,
+            TextSpan textSpan,
             SemanticModel semanticModel,
             ClassificationOptions options,
             SegmentedList<ClassifiedSpan> result,
@@ -60,8 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
                 TryClassifyFromIdentifier(name, symbolInfo, result) ||
                 TryClassifyValueIdentifier(name, symbolInfo, result) ||
-                TryClassifyNameOfIdentifier(name, symbolInfo, result) ||
-                TryClassifyAsyncIdentifier(name, symbolInfo, result);
+                TryClassifySomeContextualKeywordIdentifiersAsKeywords(name, symbolInfo, result);
         }
 
         private bool TryClassifySymbol(
@@ -347,30 +348,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private static bool TryClassifyNameOfIdentifier(
-            NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+        private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
         {
-            if (name is IdentifierNameSyntax identifierName &&
-                identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword) &&
-                symbolInfo.GetAnySymbol() is null)
-            {
-                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool TryClassifyAsyncIdentifier(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
-        {
-            var symbol = symbolInfo.GetAnySymbol();
-
-            // Simple approach, if the user ever types 'async' and it doesn't actually bind to anything, presume that
-            // they intend to use it as a keyword and are about to create an async symbol.  This works for all error
-            // cases, while not conflicting with the extremely rare case where 'async' might actually be used to
-            // reference an actual symbol with that name.
-            if (symbol is null &&
-                name is IdentifierNameSyntax { Identifier.Text: "async" })
+            // Simple approach, if the user ever types one of identifiers from the list and it doesn't actually bind to anything, presume that
+            // they intend to use it as a keyword. This works for all error
+            // cases, while not conflicting with the extremely rare case where such identifiers might actually be used to
+            // reference actual symbols with that names.
+            if (symbolInfo.GetAnySymbol() is null &&
+                name is IdentifierNameSyntax { Identifier.Text: "async" or "nameof" or "partial" })
             {
                 result.Add(new(name.Span, ClassificationTypeNames.Keyword));
                 return true;

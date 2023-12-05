@@ -250,13 +250,13 @@ record struct Point(int x, int y);
 
             var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,13): error CS8773: Feature 'primary constructors' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS9113: Parameter 'x' is unread.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 13),
+                // 0.cs(2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS9113: Parameter 'y' is unread.
+                // 0.cs(2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
@@ -275,13 +275,13 @@ record struct Point(int x, int y);
 
             comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,13): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // 0.cs(2,13): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
                 // struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(2, 13),
-                // (2,18): warning CS9113: Parameter 'x' is unread.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(2, 13),
+                // 0.cs(2,18): warning CS9113: Parameter 'x' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(2, 18),
-                // (2,25): warning CS9113: Parameter 'y' is unread.
+                // 0.cs(2,25): warning CS9113: Parameter 'y' is unread.
                 // struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "y").WithArguments("y").WithLocation(2, 25)
                 );
@@ -322,9 +322,9 @@ namespace NS
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,17): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,17): error CS8773: Feature 'primary constructors' is not available in C# 9.0. Please use language version 12.0 or greater.
                 //     struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("primary constructors").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x, int y)").WithArguments("primary constructors", "12.0").WithLocation(4, 17),
                 // (4,22): warning CS9113: Parameter 'x' is unread.
                 //     struct Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "x").WithArguments("x").WithLocation(4, 22),

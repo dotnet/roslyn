@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //
             // Full events are grouped together with event field definitions in Metadata as Source.
             var compressEmptyLines = options.IsMetadataAsSource
-                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.EventDeclaration) || nextSibling.IsKind(SyntaxKind.EventFieldDeclaration));
+                && (!nextSibling.IsNode || nextSibling.Kind() is SyntaxKind.EventDeclaration or SyntaxKind.EventFieldDeclaration);
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 eventDeclaration,

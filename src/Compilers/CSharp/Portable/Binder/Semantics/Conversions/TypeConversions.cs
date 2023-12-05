@@ -6,9 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -56,6 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Conversions involving interpolated strings require a Binder.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        protected override Conversion GetCollectionExpressionConversion(BoundUnconvertedCollectionExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // Conversions involving collection expressions require a Binder.
             throw ExceptionUtilities.Unreachable();
         }
 

@@ -1263,27 +1263,15 @@ public sealed class ExtensionParsingTests : ParsingTests
             // (1,27): error CS1001: Identifier expected
             // explicit extension C(int i) for UnderlyingType { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 27),
-            // (1,27): error CS1002: ; expected
+            // (1,27): error CS1003: Syntax error, ',' expected
             // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 27),
-            // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 27),
+            // (1,50): error CS1002: ; expected
             // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 27),
-            // (1,33): error CS1003: Syntax error, '(' expected
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 50),
+            // (1,50): error CS1022: Type or namespace definition, or end-of-file expected
             // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "UnderlyingType").WithArguments("(").WithLocation(1, 33),
-            // (1,48): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 48),
-            // (1,48): error CS1525: Invalid expression term '{'
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 48),
-            // (1,48): error CS1002: ; expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 48),
-            // (1,48): error CS1026: ) expected
-            // explicit extension C(int i) for UnderlyingType { }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(1, 48)
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 50)
             );
 
         N(SyntaxKind.CompilationUnit);
@@ -1328,30 +1316,6 @@ public sealed class ExtensionParsingTests : ParsingTests
                         }
                     }
                     M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.ForStatement);
-                {
-                    N(SyntaxKind.ForKeyword);
-                    M(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "UnderlyingType");
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.IdentifierName);
-                    {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                    M(SyntaxKind.CloseParenToken);
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
                 }
             }
             N(SyntaxKind.EndOfFileToken);
@@ -2993,12 +2957,12 @@ explicit extension X
             // (1,13): error CS1003: Syntax error, ',' expected
             // extension X for int { X() { } }
             Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments(",").WithLocation(1, 13),
-            // (1,25): error CS1002: ; expected
+            // (1,29): error CS1002: ; expected
             // extension X for int { X() { } }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 25),
-            // (1,25): error CS1022: Type or namespace definition, or end-of-file expected
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 29),
+            // (1,29): error CS1022: Type or namespace definition, or end-of-file expected
             // extension X for int { X() { } }
-            Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(1, 25),
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 29),
             // (1,31): error CS1022: Type or namespace definition, or end-of-file expected
             // extension X for int { X() { } }
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 31)
@@ -3022,14 +2986,6 @@ explicit extension X
                         }
                     }
                     M(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.Block);
-                {
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             N(SyntaxKind.EndOfFileToken);

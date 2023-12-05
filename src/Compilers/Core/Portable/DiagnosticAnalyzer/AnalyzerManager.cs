@@ -371,6 +371,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
                 }
+                else if (diag.IsCustomSeverityConfigurable())
+                {
+                    // Analyzer supports custom ways for configuring diagnostic severity that may not be understood by the compiler.
+                    // We always consider such analyzers to be non-suppressed. Analyzer is responsible for bailing out early if
+                    // it has been suppressed by some custom configuration.
+                    return false;
+                }
 
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
@@ -379,9 +386,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Compilation wide user settings (diagnosticOptions) from ruleset/nowarn/warnaserror overrides the analyzer author and global editorconfig settings.
                 // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
                 // which should not alter 'isSuppressed'.
-                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
-                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, cancellationToken, out severity)) &&
-                    severity != ReportDiagnostic.Default)
+                if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) && severity != ReportDiagnostic.Default) ||
+                    (options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, cancellationToken, out severity)))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
@@ -423,11 +429,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return true;
         }
 
-        internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)
+        internal static bool HasCompilerOrNotConfigurableTagOrCustomConfigurableTag(ImmutableArray<string> customTags)
         {
             foreach (var customTag in customTags)
             {
-                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable)
+                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable or WellKnownDiagnosticTags.CustomSeverityConfigurable)
                 {
                     return true;
                 }
@@ -437,10 +443,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal static bool HasNotConfigurableTag(ImmutableArray<string> customTags)
+            => HasCustomTag(customTags, WellKnownDiagnosticTags.NotConfigurable);
+
+        internal static bool HasCustomSeverityConfigurableTag(ImmutableArray<string> customTags)
+            => HasCustomTag(customTags, WellKnownDiagnosticTags.CustomSeverityConfigurable);
+
+        private static bool HasCustomTag(ImmutableArray<string> customTags, string tagToFind)
         {
             foreach (var customTag in customTags)
             {
-                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
+                if (customTag == tagToFind)
                 {
                     return true;
                 }

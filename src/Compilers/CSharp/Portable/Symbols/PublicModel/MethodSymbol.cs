@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return InterlockedOperations.InterlockedInitialize(
+                return InterlockedOperations.Initialize(
                     ref _lazyTypeArguments,
                     static underlying => underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(),
                     _underlying);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return InterlockedOperations.InterlockedInitialize(
+                return InterlockedOperations.Initialize(
                     ref _lazyParameters,
                     static underlying => underlying.Parameters.GetPublicSymbols(),
                     _underlying);

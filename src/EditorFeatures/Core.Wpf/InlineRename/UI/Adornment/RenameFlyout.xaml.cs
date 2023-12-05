@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
@@ -26,12 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IWpfTextView _textView;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
 
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
             IWpfTextView textView,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
@@ -41,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
+            _threadingContext = threadingContext;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -54,6 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             };
 
             InitializeComponent();
+
+            // If smart rename is available, insert the control after the identifier text box.
+            if (viewModel.SmartRenameViewModel is not null)
+            {
+                var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
+                var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
+                MainPanel.Children.Insert(index + 1, smartRenameControl);
+            }
 
             if (themeService is not null)
             {
@@ -209,12 +222,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            // When user is editing the text or make selection change in the text box, sync the selection with text view
+            if (!this.IdentifierTextBox.IsFocused)
+            {
+                return;
+            }
+
             var start = IdentifierTextBox.SelectionStart;
             var length = IdentifierTextBox.SelectionLength;
 
             var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
             var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
             _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
+        }
+
+        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // When smart rename is available, allow the user choose the suggestions using the up/down keys.
+            _threadingContext.ThrowIfNotOnUIThread();
+            var smartRenameViewModel = _viewModel.SmartRenameViewModel;
+            if (smartRenameViewModel is not null)
+            {
+                var currentIdentifier = IdentifierTextBox.Text;
+                if (e.Key is Key.Down or Key.Up)
+                {
+                    var newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: e.Key == Key.Down);
+                    if (newIdentifier is not null)
+                    {
+                        _viewModel.IdentifierText = newIdentifier;
+                        // Place the cursor at the end of the input text box.
+                        IdentifierTextBox.Select(newIdentifier.Length, 0);
+                        e.Handled = true;
+                    }
+                }
+            }
         }
     }
 }

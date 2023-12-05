@@ -33,27 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void Analyze(CSharpCompilation compilation, MethodSymbol symbol, ImmutableArray<BoundInitializer> fieldAndPropertyInitializers, BindingDiagnosticBag diagnostics)
-        {
-            var visitor = new RefSafetyAnalysis(
-                compilation,
-                symbol,
-                inUnsafeRegion: InUnsafeMethod(symbol),
-                useUpdatedEscapeRules: symbol.ContainingModule.UseUpdatedEscapeRules,
-                diagnostics);
-            foreach (var initializer in fieldAndPropertyInitializers)
-            {
-                try
-                {
-                    visitor.VisitFieldOrPropertyInitializer(initializer);
-                }
-                catch (CancelledByStackGuardException e)
-                {
-                    e.AddAnError(diagnostics);
-                }
-            }
-        }
-
         private static bool InUnsafeMethod(Symbol symbol)
         {
             if (symbol is SourceMemberMethodSymbol { IsUnsafe: true })
@@ -309,17 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private void VisitFieldOrPropertyInitializer(BoundInitializer initializer)
+        public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
         {
-            var fieldEqualsValue = (BoundFieldEqualsValue)initializer;
-            var field = fieldEqualsValue.Field;
-            var value = fieldEqualsValue.Value;
-
-            using var _ = new LocalScope(this, fieldEqualsValue.Locals);
-
-            Visit(value);
-
-            ValidateEscape(value, CallingMethodScope, isByRef: field.RefKind != RefKind.None, _diagnostics);
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
@@ -663,6 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitArguments(BoundCall node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
@@ -672,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -777,6 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         constructor,
                         receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructor.Parameters,
                         node.Arguments,
                         node.ArgumentRefKindsOpt,
@@ -787,8 +761,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             Visit(node.ReceiverOpt);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
@@ -799,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     indexer,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -821,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     receiverOpt: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -921,6 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 deconstructMethod,
                 invocation.ReceiverOpt,
+                invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
                 invocation.Arguments,
                 invocation.ArgumentRefKindsOpt,
@@ -1011,6 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionEscape = GetInvocationEscapeScope(
                     equivalentSignatureMethod,
                     receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     equivalentSignatureMethod.Parameters,
                     arguments,
                     refKinds,

@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case MethodKind.PropertyGet, MethodKind.PropertySet
                         ' As in dev11, this warning is not produced for event accessors.
                         For Each attribute In symbol.GetAttributes()
-                            If attribute.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                            If attribute.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) Then
                                 Dim attributeLocation As Location = Nothing
                                 If TryGetAttributeWarningLocation(attribute, attributeLocation) Then
                                     Dim attributeUsage As AttributeUsageInfo = attribute.AttributeClass.GetAttributeUsageInfo()
@@ -760,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isAttributeInherited = False
             For Each attributeData In symbol.GetAttributes()
                 ' Check signature before HasErrors to avoid realizing symbols for other attributes.
-                If attributeData.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute) Then
+                If attributeData.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute) Then
                     Dim attributeClass = attributeData.AttributeClass
                     If attributeClass IsNot Nothing Then
                         _diagnostics.ReportUseSite(attributeClass, If(symbol.Locations.IsEmpty, NoLocation.Singleton, symbol.Locations(0)))

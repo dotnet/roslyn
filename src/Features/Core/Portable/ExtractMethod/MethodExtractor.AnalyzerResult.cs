@@ -9,14 +9,14 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    internal abstract partial class MethodExtractor
+    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
     {
-        protected class AnalyzerResult(
-            SemanticDocument document,
+        protected sealed class AnalyzerResult(
             IEnumerable<ITypeParameterSymbol> typeParametersInDeclaration,
             IEnumerable<ITypeParameterSymbol> typeParametersInConstraintList,
             ImmutableArray<VariableInfo> variables,
@@ -32,27 +32,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
             private readonly ImmutableArray<VariableInfo> _variables = variables;
             private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
-
-            public AnalyzerResult With(SemanticDocument document)
-            {
-                if (SemanticDocument == document)
-                {
-                    return this;
-                }
-
-                return new AnalyzerResult(
-                    document,
-                    _typeParametersInDeclaration,
-                    _typeParametersInConstraintList,
-                    _variables,
-                    _variableToUseAsReturnValue,
-                    ReturnType,
-                    AwaitTaskReturn,
-                    UseInstanceMember,
-                    ShouldBeReadOnly,
-                    EndOfSelectionReachable,
-                    Status);
-            }
 
             /// <summary>
             /// used to determine whether static can be used
@@ -70,11 +49,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
 
             /// <summary>
-            /// document this result is based on
-            /// </summary>
-            public SemanticDocument SemanticDocument { get; } = document;
-
-            /// <summary>
             /// flag to show whether task return type is due to await
             /// </summary>
             public bool AwaitTaskReturn { get; } = awaitTaskReturn;
@@ -88,6 +62,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// analyzer result operation status
             /// </summary>
             public OperationStatus Status { get; } = status;
+
+            public ImmutableArray<VariableInfo> Variables => _variables;
 
             public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
             {
@@ -161,6 +137,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
                                                  DeclarationBehavior.MoveOut);
+            }
+
+            public VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            {
+                using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
+                variables.AddRange(this.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
+                if (variables.Count <= 0)
+                    return null;
+
+                return variables.Min();
             }
         }
     }

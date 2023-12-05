@@ -47,14 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get
-            {
-                return UnderlyingMethod.IsGenericMethod;
-            }
-        }
-
         ushort Cci.ISignature.ParameterCount
         {
             get
