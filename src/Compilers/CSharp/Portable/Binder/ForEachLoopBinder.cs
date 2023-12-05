@@ -1204,11 +1204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argsToParams = default(ImmutableArray<int>);
                     bool expanded = patternDisposeMethod.HasParamsParameter();
 
-                    BindDefaultArguments(
+                    BindDefaultArgumentsAndParamsArray(
                         syntax,
                         patternDisposeMethod.Parameters,
                         argsBuilder,
                         argumentRefKindsBuilder: null,
+                        namesBuilder: null,
                         ref argsToParams,
                         out BitVector defaultArguments,
                         expanded,
@@ -1216,7 +1217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
 
                     builder.NeedsDisposal = true;
-                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+                    Debug.Assert(argsToParams.IsDefault);
+                    builder.PatternDisposeInfo = new MethodArgumentInfo(patternDisposeMethod, argsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
 
                     if (!isAsync)
                     {
@@ -1427,18 +1429,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var argsToParams = overloadResolutionResult.ValidResult.Result.ArgsToParamsOpt;
                     var expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                    BindDefaultArguments(
+                    BindDefaultArgumentsAndParamsArray(
                         syntax,
                         result.Parameters,
                         analyzedArguments.Arguments,
                         analyzedArguments.RefKinds,
+                        analyzedArguments.Names,
                         ref argsToParams,
                         out BitVector defaultArguments,
                         expanded,
                         enableCallerInfo: true,
                         diagnostics);
 
-                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), argsToParams, defaultArguments, expanded);
+                    Debug.Assert(argsToParams.IsDefault);
+                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), defaultArguments, expanded);
                 }
             }
             else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)
@@ -1877,11 +1881,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<int> argsToParams = default;
-            BindDefaultArguments(
+            BindDefaultArgumentsAndParamsArray(
                 syntax,
                 method.Parameters,
                 argsBuilder,
                 argumentRefKindsBuilder: null,
+                namesBuilder: null,
                 ref argsToParams,
                 defaultArguments: out BitVector defaultArguments,
                 expanded,
@@ -1889,7 +1894,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 assertMissingParametersAreOptional);
 
-            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
+            Debug.Assert(argsToParams.IsDefault);
+            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
         }
     }
 }

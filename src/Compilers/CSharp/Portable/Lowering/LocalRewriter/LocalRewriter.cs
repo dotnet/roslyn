@@ -245,7 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? type = node.Type;
                 if (type?.IsNullableType() != true)
                 {
-                    return MakeLiteral(node.Syntax, constantValue, type);
+                    var result = MakeLiteral(node.Syntax, constantValue, type);
+
+                    if (node.WasCompilerGenerated)
+                    {
+                        result.MakeCompilerGenerated();
+                    }
+
+                    return result;
                 }
             }
 

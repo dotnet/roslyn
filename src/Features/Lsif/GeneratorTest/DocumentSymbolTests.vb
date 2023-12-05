@@ -51,6 +51,29 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Next
         End Function
 
+        ''' <summary>
+        ''' This tests symbols that might be considered "definitions" in the C#/Roslyn sense, but don't make sense to emit as a document symbol.
+        ''' </summary>
+        <Theory>
+        <InlineData("class C { (int [|A|], int B) tuple; }")>
+        <InlineData("class C { ((int A, int B) [|A|], int B) nestedTuple; }")>
+        <InlineData("class C { object o = new { [|AnonymousTypeField|] = 42 }; }")>
+        Public Async Function TestIsNotDefinition(code As String) As Task
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
+                <Workspace>
+                    <Project Language="C#" FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                        <Document Name="A.cs" FilePath="Z:\A.cs">
+                            <%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+            ' Assert the specific range is what we expected
+            Dim selectedRange = Await lsif.GetSelectedRangeAsync()
+            Assert.NotNull(selectedRange)
+            Assert.Null(selectedRange.Tag)
+        End Function
+
         Private Shared Function GetDocumentSymbolRangeIds(result As List(Of RangeBasedDocumentSymbol)) As IEnumerable(Of Id(Of Range))
             If result Is Nothing Then
                 Return Array.Empty(Of Id(Of Range))

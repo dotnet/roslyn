@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             var syntaxTree = semanticModel.SyntaxTree;
 
             var preference = context.GetCSharpAnalyzerOptions().PreferMethodGroupConversion;
-            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            if (ShouldSkipAnalysis(context, preference.Notification))
             {
                 // User doesn't care about this rule.
                 return;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 syntaxTree.GetLocation(startReportSpan),
-                preference.Notification.Severity,
+                preference.Notification,
                 additionalLocations: ImmutableArray.Create(anonymousFunction.GetLocation()),
                 additionalUnnecessaryLocations: ImmutableArray.Create(
                     syntaxTree.GetLocation(startReportSpan),

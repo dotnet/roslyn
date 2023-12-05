@@ -30,10 +30,11 @@ public sealed class DocumentOptionSetTests
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 
         // option stored in analyzer config:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        var internalCodeStyleOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning.WithIsExplicitlySpecified(true));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // cache hit:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // option stored in underlying config:
         Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Error), set.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp));

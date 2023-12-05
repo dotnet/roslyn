@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             _incrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                 EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
                 useIncrementMessage, useIncrementMessage);
 
             var useDecrementMessage = new LocalizableResourceString(
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             _decrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                 EnforceOnBuildValues.UseCompoundAssignment,
+                hasAnyCodeStyleOption: true,
                 useDecrementMessage, useDecrementMessage);
         }
 
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             var syntaxTree = assignment.SyntaxTree;
             var option = context.GetAnalyzerOptions().PreferCompoundAssignment;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // Bail immediately if the user has disabled this feature.
                 return;
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             _incrementDescriptor,
                             assignmentToken.GetLocation(),
-                            option.Notification.Severity,
+                            option.Notification,
                             additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                             properties: ImmutableDictionary.Create<string, string?>()
                                 .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             _decrementDescriptor,
                             assignmentToken.GetLocation(),
-                            option.Notification.Severity,
+                            option.Notification,
                             additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                             properties: ImmutableDictionary.Create<string, string?>()
                                 .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 assignmentToken.GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
                 properties: null));
         }

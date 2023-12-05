@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         internal async Task VerifyChecksumInServiceAsync(Checksum checksum, WellKnownSynchronizationKind kind)
         {
-            Assert.NotNull(checksum);
+            Assert.True(checksum != Checksum.Null);
             var otherObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);

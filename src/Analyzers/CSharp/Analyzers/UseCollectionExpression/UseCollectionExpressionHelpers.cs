@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,9 +25,20 @@ internal static class UseCollectionExpressionHelpers
 {
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
+    private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
+        // Not relevant.  We are not comparing method signatures.
+        distinguishRefFromOut: true,
+        // Not relevant.  We are not comparing method signatures.
+        objectAndDynamicCompareEqually: false,
+        // The value we're tweaking.
+        tupleNamesMustMatch: false,
+        // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
+        ignoreNullableAnnotations: false);
+
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
         ExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         bool skipVerificationForReplacedNode,
         CancellationToken cancellationToken)
     {
@@ -54,6 +66,9 @@ internal static class UseCollectionExpressionHelpers
             return false;
 
         if (!IsConstructibleCollectionType(originalTypeInfo.ConvertedType.OriginalDefinition))
+            return false;
+
+        if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
             return false;
 
         // Conservatively, avoid making this change if the original expression was itself converted. Consider, for
@@ -210,6 +225,10 @@ internal static class UseCollectionExpressionHelpers
             {
                 return IsSafeConversionOfArrayToSpanType(semanticModel, expression, cancellationToken);
             }
+
+            // Allow tuple names to be different.  Because we are target typing the names can be picked up by the target type.
+            if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
+                return true;
 
             // Add more cases to support here.
             return false;
@@ -478,6 +497,7 @@ internal static class UseCollectionExpressionHelpers
             CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement),
             AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression),
             BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression),
+            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression),
             ArgumentSyntax or AttributeArgumentSyntax => true,
             ReturnStatementSyntax => true,
             ArrowExpressionClauseSyntax => true,
@@ -504,6 +524,9 @@ internal static class UseCollectionExpressionHelpers
             else
                 return false;
         }
+
+        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
 
         bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {
@@ -674,6 +697,7 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        INamedTypeSymbol? expressionType,
         Func<TArrayCreationExpressionSyntax, TypeSyntax> getType,
         Func<TArrayCreationExpressionSyntax, InitializerExpressionSyntax?> getInitializer,
         CancellationToken cancellationToken)
@@ -777,7 +801,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, skipVerificationForReplacedNode: true, cancellationToken))
+                semanticModel, expression, expressionType, skipVerificationForReplacedNode: true, cancellationToken))
         {
             return default;
         }

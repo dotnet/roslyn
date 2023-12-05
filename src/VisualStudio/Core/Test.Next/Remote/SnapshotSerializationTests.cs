@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.NotNull(checksum);
+            Assert.True(checksum != Checksum.Null);
         }
 
         [Fact]
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath)
+            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
                 => throw new FileNotFoundException(fullPath);
         }
 

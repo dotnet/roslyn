@@ -3781,17 +3781,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The constructor is implicit. We need to get the binder for the body
                 // of the enclosing class.
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
-                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is TypeDeclarationSyntax typeDecl)
+                if (containerNode is CompilationUnitSyntax)
                 {
-                    outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
+                    // Must be a source of top level statements with a partial type declaration
+                    // that specifies a non-object base. The object base is handled above.
+                    // We need an actual TypeDeclarationSyntax in order to locate the correct binder for this case.
+                    containerNode = containingType.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<TypeDeclarationSyntax>().First();
                 }
-                else
-                {
-                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
-                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
-                }
+
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+                outerBinder = binderFactory.GetInTypeBodyBinder((TypeDeclarationSyntax)containerNode);
             }
             else
             {
@@ -3821,11 +3821,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
-        }
-
-        private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
-        {
-            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
         internal static BoundCall? GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, BindingDiagnosticBag diagnostics)
