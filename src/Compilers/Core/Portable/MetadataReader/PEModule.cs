@@ -1238,6 +1238,19 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        /// <summary>
+        /// Same order of priority as <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
+        /// </summary>
+        static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind oldKind, ObsoleteAttributeKind newKind)
+        {
+            if (oldKind is ObsoleteAttributeKind.Deprecated)
+                return true;
+            if (newKind is ObsoleteAttributeKind.Deprecated)
+                return false;
+
+            return false;
+        }
+
         internal ObsoleteAttributeData? TryDecodeExperimentalAttributeData(EntityHandle handle, IAttributeNamedArgumentDecoder decoder)
         {
             var info = FindTargetAttribute(handle, AttributeDescription.ExperimentalAttribute);
