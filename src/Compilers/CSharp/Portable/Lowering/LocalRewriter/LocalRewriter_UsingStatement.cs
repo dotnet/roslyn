@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _sawAwaitInExceptionHandler = true;
 
                     TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
-                    disposeCall = RewriteAwaitExpression(resourceSyntax, disposeCall, awaitOpt, awaitExpressionType, false);
+                    disposeCall = RewriteAwaitExpression(resourceSyntax, disposeCall, awaitOpt, awaitExpressionType, debugInfo: default, used: false);
                 }
             }
 
@@ -517,7 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: default,
                 expanded: methodArgumentInfo.Expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
-                methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType,
                 temps: null);

@@ -193,7 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </param>
             private async Task<VoidResult> RecomputeTagsAsync(bool highPriority, CancellationToken cancellationToken)
             {
-                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+                if (cancellationToken.IsCancellationRequested)
+                    return default;
 
                 // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
                 // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
@@ -247,7 +249,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
+                    if (cancellationToken.IsCancellationRequested)
+                        return default;
 
                     // Once we assign our state, we're uncancellable.  We must report the changed information
                     // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
@@ -389,7 +393,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
             {
-                var snapshot = spansToInvalidate.First().Snapshot;
+                var firstSpanToInvalidate = spansToInvalidate.First();
+                var snapshot = firstSpanToInvalidate.Snapshot;
+
+                // Performance: No need to fully realize spansToInvalidate or do any of the calculations below if the
+                //   full snapshot is being invalidated.
+                if (firstSpanToInvalidate.Length == snapshot.Length)
+                    return Array.Empty<ITagSpan<TTag>>();
 
                 return oldTagTree.GetSpans(snapshot).Except(
                     spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
@@ -561,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tags;
             }
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
+            public void AddTags(NormalizedSnapshotSpanCollection requestedSpans, SegmentedList<ITagSpan<TTag>> tags)
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -570,14 +580,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ResumeIfVisible();
 
                 if (requestedSpans.Count == 0)
-                    return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                    return;
 
                 var buffer = requestedSpans.First().Snapshot.TextBuffer;
-                var tags = this.TryGetTagIntervalTreeForBuffer(buffer);
+                var tagIntervalTree = this.TryGetTagIntervalTreeForBuffer(buffer);
 
-                return tags == null
-                    ? SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>()
-                    : tags.GetIntersectingTagSpans(requestedSpans);
+                tagIntervalTree?.AddIntersectingTagSpans(requestedSpans, tags);
             }
         }
     }

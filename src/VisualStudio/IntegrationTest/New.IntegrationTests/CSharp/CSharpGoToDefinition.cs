@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -167,7 +168,7 @@ class C
             Assert.Equal(1, actual.Count(s => s.Collapsed));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/70376")]
         public async Task GoToDefinitionFromMetadataSecondHop()
         {
             await TestServices.SolutionExplorer.AddDllReferenceAsync(ProjectName, typeof(CSharpGoToDefinition).Assembly.Location, HangMitigatingCancellationToken);

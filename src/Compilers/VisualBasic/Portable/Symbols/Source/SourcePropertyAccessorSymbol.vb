@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             If arguments.SymbolPart = AttributeLocation.None Then
-                If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
+                If arguments.Attribute.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) Then
                     arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().IsPropertyAccessorWithDebuggerHiddenAttribute = True
                 End If
             End If

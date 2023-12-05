@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         internal sealed override bool IsFileLocal => false;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => null;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
@@ -339,6 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
+
         internal sealed override bool HasInlineArrayAttribute(out int length)
         {
             length = 0;
@@ -350,6 +356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             builderType = null;
             methodName = null;
+            return false;
+        }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
             return false;
         }
 #nullable disable

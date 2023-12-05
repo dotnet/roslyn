@@ -685,10 +685,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
-            compilation.VerifyDiagnostics(
-                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
+            compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -11917,6 +11914,32 @@ class B : A
                 //         F<object>(default);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
+        public void IsStandardImplicitConversion_NullLiteral()
+        {
+            var source = """
+                class C
+                {
+                    void M(S? s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+
+                readonly struct S
+                {
+                    public static implicit operator S(bool? x) => default;
+                    public static bool operator ==(S left, S right) => false;
+                    public static bool operator !=(S left, S right) => true;
+                    public override bool Equals(object obj) => false;
+                    public override int GetHashCode() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

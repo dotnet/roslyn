@@ -124,6 +124,55 @@ public class UseCollectionExpressionForCreateTests
     }
 
     [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (MyCollection<int>)[|MyCollection.[|Create|]<int>(|]);
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        var i = (MyCollection<int>)[];
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using X = MyCollection<int>;
+
+                class C
+                {
+                    void M()
+                    {
+                        var i = (X)MyCollection.Create<int>();
+                    }
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestOneElement()
     {
         await new VerifyCS.Test
@@ -772,11 +821,8 @@ public class UseCollectionExpressionForCreateTests
             FixedCode = """
                 class C
                 {
-                    MyCollection<int> i =
-                    [
-                        1 +
-                            2,
-                    ];
+                    MyCollection<int> i = [1 +
+                        2];
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -1007,6 +1053,133 @@ public class UseCollectionExpressionForCreateTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task TestWithDifferentNewLines(string endOfLine)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [|ImmutableArray.[|Create|](|]ImmutableArray.Create(1, 2, 3));
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
+            FixedCode = """
+                using System;
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        ImmutableArray<ImmutableArray<int>> v = [[1, 2, 3]];
+                    }
+                }
+                """.ReplaceLineEndings(endOfLine),
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            NumberOfFixAllIterations = 2,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<ImmutableArray<int>> f = () => [|ImmutableArray.[|Create|](|]1, 2, 3);
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<ImmutableArray<int>> f = () => [1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        var f = () => ImmutableArray.Create(1, 2, 3);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        Expression<Func<ImmutableArray<int>>> f = () => ImmutableArray.Create(1, 2, 3);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

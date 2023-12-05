@@ -9,10 +9,13 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -23,15 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
+        private readonly IEditorFormatMap _editorFormatMap;
         private readonly IWpfTextView _textView;
+        private readonly IWpfThemeService? _wpfThemeService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
 
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
             IWpfTextView textView,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IEditorFormatMapService editorFormatMapService,
+            IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
@@ -41,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
+            _threadingContext = threadingContext;
+            _wpfThemeService = themeService;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -55,11 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             InitializeComponent();
 
-            if (themeService is not null)
+            // If smart rename is available, insert the control after the identifier text box.
+            if (viewModel.SmartRenameViewModel is not null)
             {
-                Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
-                Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+                var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
+                var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
+                MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
+
+            RefreshColors();
+
+            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
             // from showing up again, so if a user has the mouse unmoved another
@@ -67,6 +84,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // tracks when we can handle this with IFeaturesService in VS
             var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
             _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+        }
+
+        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
+        {
+            RefreshColors();
+        }
+
+        private void RefreshColors()
+        {
+            if (_wpfThemeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                Background = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
         }
 
         private async Task DismissToolTipsAsync()
@@ -135,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
 
             // Restore focus back to the textview
             _textView.VisualElement.Focus();
@@ -209,12 +241,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// </summary>
         private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            // When user is editing the text or make selection change in the text box, sync the selection with text view
+            if (!this.IdentifierTextBox.IsFocused)
+            {
+                return;
+            }
+
             var start = IdentifierTextBox.SelectionStart;
             var length = IdentifierTextBox.SelectionLength;
 
             var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
             var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
             _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
+        }
+
+        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // When smart rename is available, allow the user choose the suggestions using the up/down keys.
+            _threadingContext.ThrowIfNotOnUIThread();
+            var smartRenameViewModel = _viewModel.SmartRenameViewModel;
+            if (smartRenameViewModel is not null)
+            {
+                var currentIdentifier = IdentifierTextBox.Text;
+                if (e.Key is Key.Down or Key.Up)
+                {
+                    var newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: e.Key == Key.Down);
+                    if (newIdentifier is not null)
+                    {
+                        _viewModel.IdentifierText = newIdentifier;
+                        // Place the cursor at the end of the input text box.
+                        IdentifierTextBox.Select(newIdentifier.Length, 0);
+                        e.Handled = true;
+                    }
+                }
+            }
         }
     }
 }

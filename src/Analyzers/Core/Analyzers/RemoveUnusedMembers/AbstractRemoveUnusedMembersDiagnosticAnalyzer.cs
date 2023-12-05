@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             EnforceOnBuildValues.RemoveUnusedMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            isUnnecessary: true);
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         // Internal for testing
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            isUnnecessary: true);
+            hasAnyCodeStyleOption: false, isUnnecessary: true);
 
         protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_removeUnusedMembersRule, s_removeUnreadMembersRule),
@@ -342,8 +343,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that the increment operation '_f1++' is child of an expression statement, which drops the result of the increment.
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
+                        // Additionally, we special case ICoalesceAssignmentOperation (??=) and treat it as a read-write,
+                        // see https://github.com/dotnet/roslyn/issues/66975 for more details
 
-                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation)
+                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation &&
+                            memberReference.Parent is not ICoalesceAssignmentOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
 
@@ -510,7 +514,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         var diagnostic = DiagnosticHelper.CreateWithMessage(
                             rule,
                             GetDiagnosticLocation(member),
-                            rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
+                            NotificationOption2.ForSeverity(rule.DefaultSeverity),
                             additionalLocations: null,
                             properties: null,
                             GetMessage(rule, member));

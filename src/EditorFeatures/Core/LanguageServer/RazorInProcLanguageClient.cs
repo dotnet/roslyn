@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
@@ -76,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 vsServerCapabilities.Experimental ??= new Dictionary<string, bool>();
                 var experimental = (Dictionary<string, bool>)vsServerCapabilities.Experimental;
                 experimental[SimplifyMethodHandler.SimplifyMethodMethodName] = true;
+                experimental[FormatNewFileHandler.FormatNewFileMethodName] = true;
+                experimental[SemanticTokensRangesHandler.SemanticRangesMethodName] = true;
+                experimental[MapCodeHandler.WorkspaceMapCodeName] = true;
 
                 var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
                 var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));

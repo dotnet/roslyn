@@ -14,17 +14,12 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A localizable resource string that may possibly be formatted differently depending on culture.
     /// </summary>
-    public sealed class LocalizableResourceString : LocalizableString, IObjectWritable
+    public sealed class LocalizableResourceString : LocalizableString
     {
         private readonly string _nameOfLocalizableResource;
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
-
-        static LocalizableResourceString()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(LocalizableResourceString), reader => new LocalizableResourceString(reader));
-        }
 
         /// <summary>
         /// Creates a localizable resource string with no formatting arguments.
@@ -70,43 +65,6 @@ namespace Microsoft.CodeAnalysis
             _nameOfLocalizableResource = nameOfLocalizableResource;
             _resourceSource = resourceSource;
             _formatArguments = formatArguments;
-        }
-
-        private LocalizableResourceString(ObjectReader reader)
-        {
-            _resourceSource = reader.ReadType();
-            _nameOfLocalizableResource = reader.ReadString();
-            _resourceManager = new ResourceManager(_resourceSource);
-
-            var length = reader.ReadInt32();
-            if (length == 0)
-            {
-                _formatArguments = Array.Empty<string>();
-            }
-            else
-            {
-                var argumentsBuilder = ArrayBuilder<string>.GetInstance(length);
-                for (int i = 0; i < length; i++)
-                {
-                    argumentsBuilder.Add(reader.ReadString());
-                }
-
-                _formatArguments = argumentsBuilder.ToArrayAndFree();
-            }
-        }
-
-        bool IObjectWritable.ShouldReuseInSerialization => false;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            writer.WriteType(_resourceSource);
-            writer.WriteString(_nameOfLocalizableResource);
-            var length = _formatArguments.Length;
-            writer.WriteInt32(length);
-            for (int i = 0; i < length; i++)
-            {
-                writer.WriteString(_formatArguments[i]);
-            }
         }
 
         protected override string GetText(IFormatProvider? formatProvider)

@@ -258,6 +258,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternCombinators
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
+        public async Task TestConvertedConstants()
+        {
+            await TestAllAsync(
+                """
+                class C
+                {
+                    bool M(long l)
+                    {
+                        return {|FixAllInDocument:(l > int.MaxValue || l < int.MinValue)|};
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    bool M(long l)
+                    {
+                        return (l is > int.MaxValue or < int.MinValue);
+                    }
+                }
+                """);
+        }
+
         [Fact]
         public async Task TestMissingInExpressionTree()
         {
@@ -395,6 +419,42 @@ public class C
         return count == 1 [|{logicalOperator}|] ch[0] == 'S';
     }}
 }}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
+        public async Task TestMissingForImplicitUserDefinedCasts1()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    void M0(Int128 i)
+                    {
+                        if (i == int.MaxValue [||] i == int.MinValue)
+                        {
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
+        public async Task TestMissingForImplicitUserDefinedCasts2()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    void M0(Int128 i)
+                    {
+                        if (i > int.MaxValue [||] i < int.MinValue)
+                        {
+                        }
+                    }
+                }
+                """);
         }
 
         [Fact]

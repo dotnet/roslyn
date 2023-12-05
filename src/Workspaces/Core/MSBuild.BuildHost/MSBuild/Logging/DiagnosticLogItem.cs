@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.MSBuild.Logging
 {

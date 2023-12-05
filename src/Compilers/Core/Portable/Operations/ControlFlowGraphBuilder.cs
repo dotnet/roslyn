@@ -6368,6 +6368,44 @@ oneMoreTime:
             }
         }
 
+        public override IOperation? VisitCollectionExpression(ICollectionExpressionOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            var elements = VisitArray(
+                operation.Elements,
+                unwrapper: static (IOperation element) =>
+                {
+                    return element is ISpreadOperation spread ?
+                        spread.Operand :
+                        element;
+                },
+                wrapper: (IOperation operation, int index, ImmutableArray<IOperation> elements) =>
+                {
+                    return elements[index] is ISpreadOperation spread ?
+                        new SpreadOperation(
+                            operation,
+                            elementType: spread.ElementType,
+                            elementConversion: ((SpreadOperation)spread).ElementConversionConvertible,
+                            semanticModel: null,
+                            spread.Syntax,
+                            IsImplicit(spread)) :
+                        operation;
+                });
+            PopStackFrame(frame);
+            return new CollectionExpressionOperation(
+                operation.ConstructMethod,
+                elements,
+                semanticModel: null,
+                operation.Syntax,
+                operation.Type,
+                IsImplicit(operation));
+        }
+
+        public override IOperation? VisitSpread(ISpreadOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             switch (operation.ReferenceKind)

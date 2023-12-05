@@ -5,10 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructReadOnly;
@@ -923,6 +923,99 @@ LanguageVersion.CSharp12);
                 {
                     ref readonly S s = ref this;
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task NotWithFieldLikeEvent()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public struct MyStruct
+            {
+                public event Action MyEvent;
+
+                public readonly int MyInt;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task WithPropertyLikeEvent1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            public struct [|MyStruct|]
+            {
+                public event Action MyEvent { add { } remove { } }
+
+                public readonly int MyInt;
+            }
+            """,
+            """
+            using System;
+
+            public readonly struct MyStruct
+            {
+                public event Action MyEvent { add { } remove { } }
+
+                public readonly int MyInt;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task WithPropertyLikeEvent2()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public struct [|MyStruct|]
+            {
+                private readonly List<Action> actions = new();
+
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+
+                public MyStruct() { }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public readonly struct MyStruct
+            {
+                private readonly List<Action> actions = new();
+            
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+            
+                public MyStruct() { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task NotWithPropertyLikeEvent1()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public struct MyStruct
+            {
+                private List<Action> actions = new();
+
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+            
+                public MyStruct() { }
             }
             """);
     }

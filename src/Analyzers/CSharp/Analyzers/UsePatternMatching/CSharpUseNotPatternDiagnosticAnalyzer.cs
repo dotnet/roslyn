@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Bail immediately if the user has disabled this feature.
             var styleOption = context.GetCSharpAnalyzerOptions().PreferNotPattern;
-            if (!styleOption.Value)
+            if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
                 return;
 
             // Look for the form: !(...)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 isKeywordLocation,
-                styleOption.Notification.Severity,
+                styleOption.Notification,
                 ImmutableArray.Create(node.GetLocation()),
                 properties: null));
         }

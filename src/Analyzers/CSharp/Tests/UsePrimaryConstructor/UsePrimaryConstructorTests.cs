@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UsePrimaryConstructor;
@@ -2535,6 +2535,36 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70586")]
+    public async Task TestReferenceToNestedType5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+
+                public class C : B
+                {
+                    public [|C|](A a) : base(a) { }
+                }
+                """,
+            FixedCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+                
+                public class C(B.A a) : B(a)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task TestNotWithNonAutoProperty()
     {
@@ -3092,6 +3122,522 @@ public partial class UsePrimaryConstructorTests
                         /// The IL offset for the instruction.
                         /// </summary>
                         public int ILOffset { get; } = ilOffset;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Base(int i)
+                {
+                }
+
+                partial class C
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base(int i)
+                {
+                }
+                
+                partial class C(int i) : Base(i)
+                {
+                }
+                
+                partial class C : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+
+                partial class C : IDisposable
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+
+                    public void Dispose() { }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class Base(int i)
+                {
+                }
+                
+                partial class C(int i) : Base(i), IDisposable
+                {
+                    public void Dispose() { }
+                }
+                
+                partial class C : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Base(int i)
+                {
+                }
+
+                partial class C<T>
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C<T> : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base(int i)
+                {
+                }
+                
+                partial class C<T>(int i) : Base(i)
+                {
+                }
+                
+                partial class C<T> : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+
+                partial class C<T> where T : IDisposable
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C<T> : Base
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+                
+                partial class C<T>(int i) : Base(i) where T : IDisposable
+                {
+                }
+                
+                partial class C<T> : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = ++value;
+                    public int B = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects1_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A, B;
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = ++value, B = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B, A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A { get; }
+                    public int B { get; }
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A { get; } = ++value;
+                    public int B { get; } = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects3_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B { get; }
+                    public int A { get; }
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                partial class C
+                {
+                    public int A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+
+                partial class C
+                {
+                    public int B;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value1, int value2)
+                    {
+                        A = ++value1;
+                        B = ++value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value1, int value2)
+                {
+                    public int A = ++value1;
+                    public int B = ++value2;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects5_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public [|C|](int value1, int value2)
+                    {
+                        A = ++value1;
+                        B = ++value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value1, int value2)
+                {
+                    public int B = ++value2;
+                    public int A = ++value1;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = value;
+                    public int B = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int B = value;
+                    public int A = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    protected [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    internal C(int i)
+                    {
                     }
                 }
                 """,

@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities? capabilities)
         {
             VerifySemantics(
-                new[] { editScript },
+                [editScript],
                 TargetFramework.NetStandard20,
-                new[] { new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics) },
+                [new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics)],
                 capabilities);
         }
 
@@ -280,10 +280,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             SyntaxNode newRoot,
             string? message = null)
         {
+            // sort expected and actual edits to ignore differences in order, which are insignificant:
+            expectedSemanticEdits = expectedSemanticEdits.Sort((x, y) => CompareEdits(CreateSymbolKey(x), x.Kind, CreateSymbolKey(y), y.Kind));
+            actualSemanticEdits = actualSemanticEdits.Sort((x, y) => CompareEdits(x.Symbol, x.Kind, y.Symbol, y.Kind));
+
+            static int CompareEdits(SymbolKey leftKey, SemanticEditKind leftKind, SymbolKey rightKey, SemanticEditKind rightKind)
+                => leftKey.ToString().CompareTo(rightKey.ToString()) is not 0 and var result ? result : leftKind.CompareTo(rightKind);
+
+            SymbolKey CreateSymbolKey(SemanticEditDescription edit)
+                => SymbolKey.Create(edit.SymbolProvider((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
+
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
                 expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
+                actualSemanticEdits.Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
