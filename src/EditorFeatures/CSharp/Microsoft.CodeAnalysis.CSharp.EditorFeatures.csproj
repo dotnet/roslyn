@@ -35,9 +35,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="CSharpEditorResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
