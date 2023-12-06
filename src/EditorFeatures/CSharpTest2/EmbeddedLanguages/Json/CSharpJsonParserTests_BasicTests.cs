@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
+    public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
     {
         [Fact]
         public void TestEmpty()
@@ -412,16 +412,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="']' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="']' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="']' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="']' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -448,11 +448,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -482,11 +482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Trailing comma not allowed" Start="14" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Trailing comma not allowed" Start="14" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -543,11 +543,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -580,11 +580,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="15" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="15" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -617,11 +617,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -654,11 +654,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -814,11 +814,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="'undefined' literal not allowed" Start="9" Length="9" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'undefined' literal not allowed" Start="9" Length="9" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -839,11 +839,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="'NaN' literal not allowed" Start="9" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'NaN' literal not allowed" Start="9" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -867,11 +867,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="'NaN' literal not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'NaN' literal not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -891,16 +891,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -921,11 +921,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="'Infinity' literal not allowed" Start="9" Length="8" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'Infinity' literal not allowed" Start="9" Length="8" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -947,11 +947,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="'-Infinity' literal not allowed" Start="9" Length="9" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'-Infinity' literal not allowed" Start="9" Length="9" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -974,16 +974,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1015,16 +1015,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' expected" Start="12" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' expected" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' expected" Start="12" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' expected" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1044,16 +1044,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1073,16 +1073,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1102,16 +1102,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="12" Length="6" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="12" Length="6" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1131,16 +1131,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="12" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="12" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1160,16 +1160,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="7" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1189,16 +1189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="4" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="4" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1218,16 +1218,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="9" Length="13" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="9" Length="13" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="9" Length="13" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="9" Length="13" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1247,16 +1247,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Unterminated string" Start="9" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Unterminated string" Start="9" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Unterminated string" Start="9" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Unterminated string" Start="9" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1276,16 +1276,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Unterminated string" Start="9" Length="4" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Unterminated string" Start="9" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Unterminated string" Start="9" Length="4" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Unterminated string" Start="9" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1310,16 +1310,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1366,11 +1366,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1437,16 +1437,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'n' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1484,16 +1484,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be followed by a ':'" Start="20" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be followed by a ':'" Start="20" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1652,16 +1652,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be followed by a ':'" Start="102" Length="8" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be followed by a ':'" Start="102" Length="8" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be followed by a ':'" Start="102" Length="8" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be followed by a ':'" Start="102" Length="8" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1699,16 +1699,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be followed by a ':'" Start="22" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be followed by a ':'" Start="22" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be followed by a ':'" Start="22" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be followed by a ':'" Start="22" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1757,16 +1757,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="50" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="50" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="50" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="50" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1815,16 +1815,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'c' unexpected" Start="50" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'c' unexpected" Start="50" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'c' unexpected" Start="50" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'c' unexpected" Start="50" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1847,16 +1847,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'a' unexpected" Start="15" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'a' unexpected" Start="15" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1879,16 +1879,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'a' unexpected" Start="17" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'a' unexpected" Start="17" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'a' unexpected" Start="17" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'a' unexpected" Start="17" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1908,16 +1908,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Error parsing comment" Start="14" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Error parsing comment" Start="14" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Error parsing comment" Start="14" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Error parsing comment" Start="14" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1943,16 +1943,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -1974,16 +1974,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' expected" Start="11" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' expected" Start="11" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' expected" Start="11" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' expected" Start="11" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2058,11 +2058,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2093,11 +2093,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2127,16 +2127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid property name" Start="12" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid property name" Start="12" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2172,16 +2172,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2212,11 +2212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2247,11 +2247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="8" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="8" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2282,11 +2282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2317,11 +2317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="9" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="9" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2355,16 +2355,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'a' unexpected" Start="12" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'a' unexpected" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'a' unexpected" Start="12" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'a' unexpected" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2395,11 +2395,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2430,11 +2430,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2465,11 +2465,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2500,11 +2500,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2535,11 +2535,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2570,11 +2570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2612,16 +2612,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2651,16 +2651,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid property name" Start="12" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid property name" Start="12" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2692,11 +2692,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Value required" Start="18" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Value required" Start="18" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2728,11 +2728,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Value required" Start="20" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Value required" Start="20" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2762,16 +2762,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="19" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="19" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2801,16 +2801,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="21" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="21" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="21" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="21" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2840,16 +2840,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Missing property value" Start="19" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Value required" Start="18" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Missing property value" Start="19" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Value required" Start="18" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2879,16 +2879,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Missing property value" Start="21" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Value required" Start="20" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Missing property value" Start="21" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Value required" Start="20" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2922,16 +2922,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Nested properties not allowed" Start="27" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Nested properties not allowed" Start="27" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -2965,16 +2965,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Nested properties not allowed" Start="31" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Nested properties not allowed" Start="31" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Nested properties not allowed" Start="31" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Nested properties not allowed" Start="31" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3056,11 +3056,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3142,11 +3142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' unexpected" Start="72" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' unexpected" Start="72" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3194,11 +3194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="13" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="13" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3406,11 +3406,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="17" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="17" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3641,11 +3641,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="12" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -3906,11 +3906,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="244" Length="1" />
-        </Diagnostics>
-        """, runLooseSubTreeCheck: false);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="244" Length="1" />
+                </Diagnostics>
+                """, runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -3943,11 +3943,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Comments not allowed" Start="11" Length="6" />
-        </Diagnostics>
-        """, runLooseSubTreeCheck: false);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Comments not allowed" Start="11" Length="6" />
+                </Diagnostics>
+                """, runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -3978,11 +3978,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4013,11 +4013,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="20" Length="13" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="20" Length="13" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4056,11 +4056,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4087,11 +4087,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4117,16 +4117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4153,11 +4153,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="8" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="8" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4184,11 +4184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="16" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="16" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4214,16 +4214,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="32" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="32" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="32" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="32" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4250,11 +4250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4280,16 +4280,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="11" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="11" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4415,11 +4415,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Comments not allowed" Start="10" Length="11" />
-        </Diagnostics>
-        """, runLooseSubTreeCheck: false);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Comments not allowed" Start="10" Length="11" />
+                </Diagnostics>
+                """, runLooseSubTreeCheck: false);
         }
 
         [Fact]
@@ -4482,11 +4482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4569,16 +4569,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4671,11 +4671,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="37" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="37" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4768,11 +4768,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="119" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="119" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4793,11 +4793,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4820,11 +4820,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4847,11 +4847,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Illegal string character" Start="13" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Illegal string character" Start="13" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4875,16 +4875,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Name expected" Start="13" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Name expected" Start="13" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4908,16 +4908,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'(' expected" Start="15" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'(' expected" Start="15" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4941,16 +4941,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="')' expected" Start="16" Length="0" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="')' expected" Start="16" Length="0" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -4975,11 +4975,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5008,11 +5008,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5047,11 +5047,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5090,11 +5090,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5123,11 +5123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5159,11 +5159,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5195,11 +5195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5234,11 +5234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5276,11 +5276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5304,16 +5304,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid constructor name" Start="14" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid constructor name" Start="14" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5344,16 +5344,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="',' expected" Start="18" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="',' expected" Start="18" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5395,16 +5395,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="15" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="15" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5451,16 +5451,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5508,11 +5508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5536,11 +5536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5564,11 +5564,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5601,16 +5601,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Properties not allowed in an array" Start="17" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Properties not allowed in an array" Start="17" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Properties not allowed in an array" Start="17" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Properties not allowed in an array" Start="17" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5673,11 +5673,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5698,11 +5698,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5722,16 +5722,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5751,16 +5751,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5823,11 +5823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5848,11 +5848,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5873,11 +5873,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5898,11 +5898,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5922,16 +5922,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="2" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="2" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -5951,16 +5951,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6148,16 +6148,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6177,16 +6177,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'+' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'+' unexpected" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'+' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'+' unexpected" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6206,16 +6206,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6235,16 +6235,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="4" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="4" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6264,16 +6264,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6293,16 +6293,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6322,16 +6322,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6351,16 +6351,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6380,16 +6380,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="5" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="5" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6409,16 +6409,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="6" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="6" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="6" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="6" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6438,16 +6438,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6467,16 +6467,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid number" Start="10" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid number" Start="10" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6506,16 +6506,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="16" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="16" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6549,16 +6549,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="18" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Value required" Start="15" Length="0" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="18" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Value required" Start="15" Length="0" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6582,16 +6582,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="':' unexpected" Start="12" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Strings must start with &quot; not '" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="':' unexpected" Start="12" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Strings must start with &quot; not '" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6616,11 +6616,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Constructors not allowed" Start="9" Length="3" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Constructors not allowed" Start="9" Length="3" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6640,16 +6640,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'D' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'D' unexpected" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'D' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'D' unexpected" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6787,11 +6787,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Trailing comma not allowed" Start="23" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Trailing comma not allowed" Start="23" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6865,16 +6865,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -6942,16 +6942,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="'}' unexpected" Start="23" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7023,16 +7023,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="10" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="10" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="10" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="10" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7098,16 +7098,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7170,16 +7170,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7239,16 +7239,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Only properties allowed in an object" Start="14" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7279,11 +7279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Tree>
                 """,
                 "",
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact]
@@ -7313,16 +7313,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid property name" Start="11" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid property name" Start="11" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="11" Length="1" />
+                </Diagnostics>
+                """);
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
@@ -7358,16 +7358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </CompilationUnit>
                 </Tree>
                 """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Invalid property name" Start="9" Length="1" />
-        </Diagnostics>
-        """,
-        """
-        <Diagnostics>
-          <Diagnostic Message="Property name must be a string" Start="9" Length="1" />
-        </Diagnostics>
-        """);
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Invalid property name" Start="9" Length="1" />
+                </Diagnostics>
+                """,
+                """
+                <Diagnostics>
+                  <Diagnostic Message="Property name must be a string" Start="9" Length="1" />
+                </Diagnostics>
+                """);
         }
     }
 }
