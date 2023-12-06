@@ -6286,7 +6286,6 @@ public static class Extensions
             var source = @"
 using System;
 using System.Linq;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6296,7 +6295,7 @@ public struct C
     {
         await foreach (var (a, b) in (new[] { 1, 2, 3 }, new List<decimal>{ 0.1m, 0.2m, 0.3m }))
         {
-            Console.WriteLine((a + b).ToString(CultureInfo.InvariantCulture));
+            Console.WriteLine(a + b);
         }
     }
 }

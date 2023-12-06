@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Runtime
 {
     using System;
     using System.Linq;
-    using System.Globalization;
     using System.Reflection;
     using System.Threading;
     using static System.Console;
@@ -102,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         private void WL(object value, int index)
-            => WriteLine($"{M.Name}: {L(index)} = {(value is null ? "null" : Convert.ToString(value, CultureInfo.InvariantCulture))}");
+            => WriteLine($"{M.Name}: {L(index)} = {value ?? "null"}");
 
         private void WP(object value, int index)
-            => WriteLine($"{M.Name}: {P(index)} = {(value is null ? "null" : Convert.ToString(value, CultureInfo.InvariantCulture))}");
+            => WriteLine($"{M.Name}: {P(index)} = {value ?? "null"}");
 
         private string L(int index)
             => (index >= 0x10000) ? $"L'{UnmangleFieldName(M.Module.ResolveField(index - 0x10000 + 0x04000000).Name)}'" : $"L{index}";
