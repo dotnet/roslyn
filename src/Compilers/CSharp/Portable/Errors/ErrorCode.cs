@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CheckedOverflow = 220,
         ERR_ConstOutOfRangeChecked = 221,
         ERR_BadVarargs = 224,
-        ERR_ParamsMustBeArray = 225,
+        ERR_ParamsMustBeCollection = 225,
         ERR_IllegalArglist = 226,
         ERR_IllegalUnsafe = 227,
         //ERR_NoAccessibleMember = 228,

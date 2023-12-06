@@ -728,7 +728,7 @@ outerDefault:
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(constructor))
+                if (IsValidParams(_binder, constructor))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, completeResults, ref useSiteInfo);
                     if (expandedResult.IsValid || completeResults)
@@ -776,6 +776,7 @@ outerDefault:
             return IsApplicable(
                 constructor,
                 effectiveParameters,
+                isExpanded: false,
                 arguments,
                 argumentAnalysis.ArgsToParamsOpt,
                 isVararg: constructor.IsVararg,
@@ -817,6 +818,7 @@ outerDefault:
             var result = IsApplicable(
                 constructor,
                 effectiveParameters,
+                isExpanded: true,
                 arguments,
                 argumentAnalysis.ArgsToParamsOpt,
                 isVararg: false,
@@ -825,7 +827,8 @@ outerDefault:
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
 
-            return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
+            Debug.Assert(!result.IsValid || result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
+            return result;
         }
 
         private void AddMemberToCandidateSet<TMember>(
@@ -949,7 +952,7 @@ outerDefault:
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
-            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
+            var normalResult = (allowUnexpandedForm || !IsValidParams(_binder, leastOverriddenMember))
                 ? IsMemberApplicableInNormalForm(
                     member,
                     leastOverriddenMember,
@@ -970,7 +973,7 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                if (!isMethodGroupConversion && IsValidParams(leastOverriddenMember))
+                if (!isMethodGroupConversion && IsValidParams(_binder, leastOverriddenMember))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -981,7 +984,7 @@ outerDefault:
                         completeResults: completeResults,
                         useSiteInfo: ref useSiteInfo);
 
-                    if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
+                    if (PreferExpandedFormOverNormalForm(normalResult, expandedResult))
                     {
                         result = expandedResult;
                     }
@@ -1006,18 +1009,19 @@ outerDefault:
         // Goo(1, "") then the error for the normal form is "too many arguments"
         // and the error for the expanded form is "failed to infer T". Clearly the
         // expanded form error is better.
-        private static bool PreferExpandedFormOverNormalForm(MemberAnalysisResult normalResult, MemberAnalysisResult expandedResult)
+        private static bool PreferExpandedFormOverNormalForm<TMember>(MemberResolutionResult<TMember> normalResult, MemberResolutionResult<TMember> expandedResult)
+            where TMember : Symbol
         {
             Debug.Assert(!normalResult.IsValid);
             if (expandedResult.IsValid)
             {
                 return true;
             }
-            switch (normalResult.Kind)
+            switch (normalResult.Result.Kind)
             {
                 case MemberResolutionKind.RequiredParameterMissing:
                 case MemberResolutionKind.NoCorrespondingParameter:
-                    switch (expandedResult.Kind)
+                    switch (expandedResult.Result.Kind)
                     {
                         case MemberResolutionKind.BadArgumentConversion:
                         case MemberResolutionKind.NameUsedForPositional:
@@ -1031,14 +1035,43 @@ outerDefault:
                             return true;
                     }
                     break;
+
+                case MemberResolutionKind.BadArgumentConversion:
+                    if (expandedResult.Result.Kind == MemberResolutionKind.BadArgumentConversion &&
+                        expandedResult.Result.ParamsElementTypeOpt.HasType &&
+                        expandedResult.Result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel)
+                    {
+                        if (haveBadArgumentForLastParameter(normalResult) && haveBadArgumentForLastParameter(expandedResult))
+                        {
+                            // Errors are better if we use the expanded form in this case.
+                            return true;
+                        }
+                    }
+
+                    break;
             }
             return false;
+
+            static bool haveBadArgumentForLastParameter(MemberResolutionResult<TMember> result)
+            {
+                int parameterCount = result.Member.GetParameterCount();
+
+                foreach (int arg in result.Result.BadArgumentsOpt.TrueBits())
+                {
+                    if (parameterCount == result.Result.ParameterFromArgument(arg) + 1)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Symbol member)
+        public static bool IsValidParams(Binder binder, Symbol member)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -1053,13 +1086,38 @@ outerDefault:
             }
 
             ParameterSymbol final = member.GetParameters().Last();
-            return IsValidParamsParameter(final);
+            if (final.IsParams)
+            {
+                return TryInferParamsCollectionIterationType(binder, final.OriginalDefinition.Type, out _);
+            }
+
+            return false;
         }
 
-        public static bool IsValidParamsParameter(ParameterSymbol final)
+        private static bool TryInferParamsCollectionIterationType(Binder binder, TypeSymbol type, out TypeWithAnnotations elementType)
         {
-            Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+            if (type.IsSZArray())
+            {
+                elementType = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations;
+                return true;
+            }
+
+            if (ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType) != CollectionExpressionTypeKind.None)
+            {
+                if (elementType.Type is null)
+                {
+                    // PROTOTYPE(ParamsCollections): Test this code path
+                    binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), type, out elementType);
+                }
+
+                if (elementType.Type is not null)
+                {
+                    return true;
+                }
+            }
+
+            elementType = default;
+            return false;
         }
 
         /// <summary>
@@ -1669,13 +1727,15 @@ outerDefault:
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
-        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
+        private static TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result, int parameterCount)
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && type.IsSZArray())
+                parameter.Ordinal == parameterCount - 1)
             {
-                return ((ArrayTypeSymbol)type).ElementType;
+                Debug.Assert(result.ParamsElementTypeOpt.HasType);
+                Debug.Assert(result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                return result.ParamsElementTypeOpt.Type;
             }
             else
             {
@@ -1783,10 +1843,10 @@ outerDefault:
                 }
 
                 var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                var type1 = GetParameterType(parameter1, m1.Result);
+                var type1 = GetParameterType(parameter1, m1.Result, m1LeastOverriddenParameters.Length);
 
                 var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                var type2 = GetParameterType(parameter2, m2.Result);
+                var type2 = GetParameterType(parameter2, m2.Result, m2LeastOverriddenParameters.Length);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1927,10 +1987,10 @@ outerDefault:
                     }
 
                     var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                    var type1 = GetParameterType(parameter1, m1.Result);
+                    var type1 = GetParameterType(parameter1, m1.Result, m1LeastOverriddenParameters.Length);
 
                     var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                    var type2 = GetParameterType(parameter2, m2.Result);
+                    var type2 = GetParameterType(parameter2, m2.Result, m2LeastOverriddenParameters.Length);
 
                     var type1Normalized = type1;
                     var type2Normalized = type2;
@@ -2089,10 +2149,10 @@ outerDefault:
                     }
 
                     var parameter1 = GetParameter(i, m1.Result, m1Original);
-                    uninst1.Add(GetParameterType(parameter1, m1.Result));
+                    uninst1.Add(GetParameterType(parameter1, m1.Result, m1Original.Length));
 
                     var parameter2 = GetParameter(i, m2.Result, m2Original);
-                    uninst2.Add(GetParameterType(parameter2, m2.Result));
+                    uninst2.Add(GetParameterType(parameter2, m2.Result, m2Original.Length));
                 }
 
                 result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
@@ -3200,11 +3260,15 @@ outerDefault:
         {
             internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;
+            internal readonly int FirstParamsElementIndex;
 
-            internal EffectiveParameters(ImmutableArray<TypeWithAnnotations> types, ImmutableArray<RefKind> refKinds)
+            internal EffectiveParameters(ImmutableArray<TypeWithAnnotations> types, ImmutableArray<RefKind> refKinds, int firstParamsElementIndex)
             {
+                Debug.Assert(firstParamsElementIndex == -1 || (firstParamsElementIndex >= 0 && firstParamsElementIndex < types.Length));
+
                 ParameterTypes = types;
                 ParameterRefKinds = refKinds;
+                FirstParamsElementIndex = firstParamsElementIndex;
             }
         }
 
@@ -3231,7 +3295,7 @@ outerDefault:
                 ImmutableArray<RefKind> parameterRefKinds = member.GetParameterRefKinds();
                 if (parameterRefKinds.IsDefaultOrEmpty)
                 {
-                    return new EffectiveParameters(member.GetParameterTypes(), parameterRefKinds);
+                    return new EffectiveParameters(member.GetParameterTypes(), parameterRefKinds, firstParamsElementIndex: -1);
                 }
             }
 
@@ -3268,7 +3332,7 @@ outerDefault:
             }
 
             var refKinds = refs != null ? refs.ToImmutableAndFree() : default(ImmutableArray<RefKind>);
-            return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
+            return new EffectiveParameters(types.ToImmutableAndFree(), refKinds, firstParamsElementIndex: -1);
         }
 
         private static RefKind GetEffectiveParameterRefKind(
@@ -3376,6 +3440,8 @@ outerDefault:
             var parameters = member.GetParameters();
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
+            TypeWithAnnotations paramsIterationType = default;
+            int firstParamsElementIndex = -1;
 
             for (int arg = 0; arg < argumentCount; ++arg)
             {
@@ -3383,7 +3449,21 @@ outerDefault:
                 var parameter = parameters[parm];
                 var type = parameter.TypeWithAnnotations;
 
-                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations : type);
+                if (parm == parameters.Length - 1)
+                {
+                    if (!paramsIterationType.HasType)
+                    {
+                        firstParamsElementIndex = types.Count;
+                        TryInferParamsCollectionIterationType(binder, type.Type, out paramsIterationType);
+                        Debug.Assert(paramsIterationType.HasType);
+                    }
+
+                    types.Add(paramsIterationType);
+                }
+                else
+                {
+                    types.Add(type);
+                }
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);
@@ -3397,7 +3477,7 @@ outerDefault:
 
             var refKinds = anyRef ? refs.ToImmutable() : default(ImmutableArray<RefKind>);
             refs.Free();
-            return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
+            return new EffectiveParameters(types.ToImmutableAndFree(), refKinds, firstParamsElementIndex: firstParamsElementIndex);
         }
 
         private MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
@@ -3459,6 +3539,7 @@ outerDefault:
             var applicableResult = IsApplicable(
                 member, leastOverriddenMemberConstructedFrom,
                 typeArguments, arguments, originalEffectiveParameters,
+                isExpanded: false,
                 argumentAnalysis.ArgsToParamsOpt,
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: inferWithDynamic,
@@ -3520,16 +3601,15 @@ outerDefault:
             var result = IsApplicable(
                 member, leastOverriddenMemberConstructedFrom,
                 typeArguments, arguments, originalEffectiveParameters,
+                isExpanded: true,
                 argumentAnalysis.ArgsToParamsOpt,
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: false,
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
 
-            return result.Result.IsValid ?
-                result.WithResult(
-                    MemberAnalysisResult.ExpandedForm(result.Result.ArgsToParamsOpt, result.Result.ConversionsOpt, hasAnyRefOmittedArgument)) :
-                result;
+            Debug.Assert(!result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
+            return result;
         }
 
         private MemberResolutionResult<TMember> IsApplicable<TMember>(
@@ -3538,6 +3618,7 @@ outerDefault:
             ArrayBuilder<TypeWithAnnotations> typeArgumentsBuilder,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
+            bool isExpanded,
             ImmutableArray<int> argsToParamsMap,
             bool hasAnyRefOmittedArgument,
             bool inferWithDynamic,
@@ -3641,7 +3722,8 @@ outerDefault:
 
                 constructedEffectiveParameters = new EffectiveParameters(
                     map.SubstituteTypes(originalEffectiveParameters.ParameterTypes),
-                    originalEffectiveParameters.ParameterRefKinds);
+                    originalEffectiveParameters.ParameterRefKinds,
+                    originalEffectiveParameters.FirstParamsElementIndex);
             }
             else
             {
@@ -3652,6 +3734,7 @@ outerDefault:
             var applicableResult = IsApplicable(
                 member,
                 constructedEffectiveParameters,
+                isExpanded,
                 arguments,
                 argsToParamsMap,
                 isVararg: member.GetIsVararg(),
@@ -3720,6 +3803,7 @@ outerDefault:
         private MemberAnalysisResult IsApplicable(
             Symbol candidate, // method or property
             EffectiveParameters parameters,
+            bool isExpanded,
             AnalyzedArguments arguments,
             ImmutableArray<int> argsToParameters,
             bool isVararg,
@@ -3728,6 +3812,24 @@ outerDefault:
             bool completeResults,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            TypeWithAnnotations paramsElementTypeOpt;
+
+            if (isExpanded)
+            {
+                if (parameters.FirstParamsElementIndex == -1)
+                {
+                    paramsElementTypeOpt = TypeWithAnnotations.Create(ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                }
+                else
+                {
+                    paramsElementTypeOpt = parameters.ParameterTypes[parameters.FirstParamsElementIndex];
+                }
+            }
+            else
+            {
+                paramsElementTypeOpt = default;
+            }
+
             // The effective parameters are in the right order with respect to the arguments.
             //
             // The difference between "parameters" and "original parameters" is as follows. Suppose
@@ -3832,7 +3934,7 @@ outerDefault:
                         // of overloads for the semantic model.
                         Debug.Assert(badArguments.IsNull);
                         Debug.Assert(conversions == null);
-                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion));
+                        return MemberAnalysisResult.BadArgumentConversions(argsToParameters, MemberAnalysisResult.CreateBadArgumentsWithPosition(argumentPosition), ImmutableArray.Create(conversion), paramsElementTypeOpt);
                     }
 
                     if (!conversion.Exists)
@@ -3867,7 +3969,12 @@ outerDefault:
             var conversionsArray = conversions != null ? conversions.ToImmutableAndFree() : default(ImmutableArray<Conversion>);
             if (!badArguments.IsNull)
             {
-                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray);
+                result = MemberAnalysisResult.BadArgumentConversions(argsToParameters, badArguments, conversionsArray, paramsElementTypeOpt);
+            }
+            else if (isExpanded)
+            {
+                Debug.Assert(paramsElementTypeOpt.HasType);
+                result = MemberAnalysisResult.ExpandedForm(argsToParameters, conversionsArray, hasAnyRefOmittedArgument, paramsElementTypeOpt);
             }
             else
             {

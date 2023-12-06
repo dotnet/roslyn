@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
-                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArray) == (memberInit.Expanded ? 1 : 0));
+                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsCollection) == (memberInit.Expanded ? 1 : 0)); // PROTOTYPE(ParamsCollections): Adjust?
 
                             var args = EvaluateSideEffectingArgumentsToTemps(
                                 memberInit.Arguments,
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(rewrittenLeft is { });
                         var arrayAccess = (BoundArrayAccess)rewrittenLeft;
 
-                        Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+                        Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsCollection));
 
                         var indices = EvaluateSideEffectingArgumentsToTemps(
                             arrayAccess.Indices,
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression replacement;
 
-                if (arg.IsParamsArray)
+                if (arg.IsParamsCollection) // PROTOTYPE(ParamsCollections): Do we need to recreate the same special handling for collections other than arrays?
                 {
                     // Capturing the array instead is going to lead to an observable behavior difference. Not just an IL difference,
                     // see Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.ObjectAndCollectionInitializerTests.DictionaryInitializerTestSideeffects001param for example.

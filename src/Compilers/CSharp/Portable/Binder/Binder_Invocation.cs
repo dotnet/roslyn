@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and expanded form i.e., there is exactly one dynamic argument to
             // a params parameter
             // See https://github.com/dotnet/roslyn/issues/10708
-            if (OverloadResolution.IsValidParams(localFunction) &&
+            if (OverloadResolution.IsValidParams(this, localFunction) &&
                 methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = localFunction.Parameters;
@@ -803,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg.HasDynamicType() &&
                         methodResult.ParameterFromArgument(i) == lastParamIndex)
                     {
+                        // PROTOTYPE(ParamsCollections): non-array params case might need similar error for a non-local-function case.
                         Error(diagnostics,
                             ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
                             syntax, parameters.Last().Name, localFunction.Name);
@@ -1077,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
-            BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1338,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        internal void BindDefaultArgumentsAndParamsArray(
+        internal void BindDefaultArgumentsAndParamsCollection(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
             ArrayBuilder<BoundExpression> argumentsBuilder,
@@ -1352,11 +1353,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool assertMissingParametersAreOptional = true,
             Symbol? attributedMember = null)
         {
-            int firstParamArrayArgument = -1;
+            int firstParamsArgument = -1;
             int paramsIndex = parameters.Length - 1;
-            var arrayArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
+            var paramsArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
 
-            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArray));
+            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsCollection));
 
             var visitedParameters = BitVector.Create(parameters.Length);
             for (var i = 0; i < argumentsBuilder.Count; i++)
@@ -1368,11 +1369,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (expanded && parameter.Ordinal == paramsIndex)
                     {
-                        Debug.Assert(arrayArgsBuilder is not null);
-                        Debug.Assert(arrayArgsBuilder.Count == 0);
+                        Debug.Assert(paramsArgsBuilder is not null);
+                        Debug.Assert(paramsArgsBuilder.Count == 0);
 
-                        firstParamArrayArgument = i;
-                        arrayArgsBuilder.Add(argumentsBuilder[i]);
+                        firstParamsArgument = i;
+                        paramsArgsBuilder.Add(argumentsBuilder[i]);
 
                         for (int remainingArgument = i + 1; remainingArgument < argumentsBuilder.Count; ++remainingArgument)
                         {
@@ -1381,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            arrayArgsBuilder.Add(argumentsBuilder[remainingArgument]);
+                            paramsArgsBuilder.Add(argumentsBuilder[remainingArgument]);
                             i++;
                         }
                     }
@@ -1402,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == argumentsBuilder.Count);
-                Debug.Assert(arrayArgsBuilder is null);
+                Debug.Assert(paramsArgsBuilder is null);
                 defaultArguments = default;
                 return;
             }
@@ -1414,32 +1415,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.AddRange(argsToParamsOpt);
             }
 
-            BoundArrayCreation? array = null;
+            BoundExpression? collection = null;
 
             if (expanded)
             {
-                Debug.Assert(arrayArgsBuilder is not null);
-                ImmutableArray<BoundExpression> arrayArgs = arrayArgsBuilder.ToImmutableAndFree();
-                int arrayArgsLength = arrayArgs.Length;
+                Debug.Assert(paramsArgsBuilder is not null);
+                ImmutableArray<BoundExpression> collectionArgs = paramsArgsBuilder.ToImmutableAndFree();
+                int collectionArgsLength = collectionArgs.Length;
 
-                TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                TypeSymbol paramArrayType = parameters[paramsIndex].Type;
-                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(arrayArgsLength), int32Type) { WasCompilerGenerated = true };
+                TypeSymbol collectionType = parameters[paramsIndex].Type;
 
-                array = new BoundArrayCreation(
-                            node,
-                            ImmutableArray.Create(arraySize),
-                            new BoundArrayInitialization(node, isInferred: false, arrayArgs) { WasCompilerGenerated = true },
-                            paramArrayType)
-                { WasCompilerGenerated = true, IsParamsArray = true };
-
-                if (arrayArgsLength != 0)
+                if (collectionType is ArrayTypeSymbol { IsSZArray: true })
                 {
-                    Debug.Assert(firstParamArrayArgument != -1);
-                    Debug.Assert(!haveDefaultArguments || arrayArgsLength == 1);
-                    Debug.Assert(arrayArgsLength == 1 || firstParamArrayArgument + arrayArgsLength == argumentsBuilder.Count);
+                    TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                    BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgsLength), int32Type) { WasCompilerGenerated = true };
 
-                    for (var i = firstParamArrayArgument + arrayArgsLength - 1; i != firstParamArrayArgument; i--)
+                    collection = new BoundArrayCreation(
+                                node,
+                                ImmutableArray.Create(arraySize),
+                                new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
+                                collectionType)
+                    { WasCompilerGenerated = true, IsParamsCollection = true };
+                }
+                else
+                {
+                    var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsCollection = true };
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
+                    diagnostics.Add(node, useSiteInfo);
+
+                    BoundCollectionExpression converted;
+                    if (!conversion.Exists)
+                    {
+                        // PROTOTYPE(ParamsCollections): Add test if this code path is reachable
+                        GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
+                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, diagnostics);
+                    }
+                    else
+                    {
+                        Debug.Assert(conversion.IsCollectionExpression);
+                        converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
+                    }
+
+                    collection = new BoundConversion(
+                                     node,
+                                     converted,
+                                     conversion,
+                                     @checked: CheckOverflowAtRuntime,
+                                     explicitCastInCode: false,
+                                     conversionGroupOpt: null,
+                                     constantValueOpt: null,
+                                     type: collectionType)
+                    { WasCompilerGenerated = true, IsParamsCollection = true };
+                }
+
+                Debug.Assert(collection.IsParamsCollection);
+
+                if (collectionArgsLength != 0)
+                {
+                    Debug.Assert(firstParamsArgument != -1);
+                    Debug.Assert(!haveDefaultArguments || collectionArgsLength == 1);
+                    Debug.Assert(collectionArgsLength == 1 || firstParamsArgument + collectionArgsLength == argumentsBuilder.Count);
+
+                    for (var i = firstParamsArgument + collectionArgsLength - 1; i != firstParamsArgument; i--)
                     {
                         argumentsBuilder.RemoveAt(i);
                         argsToParamsBuilder?.RemoveAt(i);
@@ -1455,8 +1493,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    argumentsBuilder[firstParamArrayArgument] = array;
-                    array = null;
+                    argumentsBuilder[firstParamsArgument] = collection;
+                    collection = null;
                 }
             }
 
@@ -1508,12 +1546,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments = default;
             }
 
-            if (array is not null)
+            if (collection is not null)
             {
                 Debug.Assert(expanded);
-                Debug.Assert(firstParamArrayArgument == -1);
+                Debug.Assert(firstParamsArgument == -1);
 
-                argumentsBuilder.Add(array);
+                argumentsBuilder.Add(collection);
                 argsToParamsBuilder?.Add(paramsIndex);
 
                 if (argumentRefKindsBuilder is { Count: > 0 })

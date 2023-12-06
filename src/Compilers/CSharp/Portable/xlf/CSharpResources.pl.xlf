@@ -1502,6 +1502,11 @@
         <target state="translated">Funkcja „sprawdzanie wartości null parametru” nie jest obsługiwana.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">Obie deklaracje metody częściowej muszą mieć identyczne modyfikatory dostępności.</target>
@@ -6101,11 +6106,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">Metoda z atrybutem vararg nie może być ogólna, znajdować się w typie ogólnym ani mieć parametru params</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Parametr params musi być tablicą jednowymiarową</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

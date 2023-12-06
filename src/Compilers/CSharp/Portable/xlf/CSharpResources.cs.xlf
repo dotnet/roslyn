@@ -1502,6 +1502,11 @@
         <target state="translated">Funkce parameter null-checking se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">Obě deklarace částečných metod musí mít shodné modifikátory přístupnosti.</target>
@@ -6101,11 +6106,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">Metoda s parametrem vararg nemůže být obecná, být obecného typu nebo mít pole parametr params.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Parametr params musí být jednorozměrné pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

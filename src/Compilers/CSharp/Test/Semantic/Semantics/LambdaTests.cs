@@ -8450,9 +8450,9 @@ class Program
                 var lam = (params int x) => x;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12));
         }
 
         [Fact]
@@ -8462,9 +8462,9 @@ class Program
                 var lam = (params int[,] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12));
         }
 
         [Fact]

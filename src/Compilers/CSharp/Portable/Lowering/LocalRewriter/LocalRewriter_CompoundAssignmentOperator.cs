@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expanded)
             {
                 BoundExpression array = actualArguments[actualArguments.Length - 1];
-                Debug.Assert(array.IsParamsArray);
+                Debug.Assert(array.IsParamsCollection); // PROTOTYPE(ParamsCollections): This Assert is likely to fail for a non-array case. The code path needs an adjustment in general.
 
                 if (TryOptimizeParamsArray(array, out BoundExpression? optimized))
                 {

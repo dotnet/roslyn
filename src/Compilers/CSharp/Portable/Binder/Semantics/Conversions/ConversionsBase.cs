@@ -1657,6 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
             {
+                elementType = default;
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_Generic_IEnumerable_T))

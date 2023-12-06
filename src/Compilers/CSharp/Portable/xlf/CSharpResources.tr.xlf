@@ -1502,6 +1502,11 @@
         <target state="translated">'Parametre null denetimi' özelliği desteklenmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">Her iki kısmi metot bildirimi aynı erişilebilirlik değiştiricilerine sahip olmalıdır.</target>
@@ -6101,11 +6106,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">Vararg içeren bir yöntem genel olamaz, genel türde olamaz veya params parametresine sahip olamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Params parametresi tek boyutlu bir dizi olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

@@ -1502,6 +1502,11 @@
         <target state="translated">不支援 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">兩個部分方法宣告都必須有完全相同的存取範圍修飾詞。</target>
@@ -6101,11 +6106,6 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">具有 vararg 的方法不可為泛型、泛型類型或是具有 params 參數</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">params 參數必須是單一維度陣列</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">

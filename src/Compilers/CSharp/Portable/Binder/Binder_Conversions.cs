@@ -727,8 +727,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod,
                 collectionBuilderInvocationPlaceholder,
                 collectionBuilderInvocationConversion,
+                node,
                 builder.ToImmutableAndFree(),
-                targetType);
+                targetType)
+            { WasCompilerGenerated = node.IsParamsCollection, IsParamsCollection = node.IsParamsCollection };
 
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
@@ -757,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
+        internal bool TryGetCollectionIterationType(SyntaxNode syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
             return GetEnumeratorInfoAndInferCollectionElementType(
@@ -793,9 +795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionBuilderMethod: null,
                 collectionBuilderInvocationPlaceholder: null,
                 collectionBuilderInvocationConversion: null,
+                node,
                 elements: builder.ToImmutableAndFree(),
                 targetType,
-                hasErrors: true);
+                hasErrors: true)
+            { WasCompilerGenerated = node.IsParamsCollection, IsParamsCollection = node.IsParamsCollection };
         }
 
         private void GenerateImplicitConversionErrorForCollectionExpression(
@@ -1432,6 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+                    // PROTOTYPE(ParamsCollections): Adjust
                     if (lambdaParameter.IsParams && !delegateParameter.IsParams && p == lambdaSymbol.ParameterCount - 1 && lambdaParameter.Type.IsSZArray())
                     {
                         // Parameter {0} has params modifier in lambda but not in target delegate type.

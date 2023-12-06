@@ -6,15 +6,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundArrayCreation
     {
-        public new bool IsParamsArray
+        public new bool IsParamsCollection
         {
             get
             {
-                return base.IsParamsArray;
+                return base.IsParamsCollection;
             }
             init
             {
-                base.IsParamsArray = value;
+                base.IsParamsCollection = value;
             }
         }
     }

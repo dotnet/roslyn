@@ -6403,7 +6403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(!arguments.Any(a => a.IsParamsArray));
+                Debug.Assert(!arguments.Any(a => a.IsParamsCollection));
             }
 
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
@@ -6602,15 +6602,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // At the moment, there is only one test that gets here like that - Microsoft.CodeAnalysis.CSharp.UnitTests.AttributeTests.TestBadParamsCtor.
                 // And we get here for the erroneous attribute application, constructor is inaccessible. 
                 // Perhaps that shouldn't cancel the default values / params array processing?
-                Debug.Assert(arguments.Count(a => a.IsParamsArray) <= 1);
+                Debug.Assert(arguments.Count(a => a.IsParamsCollection) <= 1);
 
                 for (int a = 0; a < arguments.Length; ++a)
                 {
                     BoundExpression argument = arguments[a];
-                    if (argument.IsParamsArray)
+                    if (argument.IsParamsCollection)
                     {
                         Debug.Assert(parametersOpt.IsDefault || arguments.Length == parametersOpt.Length);
-                        ImmutableArray<BoundExpression> elements = ((BoundArrayCreation)argument).InitializerOpt!.Initializers;
+                        ImmutableArray<BoundExpression> elements;
+
+                        if (argument is BoundArrayCreation array)
+                        {
+                            elements = array.InitializerOpt!.Initializers;
+                        }
+                        else
+                        {
+                            elements = ((BoundCollectionExpression)((BoundConversion)argument).Operand).UnconvertedCollectionExpression.Elements.CastArray<BoundExpression>();
+                        }
 
                         if (elements.Length == 0)
                         {

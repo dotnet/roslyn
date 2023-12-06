@@ -5219,10 +5219,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                 {
                     public static void Main(string[] args)
                     {
-                        TakesParams([|(string)|]null);
+                        TakesParams([|(Program)|]null);
                     }
 
-                    private static void TakesParams({|CS0225:params|} string wrongDefined)
+                    private static void TakesParams({|CS0225:params|} Program wrongDefined)
                     {
                     }
                 }
@@ -5235,7 +5235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                         TakesParams(null);
                     }
 
-                    private static void TakesParams({|CS0225:params|} string wrongDefined)
+                    private static void TakesParams({|CS0225:params|} Program wrongDefined)
                     {
                     }
                 }
@@ -5461,13 +5461,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                 using System;
                 sealed class MarkAttribute : Attribute
                 {
-                    public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                    public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                     {
                     }
                     public int Prop { get; set; }
                 }
 
-                [Mark(true, [|(string)|]null, Prop = 1)]
+                [Mark(true, [|(object)|]null, Prop = 1)]
                 static class Program
                 {
                 }
@@ -5476,7 +5476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
                 using System;
                 sealed class MarkAttribute : Attribute
                 {
-                    public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                    public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                     {
                     }
                     public int Prop { get; set; }
