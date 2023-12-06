@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 TryParseSubTrees(stringText, options);
 
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
-            Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
+            AssertEx.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
 
             ValidateDiagnostics(expectedDiagnostics, tree);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
         {
             var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-            Assert.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
+            AssertEx.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
         }
 
         private static string RemoveMessagesInNonSupportedLanguage(string value)

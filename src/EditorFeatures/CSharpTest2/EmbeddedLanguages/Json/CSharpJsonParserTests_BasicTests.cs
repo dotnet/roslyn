@@ -3420,6 +3420,135 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         [Fact]
+        public void TestOctal2()
+        {
+            Test(@"@""[00]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>00</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestOctal3()
+        {
+            Test(@"@""[0F]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>0F</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestOctal4()
+        {
+            Test(@"@""[07777777]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>07777777</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""8"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestOctal5()
+        {
+            Test(@"@""[0777777777777777]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>0777777777777777</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""16"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestOctal6()
+        {
+            Test(@"@""[07777777777777777777777777777777]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>07777777777777777777777777777777</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""32"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""32"" />
+</Diagnostics>");
+        }
+
+        [Fact]
         public void TestObjectLiteralComments()
         {
             Test(@"@""/*comment*/ { /*comment*/
