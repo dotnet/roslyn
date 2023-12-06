@@ -96,9 +96,11 @@ namespace Microsoft.VisualStudio.VsixInstaller
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
 
+            // Uninstall any extensions that may need to be updated
             using (var settingsManager = ExternalSettingsManager.CreateForApplication(vsExeFile, rootSuffix))
             {
                 var extensionManager = new ExtensionManagerService(settingsManager);
+                using var disposableExtensionManager = (object)extensionManager as IDisposable;
                 IVsExtensionManager vsExtensionManager = (IVsExtensionManager)(object)extensionManager;
                 var extensions = vsixFiles.Select(vsExtensionManager.CreateInstallableExtension).ToArray();
 
@@ -121,6 +123,15 @@ namespace Microsoft.VisualStudio.VsixInstaller
                         extensionManager.Uninstall(extensionManager.GetInstalledExtension(extension.Header.Identifier));
                     }
                 }
+            }
+
+            // Install updated versions of extensions
+            using (var settingsManager = ExternalSettingsManager.CreateForApplication(vsExeFile, rootSuffix))
+            {
+                var extensionManager = new ExtensionManagerService(settingsManager);
+                using var disposableExtensionManager = (object)extensionManager as IDisposable;
+                IVsExtensionManager vsExtensionManager = (IVsExtensionManager)(object)extensionManager;
+                var extensions = vsixFiles.Select(vsExtensionManager.CreateInstallableExtension).ToArray();
 
                 foreach (var extension in extensions)
                 {
