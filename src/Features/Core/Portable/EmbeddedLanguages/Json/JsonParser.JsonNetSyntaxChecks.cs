@@ -75,23 +75,66 @@ internal partial struct JsonParser
                 firstChar == '0' && chars.Length > 1 &&
                 chars[1] != '.' && chars[1] != 'e' && chars[1] != 'E';
 
-            var literalText = numberToken.VirtualChars.CreateString();
             if (nonBase10)
             {
                 Debug.Assert(chars.Length > 1);
-                var b = chars[1] == 'x' || chars[1] == 'X' ? 16 : 8;
 
-                if (!RoslynConvert.TryToInt64(literalText, b, out _))
-                    return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
+                // Json.net uses Convert.ToInt64 when checking if numbers are legal (see
+                // https://github.com/JamesNK/Newtonsoft.Json/blob/993215529562866719689206e27e413013d4439c/Src/Newtonsoft.Json/JsonTextReader.cs#L1926).
+                //
+                // However, this is quite expensive when it fails as it throws exceptions (see
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1871418).
+
+                if (chars[1] == 'x' || chars[1] == 'X')
+                {
+                    // Base 16.  Fortunately, we have helpers for this common case.
+                    if (!long.TryParse(chars.Skip("0x".Length).CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
+                        return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
+                }
+                else
+                {
+                    // Base 8.  No .net helper for this.  So we just write our own.
+                    if (!TryParseOctalString(chars))
+                        return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
+                }
             }
-            else if (!double.TryParse(
-                literalText, NumberStyles.Float,
-                CultureInfo.InvariantCulture, out _))
+            else if (!double.TryParse(chars.CreateString(), NumberStyles.Float, CultureInfo.InvariantCulture, out _))
             {
                 return new EmbeddedDiagnostic(FeaturesResources.Invalid_number, GetSpan(chars));
             }
 
             return null;
+        }
+
+        private static bool TryParseOctalString(VirtualCharSequence chars)
+        {
+            Debug.Assert(chars.Length > 1 && chars[0] == '0');
+
+            // Copied and trimmed from:
+            // https://github.com/dotnet/runtime/blob/2bfa26cebc917d05a3363078fa277ab5fee2651b/src/libraries/System.Private.CoreLib/src/System/ParseNumbers.cs#L243
+
+            const ulong Base = 8;
+            const ulong MaxValue = 0xffffffffffffffff / Base;
+
+            ulong currentValue = 0;
+
+            foreach (var c in chars)
+            {
+                if (c.Value is not (>= '0' and <= '7'))
+                    return false;
+
+                var charValue = c.Value - '0';
+                if (currentValue > MaxValue)
+                    return false;
+
+                var temp = currentValue * Base + (ulong)charValue;
+                if (temp < currentValue)
+                    return false;
+
+                currentValue = temp;
+            }
+
+            return true;
         }
 
         private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
