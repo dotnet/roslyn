@@ -70,24 +70,24 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
         }
 
         var semanticModel = context.SemanticModel;
-        var isKeywordLocation = parenthesizedExpression.Expression switch
+        var isKeyword = parenthesizedExpression.Expression switch
         {
             // Look for the form: !(x is Y y) and !(x is const)
             IsPatternExpressionSyntax { Pattern: DeclarationPatternSyntax or ConstantPatternSyntax } isPattern
-                => isPattern.IsKeyword.GetLocation(),
+                => isPattern.IsKeyword,
 
             // Look for the form: !(x is Y)
             //
             // Note: can't convert `!(x is Y?)` to `x is not Y?`.  The latter is not legal.
             BinaryExpressionSyntax(SyntaxKind.IsExpression) { Right: TypeSyntax type } isExpression
                 => semanticModel.GetTypeInfo(type, cancellationToken).Type.IsNullable()
-                    ? null
-                    : isExpression.OperatorToken.GetLocation(),
+                    ? default
+                    : isExpression.OperatorToken,
 
-            _ => null
+            _ => default
         };
 
-        if (isKeywordLocation is null)
+        if (isKeyword == default)
             return;
 
         if (node.IsInExpressionTree(context.SemanticModel, expressionOfTType, cancellationToken))
@@ -95,7 +95,7 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            isKeywordLocation,
+            isKeyword.GetLocation(),
             styleOption.Notification,
             ImmutableArray.Create(node.GetLocation()),
             properties: null));
