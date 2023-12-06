@@ -4309,4 +4309,26 @@ public class UseCollectionExpressionForArrayTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70816")]
+    public async Task NotWithInvalidNumericInference()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual(new byte[] { 0, 1 });
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
