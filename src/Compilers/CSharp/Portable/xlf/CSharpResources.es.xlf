@@ -2633,13 +2633,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La característica de lenguaje "Matrices insertadas" no se admite para tipos de matriz en línea con un campo de elemento que sea un campo "ref" o que tenga un tipo que no sea válido como argumento de tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La característica de lenguaje "Matrices insertadas" no se admite para tipos de matriz en línea con un campo de elemento que sea un campo "ref" o que tenga un tipo que no sea válido como argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">La característica de lenguaje "Matrices insertadas" no se admite para tipos de matriz en línea con un campo de elemento que sea un campo "ref" o que tenga un tipo que no sea válido como argumento de tipo.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">La característica de lenguaje "Matrices insertadas" no se admite para tipos de matriz en línea con un campo de elemento que sea un campo "ref" o que tenga un tipo que no sea válido como argumento de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

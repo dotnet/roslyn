@@ -2633,13 +2633,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
