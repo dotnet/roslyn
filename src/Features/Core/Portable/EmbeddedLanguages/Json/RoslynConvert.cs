@@ -6,7 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 
 // Json.net uses Convert.ToInt64 when checking if numbers are legal (see
 // https://github.com/JamesNK/Newtonsoft.Json/blob/993215529562866719689206e27e413013d4439c/Src/Newtonsoft.Json/JsonTextReader.cs#L1926).
