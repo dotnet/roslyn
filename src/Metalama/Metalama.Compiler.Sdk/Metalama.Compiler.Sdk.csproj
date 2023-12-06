@@ -8,6 +8,8 @@
     <PackageId>Metalama.Compiler.Sdk</PackageId>
     <PackageDescription>Defines the ISourceTransformer interface as well as other APIs that allow you to write source transformers for Metalama.Compiler.</PackageDescription>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Enable portable PDB so it can be included in the symbols NuGet package (.snupkg). -->
+    <DebugType>Portable</DebugType>
   </PropertyGroup>
   
   <ItemGroup>
