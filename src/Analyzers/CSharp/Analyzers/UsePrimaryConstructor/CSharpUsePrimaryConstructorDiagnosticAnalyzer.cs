@@ -496,7 +496,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
                 if (member.DeclaredAccessibility == Accessibility.Private &&
                     !member.GetAttributes().Any() &&
                     semanticModel.GetSymbolInfo(assignmentExpression.Right, cancellationToken).GetAnySymbol() is IParameterSymbol parameter &&
-                    parameter.Type.Equals(member.GetMemberType()))
+                    parameter.Type.Equals(member.GetMemberType(), SymbolEqualityComparer.IncludeNullability))
                 {
                     candidateMembersToRemove[member] = parameter;
                 }

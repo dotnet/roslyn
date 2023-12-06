@@ -3644,4 +3644,51 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71117")]
+    public async Task TestNullableMismatch()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Threading;
+
+                public class Test
+                {
+                    private object? _parameter;
+
+                    public [|Test|](object parameter)
+                    {
+                        _parameter = parameter;
+                    }
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                
+                using System.Threading;
+
+                public class Test(object parameter)
+                {
+                    private object? _parameter = parameter;
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            // Only one action should be shown to the user here.
+            // The "and remove fields" option should not be shown.
+            CodeActionsVerifier = actions => Assert.Single(actions),
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
