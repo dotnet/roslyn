@@ -42,7 +42,7 @@ internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)]
         context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
         // Razor can't handle this request because they don't have access to the RequestContext, but they might want to do something with it
-        didChangeHandler?.Handle(request.TextDocument.Uri, text);
+        didChangeHandler?.Handle(request.TextDocument.Uri, request.TextDocument.Version, text);
 
         return SpecializedTasks.Default<object>();
     }
@@ -50,5 +50,5 @@ internal sealed class RazorCohostDidChangeEndpoint([Import(AllowDefault = true)]
 
 internal interface IRazorCohostDidChangeHandler
 {
-    void Handle(Uri uri, SourceText text);
+    void Handle(Uri uri, int version, SourceText text);
 }
