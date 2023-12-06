@@ -255,19 +255,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         case Kind.WatchFiles:
                             for (var i = 0; i < op._paths.Count; i++)
                             {
-                                fileNamesBuilder.AddRange(op._paths[i]);
+                                fileNamesBuilder.Add(op._paths[i]);
                             }
 
                             for (var i = 0; i < op._tokens.Count; i++)
                             {
-                                tokensBuilder.AddRange(op._tokens[i]);
+                                tokensBuilder.Add(op._tokens[i]);
                             }
                             break;
 
                         case Kind.UnwatchFiles:
                             for (var i = 0; i < op._tokens.Count; i++)
                             {
-                                tokensBuilder.AddRange(op._tokens[i]);
+                                tokensBuilder.Add(op._tokens[i]);
                             }
                             break;
 
@@ -295,14 +295,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public bool CanCombineWith(in WatcherOperation other)
             {
-                return _kind switch
-                {
-                    Kind.WatchDirectory => false, // Watching directory operation cannot be combined
-                    Kind.WatchFiles when other._kind is Kind.WatchFiles => true,
-                    Kind.UnwatchFiles when other._kind is Kind.UnwatchFiles => true,
-                    Kind.UnwatchDirectories when other._kind == Kind.UnwatchDirectories => true,
-                    _ => false,
-                };
+                // Watching directory operation cannot be combined
+                if (_kind == Kind.WatchDirectory)
+                    return false;
+
+                return (_kind == other._kind);
             }
 
             public async ValueTask ApplyAsync(IVsAsyncFileChangeEx2 service, CancellationToken cancellationToken)
@@ -310,6 +307,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 switch (_kind)
                 {
                     case Kind.WatchDirectory:
+                        Contract.ThrowIfTrue(_paths.Count != 1);
+
                         var cookie = await service.AdviseDirChangeAsync(_paths[0], watchSubdirectories: true, _sink, cancellationToken).ConfigureAwait(false);
                         _cookies.Add(cookie);
 
