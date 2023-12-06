@@ -213,19 +213,17 @@ public partial class CSharpJsonParserTests
     }
 
     private static XElement NodeToElement(JsonNode node)
+        => node switch
+        {
+            JsonArrayNode arrayNode => ArrayNodeToElement(arrayNode),
+            JsonCompilationUnit compilationUnit => CompilationUnitToElement(compilationUnit),
+            JsonObjectNode objectNode => ObjectNodeToElement(objectNode),
+            JsonConstructorNode constructorNode => ConstructorNodeToElement(constructorNode),
+            _ => NodeToElementWorker(node),
+        };
+
+    private static XElement NodeToElementWorker(JsonNode node)
     {
-        if (node is JsonArrayNode arrayNode)
-            return ArrayNodeToElement(arrayNode);
-
-        if (node is JsonCompilationUnit compilationUnit)
-            return CompilationUnitToElement(compilationUnit);
-
-        if (node is JsonObjectNode objectNode)
-            return ObjectNodeToElement(objectNode);
-
-        if (node is JsonConstructorNode constructorNode)
-            return ConstructorNodeToElement(constructorNode);
-
         var element = new XElement(node.Kind.ToString());
         foreach (var child in node)
             element.Add(NodeOrTokenToElement(child));
@@ -234,37 +232,29 @@ public partial class CSharpJsonParserTests
     }
 
     private static XElement NodeOrTokenToElement(EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode> child)
-    {
-        return child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
-    }
+        => child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token);
 
     private static XElement ConstructorNodeToElement(JsonConstructorNode node)
-    {
-        var element = new XElement(node.Kind.ToString());
-        element.Add(TokenToElement(node.NewKeyword));
-        element.Add(TokenToElement(node.NameToken));
-        element.Add(TokenToElement(node.OpenParenToken));
-        element.Add(CreateSequenceNode(node.Sequence));
-        element.Add(TokenToElement(node.CloseParenToken));
-        return element;
-    }
+        => new(
+            node.Kind.ToString(),
+            TokenToElement(node.NewKeyword),
+            TokenToElement(node.NameToken),
+            TokenToElement(node.OpenParenToken),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.CloseParenToken));
 
     private static XElement ObjectNodeToElement(JsonObjectNode node)
-    {
-        var element = new XElement(node.Kind.ToString());
-        element.Add(TokenToElement(node.OpenBraceToken));
-        element.Add(CreateSequenceNode(node.Sequence));
-        element.Add(TokenToElement(node.CloseBraceToken));
-        return element;
-    }
+        => new(
+            node.Kind.ToString(),
+            TokenToElement(node.OpenBraceToken),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.CloseBraceToken));
 
     private static XElement CompilationUnitToElement(JsonCompilationUnit node)
-    {
-        var element = new XElement(node.Kind.ToString());
-        element.Add(CreateSequenceNode(node.Sequence));
-        element.Add(TokenToElement(node.EndOfFileToken));
-        return element;
-    }
+        => new(
+            node.Kind.ToString(),
+            CreateSequenceNode(node.Sequence),
+            TokenToElement(node.EndOfFileToken));
 
     private static XElement ArrayNodeToElement(JsonArrayNode node)
         => new(
@@ -274,20 +264,10 @@ public partial class CSharpJsonParserTests
             TokenToElement(node.CloseBracketToken));
 
     private static XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
-    {
-        var element = new XElement("Sequence");
-        foreach (var child in sequence)
-            element.Add(NodeToElement(child));
-        return element;
-    }
+        => new("Sequence", sequence.Select(NodeToElement));
 
     private static XElement CreateSequenceNode(JsonSeparatedList sequence)
-    {
-        var element = new XElement("Sequence");
-        foreach (var child in sequence.NodesAndTokens)
-            element.Add(NodeOrTokenToElement(child));
-        return element;
-    }
+        => new("Sequence", sequence.NodesAndTokens.Select(NodeOrTokenToElement));
 
     private static XElement TokenToElement(JsonToken token)
     {
