@@ -1265,7 +1265,7 @@ class Buffer10
                 " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.M", """ 
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       91 (0x5b)
   .maxstack  3
@@ -1309,6 +1309,184 @@ class Buffer10
   IL_0058:  stind.i4
   IL_0059:  ldloc.0
   IL_005a:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReturningIndexer_WithEmptyNesting()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    public static Buffer10 M()
+    {
+        return new Buffer10() { [Id(^1)] = { } };
+    }
+
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+class Buffer10
+{
+    public int field = 0;
+    public int Length => throw null;
+    public ref object this[int x] => throw null;
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  newobj     "Buffer10..ctor()"
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  newobj     "System.Index..ctor(int, bool)"
+  IL_000c:  call       "System.Index Program.Id(System.Index)"
+  IL_0011:  pop
+  IL_0012:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithNesting()
+        {
+            string source = """
+var m = M();
+System.Console.Write("Result: ");
+System.Console.Write(m[Id(^1)][Id(^2)]);
+
+partial class Program
+{
+    public static Container M()
+    {
+        return new Container() { [Id(^1)] = { [Id(^2)] = Id(42) } };
+    }
+
+    static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+class Container
+{
+    public Buffer10 field = new Buffer10();
+    public int Length { get { System.Console.Write("ContainerLength "); return 10; } }
+    public ref readonly Buffer10 this[int x]
+    {
+        get { System.Console.Write($"ContainerIndex={x} "); return ref field; }
+    }
+}
+
+class Buffer10
+{
+    public Buffer10() { }
+
+    public int field = 0;
+    public int Length { get { System.Console.Write("Length "); return 10; } }
+    public ref int this[int x]
+    {
+        get { System.Console.Write($"Index={x} "); return ref field; }
+    }
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength Index(^2) ContainerIndex=9 Length ContainerIndex=9 Index=8 Id(42)" +
+                " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       91 (0x5b)
+  .maxstack  3
+  .locals init (Container V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3)
+  IL_0000:  newobj     "Container..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  newobj     "System.Index..ctor(int, bool)"
+  IL_000d:  call       "System.Index Program.Id(System.Index)"
+  IL_0012:  stloc.3
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   "int Container.Length.get"
+  IL_001b:  call       "int System.Index.GetOffset(int)"
+  IL_0020:  stloc.1
+  IL_0021:  ldc.i4.2
+  IL_0022:  ldc.i4.1
+  IL_0023:  newobj     "System.Index..ctor(int, bool)"
+  IL_0028:  call       "System.Index Program.Id(System.Index)"
+  IL_002d:  stloc.3
+  IL_002e:  ldloca.s   V_3
+  IL_0030:  ldloc.0
+  IL_0031:  ldloc.1
+  IL_0032:  callvirt   "ref readonly Buffer10 Container.this[int].get"
+  IL_0037:  ldind.ref
+  IL_0038:  callvirt   "int Buffer10.Length.get"
+  IL_003d:  call       "int System.Index.GetOffset(int)"
+  IL_0042:  stloc.2
+  IL_0043:  ldloc.0
+  IL_0044:  ldloc.1
+  IL_0045:  callvirt   "ref readonly Buffer10 Container.this[int].get"
+  IL_004a:  ldind.ref
+  IL_004b:  ldloc.2
+  IL_004c:  callvirt   "ref int Buffer10.this[int].get"
+  IL_0051:  ldc.i4.s   42
+  IL_0053:  call       "int Program.Id(int)"
+  IL_0058:  stind.i4
+  IL_0059:  ldloc.0
+  IL_005a:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithEmptyNesting()
+        {
+            string source = """
+M();
+
+partial class Program
+{
+    public static Buffer10 M()
+    {
+        return new Buffer10() { [Id(^1)] = { } };
+    }
+
+    static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
+}
+
+class Buffer10
+{
+    public int field = 0;
+    public int Length => throw null;
+    public ref readonly object this[int x] => throw null;
+}
+""";
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  newobj     "Buffer10..ctor()"
+  IL_0005:  ldc.i4.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  newobj     "System.Index..ctor(int, bool)"
+  IL_000c:  call       "System.Index Program.Id(System.Index)"
+  IL_0011:  pop
+  IL_0012:  ret
 }
 """);
         }
@@ -2316,7 +2494,8 @@ Block[B6] - Exit
         public void InObjectInitializer_Range_WithNestedNesting()
         {
             string source = """
-C.M(1..^1, 2..^2);
+var c = C.M(1..^1, 2..^2);
+System.Console.Write($"Results={c.F._array._array[2]},{c.F._array._array[3]}");
 
 class Container
 {
@@ -2353,7 +2532,7 @@ class C
 }
 """;
             var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength ContainerSlice(1, 8) Range(2..^2) Length Id(2) Slice(2, 6) Id(42) Id(3) Slice(2, 6) Id(43)");
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength ContainerSlice(1, 8) Range(2..^2) Length Id(2) Slice(2, 6) Id(42) Id(3) Slice(2, 6) Id(43) Results=42,43");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
 {
@@ -3927,7 +4106,7 @@ struct Buffer10
         {
             string source = """
 Buffer10 b = default;
-b[..][0] = 1;
+b[^1][0] = 1;
 
 _ = new Buffer10() { [^1][0] = 2 }; // 1
 
@@ -3935,14 +4114,11 @@ struct Buffer10
 {
     public Buffer10() { }
     public int Length => throw null;
-    public int[] Slice(int start, int length) => throw null;
+    public int[] this[int i] { get => throw null; set => throw null; }
 }
 """;
             var comp = CreateCompilationWithIndexAndRange(source);
             comp.VerifyDiagnostics(
-                // (4,22): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10'
-                // _ = new Buffer10() { [^1][0] = 2 }; // 1
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "[^1]").WithArguments("Buffer10").WithLocation(4, 22),
                 // (4,26): error CS1003: Syntax error, '=' expected
                 // _ = new Buffer10() { [^1][0] = 2 }; // 1
                 Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
