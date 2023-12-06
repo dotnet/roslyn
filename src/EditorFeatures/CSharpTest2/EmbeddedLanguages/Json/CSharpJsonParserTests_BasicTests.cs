@@ -3549,6 +3549,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         [Fact]
+        public void TestOctal7()
+        {
+            Test(@"@""[07]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>07</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
+        public void TestOctal8()
+        {
+            Test(@"@""[08]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <Array>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Literal>
+            <NumberToken>08</NumberToken>
+          </Literal>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </Array>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+</Tree>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>",
+        @"<Diagnostics>
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""2"" />
+</Diagnostics>");
+        }
+
+        [Fact]
         public void TestObjectLiteralComments()
         {
             Test(@"@""/*comment*/ { /*comment*/

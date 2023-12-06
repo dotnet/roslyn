@@ -85,7 +85,7 @@ internal partial struct JsonParser
                 // However, this is quite expensive when it fails as it throws exceptions (see
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1871418).
 
-                if (chars[1] == 'x' || chars[1] == 'X')
+                if (chars[1].Value is 'x' or 'X')
                 {
                     // Base 16.  Fortunately, we have helpers for this common case.
                     if (!long.TryParse(chars.Skip("0x".Length).CreateString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out _))
