@@ -33,7 +33,7 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDirectory is to handle culture-specific resource files that should be placed in
            subdirectories -->
@@ -44,8 +44,13 @@
                               PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
 
-      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
-      <TfmSpecificPackageFile Include="$(ProjectDepsFilePath)" PackagePath="tools\$(TargetFramework)\any" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <!-- Include content output as well, for the BuildHost -->
+      <TfmSpecificPackageFile Include="@(AllItemsFullPathWithTargetPath)"
+                              PackagePath="tools\$(TargetFramework)\any\%(AllItemsFullPathWithTargetPath.TargetPath)"
+                              Condition="'%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
+
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any"
+                              Condition="'%(FullPath)' != '$(ProjectRuntimeConfigFilePath)'"/>
     </ItemGroup>
   </Target>
 
