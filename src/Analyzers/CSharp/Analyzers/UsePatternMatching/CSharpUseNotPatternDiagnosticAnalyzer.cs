@@ -80,7 +80,7 @@ internal sealed class CSharpUseNotPatternDiagnosticAnalyzer()
             //
             // Note: can't convert `!(x is Y?)` to `x is not Y?`.  The latter is not legal.
             BinaryExpressionSyntax(SyntaxKind.IsExpression) { Right: TypeSyntax type } isExpression
-                => semanticModel.GetType(type, cancellationToken).IsNullable()
+                => semanticModel.GetTypeInfo(type, cancellationToken).Type.IsNullable()
                     ? null
                     : isExpression.OperatorToken.GetLocation(),
 
