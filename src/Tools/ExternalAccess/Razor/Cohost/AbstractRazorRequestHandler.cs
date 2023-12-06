@@ -70,6 +70,10 @@ internal abstract class AbstractRazorCohostDocumentRequestHandler<TRequestType, 
     protected abstract RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TRequestType request);
 }
 
+internal interface IRazorLspService : ILspService
+{
+}
+
 internal record struct RazorCohostRequestContext(string Method, Uri? Uri, Solution? Solution, TextDocument? TextDocument);
 
 /// <summary>
