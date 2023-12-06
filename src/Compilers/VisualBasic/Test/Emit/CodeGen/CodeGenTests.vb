@@ -14002,6 +14002,8 @@ End Module
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
+
 Public Class TestClass
     Private _rotation As Decimal
     Private Sub CalculateDimensions()
@@ -14048,6 +14050,8 @@ End Class
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
+
 Public Class TestClass
     Private Shared Sub CalculateDimensions(_rotation As Decimal())
         _rotation(GetIndex()) *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
@@ -14061,7 +14065,7 @@ Public Class TestClass
         Dim _rotation(0) as Decimal
         _rotation(0) = 1
         CalculateDimensions(_rotation)
-        System.Console.WriteLine(_rotation(0))
+        System.Console.WriteLine(_rotation(0).ToString(CultureInfo.InvariantCulture))
     End Sub
 End Class
     </file>
