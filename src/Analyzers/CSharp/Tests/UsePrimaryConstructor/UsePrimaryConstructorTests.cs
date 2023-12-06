@@ -3645,7 +3645,7 @@ public partial class UsePrimaryConstructorTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71117")]
     public async Task TestNullableMismatch()
     {
         await new VerifyCS.Test
