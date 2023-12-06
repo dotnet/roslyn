@@ -267,13 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
 
         private static XElement ArrayNodeToElement(JsonArrayNode node)
-        {
-            var element = new XElement(node.Kind.ToString());
-            element.Add(TokenToElement(node.OpenBracketToken));
-            element.Add(CreateSequenceNode(node.Sequence));
-            element.Add(TokenToElement(node.CloseBracketToken));
-            return element;
-        }
+            => new(
+                node.Kind.ToString(),
+                TokenToElement(node.OpenBracketToken),
+                CreateSequenceNode(node.Sequence),
+                TokenToElement(node.CloseBracketToken));
 
         private static XElement CreateSequenceNode(ImmutableArray<JsonValueNode> sequence)
         {
