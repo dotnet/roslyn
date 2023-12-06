@@ -10472,6 +10472,7 @@ done:;
                 newPrecedence = GetPrecedence(SyntaxKind.AwaitExpression);
                 leftOperand = _syntaxFactory.AwaitExpression(
                     this.EatContextualToken(SyntaxKind.AwaitKeyword),
+                    this.TryEatToken(SyntaxKind.QuestionToken),
                     this.ParseSubExpression(newPrecedence));
             }
             else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))

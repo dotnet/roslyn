@@ -1329,6 +1329,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Awaited operation.
         /// </summary>
         IOperation Operation { get; }
+        /// <summary>
+        /// Whether this is a null-conditional await.
+        /// </summary>
+        bool IsNullConditional { get; }
     }
     /// <summary>
     /// Represents a base interface for assignments.
@@ -5898,13 +5902,15 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AwaitOperation : Operation, IAwaitOperation
     {
-        internal AwaitOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal AwaitOperation(IOperation operation, bool isNullConditional, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
+            IsNullConditional = isNullConditional;
             Type = type;
         }
         public IOperation Operation { get; }
+        public bool IsNullConditional { get; }
         internal override int ChildOperationsCount =>
             (Operation is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -10711,7 +10717,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitAwait(IAwaitOperation operation, object? argument)
         {
             var internalOperation = (AwaitOperation)operation;
-            return new AwaitOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new AwaitOperation(Visit(internalOperation.Operation), internalOperation.IsNullConditional, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, object? argument)
         {

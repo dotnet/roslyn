@@ -2058,41 +2058,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     {
         internal readonly SyntaxToken awaitKeyword;
+        internal readonly SyntaxToken? questionToken;
         internal readonly ExpressionSyntax expression;
 
-        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken? questionToken, ExpressionSyntax expression, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(awaitKeyword);
             this.awaitKeyword = awaitKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
             this.AdjustFlagsAndWidth(expression);
             this.expression = expression;
         }
 
-        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
+        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken? questionToken, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 2;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(awaitKeyword);
             this.awaitKeyword = awaitKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
             this.AdjustFlagsAndWidth(expression);
             this.expression = expression;
         }
 
-        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken? questionToken, ExpressionSyntax expression)
           : base(kind)
         {
-            this.SlotCount = 2;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(awaitKeyword);
             this.awaitKeyword = awaitKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
             this.AdjustFlagsAndWidth(expression);
             this.expression = expression;
         }
 
         /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
         public SyntaxToken AwaitKeyword => this.awaitKeyword;
+        /// <summary>SyntaxToken representing the question mark.</summary>
+        public SyntaxToken? QuestionToken => this.questionToken;
         /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
         public ExpressionSyntax Expression => this.expression;
 
@@ -2100,7 +2118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => index switch
             {
                 0 => this.awaitKeyword,
-                1 => this.expression,
+                1 => this.questionToken,
+                2 => this.expression,
                 _ => null,
             };
 
@@ -2109,11 +2128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAwaitExpression(this);
 
-        public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
         {
-            if (awaitKeyword != this.AwaitKeyword || expression != this.Expression)
+            if (awaitKeyword != this.AwaitKeyword || questionToken != this.QuestionToken || expression != this.Expression)
             {
-                var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
+                var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, questionToken, expression);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -2127,10 +2146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, diagnostics, GetAnnotations());
+            => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.questionToken, this.expression, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.expression, GetDiagnostics(), annotations);
+            => new AwaitExpressionSyntax(this.Kind, this.awaitKeyword, this.questionToken, this.expression, GetDiagnostics(), annotations);
     }
 
     /// <summary>Class which represents the syntax node for postfix unary expression.</summary>
@@ -26797,7 +26816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.Operand));
 
         public override CSharpSyntaxNode VisitAwaitExpression(AwaitExpressionSyntax node)
-            => node.Update((SyntaxToken)Visit(node.AwaitKeyword), (ExpressionSyntax)Visit(node.Expression));
+            => node.Update((SyntaxToken)Visit(node.AwaitKeyword), (SyntaxToken)Visit(node.QuestionToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override CSharpSyntaxNode VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.Operand), (SyntaxToken)Visit(node.OperatorToken));
@@ -28007,19 +28026,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        public AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, SyntaxToken? questionToken, ExpressionSyntax expression)
         {
 #if DEBUG
             if (awaitKeyword == null) throw new ArgumentNullException(nameof(awaitKeyword));
             if (awaitKeyword.Kind != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
+            if (questionToken != null)
+            {
+                switch (questionToken.Kind)
+                {
+                    case SyntaxKind.QuestionToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(questionToken));
+                }
+            }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, expression, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, questionToken, expression, this.context, out hash);
             if (cached != null) return (AwaitExpressionSyntax)cached;
 
-            var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression, this.context);
+            var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, questionToken, expression, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -33223,19 +33251,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, SyntaxToken? questionToken, ExpressionSyntax expression)
         {
 #if DEBUG
             if (awaitKeyword == null) throw new ArgumentNullException(nameof(awaitKeyword));
             if (awaitKeyword.Kind != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
+            if (questionToken != null)
+            {
+                switch (questionToken.Kind)
+                {
+                    case SyntaxKind.QuestionToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(questionToken));
+                }
+            }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, expression, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, questionToken, expression, out hash);
             if (cached != null) return (AwaitExpressionSyntax)cached;
 
-            var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression);
+            var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, questionToken, expression);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

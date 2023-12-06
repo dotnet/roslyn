@@ -1965,6 +1965,7 @@ Microsoft.CodeAnalysis.Operations.IAttributeOperation
 Microsoft.CodeAnalysis.Operations.IAttributeOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
 Microsoft.CodeAnalysis.Operations.IAwaitOperation
 Microsoft.CodeAnalysis.Operations.IAwaitOperation.Operation.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IAwaitOperation.IsNullConditional.get -> bool
 Microsoft.CodeAnalysis.Operations.IBinaryOperation
 Microsoft.CodeAnalysis.Operations.IBinaryOperation.ConstrainedToType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.Operations.IBinaryOperation.IsChecked.get -> bool
