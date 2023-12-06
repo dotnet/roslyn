@@ -1128,6 +1128,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!set.Contains(item))
                 {
+                    set.Free();
                     return false;
                 }
             }

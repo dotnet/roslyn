@@ -1010,6 +1010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             lambdaDebugInfoBuilder.Free()
             closureDebugInfoBuilder.Free()
             stateMachineStateDebugInfoBuilder.Free()
+            lambdaRuntimeRudeEditsBuilder.Free();
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
@@ -1404,6 +1405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty())
 
                 lambdaDebugInfoBuilder.Free()
+                lambdaRuntimeRudeEditsBuilder.Free()
                 closureDebugInfoBuilder.Free()
                 stateMachineStateDebugInfoBuilder.Free()
 
@@ -1496,84 +1498,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim codeCoverageSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
             Dim instrumentation = If(_moduleBeingBuiltOpt IsNot Nothing, _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(method), Nothing)
 
-            body = Rewriter.LowerBodyOrInitializer(method,
-                                                   methodOrdinal,
-                                                   body,
-                                                   previousSubmissionFields,
-                                                   compilationState,
-                                                   instrumentation,
-                                                   codeCoverageSpans,
-                                                   GetDebugDocumentProvider(instrumentation),
-                                                   diagnostics,
-                                                   lazyVariableSlotAllocator,
-                                                   lambdaDebugInfoBuilder,
-                                                   lambdaRuntimeRudeEditsBuilder,
-                                                   closureDebugInfoBuilder,
-                                                   stateMachineStateDebugInfoBuilder,
-                                                   delegateRelaxationIdDispenser,
-                                                   stateMachineTypeOpt,
-                                                   allowOmissionOfConditionalCalls,
-                                                   isBodySynthesized:=False)
+            Try
+                body = Rewriter.LowerBodyOrInitializer(method,
+                                                       methodOrdinal,
+                                                       body,
+                                                       previousSubmissionFields,
+                                                       compilationState,
+                                                       instrumentation,
+                                                       codeCoverageSpans,
+                                                       GetDebugDocumentProvider(instrumentation),
+                                                       diagnostics,
+                                                       lazyVariableSlotAllocator,
+                                                       lambdaDebugInfoBuilder,
+                                                       lambdaRuntimeRudeEditsBuilder,
+                                                       closureDebugInfoBuilder,
+                                                       stateMachineStateDebugInfoBuilder,
+                                                       delegateRelaxationIdDispenser,
+                                                       stateMachineTypeOpt,
+                                                       allowOmissionOfConditionalCalls,
+                                                       isBodySynthesized:=False)
 
-            ' The submission initializer has to be constructed after the body is rewritten (all previous submission references are visited):
-            Dim submissionInitialization = If(method.IsSubmissionConstructor,
+                ' The submission initializer has to be constructed after the body is rewritten (all previous submission references are visited):
+                Dim submissionInitialization = If(method.IsSubmissionConstructor,
                 SynthesizedSubmissionConstructorSymbol.MakeSubmissionInitialization(block.Syntax, method, previousSubmissionFields, _compilation),
                 ImmutableArray(Of BoundStatement).Empty)
-            Dim hasErrors = body.HasErrors OrElse diagsForCurrentMethod.HasAnyErrors OrElse (diagnostics IsNot diagsForCurrentMethod AndAlso diagnostics.HasAnyErrors)
-            SetGlobalErrorIfTrue(hasErrors)
+                Dim hasErrors = body.HasErrors OrElse diagsForCurrentMethod.HasAnyErrors OrElse (diagnostics IsNot diagsForCurrentMethod AndAlso diagnostics.HasAnyErrors)
+                SetGlobalErrorIfTrue(hasErrors)
 
-            ' Actual emitting is only done if we have a module in which to emit and no errors so far.
-            If _moduleBeingBuiltOpt Is Nothing OrElse hasErrors Then
+                ' Actual emitting is only done if we have a module in which to emit and no errors so far.
+                If _moduleBeingBuiltOpt Is Nothing OrElse hasErrors Then
+                    If diagnostics IsNot diagsForCurrentMethod Then
+                        DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics.DiagnosticBag, diagsForCurrentMethod.DiagnosticBag)
+                        diagsForCurrentMethod.AddDependencies(diagnostics)
+                        diagnostics.Free()
+                    End If
+
+                    Return
+                End If
+
+                ' now we have everything we need to build complete submission
+                If method.IsScriptConstructor Then
+                    Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance()
+                    Debug.Assert(constructorInitializerOpt IsNot Nothing)
+                    boundStatements.Add(constructorInitializerOpt)
+                    boundStatements.AddRange(submissionInitialization)
+                    boundStatements.Add(body)
+                    body = New BoundBlock(body.Syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, boundStatements.ToImmutableAndFree(), body.HasErrors).MakeCompilerGenerated()
+                End If
+
+                If DoEmitPhase Then
+                    ' NOTE: additional check for statement.HasErrors is needed to identify parse errors which didn't get into diagsForCurrentMethod
+
+                    lambdaRuntimeRudeEdits.Sort(Function(x, y) x.LambdaId.CompareTo(y.LambdaId))
+
+                    Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
+                                                                  method,
+                                                                  methodOrdinal,
+                                                                  body,
+                                                                  lambdaDebugInfoBuilder.ToImmutable(),
+                                                                  orderedLambdaRuntimeRudeEdits:=lambdaRuntimeRudeEdits.ToImmutable(),
+                                                                  closureDebugInfoBuilder.ToImmutable(),
+                                                                  stateMachineStateDebugInfoBuilder.ToImmutable(),
+                                                                  stateMachineTypeOpt,
+                                                                  lazyVariableSlotAllocator,
+                                                                  GetDebugDocumentProvider(instrumentation),
+                                                                  diagnostics,
+                                                                  emittingPdb:=_emittingPdb,
+                                                                  codeCoverageSpans:=codeCoverageSpans)
+
+                    _moduleBeingBuiltOpt.SetMethodBody(If(method.PartialDefinitionPart, method), methodBody)
+                End If
+
                 If diagnostics IsNot diagsForCurrentMethod Then
                     DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics.DiagnosticBag, diagsForCurrentMethod.DiagnosticBag)
                     diagsForCurrentMethod.AddDependencies(diagnostics)
                     diagnostics.Free()
                 End If
-
-                Return
-            End If
-
-            ' now we have everything we need to build complete submission
-            If method.IsScriptConstructor Then
-                Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance()
-                Debug.Assert(constructorInitializerOpt IsNot Nothing)
-                boundStatements.Add(constructorInitializerOpt)
-                boundStatements.AddRange(submissionInitialization)
-                boundStatements.Add(body)
-                body = New BoundBlock(body.Syntax, Nothing, ImmutableArray(Of LocalSymbol).Empty, boundStatements.ToImmutableAndFree(), body.HasErrors).MakeCompilerGenerated()
-            End If
-
-            If DoEmitPhase Then
-                ' NOTE: additional check for statement.HasErrors is needed to identify parse errors which didn't get into diagsForCurrentMethod
-
-                lambdaRuntimeRudeEdits.Sort(Function(x, y) x.LambdaId.CompareTo(y.LambdaId))
-
-                Dim methodBody As MethodBody = GenerateMethodBody(_moduleBeingBuiltOpt,
-                                                              method,
-                                                              methodOrdinal,
-                                                              body,
-                                                              lambdaDebugInfoBuilder.ToImmutable(),
-                                                              orderedLambdaRuntimeRudeEdits:=lambdaRuntimeRudeEdits.ToImmutable(),
-                                                              closureDebugInfoBuilder.ToImmutable(),
-                                                              stateMachineStateDebugInfoBuilder.ToImmutable(),
-                                                              stateMachineTypeOpt,
-                                                              lazyVariableSlotAllocator,
-                                                              GetDebugDocumentProvider(instrumentation),
-                                                              diagnostics,
-                                                              emittingPdb:=_emittingPdb,
-                                                              codeCoverageSpans:=codeCoverageSpans)
-
-                _moduleBeingBuiltOpt.SetMethodBody(If(method.PartialDefinitionPart, method), methodBody)
-            End If
-
-            If diagnostics IsNot diagsForCurrentMethod Then
-                DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics.DiagnosticBag, diagsForCurrentMethod.DiagnosticBag)
-                diagsForCurrentMethod.AddDependencies(diagnostics)
-                diagnostics.Free()
-            End If
-
-            lambdaDebugInfoBuilder.Free()
-            closureDebugInfoBuilder.Free()
+            Finally
+                lambdaDebugInfoBuilder.Free()
+                closureDebugInfoBuilder.Free()
+                lambdaRuntimeRudeEditsBuilder.Free()
+            End Try
         End Sub
 
         Friend Shared Function GenerateMethodBody(moduleBuilder As PEModuleBuilder,

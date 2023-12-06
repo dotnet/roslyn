@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Emit;
 
 internal readonly struct EncLambdaMapValue(DebugId id, int closureOrdinal, ImmutableArray<DebugId> structClosureIds)
 {
-    public DebugId Id { get; } = id;
-    public int ClosureOrdinal { get; } = closureOrdinal;
-    public ImmutableArray<DebugId> StructClosureIds { get; } = structClosureIds;
+    public readonly DebugId Id = id;
+    public readonly int ClosureOrdinal = closureOrdinal;
+    public readonly ImmutableArray<DebugId> StructClosureIds = structClosureIds;
 
     /// <summary>
     /// True if the lambda being built is compatible with the previous one.

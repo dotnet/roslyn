@@ -22,23 +22,20 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private readonly struct MetadataLambdasAndClosures(
             ImmutableArray<(DebugId id, IMethodSymbolInternal symbol)> lambdaSymbols,
-            IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCapures)> closureTree)
+            IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCaptures)> closureTree)
         {
             /// <summary>
             /// Ordered by id.
             /// </summary>
             public ImmutableArray<(DebugId id, IMethodSymbolInternal symbol)> LambdaSymbols { get; } = lambdaSymbols;
 
-            /// <summary>
-            /// Ordered by id.
-            /// </summary>
-            public IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCapures)> ClosureTree { get; } = closureTree;
+            public IReadOnlyDictionary<DebugId, (DebugId? parentId, ImmutableArray<string> structCaptures)> ClosureTree { get; } = closureTree;
 
             public IMethodSymbolInternal? GetLambdaSymbol(DebugId lambdaId)
                 => LambdaSymbols.BinarySearch(lambdaId, static (info, id) => info.id.CompareTo(id)) is int i and >= 0 ? LambdaSymbols[i].symbol : null;
 
             public (DebugId? parentId, ImmutableArray<string>) TryGetClosureInfo(DebugId closureId)
-                => ClosureTree.TryGetValue(closureId, out var node) ? (node.parentId, node.structCapures) : default;
+                => ClosureTree.TryGetValue(closureId, out var node) ? node : default;
         }
 
         private readonly ImmutableDictionary<IMethodSymbolInternal, MethodInstrumentation> _methodInstrumentations;
@@ -639,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            ImmutableArray<string> getHoistedVariableNames(ImmutableArray<ISymbolInternal> members)
+            static ImmutableArray<string> getHoistedVariableNames(ImmutableArray<ISymbolInternal> members)
             {
                 var builder = ArrayBuilder<string>.GetInstance();
                 foreach (var member in members)

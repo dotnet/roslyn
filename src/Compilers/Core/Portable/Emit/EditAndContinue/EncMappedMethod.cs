@@ -11,5 +11,5 @@ internal readonly struct EncMappedMethod(IMethodSymbolInternal previousMethod, F
 {
     public readonly IMethodSymbolInternal PreviousMethod = previousMethod;
     public readonly Func<SyntaxNode, SyntaxNode?>? SyntaxMap = syntaxMap;
-    public Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit { get; } = runtimeRudeEdit;
+    public readonly Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit = runtimeRudeEdit;
 }

@@ -1327,6 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finally
                 {
                     lambdaDebugInfoBuilder.Free();
+                    lambdaRuntimeRudeEditsBuilder.Free();
                     closureDebugInfoBuilder.Free();
                     stateMachineStateDebugInfoBuilder.Free();
                 }

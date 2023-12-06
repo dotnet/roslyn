@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // Lower directly onto the containing type
                     containerAsFrame = null;
                     translatedLambdaContainer = _topLevelMethod.ContainingType;
                     closureKind = ClosureKind.Static;

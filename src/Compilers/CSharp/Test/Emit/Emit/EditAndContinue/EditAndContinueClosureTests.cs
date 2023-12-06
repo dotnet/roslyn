@@ -6599,7 +6599,7 @@ class C
                     validator: g =>
                     {
                         // Static lambda is reused.
-                        // A new display class and method is generated for lambda that captures x.
+                        // A new display class and method is generated for lambda that captured x.
                         g.VerifySynthesizedMembers(
                             "C: {<>c}",
                             "C.<>c: {<>9__1_0#1, <>9__1_1, <F>b__1_0#1, <F>b__1_1}");
@@ -8869,7 +8869,7 @@ class C
         }
 
         [Fact]
-        public void CapureOrdering()
+        public void CaptureOrdering()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(

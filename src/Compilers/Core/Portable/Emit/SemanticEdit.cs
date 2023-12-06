@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
-        /// Associates a syntax node in the later compilation to an error information that should be
+        /// Associates a syntax node in the later compilation to an error that should be
         /// reported at runtime by the IL generated for the node, if any.
         /// </summary>
         public Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit { get; }

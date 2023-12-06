@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
-        Private Function IsParentDisplayClassFieldName(name As String) As Boolean
+        Private Shared Function IsParentDisplayClassFieldName(name As String) As Boolean
             Return name.StartsWith(GeneratedNameConstants.HoistedSpecialVariablePrefix & GeneratedNameConstants.ClosureVariablePrefix, StringComparison.Ordinal)
         End Function
 

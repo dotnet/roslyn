@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         /// <param name="closureSyntax">Syntax of the closure scope.</param>
         /// <param name="parentClosureId">Id of the parent closure.</param>
-        /// <param name="structCaptures">Names of variables hoisted into the closure, or empty if the closure is a class.</param>
+        /// <param name="structCaptures">Names of variables hoisted into the closure, or default if the closure is a class.</param>
         /// <param name="closureId">Id of the closure assigned in the generation that defined the closure.</param>
         /// <param name="runtimeRudeEdit">
         /// Not-null if the previous closure is found, but is incompatible with the shape of the closure in the current source.

@@ -176,6 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 public readonly SetWithInsertionOrder<Symbol> CapturedVariables;
 
+                /// <summary>
+                /// Assigned by <see cref="ComputeLambdaScopesAndFrameCaptures()"/>.
+                /// </summary>
                 public ClosureEnvironment Parent;
 
                 public readonly bool IsStruct;
@@ -193,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 /// <summary>
                 /// True if this environment references a class environment declared in a higher scope.
-                /// Assigned by <see cref="ComputeLambdaScopesAndFrameCaptures()"/>.
                 /// </summary>
                 public bool CapturesParent => Parent != null;
 
