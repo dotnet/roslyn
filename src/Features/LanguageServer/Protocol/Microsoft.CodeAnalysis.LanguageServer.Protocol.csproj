@@ -74,7 +74,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".editorconfig" />
+    <None Include="Protocol\.editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
