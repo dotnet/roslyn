@@ -98,6 +98,7 @@ stages:
           configuration: Debug
           oop64bit: true
           lspEditor: false
+          publishCacheForMainBranch: true
 
 - stage: Release_Integration
   dependsOn: []
