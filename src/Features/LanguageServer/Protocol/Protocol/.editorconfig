@@ -17,3 +17,9 @@ dotnet_diagnostic.CS8603.severity = none
 
 # CS8604: Possible null reference argument for parameter 'uriString' in 'Uri.Uri(string uriString)'.
 dotnet_diagnostic.CS8604.severity = none
+
+# RS0016: Symbol is not part of the public API
+dotnet_diagnostic.RS0016.severity = none
+
+# RS0030:  The symbol 'Uri.Uri(string)' is banned in this project
+dotnet_diagnostic.RS0030.severity = none
