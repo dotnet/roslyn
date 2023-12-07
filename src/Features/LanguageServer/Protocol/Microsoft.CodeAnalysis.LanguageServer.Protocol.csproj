@@ -83,11 +83,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="LanguageServerResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>LanguageServerResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="LanguageServerProtocolResources.Designer.cs">
       <DependentUpon>LanguageServerProtocolResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
@@ -96,10 +91,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.LanguageServer">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>LanguageServerResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Update="LanguageServerProtocolResources.resx">
       <SubType>Designer</SubType>
       <LastGenOutput>LanguageServerProtocolResources.Designer.cs</LastGenOutput>
