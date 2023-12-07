@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             {
                 // Obtain the LSP response and text snapshot used.
                 var response = await DocumentSymbolsRequestAsync(
-                    _textBuffer, _languageServiceBroker, filePath, cancellationToken).ConfigureAwait(false);
+                    _textBuffer, _languageServiceBroker.RequestAsync, filePath, cancellationToken).ConfigureAwait(false);
                 if (response != null)
                 {
                     var newTextSnapshot = response.Value.snapshot;
