@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.CodeDom.Compiler;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -31,7 +32,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// The new line characters accepted by C#.
     /// </summary>
-    private static ReadOnlySpan<char> NewLineChars => new[] { '\r', '\n', '\f', '\u0085', '\u2028', '\u2029' };
+    private static ReadOnlySpan<char> EndOfLineCharacters => new[] { '\r', '\n', '\f', '\u0085', '\u2028', '\u2029' };
 
     private static readonly ImmutableArray<string> s_defaultIndentationStrings;
 
@@ -88,13 +89,13 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     [MemberNotNull(nameof(_builder))]
-    private void CheckDisposed()
+    private readonly void CheckDisposed()
     {
         if (_builder is null)
             throw new ObjectDisposedException(nameof(IndentingStringBuilder));
     }
 
-    private StringBuilder Builder
+    private readonly StringBuilder Builder
     {
         get
         {
@@ -140,7 +141,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// Appends a single end of line sequence to the underlying buffer.  No indentation is written prior to the end of line.
     /// </summary>
-    private IndentingStringBuilder AppendEndOfLine()
+    private readonly IndentingStringBuilder AppendEndOfLine()
     {
         this.Builder.Append(_endOfLine);
         return this;
@@ -156,21 +157,24 @@ internal struct IndentingStringBuilder : IDisposable
             return;
 
         var builder = this.Builder;
-        if (builder.Length == 0 || NewLineChars.IndexOf(builder[^1]) >= 0)
+        if (builder.Length == 0 || IsEndOfLineCharacter(builder[^1]))
             builder.Append(_currentIndentation);
 
         builder.Append(line);
     }
 
+    private static bool IsEndOfLineCharacter(char ch)
+        => EndOfLineCharacters.IndexOf(ch) >= 0;
+
     /// <summary>
     /// Writes content to the underlying buffer.  If the buffer is at the start of a line, then indentation will be
     /// appended first before the content.  By default, for performance reasons, the content is assumed to contain no
-    /// newlines in it.  If the content may contain newlines, then <see langword="true"/> should be passed in for
-    /// <paramref name="splitContent"/>.  This will cause the provided content to be split into constituent lines,
-    /// with each line being appended one at a time.
+    /// end of line characters in it.  If the content may contain end of line characters, then <see langword="true"/>
+    /// should be passed in for <paramref name="splitContent"/>.  This will cause the provided content to be split into
+    /// constituent lines, with each line being appended one at a time.
     /// </summary>
-    public IndentingStringBuilder Write(string content, bool splitContent = false)
-        => Write(content.AsSpan(), splitContent);
+    public IndentingStringBuilder Write(string? content, bool splitContent = false)
+        => content is null ? this : Write(content.AsSpan(), splitContent);
 
     /// <inheritdoc cref="Write(string, bool)"/>
     public IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
@@ -179,19 +183,19 @@ internal struct IndentingStringBuilder : IDisposable
         {
             while (content.Length > 0)
             {
-                var newLineIndex = content.IndexOfAny(NewLineChars);
-                if (newLineIndex < 0)
+                var endOfLineIndex = content.IndexOfAny(EndOfLineCharacters);
+                if (endOfLineIndex < 0)
                 {
                     // no new line, append the rest of the content to the buffer.
                     AppendSingleLine(content);
                 }
                 else
                 {
-                    while (newLineIndex < content.Length && NewLineChars.IndexOf(content[newLineIndex + 1]) >= 0)
-                        newLineIndex++;
+                    while (endOfLineIndex < content.Length & IsEndOfLineCharacter(content[endOfLineIndex + 1]))
+                        endOfLineIndex++;
 
-                    AppendSingleLine(content[0..newLineIndex]);
-                    content = content[newLineIndex..];
+                    AppendSingleLine(content[0..endOfLineIndex]);
+                    content = content[endOfLineIndex..];
                 }
             }
         }
@@ -207,7 +211,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// Equivalent to <see cref="Write(string, bool)"/> except that a final end of line sequence will be written after
     /// the content is written.
     /// </summary>
-    public IndentingStringBuilder WriteLine(string content, bool splitContent = false)
+    public IndentingStringBuilder WriteLine(string content = "", bool splitContent = false)
         => WriteLine(content.AsSpan(), splitContent);
 
     /// <inheritdoc cref="WriteLine(string, bool)"/>
@@ -216,6 +220,54 @@ internal struct IndentingStringBuilder : IDisposable
         Write(content, splitContent);
         AppendEndOfLine();
         return this;
+    }
+
+    /// <summary>
+    /// Ensures that the current buffer has at least one blank line between the last written content and the content
+    /// that would be written.  Note: a line containing only whitespace/indentation is not considered an empty line.
+    /// Only a line with no content on it counts.
+    /// </summary>
+    /// <returns></returns>
+    public readonly IndentingStringBuilder EnsureEmptyLine()
+    {
+        if (GetLineCount() < 2)
+            AppendEndOfLine();
+
+        return this;
+    }
+
+    private readonly int GetLineCount()
+    {
+        var builder = this.Builder;
+        var position = builder.Length - 1;
+        var lineCount = 0;
+        while (position >= 0)
+        {
+            if (builder[position] == '\n')
+            {
+                if (position >= 1 && builder[position - 1] == '\r')
+                {
+                    position -= 2;
+                }
+                else
+                {
+                    position--;
+                }
+
+                lineCount++;
+            }
+            else if (IsEndOfLineCharacter(builder[position]))
+            {
+                position--;
+                lineCount++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return lineCount;
     }
 
     /// <summary>
@@ -228,20 +280,80 @@ internal struct IndentingStringBuilder : IDisposable
     /// }
     /// </code>
     /// </summary>
-    public Block StartBlock()
-    {
-        this.WriteLine("{");
-        this.IncreaseIndent();
+    public Region EnterBlock()
+        => EnterIndentedRegion("{", "}");
 
-        return new Block(this);
+    public Region EnterIndentedRegion()
+        => EnterIndentedRegion("", "");
+
+    private Region EnterIndentedRegion(string open, string close)
+    {
+        this.WriteLine(open);
+        this.IncreaseIndent();
+        return new Region(this, close);
     }
 
-    public readonly struct Block(IndentingStringBuilder builder) : IDisposable
+    public readonly struct Region(IndentingStringBuilder builder, string close) : IDisposable
     {
         public readonly void Dispose()
         {
             builder.DecreaseIndent();
-            builder.WriteLine("}");
+            builder.WriteLine(close);
         }
+    }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+    public readonly IndentingStringBuilder Write(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+        => this;
+
+    public readonly IndentingStringBuilder Write([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+        => this;
+
+    public readonly IndentingStringBuilder WriteLine(bool splitContent, [InterpolatedStringHandlerArgument("", nameof(splitContent))] WriteInterpolatedStringHandler handler)
+    {
+        Write(splitContent, handler);
+        AppendEndOfLine();
+        return this;
+    }
+
+    public readonly IndentingStringBuilder WriteLine([InterpolatedStringHandlerArgument("")] WriteInterpolatedStringHandler handler)
+        => this;
+#pragma warning restore IDE0060 // Remove unused parameter
+
+    /// <summary>
+    /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [InterpolatedStringHandler]
+    public readonly ref struct WriteInterpolatedStringHandler
+    {
+        private readonly IndentingStringBuilder _builder;
+        private readonly bool _splitContent;
+
+        public WriteInterpolatedStringHandler(int literalLength, int formattedCount, IndentingStringBuilder builder, bool splitContent = false)
+        {
+            // Assume that each formatted section adds at least one character.
+            _builder.Builder.EnsureCapacity(_builder.Builder.Length + literalLength + formattedCount);
+            _builder = builder;
+            _splitContent = splitContent;
+        }
+
+        public void AppendLiteral(string literal)
+            => _builder.Write(literal, _splitContent);
+
+        public void AppendFormatted<T>(T value)
+            => _builder.Write(value?.ToString());
+
+        public void AppendFormatted<T>(T value, string format) where T : IFormattable
+            => _builder.Write(value?.ToString(format, formatProvider: null));
+    }
+}
+
+class C
+{
+    void M()
+    {
+        IndentingStringBuilder b = IndentingStringBuilder.Create();
+        b.Write($"foo{0}bar");
     }
 }
