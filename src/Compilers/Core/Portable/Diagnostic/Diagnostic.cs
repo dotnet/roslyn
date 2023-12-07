@@ -476,6 +476,11 @@ namespace Microsoft.CodeAnalysis
         // compatibility
         internal virtual int Code { get { return 0; } }
 
+        /// <summary>
+        /// True if this diagnostic represents the given error code. This does not force resolution of lazy diagnostics and is safe to call at any time.
+        /// </summary>
+        internal virtual bool IsCode(int code) { return false; }
+
         internal virtual IReadOnlyList<object?> Arguments
         {
             get { return SpecializedCollections.EmptyReadOnlyList<object?>(); }

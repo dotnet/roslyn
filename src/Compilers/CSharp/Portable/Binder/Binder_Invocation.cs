@@ -1722,24 +1722,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
+                    typeOrValue.Data.TakeDiagnosticBagOwnership(out BindingDiagnosticBag? valueDiagnosticsBag, out BindingDiagnosticBag? typeDiagnosticsBag);
                     if (useType)
                     {
-                        diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
+                        diagnostics.AddRange(typeDiagnosticsBag);
 
-                        foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
+                        foreach (Diagnostic d in valueDiagnosticsBag.DiagnosticBag.AsEnumerableWithoutResolution())
                         {
-                            if (d.Code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
+                            if (d.IsCode((int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase) &&
                                 !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
                             {
                                 diagnostics.Add(d);
                             }
                         }
 
+                        valueDiagnosticsBag.Free();
+                        typeDiagnosticsBag.Free();
+
                         return typeOrValue.Data.TypeExpression;
                     }
                     else
                     {
-                        diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
+                        diagnostics.AddRange(valueDiagnosticsBag);
+
+                        valueDiagnosticsBag.Free();
+                        typeDiagnosticsBag.Free();
                         return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
                     }
 
