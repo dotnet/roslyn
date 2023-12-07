@@ -9727,7 +9727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var sealedDiagnostics = ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            var sealedDiagnostics = ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
             if (node.LookupError != null)
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
