@@ -27,10 +27,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var attrData in @interface.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(@interface, AttributeDescription.ComEventInterfaceAttribute) &&
-                        attrData.CommonConstructorArguments.Length == 2)
+                    int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute);
+
+                    if (signatureIndex == 0)
                     {
-                        return RewriteNoPiaEventAssignmentOperator(node, rewrittenReceiverOpt, rewrittenArgument);
+                        DiagnosticInfo? errorInfo = attrData.ErrorInfo;
+                        if (errorInfo is not null)
+                        {
+                            _diagnostics.Add(errorInfo, node.Syntax.Location);
+                        }
+
+                        if (!attrData.HasErrors)
+                        {
+                            return RewriteNoPiaEventAssignmentOperator(node, rewrittenReceiverOpt, rewrittenArgument);
+                        }
                     }
                 }
             }
@@ -247,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getOrCreateCall = BoundCall.Synthesized(
                     syntax,
                     receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: getOrCreateMethod,
                     arg0: fieldAccess);
             }

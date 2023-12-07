@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             return false;
         }
 
-        protected static bool ContainsOverlappingSyntaxErrror(SyntaxNode declaration, TextSpan headerSpan)
+        protected static bool ContainsOverlappingSyntaxError(SyntaxNode declaration, TextSpan headerSpan)
             => declaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error && d.Location.SourceSpan.OverlapsWith(headerSpan));
     }
 }

@@ -57,6 +57,8 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpBraceMatchingResult.Le
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpBraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpContentTypeNames
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.Deconstruct(out int TabSize, out Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle IndentStyle) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.FSharpIndentationOptions() -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.FSharpIndentationOptions(int TabSize, Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle IndentStyle) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.IndentStyle.get -> Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
@@ -320,8 +322,11 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigableItem.Glyp
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigableItem.SourceSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.<Clone>$() -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.ActivateTab.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.ActivateTab.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.Deconstruct(out bool PreferProvisionalTab, out bool ActivateTab) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.Equals(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.FSharpNavigationOptions2(bool PreferProvisionalTab, bool ActivateTab) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.PreferProvisionalTab.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.PreferProvisionalTab.init -> void
@@ -373,8 +378,10 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.F
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.FSharpTaskListDescriptor(Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor descriptor) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.Text.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Deconstruct(out Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor TaskDescriptor, out string! Message, out Microsoft.CodeAnalysis.Document! Document, out Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Document.get -> Microsoft.CodeAnalysis.Document!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Document.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Equals(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.FSharpTaskListItem() -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.FSharpTaskListItem(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor TaskDescriptor, string! Message, Microsoft.CodeAnalysis.Document! Document, Microsoft.CodeAnalysis.Text.TextSpan Span) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Message.get -> string!
@@ -388,7 +395,12 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListService.FSha
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListService.GetTaskListItemsAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor> descriptors, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaskList.TaskListItem>>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.IFSharpTaskListService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.IFSharpTaskListService.GetTaskListItemsAsync(Microsoft.CodeAnalysis.Document! document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor> descriptors, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem>>!
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.Equals(object? obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.GetHashCode() -> int
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.ToString() -> string!
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCompletionProviderBase.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Host.LanguageServices! languageServices, Microsoft.CodeAnalysis.Text.SourceText! text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Completion.CompletionOptions! options, Microsoft.CodeAnalysis.Options.OptionSet! passthroughOptions) -> bool
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCompletionProviderBase.ShouldTriggerCompletion(Microsoft.CodeAnalysis.Text.SourceText! text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger, Microsoft.CodeAnalysis.Options.OptionSet! options) -> bool
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCompletionServiceWithProviders.GetRules(Microsoft.CodeAnalysis.Completion.CompletionOptions! options) -> Microsoft.CodeAnalysis.Completion.CompletionRules!
@@ -399,6 +411,8 @@ readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debu
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.DisplayParts -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.InlineHints.FSharpInlineHint.Span -> Microsoft.CodeAnalysis.Text.TextSpan
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListDescriptor.Descriptor -> Microsoft.CodeAnalysis.TaskList.TaskListItemDescriptor
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult.CreateLineResult(Microsoft.CodeAnalysis.Document! document, string? locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult!
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult.CreateSpanResult(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, string? locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.FSharpBreakpointResolutionResult!
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan d1, Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan d2) -> bool
@@ -407,6 +421,10 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisua
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions.GetOrCreateProjectIdForPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace! workspace, string! filePath, string! projectDisplayName) -> Microsoft.CodeAnalysis.ProjectId!
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions.GetProjectFilePath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace! workspace, Microsoft.CodeAnalysis.ProjectId! projectId) -> string?
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisualStudioWorkspaceExtensions.TryGetProjectIdByBinPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace! workspace, string! filePath, out Microsoft.CodeAnalysis.ProjectId? projectId) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.operator ==(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem left, Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem right) -> bool
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionProviderBase.GetTextChangeAsync(System.Func<Microsoft.CodeAnalysis.Completion.CompletionItem, char?, System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.TextChange?>> baseGetTextChangeAsync, Microsoft.CodeAnalysis.Completion.CompletionItem selectedItem, char? ch, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.TextChange?>
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionProviderBase.IsInsertionTrigger(Microsoft.CodeAnalysis.Text.SourceText text, int insertedCharacterPosition) -> bool
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionProviderBase.ProvideCompletionsAsync(Microsoft.CodeAnalysis.Completion.CompletionContext context) -> System.Threading.Tasks.Task
@@ -535,10 +553,14 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.FSharpVisua
 ~Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan.FSharpBlockSpan(string type, bool isCollapsible, Microsoft.CodeAnalysis.Text.TextSpan textSpan, string bannerText = "...", bool autoCollapse = false, bool isDefaultCollapsed = false) -> void
 ~Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan.Type.get -> string
 ~Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.IFSharpBlockStructureService.GetBlockStructureAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockStructure>
+~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FSharpIndentationOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpDocumentSpan.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpItem.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp.FSharpSignatureHelpParameter.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure.FSharpBlockSpan.ToString() -> string
+~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.Equals(object obj) -> bool
+~override Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.ToString() -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.FSharpClassificationTags.GetClassificationTypeName(string textTag) -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionItem.Create(string displayText, string displayTextSuffix, Microsoft.CodeAnalysis.Completion.CompletionItemRules rules, Microsoft.CodeAnalysis.ExternalAccess.FSharp.FSharpGlyph? glyph = null, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart> description = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SymbolDisplayPart>), string sortText = null, string filterText = null, bool showsWarningIcon = false, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), string inlineDescription = null) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionProvider.Create(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.FSharpCommonCompletionProviderBase fsharpCommonCompletionProvider) -> Microsoft.CodeAnalysis.Completion.CompletionProvider

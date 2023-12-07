@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                 if (hint.ReplacementTextChange.HasValue)
                 {
                     var textEdit = ProtocolConversions.TextChangeToTextEdit(hint.ReplacementTextChange.Value, text);
-                    textEdits = new TextEdit[] { textEdit };
+                    textEdits = [textEdit];
                 }
 
                 var inlayHint = new LSP.InlayHint

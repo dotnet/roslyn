@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     // TELEMETRY: DO NOT MODIFY ANY ENUM VALUES OF THIS ENUM.
@@ -136,9 +134,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         RenamingNotSupportedByRuntime = 107,
         ChangingNonCustomAttribute = 108,
         ChangingNamespace = 109,
-        ChangingTypeNotSupportedByRuntime = 110,
+        ChangingSignatureNotSupportedByRuntime = 110,
         DeleteNotSupportedByRuntime = 111,
         UpdatingStateMachineMethodNotSupportedByRuntime = 112,
         UpdatingGenericNotSupportedByRuntime = 113,
+        CapturingPrimaryConstructorParameter = 114,
+        NotCapturingPrimaryConstructorParameter = 115,
+        ChangingAttribute = 116,
+        ChangingNameOrSignatureOfActiveMember = 117,
     }
 }

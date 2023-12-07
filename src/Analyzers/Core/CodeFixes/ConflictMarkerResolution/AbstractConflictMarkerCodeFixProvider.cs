@@ -45,11 +45,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
             _syntaxKinds = syntaxKinds;
+
+#if !CODE_STYLE
+            // Backdoor that allows this provider to use the high-priority bucket.
+            this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
+#endif
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-
-#if !CODE_STYLE
 
         /// <summary>
         /// 'Fix merge conflict markers' gets special privileges.  A core user scenario around them is that a user does
@@ -59,10 +62,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         /// them if they bring up the lightbulb on a <c>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</c> line, it should run ahead of
         /// normal fix providers else so the user can quickly fix the conflict and move onto the next conflict.
         /// </summary>
-        private protected override CodeActionRequestPriority ComputeRequestPriority()
+        protected override CodeActionRequestPriority ComputeRequestPriority()
             => CodeActionRequestPriority.High;
-
-#endif
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -298,11 +299,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             static CodeAction CreateCodeAction(string title, Func<CancellationToken, Task<Document>> action, string equivalenceKey)
             {
-#if CODE_STYLE
-                return CodeAction.Create(title, action, equivalenceKey);
-#else
-                return CodeAction.DocumentChangeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+                var codeAction = CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
+
+#if !CODE_STYLE
+                // Backdoor that allows this provider to use the high-priority bucket.
+                codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif
+
+                return codeAction;
             }
         }
 

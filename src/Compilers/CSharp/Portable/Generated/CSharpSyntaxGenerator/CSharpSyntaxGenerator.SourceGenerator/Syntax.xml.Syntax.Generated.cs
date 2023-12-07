@@ -14332,7 +14332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     /// <summary>
     /// An element of a BaseCrefParameterListSyntax.
-    /// Unlike a regular parameter, a cref parameter has only an optional ref or out keyword and a type -
+    /// Unlike a regular parameter, a cref parameter has only an optional ref, in, out keyword,
+    /// an optional readonly keyword, and a type -
     /// there is no name and there are no attributes or other modifiers.
     /// </summary>
     /// <remarks>
@@ -14359,20 +14360,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public TypeSyntax Type => GetRed(ref this.type, 1)!;
+        public SyntaxToken ReadOnlyKeyword
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.CrefParameterSyntax)this.Green).readOnlyKeyword;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
+        public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
-        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.type : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 2 ? this.type : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefParameter(this);
 
-        public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
+        public CrefParameterSyntax Update(SyntaxToken refKindKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
-            if (refKindKeyword != this.RefKindKeyword || type != this.Type)
+            if (refKindKeyword != this.RefKindKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
             {
-                var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
+                var newNode = SyntaxFactory.CrefParameter(refKindKeyword, readOnlyKeyword, type);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -14380,8 +14390,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public CrefParameterSyntax WithRefKindKeyword(SyntaxToken refKindKeyword) => Update(refKindKeyword, this.Type);
-        public CrefParameterSyntax WithType(TypeSyntax type) => Update(this.RefKindKeyword, type);
+        public CrefParameterSyntax WithRefKindKeyword(SyntaxToken refKindKeyword) => Update(refKindKeyword, this.ReadOnlyKeyword, this.Type);
+        public CrefParameterSyntax WithReadOnlyKeyword(SyntaxToken readOnlyKeyword) => Update(this.RefKindKeyword, readOnlyKeyword, this.Type);
+        public CrefParameterSyntax WithType(TypeSyntax type) => Update(this.RefKindKeyword, this.ReadOnlyKeyword, type);
     }
 
     public abstract partial class XmlNodeSyntax : CSharpSyntaxNode

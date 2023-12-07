@@ -6,6 +6,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -78,11 +79,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 [imports].Sort(comparers.Item2)
             End If
 
-            root = AddImportHelpers.MoveTrivia(
+            Dim rootAndAddBlankLine = AddImportHelpers.MoveTrivia(
                 VisualBasicSyntaxFacts.Instance, root, root.Imports, [imports])
+            root = rootAndAddBlankLine.root
+            Dim addBlankLine = rootAndAddBlankLine.addBlankLine
 
-            Return root.WithImports(
+            Dim rootWithNewImports = root.WithImports(
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
+            If addBlankLine Then
+                Dim lastImport = rootWithNewImports.Imports.Last()
+                Dim nextToken = lastImport.GetLastToken(includeZeroWidth:=True, includeSkipped:=True).GetNextTokenOrEndOfFile(includeZeroWidth:=True, includeSkipped:=True)
+                Dim endOfLine = lastImport.GetTrailingTrivia().LastOrDefault(Function(trivia) VisualBasicSyntaxFacts.Instance.IsEndOfLineTrivia(trivia))
+                Debug.Assert(Not endOfLine.IsKind(SyntaxKind.None))
+                If Not endOfLine.IsKind(SyntaxKind.None) Then
+                    rootWithNewImports = rootWithNewImports.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(endOfLine))
+                End If
+            End If
+
+            Return rootWithNewImports
         End Function
 
         Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)

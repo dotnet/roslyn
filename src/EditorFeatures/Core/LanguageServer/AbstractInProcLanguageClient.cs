@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -168,7 +169,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public async Task OnLoadedAsync()
         {
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            try
+            {
+                await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            }
+            catch (AggregateException e)
+            {
+                // The VS LSP client allows an unexpected OperationCanceledException to propagate out of the StartAsync
+                // callback. Avoid allowing it to propagate further.
+                e.Handle(ex => ex is OperationCanceledException);
+            }
         }
 
         /// <summary>

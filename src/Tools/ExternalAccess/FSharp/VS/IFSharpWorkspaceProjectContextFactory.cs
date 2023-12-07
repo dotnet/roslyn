@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public string BinOutputPath
         {
-            get => _vsProjectContext.BinOutputPath;
+            get => _vsProjectContext.BinOutputPath!;
             set => _vsProjectContext.BinOutputPath = value;
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
             => _vsProjectContext.Id;
 
         public string FilePath
-            => _vsProjectContext.ProjectFilePath;
+            => _vsProjectContext.ProjectFilePath!;
 
         public int ProjectReferenceCount
             => _projectReferences.Count;

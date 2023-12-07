@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // 6. Use compression in some features.  Need to move to a different table since the blob
         //    format will be different and we don't want different VS versions (that do/don't support
         //    compression constantly stomping on each other.
-        private const string Version = "6";
+        // 7. Checksum size changed from 20 bytes to 16 bytes long.
+        private const string Version = "7";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique

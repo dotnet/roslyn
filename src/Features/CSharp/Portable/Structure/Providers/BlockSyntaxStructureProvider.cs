@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -27,15 +26,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var parent = node.GetRequiredParent();
             var parentKind = parent.Kind();
 
-            // For most types of statements, just consider the block 'attached' to the 
-            // parent node.  That means we'll show the parent node header when doing 
-            // things like hovering over the indent guide.
+            // For most types of statements, just consider the block 'attached' to the parent node.  That means we'll
+            // show the parent node header when doing things like hovering over the indent guide.
             //
-            // This also works nicely as the close brace for these constructs will always
-            // align with the start of these statements.
+            // This also works nicely as the close brace for these constructs will always align with the start of these
+            // statements.
             if (parentKind == SyntaxKind.ElseClause ||
                 IsNonBlockStatement(parent))
             {
+                var autoCollapse = false;
+
+                // Treat a local function at the top level as if it was a definition.  Similarly, if the user has asked
+                // to always collapse local functions, then respect that option.
+                if (parentKind == SyntaxKind.LocalFunctionStatement)
+                {
+                    autoCollapse =
+                        options.CollapseLocalFunctionsWhenCollapsingToDefinitions ||
+                        parent.IsParentKind(SyntaxKind.GlobalStatement);
+                }
+
                 var type = GetType(parent);
                 if (type != null)
                 {
@@ -49,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                             ? (GetTextSpan(trueBlock), GetHintSpan(trueBlock))
                             : null,
                         type: type,
-                        autoCollapse: parentKind == SyntaxKind.LocalFunctionStatement && parent.IsParentKind(SyntaxKind.GlobalStatement)));
+                        autoCollapse: autoCollapse));
                 }
             }
 

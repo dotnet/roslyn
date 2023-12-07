@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
@@ -22,16 +23,22 @@ internal sealed class CSharpLambdaBody(SyntaxNode node) : LambdaBody
     public override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create(node);
 
+    public override SyntaxNode EncompassingAncestor
+        => node;
+
     public override StateMachineInfo GetStateMachineInfo()
         => new(
             IsAsync: SyntaxUtilities.IsAsyncDeclaration(node.Parent!),
             IsIterator: SyntaxUtilities.IsIterator(node),
             HasSuspensionPoints: SyntaxUtilities.GetSuspensionPoints(node).Any());
 
-    public override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
+        => model.AnalyzeDataFlow(node).CapturedInside;
+
+    public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(node, ((CSharpLambdaBody)newBody).Node, knownMatches);
 
-    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
         => CSharpEditAndContinueAnalyzer.TryMatchActiveStatement(Node, ((CSharpLambdaBody)newBody).Node, oldStatement, out newStatement);
 
     public override LambdaBody? TryGetPartnerLambdaBody(SyntaxNode newLambda)

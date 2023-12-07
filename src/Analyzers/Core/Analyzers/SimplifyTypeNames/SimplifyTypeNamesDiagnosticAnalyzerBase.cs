@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Names), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     EnforceOnBuildValues.SimplifyNames,
+                                                                    hasAnyCodeStyleOption: false,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
                                                                     isUnnecessary: true);
@@ -51,12 +51,14 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Member_Access), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = CreateDescriptorWithId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     EnforceOnBuildValues.SimplifyMemberAccess,
+                                                                    hasAnyCodeStyleOption: false,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
                                                                     isUnnecessary: true);
 
         private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = CreateDescriptorWithId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
             EnforceOnBuildValues.PreferBuiltInOrFrameworkType,
+            hasAnyCodeStyleOption: true,
             s_localizableTitleSimplifyNames,
             s_localizableMessage,
             isUnnecessary: true);
@@ -86,6 +88,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                   options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
+        protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
+            => ImmutableArray.Create(options.PreferPredefinedTypeKeywordInDeclaration.Notification, options.PreferPredefinedTypeKeywordInMemberAccess.Notification);
+
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(AnalyzeCompilation);
@@ -108,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         /// <see cref="AnalyzeSemanticModel"/>.</returns>
         protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
         protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
-        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree);
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, CancellationToken cancellationToken)
         {
@@ -134,17 +139,17 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         internal static Diagnostic CreateDiagnostic(SemanticModel model, TSimplifierOptions options, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
             DiagnosticDescriptor descriptor;
-            ReportDiagnostic severity;
+            NotificationOption2 notificationOption;
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
                     descriptor = s_descriptorSimplifyNames;
-                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
+                    notificationOption = descriptor.DefaultSeverity.ToNotificationOption(isOverridenSeverity: false);
                     break;
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     descriptor = s_descriptorSimplifyMemberAccess;
-                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
+                    notificationOption = descriptor.DefaultSeverity.ToNotificationOption(isOverridenSeverity: false);
                     break;
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : options.PreferPredefinedTypeKeywordInMemberAccess;
 
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
-                    severity = optionValue.Notification.Severity;
+                    notificationOption = optionValue.Notification;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
@@ -163,7 +168,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
+            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), notificationOption, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
             var sourceText = tree.GetText();
@@ -218,7 +223,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </description></item>
             /// </list>
             /// </summary>
-            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals
                 = new();
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
@@ -226,7 +231,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                     return;
 
-                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), new TextSpanIntervalTree()));
                 if (completed.Value)
                     return;
 
@@ -246,7 +251,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     context.ReportDiagnostic(diagnostic);
                 }
 
-                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> intervalTree)
+                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, TextSpanIntervalTree intervalTree)
                 {
                     lock (completed)
                     {

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private readonly string _eventName;
         private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
 
-        private ImmutableDictionary<string, IHistogram<int>> _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+        private ImmutableDictionary<string, IHistogram<long>> _histograms = ImmutableDictionary<string, IHistogram<long>>.Empty;
 
         /// <summary>
         /// Creates a new aggregating telemetry log
@@ -55,37 +55,37 @@ namespace Microsoft.CodeAnalysis.Telemetry
         }
 
         /// <summary>
-        /// Adds aggregated information for the metric and value passed in via logMessage. The Name/Value properties
+        /// Adds aggregated information for the metric and value passed in via <paramref name="logMessage"/>. The Name/Value properties
         /// are used as the metric name and value to record.
         /// </summary>
         /// <param name="logMessage"></param>
-        public void Log(LogMessage logMessage)
+        public void Log(KeyValueLogMessage logMessage)
         {
             if (!IsEnabled)
                 return;
 
-            if (logMessage is not KeyValueLogMessage kvLogMessage)
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string metricName)
                 throw ExceptionUtilities.Unreachable();
 
-            if (!kvLogMessage.TryGetValue(TelemetryLogging.AggregatedKeyName, out var nameValue) || nameValue is not string metricName)
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
                 throw ExceptionUtilities.Unreachable();
 
-            if (!kvLogMessage.TryGetValue(TelemetryLogging.AggregatedKeyValue, out var valueValue) || valueValue is not int value)
-                throw ExceptionUtilities.Unreachable();
-
-            var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<int>(metricName, _histogramConfiguration));
+            var histogram = ImmutableInterlocked.GetOrAdd(ref _histograms, metricName, metricName => _meter.CreateHistogram<long>(metricName, _histogramConfiguration));
 
             histogram.Record(value);
 
             _aggregatingTelemetryLogManager.EnsureTelemetryWorkQueued();
         }
 
-        public IDisposable? LogBlockTime(string name, int minThresholdMs)
+        public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
         {
             if (!IsEnabled)
                 return null;
 
-            return new TimedTelemetryLogBlock(name, minThresholdMs, telemetryLog: this);
+            if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string)
+                throw ExceptionUtilities.Unreachable();
+
+            return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
         }
 
         private bool IsEnabled => _session.IsOptedIn;
@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
             foreach (var histogram in _histograms.Values)
             {
                 var telemetryEvent = new TelemetryEvent(_eventName);
-                var histogramEvent = new TelemetryHistogramEvent<int>(telemetryEvent, histogram);
+                var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
 
                 session.PostMetricEvent(histogramEvent);
             }
 
-            _histograms = ImmutableDictionary<string, IHistogram<int>>.Empty;
+            _histograms = ImmutableDictionary<string, IHistogram<long>>.Empty;
         }
     }
 }

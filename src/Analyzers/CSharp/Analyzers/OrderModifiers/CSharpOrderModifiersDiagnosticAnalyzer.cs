@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         protected override void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            ReportDiagnostic severity,
+            NotificationOption2 notificationOption,
             SyntaxNode root)
         {
             foreach (var child in root.ChildNodesAndTokens())
@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
                     var node = child.AsNode();
                     if (node is MemberDeclarationSyntax memberDeclaration)
                     {
-                        CheckModifiers(context, preferredOrder, severity, memberDeclaration);
+                        CheckModifiers(context, preferredOrder, notificationOption, memberDeclaration);
 
                         // Recurse and check children.  Note: we only do this if we're on an actual 
                         // member declaration.  Once we hit something that isn't, we don't need to 
                         // keep recursing.  This prevents us from actually entering things like method 
                         // bodies.
-                        Recurse(context, preferredOrder, severity, node);
+                        Recurse(context, preferredOrder, notificationOption, node);
                     }
                     else if (node is AccessorListSyntax accessorList)
                     {
                         foreach (var accessor in accessorList.Accessors)
                         {
-                            CheckModifiers(context, preferredOrder, severity, accessor);
+                            CheckModifiers(context, preferredOrder, notificationOption, accessor);
                         }
                     }
                 }

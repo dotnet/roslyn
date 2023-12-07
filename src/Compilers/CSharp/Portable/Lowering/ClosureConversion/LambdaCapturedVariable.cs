@@ -59,19 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (variable is LocalSymbol local)
             {
-                if (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
+                switch (local.SynthesizedKind)
                 {
-                    return GeneratedNames.MakeLambdaDisplayLocalName(uniqueId++);
-                }
-
-                if (local.SynthesizedKind == SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal)
-                {
-                    return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
-                }
-
-                if (local.SynthesizedKind == SynthesizedLocalKind.InstrumentationPayload)
-                {
-                    return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
+                    case SynthesizedLocalKind.LambdaDisplayClass:
+                        return GeneratedNames.MakeLambdaDisplayLocalName(uniqueId++);
+                    case SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal:
+                    case SynthesizedLocalKind.TryAwaitPendingException:
+                    case SynthesizedLocalKind.TryAwaitPendingCaughtException:
+                        return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++);
+                    case SynthesizedLocalKind.InstrumentationPayload:
+                        return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
 
                 // should never be captured:

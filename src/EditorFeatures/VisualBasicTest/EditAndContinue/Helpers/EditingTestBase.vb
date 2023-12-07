@@ -77,25 +77,33 @@ End Namespace
         End Function
 
         Public Shared Function TryGetResource(keyword As String) As String
-            Select Case keyword
-                Case "Enum"
+            Select Case keyword.ToLowerInvariant()
+                Case "enum"
                     Return FeaturesResources.enum_
-                Case "Class"
+                Case "enum value"
+                    Return FeaturesResources.enum_value
+                Case "class"
                     Return FeaturesResources.class_
-                Case "Structure"
+                Case "structure"
                     Return VBFeaturesResources.structure_
-                Case "Module"
+                Case "module"
                     Return VBFeaturesResources.module_
-                Case "Interface"
+                Case "interface"
                     Return FeaturesResources.interface_
-                Case "Delegate"
+                Case "delegate"
                     Return FeaturesResources.delegate_
-                Case "Lambda"
+                Case "lambda"
                     Return VBFeaturesResources.Lambda
+                Case "const field"
+                    Return FeaturesResources.const_field
                 Case "field"
                     Return FeaturesResources.field
+                Case "auto-property"
+                    Return FeaturesResources.auto_property
                 Case "property"
                     Return FeaturesResources.property_
+                Case "event"
+                    Return FeaturesResources.event_
                 Case "method"
                     Return FeaturesResources.method
                 Case "constructor"
@@ -106,7 +114,7 @@ End Namespace
                     Return FeaturesResources.parameter
                 Case "type parameter"
                     Return FeaturesResources.type_parameter
-                Case "WithEvents field"
+                Case "withevents field"
                     Return VBFeaturesResources.WithEvents_field
                 Case Else
                     Return Nothing
@@ -196,7 +204,7 @@ End Namespace
             Dim m1 = MakeMethodBody(src1, methodKind)
             Dim m2 = MakeMethodBody(src2, methodKind)
 
-            Dim match = m1.ComputeMatch(m2, knownMatches:=Nothing)
+            Dim match = m1.ComputeSingleRootMatch(m2, knownMatches:=Nothing)
 
             Dim stateMachineInfo1 = m1.GetStateMachineInfo()
             Dim stateMachineInfo2 = m2.GetStateMachineInfo()

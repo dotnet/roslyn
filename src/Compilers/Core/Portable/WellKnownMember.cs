@@ -481,6 +481,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
 
         System_ObsoleteAttribute__ctor,
@@ -584,12 +585,54 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
+        System_NotSupportedException__ctor,
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
+        System_Collections_ICollection__Count,
+        System_Collections_ICollection__IsSynchronized,
+        System_Collections_ICollection__SyncRoot,
+        System_Collections_ICollection__CopyTo,
+        System_Collections_IList__get_Item,
+        System_Collections_IList__IsFixedSize,
+        System_Collections_IList__IsReadOnly,
+        System_Collections_IList__Add,
+        System_Collections_IList__Clear,
+        System_Collections_IList__Contains,
+        System_Collections_IList__IndexOf,
+        System_Collections_IList__Insert,
+        System_Collections_IList__Remove,
+        System_Collections_IList__RemoveAt,
+
+        System_Collections_Generic_IReadOnlyCollection_T__Count,
+        System_Collections_Generic_IReadOnlyList_T__get_Item,
+        System_Collections_Generic_ICollection_T__Count,
+        System_Collections_Generic_ICollection_T__IsReadOnly,
+        System_Collections_Generic_ICollection_T__Add,
+        System_Collections_Generic_ICollection_T__Clear,
+        System_Collections_Generic_ICollection_T__Contains,
+        System_Collections_Generic_ICollection_T__CopyTo,
+        System_Collections_Generic_ICollection_T__Remove,
+        System_Collections_Generic_IList_T__get_Item,
+        System_Collections_Generic_IList_T__IndexOf,
+        System_Collections_Generic_IList_T__Insert,
+        System_Collections_Generic_IList_T__RemoveAt,
+
+        System_Collections_Generic_List_T__ctor,
+        System_Collections_Generic_List_T__ctorInt32,
+        System_Collections_Generic_List_T__Add,
+        System_Collections_Generic_List_T__Count,
+        System_Collections_Generic_List_T__Contains,
+        System_Collections_Generic_List_T__CopyTo,
+        System_Collections_Generic_List_T__get_Item,
+        System_Collections_Generic_List_T__IndexOf,
         System_Collections_Generic_List_T__ToArray,
 
-        Count
+        System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+        System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+
+        Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }

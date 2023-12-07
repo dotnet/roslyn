@@ -63,7 +63,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
             // ensure that moving up/down a few lines tends to have immediate accurate results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 10);
+            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
             if (visibleSpanOpt is null)
             {
                 // couldn't figure out the visible span.  So the InView tagger will need to tag everything, and the
@@ -89,14 +89,19 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             using var result = TemporaryArray<SnapshotSpan>.Empty;
 
-            var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
-            var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
+            if (_viewPortToTag is ViewPortToTag.Above)
+            {
+                var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
+                if (!aboveSpan.IsEmpty)
+                    result.Add(aboveSpan);
+            }
+            else if (_viewPortToTag is ViewPortToTag.Below)
+            {
+                var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
 
-            if (!aboveSpan.IsEmpty)
-                result.Add(aboveSpan);
-
-            if (!belowSpan.IsEmpty)
-                result.Add(belowSpan);
+                if (!belowSpan.IsEmpty)
+                    result.Add(belowSpan);
+            }
 
             return result.ToImmutableAndClear();
         }

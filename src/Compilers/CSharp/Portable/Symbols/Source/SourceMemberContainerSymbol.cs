@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -847,18 +848,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
-        internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
+        /// <summary>
+        /// If this type is file-local, the syntax tree in which the type is declared. Otherwise, null.
+        /// </summary>
+        private SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
 
         internal sealed override FileIdentifier? AssociatedFileIdentifier
         {
             get
             {
-                if (!IsFileLocal)
+                if (AssociatedSyntaxTree is not SyntaxTree syntaxTree)
                 {
                     return null;
                 }
 
-                return FileIdentifier.Create(AssociatedSyntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -1309,6 +1313,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
             try
             {
+                // Declarations which can be merged into a single type symbol have already been merged at this phase.
+                // Merging behaves the same in either presence or absence of 'partial' modifiers.
+                // However, type declarations which can never be partial won't merge, e.g. 'enum',
+                // and type declarations with different kinds, e.g. 'class' and 'struct' will never merge.
+                // Now we want to figure out if declarations which didn't merge have name conflicts.
                 foreach (var childDeclaration in declaration.Children)
                 {
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
@@ -1390,6 +1399,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
                 return hasDeclaredMembers;
             }
+        }
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
+
+        /// <summary>
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
+        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
+        /// </summary>
+        internal static bool HasAsyncMethodBuilderAttribute(Symbol symbol, [NotNullWhen(true)] out TypeSymbol? builderArgument)
+        {
+            Debug.Assert(symbol is not null);
+
+            // Find the AsyncMethodBuilder attribute.
+            foreach (var attr in symbol.GetAttributes())
+            {
+                Debug.Assert(attr is SourceAttributeData);
+
+                if (attr.IsTargetAttribute(AttributeDescription.AsyncMethodBuilderAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    builderArgument = (TypeSymbol)attr.CommonConstructorArguments[0].ValueInternal!;
+                    return true;
+                }
+            }
+
+            builderArgument = null;
+            return false;
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
@@ -2225,7 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
-            var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+            var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
             foreach (var member in this.GetMembersUnordered())
             {
                 member.AfterAddingTypeMembersChecks(conversions, diagnostics);
@@ -3377,7 +3417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in nonTypeMembersToCheck)
             {
-                if (member.IsAccessor() || member.IsIndexer())
+                if (member.IsAccessor())
                 {
                     continue;
                 }

@@ -88,10 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyArgumentList([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
-            return node.IsKind(SyntaxKind.ArgumentList) ||
-                   node.IsKind(SyntaxKind.AttributeArgumentList) ||
-                   node.IsKind(SyntaxKind.BracketedArgumentList) ||
-                   node.IsKind(SyntaxKind.TypeArgumentList);
+            return node?.Kind()
+                is SyntaxKind.ArgumentList
+                or SyntaxKind.AttributeArgumentList
+                or SyntaxKind.BracketedArgumentList
+                or SyntaxKind.TypeArgumentList;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBraces(this SyntaxNode? node)
@@ -311,11 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsAnyLambda([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return
-                node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) ||
-                node.IsKind(SyntaxKind.SimpleLambdaExpression);
-        }
+            => node?.Kind() is SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression;
 
         public static bool IsAnyLambdaOrAnonymousMethod([NotNullWhen(returnValue: true)] this SyntaxNode? node)
             => node.IsAnyLambda() || node.IsKind(SyntaxKind.AnonymousMethodExpression);
@@ -402,43 +399,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInStaticContext(this SyntaxNode node)
         {
-            // this/base calls are always static.
-            if (node.FirstAncestorOrSelf<ConstructorInitializerSyntax>() != null)
+            for (var current = node; current != null; current = current.Parent)
             {
-                return true;
-            }
+                switch (current)
+                {
+                    // this/base calls are always static.
+                    case ConstructorInitializerSyntax:
+                        return true;
 
-            var memberDeclaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-            if (memberDeclaration == null)
-            {
-                return false;
-            }
+                    case LocalFunctionStatementSyntax localFunction when localFunction.Modifiers.Any(SyntaxKind.StaticKeyword):
+                        return true;
 
-            switch (memberDeclaration.Kind())
-            {
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.EventDeclaration:
-                case SyntaxKind.IndexerDeclaration:
-                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword);
+                    case AnonymousFunctionExpressionSyntax anonymousFunction when anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword):
+                        return true;
 
-                case SyntaxKind.PropertyDeclaration:
-                    return memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword) ||
-                        node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
+                    case BaseMethodDeclarationSyntax or IndexerDeclarationSyntax or EventDeclarationSyntax:
+                        return current.GetModifiers().Any(SyntaxKind.StaticKeyword);
 
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                    // Inside a field one can only access static members of a type (unless it's top-level).
-                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
+                    case PropertyDeclarationSyntax property:
+                        return property.Modifiers.Any(SyntaxKind.StaticKeyword) ||
+                            node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
-                case SyntaxKind.DestructorDeclaration:
-                    return false;
-            }
+                    case FieldDeclarationSyntax or EventFieldDeclarationSyntax:
+                        // Inside a field one can only access static members of a type (unless it's top-level).
+                        return !current.Parent.IsKind(SyntaxKind.CompilationUnit);
 
-            // Global statements are not a static context.
-            if (node.FirstAncestorOrSelf<GlobalStatementSyntax>() != null)
-            {
-                return false;
+                    case GlobalStatementSyntax:
+                        // Global statements are not a static context.
+                        return false;
+                }
             }
 
             // any other location is considered static
@@ -808,18 +797,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
-        {
-            switch (node)
+            => node switch
             {
-                case ArrayRankSpecifierSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedArgumentListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                case ListPatternSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
-                default: return default;
-            }
-        }
+                ArrayRankSpecifierSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedArgumentListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ImplicitArrayCreationExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                AttributeListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                BracketedParameterListSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                ListPatternSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                CollectionExpressionSyntax n => (n.OpenBracketToken, n.CloseBracketToken),
+                _ => default,
+            };
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode? member)
             => member switch
@@ -929,31 +917,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInExpressionTree(
             [NotNullWhen(returnValue: true)] this SyntaxNode? node,
             SemanticModel semanticModel,
-            [NotNullWhen(returnValue: true)] INamedTypeSymbol? expressionTypeOpt,
+            [NotNullWhen(returnValue: true)] INamedTypeSymbol? expressionType,
             CancellationToken cancellationToken)
         {
-            if (expressionTypeOpt != null)
+            if (expressionType != null)
             {
                 for (var current = node; current != null; current = current.Parent)
                 {
                     if (current.IsAnyLambda())
                     {
                         var typeInfo = semanticModel.GetTypeInfo(current, cancellationToken);
-                        if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
+                        if (expressionType.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                             return true;
                     }
                     else if (current is SelectOrGroupClauseSyntax or
                              OrderingSyntax)
                     {
                         var info = semanticModel.GetSymbolInfo(current, cancellationToken);
-                        if (TakesExpressionTree(info, expressionTypeOpt))
+                        if (TakesExpressionTree(info, expressionType))
                             return true;
                     }
                     else if (current is QueryClauseSyntax queryClause)
                     {
                         var info = semanticModel.GetQueryClauseInfo(queryClause, cancellationToken);
-                        if (TakesExpressionTree(info.CastInfo, expressionTypeOpt) ||
-                            TakesExpressionTree(info.OperationInfo, expressionTypeOpt))
+                        if (TakesExpressionTree(info.CastInfo, expressionType) ||
+                            TakesExpressionTree(info.OperationInfo, expressionType))
                         {
                             return true;
                         }

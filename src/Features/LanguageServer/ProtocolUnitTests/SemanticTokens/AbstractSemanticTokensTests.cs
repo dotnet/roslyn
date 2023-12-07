@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
@@ -38,11 +37,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             return result;
         }
 
+        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangesAsync(TestLspServer testLspServer, LSP.Location caret, Range[] ranges)
+        {
+            var result = await testLspServer.ExecuteRequestAsync<SemanticTokensRangesParams, LSP.SemanticTokens>(SemanticTokensRangesHandler.SemanticRangesMethodName,
+                CreateSemanticTokensRangesParams(caret, ranges!), CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
             => new LSP.SemanticTokensRangeParams
             {
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Range = range
+            };
+
+        private static SemanticTokensRangesParams CreateSemanticTokensRangesParams(LSP.Location caret, Range[] ranges)
+            => new SemanticTokensRangesParams
+            {
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
+                Ranges = ranges
             };
 
         protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)

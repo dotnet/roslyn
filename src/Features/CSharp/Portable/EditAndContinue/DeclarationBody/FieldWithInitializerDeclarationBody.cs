@@ -31,9 +31,9 @@ internal sealed class FieldWithInitializerDeclarationBody(VariableDeclaratorSynt
         => variableDeclarator.SyntaxTree;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(InitializerExpression)!.Captured;
+        => model.AnalyzeDataFlow(InitializerExpression)!.CapturedInside;
 
-    public override ActiveStatementEnvelope Envelope
+    public override TextSpan Envelope
     {
         get
         {
@@ -57,10 +57,10 @@ internal sealed class FieldWithInitializerDeclarationBody(VariableDeclaratorSynt
     public override OneOrMany<SyntaxNode> RootNodes
         => OneOrMany.Create<SyntaxNode>(InitializerExpression);
 
-    public override Match<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public override Match<SyntaxNode>? ComputeSingleRootMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         => CSharpEditAndContinueAnalyzer.ComputeBodyMatch(InitializerExpression, ((FieldWithInitializerDeclarationBody)newBody).InitializerExpression, knownMatches);
 
-    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
+    public override bool TryMatchActiveStatement(DeclarationBody newBody, SyntaxNode oldStatement, ref int statementPart, [NotNullWhen(true)] out SyntaxNode? newStatement)
     {
         if (oldStatement == InitializerExpression)
         {

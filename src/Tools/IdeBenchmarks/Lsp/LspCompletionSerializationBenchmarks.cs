@@ -93,7 +93,7 @@ class A
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { "editRange", "commitCharacters", "data" },
+                            ItemDefaults = ["editRange", "commitCharacters", "data"],
                         }
                     }
                 }

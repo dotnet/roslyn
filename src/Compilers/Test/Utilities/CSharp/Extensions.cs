@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, AttributeDescription description)
         {
-            return @this.GetAttributes().Where(a => a.IsTargetAttribute(@this, description));
+            return @this.GetAttributes().Where(a => a.IsTargetAttribute(description));
         }
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, NamedTypeSymbol c)

@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     {
                         var kind = fieldDeclaration is EventFieldDeclarationSyntax
                             ? DeclaredSymbolInfoKind.Event
-                            : fieldDeclaration.Modifiers.Any(m => m.Kind() == SyntaxKind.ConstKeyword)
+                            : fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 

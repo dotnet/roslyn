@@ -30,7 +30,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
         {
             logger.LogStartContext("Initialize");
 
-            var clientCapabilitiesManager = context.GetRequiredLspService<IClientCapabilitiesManager>();
+            var clientCapabilitiesManager = context.GetRequiredLspService<IInitializeManager>();
             var clientCapabilities = clientCapabilitiesManager.TryGetClientCapabilities();
             if (clientCapabilities != null)
             {
@@ -38,7 +38,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
             }
 
             clientCapabilities = request.Capabilities;
-            clientCapabilitiesManager.SetClientCapabilities(clientCapabilities);
+            clientCapabilitiesManager.SetInitializeParams(request);
 
             var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
             var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);

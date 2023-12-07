@@ -92,6 +92,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
         }
 
         [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync_EmptyName(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"namepsace NamespaceA
+{
+    public class
+";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+            Assert.Equal(".", results.First().Name);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGetDocumentSymbolsAsync_EmptyNameWithHierarchicalSupport(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"namepsace NamespaceA
+{
+    public class
+";
+            var clientCapabilities = new LSP.ClientCapabilities()
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities()
+                {
+                    DocumentSymbol = new LSP.DocumentSymbolSetting()
+                    {
+                        HierarchicalDocumentSymbolSupport = true
+                    }
+                }
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+
+            var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+            Assert.Equal(".", results.First().Name);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestGetDocumentSymbolsAsync__NoSymbols(bool mutatingLspWorkspace)
         {
             await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
@@ -105,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var request = new LSP.DocumentSymbolParams
             {
-                TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
+                TextDocument = CreateTextDocumentIdentifier(ProtocolConversions.CreateAbsoluteUri(document.FilePath))
             };
 
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, TReturn>(LSP.Methods.TextDocumentDocumentSymbolName,

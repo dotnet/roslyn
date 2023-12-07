@@ -402,7 +402,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         if (documentText == lspText)
             return true;
 
-        return lspText.GetChecksum().AsSpan().SequenceEqual(documentText.GetChecksum().AsSpan());
+        return lspText.GetContentHash().AsSpan().SequenceEqual(documentText.GetContentHash().AsSpan());
     }
 
     #endregion

@@ -64,8 +64,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // initialize with deleted spans (they will retain their file path):
             foreach (var oldStatement in OldStatements)
             {
-                newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
-                newMappedRegions[oldStatement.Statement.Ordinal] = ImmutableArray<SourceFileSpan>.Empty;
+                if (oldStatement.Statement != null)
+                {
+                    newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
+                    newMappedRegions[oldStatement.Statement.Ordinal] = ImmutableArray<SourceFileSpan>.Empty;
+                }
             }
 
             // update with spans marked in the new source:

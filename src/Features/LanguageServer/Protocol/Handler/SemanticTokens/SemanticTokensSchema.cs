@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public static SemanticTokensSchema LegacyTokensSchemaForLSIF
             => s_vsTokenSchema;
 
-        public static string[] TokenModifiers = new string[]
-        {
+        public static string[] TokenModifiers =
+        [
             // This must be in the same order as SemanticTokens.TokenModifiers, but skip the "None" item
             SemanticTokenModifiers.Static,
             nameof(SemanticTokens.TokenModifiers.ReassignedVariable)
-        };
+        ];
     }
 }

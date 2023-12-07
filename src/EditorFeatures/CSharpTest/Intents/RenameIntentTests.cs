@@ -18,32 +18,38 @@ public class RenameIntentTests : IntentTestsBase
     public async Task TestRenameIntentAsync()
     {
         var initialText =
-@"class C
-{
-    void M()
-    {
-        var thing = 1;
-        {|priorSelection:thing|}.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var thing = 1;
+                    {|priorSelection:thing|}.ToString();
+                }
+            }
+            """;
         var currentText =
-@"class C
-{
-    void M()
-    {
-        var thing = 1;
-        something.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var thing = 1;
+                    something.ToString();
+                }
+            }
+            """;
         var expectedText =
-@"class C
-{
-    void M()
-    {
-        var something = 1;
-        something.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var something = 1;
+                    something.ToString();
+                }
+            }
+            """;
 
         await VerifyExpectedRenameAsync(initialText, currentText, expectedText, "something").ConfigureAwait(false);
     }
@@ -52,32 +58,38 @@ public class RenameIntentTests : IntentTestsBase
     public async Task TestRenameIntentAsync_Insert()
     {
         var initialText =
-@"class C
-{
-    void M()
-    {
-        var thing = 1;
-        {|priorSelection:|}thing.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var thing = 1;
+                    {|priorSelection:|}thing.ToString();
+                }
+            }
+            """;
         var currentText =
-@"class C
-{
-    void M()
-    {
-        var thing = 1;
-        something.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var thing = 1;
+                    something.ToString();
+                }
+            }
+            """;
         var expectedText =
-@"class C
-{
-    void M()
-    {
-        var something = 1;
-        something.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var something = 1;
+                    something.ToString();
+                }
+            }
+            """;
 
         await VerifyExpectedRenameAsync(initialText, currentText, expectedText, "something").ConfigureAwait(false);
     }
@@ -86,32 +98,38 @@ public class RenameIntentTests : IntentTestsBase
     public async Task TestRenameIntentAsync_Delete()
     {
         var initialText =
-@"class C
-{
-    void M()
-    {
-        var something = 1;
-        {|priorSelection:some|}thing.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var something = 1;
+                    {|priorSelection:some|}thing.ToString();
+                }
+            }
+            """;
         var currentText =
-@"class C
-{
-    void M()
-    {
-        var something = 1;
-        thing.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var something = 1;
+                    thing.ToString();
+                }
+            }
+            """;
         var expectedText =
-@"class C
-{
-    void M()
-    {
-        var thing = 1;
-        thing.ToString();
-    }
-}";
+            """
+            class C
+            {
+                void M()
+                {
+                    var thing = 1;
+                    thing.ToString();
+                }
+            }
+            """;
 
         await VerifyExpectedRenameAsync(initialText, currentText, expectedText, "thing").ConfigureAwait(false);
     }
@@ -120,69 +138,79 @@ public class RenameIntentTests : IntentTestsBase
     public async Task TestRenameIntentAsync_MultipleFiles()
     {
         var initialText =
-@"namespace M
-{
-    public class C
-    {
-        public static string {|priorSelection:SomeString|} = string.Empty;
+            """
+            namespace M
+            {
+                public class C
+                {
+                    public static string {|priorSelection:SomeString|} = string.Empty;
 
-        void M()
-        {
-            var m = SomeString;
-        }
-    }
-}";
+                    void M()
+                    {
+                        var m = SomeString;
+                    }
+                }
+            }
+            """;
         var currentText =
-@"namespace M
-{
-    public class C
-    {
-        public static string BetterString = string.Empty;
+            """
+            namespace M
+            {
+                public class C
+                {
+                    public static string BetterString = string.Empty;
 
-        void M()
-        {
-            var m = SomeString;
-        }
-    }
-}";
+                    void M()
+                    {
+                        var m = SomeString;
+                    }
+                }
+            }
+            """;
         var additionalDocuments = new string[]
         {
-@"namespace M
-{
-    public class D
-    {
-        void M()
-        {
-            var m = C.SomeString;
-        }
-    }
-}"
+            """
+            namespace M
+            {
+                public class D
+                {
+                    void M()
+                    {
+                        var m = C.SomeString;
+                    }
+                }
+            }
+            """
         };
 
         var expectedTexts = new string[]
         {
-@"namespace M
-{
-    public class C
-    {
-        public static string BetterString = string.Empty;
+            """
+            namespace M
+            {
+                public class C
+                {
+                    public static string BetterString = string.Empty;
 
-        void M()
-        {
-            var m = BetterString;
-        }
-    }
-}",
-@"namespace M
-{
-    public class D
-    {
-        void M()
-        {
-            var m = C.BetterString;
-        }
-    }
-}"
+                    void M()
+                    {
+                        var m = BetterString;
+                    }
+                }
+            }
+            """,
+            """
+            namespace M
+            {
+                public class D
+                {
+                    void M()
+                    {
+                        var m = C.BetterString;
+                    }
+                }
+            }
+            """
         };
 
         await VerifyExpectedRenameAsync(initialText, currentText, additionalDocuments, expectedTexts, "BetterString").ConfigureAwait(false);

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         // Mutable state.  Should only update on UI thread.
 
+        private Visibility _visibility_doNotAccessDirectly = Visibility.Visible;
         private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
         private string _searchText_doNotAccessDirectly = "";
         private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             _taggerEventSource.Connect();
 
             // queue initial model update
-            _workQueue.AddWork(default(VoidResult));
+            _workQueue.AddWork();
         }
 
         public void Dispose()
@@ -120,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 IntervalTree<DocumentSymbolDataViewModel>.Empty);
 
         private void OnEventSourceChanged(object sender, TaggerEventArgs e)
-            => _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
+            => _workQueue.AddWork(cancelExistingWork: true);
 
         /// <summary>
         /// Keeps track if we're currently in the middle of navigating or not.  For example, when the user clicks on an
@@ -164,6 +166,23 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             }
         }
 
+        /// <remarks>This property is bound to the UI. However, it is only read/written by the UI. We only act as
+        /// storage for the value. When this value is true, UI updates are deferred.</remarks>
+        public Visibility Visibility
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _visibility_doNotAccessDirectly;
+            }
+
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                _visibility_doNotAccessDirectly = value;
+            }
+        }
+
         /// <remarks>This property is bound to the UI.  However, it is only read/written by the UI.  We only act as
         /// storage for the value.  When the value changes, the sorting is actually handled by
         /// DocumentSymbolDataViewModelSorter.</remarks>
@@ -199,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
                 _threadingContext.ThrowIfNotOnUIThread();
                 _searchText_doNotAccessDirectly = value;
 
-                _workQueue.AddWork(default(VoidResult), cancelExistingWork: true);
+                _workQueue.AddWork(cancelExistingWork: true);
             }
         }
 
@@ -241,6 +260,17 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
 
         private async ValueTask ComputeViewStateAsync(CancellationToken cancellationToken)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_isDisposed)
+                return;
+
+            if (Visibility != Visibility.Visible)
+            {
+                // Retry the update after a delay
+                _workQueue.AddWork(cancelExistingWork: true);
+                return;
+            }
+
             // Do any expensive semantic/computation work in the background.
             await TaskScheduler.Default;
             cancellationToken.ThrowIfCancellationRequested();
@@ -252,6 +282,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (_isDisposed)
                 return;
+
+            if (Visibility != Visibility.Visible)
+            {
+                // Retry the update after a delay
+                _workQueue.AddWork(cancelExistingWork: true);
+                return;
+            }
 
             var searchText = this.SearchText;
             var sortOption = this.SortOption;
@@ -296,6 +333,13 @@ namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (_isDisposed)
                 return;
+
+            if (Visibility != Visibility.Visible)
+            {
+                // Retry the update after a delay
+                _workQueue.AddWork(cancelExistingWork: true);
+                return;
+            }
 
             this.LastPresentedViewState = newViewState;
             this.DocumentSymbolViewModelItems = newViewModelItems;

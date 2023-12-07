@@ -17,14 +17,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 internal static class SourceMarkers
 {
     private static readonly Regex s_tags = new(
-        @"[<][/]?(AS|ER|N|TS)[:][.0-9,]+[>]",
-        RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
-    private static readonly Regex s_activeStatementPattern = new(
-        @"[<]AS[:]    (?<Id>[0-9,]+) [>]
-            (?<ActiveStatement>.*)
-          [<][/]AS[:] (\k<Id>)       [>]",
-        RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+        "[<]  (?<IsEnd>/?)  (?<Name>(AS|ER|N|TS))[:]  (?<Id>[.0-9,]+)  (?<IsStartAndEnd>/?)  [>]", RegexOptions.IgnorePatternWhitespace);
 
     public static readonly Regex ExceptionRegionPattern = new(
         @"[<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
@@ -38,12 +31,6 @@ internal static class SourceMarkers
           [<][/]TS[:] (\k<Id>)       [>]",
         RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
-    private static readonly Regex s_nodePattern = new(
-        @"[<]N[:]      (?<Id>[0-9]+[.][0-9]+)   [>]
-            (?<Node>.*)
-          [<][/]N[:]   (\k<Id>)                 [>]",
-        RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
-
     internal static string Clear(string source)
         => s_tags.Replace(source, m => new string(' ', m.Length));
 
@@ -55,39 +42,48 @@ internal static class SourceMarkers
            let parts = ids.Split('.')
            select (int.Parse(parts[0]), (parts.Length > 1) ? int.Parse(parts[1]) : 0);
 
-    private static IEnumerable<(TextSpan Span, ImmutableArray<(int major, int minor)> Ids)> GetSpans(string markedSource, Regex regex, string contentGroupName)
+    private static IEnumerable<((int major, int minor) id, TextSpan span)> GetSpans(string markedSource, string tagName)
     {
-        return Recurse(markedSource, offset: 0);
+        // id -> content start index
+        var tagMap = new Dictionary<(int major, int minor), (int start, int end)>();
 
-        IEnumerable<(TextSpan Span, ImmutableArray<(int major, int minor)> Ids)> Recurse(string markedSource, int offset)
+        foreach (var match in s_tags.Matches(markedSource).ToEnumerable())
         {
-            foreach (var match in regex.Matches(markedSource).ToEnumerable())
+            if (match.Groups["Name"].Value != tagName)
             {
-                var markedSyntax = match.Groups[contentGroupName];
-                var ids = ParseIds(match).ToImmutableArray();
-                var absoluteOffset = offset + markedSyntax.Index;
+                continue;
+            }
 
-                var span = markedSyntax.Length != 0 ? new TextSpan(absoluteOffset, markedSyntax.Length) : new TextSpan();
-                yield return (span, ids);
+            var isStartingTag = match.Groups["IsEnd"].Value == "" || match.Groups["IsStartAndEnd"].Value != "";
+            var isEndingTag = match.Groups["IsEnd"].Value != "" || match.Groups["IsStartAndEnd"].Value != "";
+            Contract.ThrowIfFalse(isStartingTag || isEndingTag);
 
-                foreach (var nestedSpan in Recurse(markedSyntax.Value, absoluteOffset))
+            foreach (var id in ParseIds(match))
+            {
+                if (isStartingTag && isEndingTag)
                 {
-                    yield return nestedSpan;
+                    tagMap.Add(id, (match.Index, match.Index));
+                }
+                else if (isStartingTag)
+                {
+                    tagMap.Add(id, (match.Index + match.Length, -1));
+                }
+                else
+                {
+                    tagMap[id] = (tagMap[id].start, match.Index);
                 }
             }
+        }
+
+        foreach (var (id, (start, end)) in tagMap.OrderBy(k => k.Key))
+        {
+            Contract.ThrowIfFalse(end >= 0, $"Missing ending tag for {id}");
+            yield return (id, TextSpan.FromBounds(start, end));
         }
     }
 
     public static IEnumerable<(TextSpan Span, int Id)> GetActiveSpans(string markedSource)
-    {
-        foreach (var (span, ids) in GetSpans(markedSource, s_activeStatementPattern, "ActiveStatement"))
-        {
-            foreach (var (major, _) in ids)
-            {
-                yield return (span, major);
-            }
-        }
-    }
+        => GetSpans(markedSource, tagName: "AS").Select(s => (s.span, s.id.major));
 
     public static TextSpan[] GetTrackingSpans(string src, int count)
     {
@@ -145,12 +141,8 @@ internal static class SourceMarkers
     {
         var result = new List<List<TextSpan>>();
 
-        foreach (var (span, ids) in GetSpans(markedSource, s_nodePattern, "Node"))
+        foreach (var ((major, minor), span) in GetSpans(markedSource, tagName: "N"))
         {
-            Debug.Assert(ids.Length == 1);
-
-            var (major, minor) = ids[0];
-
             EnsureSlot(result, major);
             result[major] ??= new List<TextSpan>();
             EnsureSlot(result[major], minor);

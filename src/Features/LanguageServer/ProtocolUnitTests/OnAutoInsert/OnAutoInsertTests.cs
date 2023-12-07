@@ -411,7 +411,7 @@ End Class";
 
             AssertEx.NotNull(result);
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
-            var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
+            var actualText = ApplyTextEdits([result.TextEdit], documentText);
             Assert.Equal(expected, actualText);
         }
 

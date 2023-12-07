@@ -35,5 +35,8 @@ internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFa
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new PublicDocumentPullDiagnosticsHandler(_analyzerService, _diagnosticRefresher, _globalOptions);
+    {
+        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _analyzerService, _diagnosticRefresher, _globalOptions);
+    }
 }

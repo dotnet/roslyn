@@ -73,17 +73,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool IsPartialTypeDeclaration(SyntaxNode syntax)
-            => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.PartialKeyword));
+            => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
-        protected override ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, CSharpSyntaxContext context)
-            => ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
+        protected override ImmutableArray<KeyValuePair<string, string>> GetProperties(INamedTypeSymbol symbol, CSharpSyntaxContext context)
+            => ImmutableArray.Create(new KeyValuePair<string, string>(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier()));
 
         public override async Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '<')
             {
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnLessThan, out var insertionText))
+                if (selectedItem.TryGetProperty(InsertionTextOnLessThan, out var insertionText))
                 {
                     return new TextChange(selectedItem.Span, insertionText);
                 }
