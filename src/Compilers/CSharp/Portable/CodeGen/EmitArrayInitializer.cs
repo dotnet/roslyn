@@ -439,7 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 throw ExceptionUtilities.Unreachable();
             }
 
-            int elementCount = -1;
             avoidInPlace = false;
             SpecialType specialElementType = SpecialType.None;
 
@@ -469,39 +468,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             Debug.Assert(!rosPointerCtor.HasUnsupportedMetadata);
 
-            ImmutableArray<byte> data = default;
             ArrayTypeSymbol? arrayType = null;
             TypeSymbol? elementType = null;
-            if (wrappedExpression is BoundArrayCreation ac)
+            if (wrappedExpression is not BoundArrayCreation { InitializerOpt: { } initializer } ac)
             {
-                // Get the array type and its element type.
-                arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType;
-
-                if (ac.InitializerOpt?.Initializers.Length == 0)
-                {
-                    emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
-                    return true;
-                }
-
-                // This optimization is only supported for core primitive types that can be stored in metadata blobs.
-                // For enums, we need to use the underlying type.
-                specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
-                if (!IsTypeAllowedInBlobWrapper(specialElementType))
-                {
-                    return start is null && length is null && tryEmitAsCachedArrayOfConstants(ac, arrayType, elementType, spanType, used, inPlaceTarget, out avoidInPlace);
-                }
-
-                // Get the data and number of elements that compose the initialization.
-                elementCount = TryGetRawDataForArrayInit(ac.InitializerOpt, out data);
-            }
-
-            if (elementCount < 0)
-            {
-                // The expression wasn't an array creation, and/or its contents wasn't composed entirely of literals, etc.
-                // and the optimization can't be applied.
                 return false;
             }
+
+            // Get the array type and its element type.
+            arrayType = (ArrayTypeSymbol)ac.Type;
+            elementType = arrayType.ElementType;
+
+            ImmutableArray<BoundExpression> initializers = initializer.Initializers;
+            var elementCount = initializers.Length;
+            if (elementCount == 0)
+            {
+                emitEmptyReadonlySpan(spanType, wrappedExpression, used, inPlaceTarget);
+                return true;
+            }
+
+            if (initializers.Any(static init => init.ConstantValueOpt == null))
+            {
+                return false;
+            }
+
+            // The blob optimization is only supported for core primitive types that can be stored in metadata blobs.
+            // For enums, we need to use the underlying type.
+            specialElementType = elementType.EnumUnderlyingTypeOrSelf().SpecialType;
+            if (!IsTypeAllowedInBlobWrapper(specialElementType))
+            {
+                return start is null && length is null
+                    && tryEmitAsCachedArrayOfConstants(ac, arrayType, elementType, spanType, used, inPlaceTarget, out avoidInPlace);
+            }
+
+            // Get the data and number of elements that compose the initialization.
+            ImmutableArray<byte> data = GetRawDataForArrayInit(initializers);
 
             Debug.Assert(arrayType is not null);
             Debug.Assert(elementType is not null);
@@ -682,18 +683,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 avoidInPlace = false;
                 var initializer = arrayCreation.InitializerOpt;
-                if (initializer == null)
-                {
-                    return false;
-                }
+                Debug.Assert(initializer != null);
 
                 var initializers = initializer.Initializers;
-                if (initializers.Any(static init => init.ConstantValueOpt == null))
-                {
-                    return false;
-                }
-
+                Debug.Assert(initializers.All(static init => init.ConstantValueOpt != null));
                 Debug.Assert(!elementType.IsEnumType());
+
                 ImmutableArray<ConstantValue> constants = initializers.Select(static init => init.ConstantValueOpt!).ToImmutableArray();
                 if (!tryGetReadOnlySpanArrayCtor(arrayCreation.Syntax, out var rosArrayCtor))
                 {
@@ -801,43 +796,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // 8 bytes
             SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_Double;
 
-#nullable disable
-
         /// <summary>
-        ///  Returns a byte blob that matches serialized content of single array initializer.    
-        ///  returns -1 if the initializer is null or not an array of literals
+        /// Returns a byte blob that matches serialized content of single array initializer of constants.
         /// </summary>
-        private int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
+        private ImmutableArray<byte> GetRawDataForArrayInit(ImmutableArray<BoundExpression> initializers)
         {
-            data = default;
-
-            if (initializer == null)
-            {
-                return -1;
-            }
-
-            var initializers = initializer.Initializers;
-            if (initializers.Any(static init => init.ConstantValueOpt == null))
-            {
-                return -1;
-            }
-
-            var elementCount = initializers.Length;
-            if (elementCount == 0)
-            {
-                data = ImmutableArray<byte>.Empty;
-                return 0;
-            }
+            Debug.Assert(initializers.Length > 0);
+            Debug.Assert(initializers.All(static init => init.ConstantValueOpt != null));
 
             var writer = new BlobBuilder(initializers.Length * 4);
 
-            foreach (var init in initializer.Initializers)
+            foreach (var init in initializers)
             {
-                init.ConstantValueOpt.Serialize(writer);
+                init.ConstantValueOpt!.Serialize(writer);
             }
 
-            data = writer.ToImmutableArray();
-            return elementCount;
+            return writer.ToImmutableArray();
         }
     }
 }
