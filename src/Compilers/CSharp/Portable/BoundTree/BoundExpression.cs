@@ -636,22 +636,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
     //       a constructor that may spuriously set hasErrors to true if either field had errors.
     //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    /// <remarks>
-    /// A BoundTypeOrValueData takes a BindingDiagnosticBag (including taking ownership of freeing that bag) instead of <see cref="ImmutableBindingDiagnostic{TAssemblySymbol}"/>
-    /// in order to avoid forcing resolution of lazy diagnostics. Early resolution can cause a binding cycle in color color tests involving assembly attribute arguments, so we
-    /// want to avoid that by delaying resolution until later in the process. The diagnostic bags are extracted by <see cref="Binder.ReplaceTypeOrValueReceiver(BoundExpression, bool, BindingDiagnosticBag)"/>,
-    /// which takes ownership of the diagnostic bags and frees them after extracting the diagnostics.
-    /// </remarks>
-    internal class BoundTypeOrValueData
+    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
-        private Optional<BindingDiagnosticBag> _valueDiagnostics;
-        private Optional<BindingDiagnosticBag> _typeDiagnostics;
-
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
+        public ImmutableBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ImmutableBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ImmutableBindingDiagnostic<AssemblySymbol> typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -659,18 +652,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.ValueSymbol = valueSymbol;
             this.ValueExpression = valueExpression;
-            _valueDiagnostics = valueDiagnostics;
+            this.ValueDiagnostics = valueDiagnostics;
             this.TypeExpression = typeExpression;
-            _typeDiagnostics = typeDiagnostics;
+            this.TypeDiagnostics = typeDiagnostics;
         }
 
-        public void TakeDiagnosticBagOwnership(out BindingDiagnosticBag valueDiagnostics, out BindingDiagnosticBag typeDiagnostics)
+        // operator==, operator!=, GetHashCode, and Equals are needed by the generated bound tree.
+
+        public static bool operator ==(BoundTypeOrValueData a, BoundTypeOrValueData b)
         {
-            Debug.Assert(_typeDiagnostics.HasValue && _valueDiagnostics.HasValue);
-            valueDiagnostics = _valueDiagnostics.Value;
-            typeDiagnostics = _typeDiagnostics.Value;
-            _valueDiagnostics = default;
-            _typeDiagnostics = default;
+            return (object)a.ValueSymbol == (object)b.ValueSymbol &&
+                (object)a.ValueExpression == (object)b.ValueExpression &&
+                a.ValueDiagnostics == b.ValueDiagnostics &&
+                (object)a.TypeExpression == (object)b.TypeExpression &&
+                a.TypeDiagnostics == b.TypeDiagnostics;
+        }
+
+        public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BoundTypeOrValueData && (BoundTypeOrValueData)obj == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ValueSymbol.GetHashCode(),
+                Hash.Combine(ValueExpression.GetHashCode(),
+                Hash.Combine(ValueDiagnostics.GetHashCode(),
+                Hash.Combine(TypeExpression.GetHashCode(), TypeDiagnostics.GetHashCode()))));
+        }
+
+        bool System.IEquatable<BoundTypeOrValueData>.Equals(BoundTypeOrValueData b)
+        {
+            return b == this;
         }
     }
 

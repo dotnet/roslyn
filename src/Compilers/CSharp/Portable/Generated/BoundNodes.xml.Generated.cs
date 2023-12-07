@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
 
+
     internal abstract partial class BoundInitializer : BoundNode
     {
         protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
@@ -1099,7 +1100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.TypeOrValueExpression, syntax, type, hasErrors)
         {
 
-            RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;
@@ -1109,7 +1109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.TypeOrValueExpression, syntax, type)
         {
 
-            RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;

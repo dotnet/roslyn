@@ -147,14 +147,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// True if this diagnostic represents the given error code. This does not force resolution of lazy diagnostics and is safe to call at any time.
-        /// </summary>
-        internal override bool IsCode(int code)
-        {
-            return _info.Code == code;
-        }
-
         public override int GetHashCode()
         {
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());

@@ -30,6 +30,7 @@
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
   <ValueType Name="RefKind"/>
+  <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>

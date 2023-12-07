@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning restore RS0013 
 
                 internal override int Code => _original.Code;
-                internal override bool IsCode(int code) => _original.IsCode(code);
                 internal override IReadOnlyList<object?> Arguments => _original.Arguments;
 
                 public override string Id => _original.Id;

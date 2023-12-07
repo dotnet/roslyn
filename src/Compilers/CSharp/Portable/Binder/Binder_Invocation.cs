@@ -1722,31 +1722,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                    typeOrValue.Data.TakeDiagnosticBagOwnership(out BindingDiagnosticBag? valueDiagnosticsBag, out BindingDiagnosticBag? typeDiagnosticsBag);
                     if (useType)
                     {
-                        diagnostics.AddRange(typeDiagnosticsBag);
+                        diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
 
-                        foreach (Diagnostic d in valueDiagnosticsBag.DiagnosticBag.AsEnumerableWithoutResolution())
+                        foreach (Diagnostic d in typeOrValue.Data.ValueDiagnostics.Diagnostics)
                         {
-                            if (d.IsCode((int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase) &&
+                            // Avoid forcing resolution of lazy diagnostics to avoid cycles.
+                            var code = d is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : d.Code;
+                            if (code == (int)ErrorCode.WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase &&
                                 !(d.Arguments is [ParameterSymbol shadowedParameter] && shadowedParameter.Type.Equals(typeOrValue.Data.ValueExpression.Type, TypeCompareKind.AllIgnoreOptions))) // If the type and the name match, we would resolve to the same type rather than a value at the end.
                             {
+                                Debug.Assert(d is not DiagnosticWithInfo { HasLazyInfo: true }, "Adjust the Arguments access to handle lazy diagnostics to avoid cycles.");
                                 diagnostics.Add(d);
                             }
                         }
-
-                        valueDiagnosticsBag.Free();
-                        typeDiagnosticsBag.Free();
 
                         return typeOrValue.Data.TypeExpression;
                     }
                     else
                     {
-                        diagnostics.AddRange(valueDiagnosticsBag);
-
-                        valueDiagnosticsBag.Free();
-                        typeDiagnosticsBag.Free();
+                        diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
                         return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
                     }
 
