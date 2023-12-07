@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DiagnosticOptions : IWorkDoneProgressOptions
+internal class DiagnosticOptions : IWorkDoneProgressOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether work done progress is supported.

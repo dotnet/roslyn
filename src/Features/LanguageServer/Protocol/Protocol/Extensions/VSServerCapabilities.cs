@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// additional capabilities supported by Visual Studio.
     /// </summary>
     [DataContract]
-    public class VSServerCapabilities : ServerCapabilities
+    internal class VSServerCapabilities : ServerCapabilities
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server supports the

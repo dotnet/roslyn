@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 /// followed by n <see cref="WorkspaceDiagnosticReportPartialResult"/> literals.
 /// </remarks>
 [DataContract]
-public class WorkspaceDiagnosticParams : IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
+internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
 {
     /// <summary>
     /// Gets or sets the value of the Progress instance.

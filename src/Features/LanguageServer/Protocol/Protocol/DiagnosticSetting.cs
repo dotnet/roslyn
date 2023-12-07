@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DiagnosticSetting : DynamicRegistrationSetting
+internal class DiagnosticSetting : DynamicRegistrationSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client supports related documents for document diagnostic pulls.

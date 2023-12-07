@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionItemTag">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public enum CompletionItemTag
+    internal enum CompletionItemTag
     {
         /// <summary>
         /// Render a completion as obsolete, usually using a strike-out.

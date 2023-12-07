@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentPositionParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public interface ITextDocumentPositionParams : ITextDocumentParams
+    internal interface ITextDocumentPositionParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the value which identifies the document.

@@ -14,7 +14,7 @@ using System.Runtime.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticReportPartialResult">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DocumentDiagnosticReportPartialResult
+internal class DocumentDiagnosticReportPartialResult
 {
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.

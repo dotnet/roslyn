@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#versionedTextDocumentIdentifier">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class VersionedTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<VersionedTextDocumentIdentifier>
+    internal class VersionedTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<VersionedTextDocumentIdentifier>
     {
         /// <summary>
         /// Gets or sets the version of the document.

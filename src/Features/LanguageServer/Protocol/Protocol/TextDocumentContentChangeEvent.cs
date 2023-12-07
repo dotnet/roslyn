@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentContentChangeEvent">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class TextDocumentContentChangeEvent
+    internal class TextDocumentContentChangeEvent
     {
         /// <summary>
         /// Gets or sets the range of the text that was changed.

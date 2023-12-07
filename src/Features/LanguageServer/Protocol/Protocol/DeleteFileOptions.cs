@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#deleteFileOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DeleteFileOptions
+    internal class DeleteFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the delete operation should be applied recursively if a folder is denoted. (Overwrite wins over ignoreIfNotExists).

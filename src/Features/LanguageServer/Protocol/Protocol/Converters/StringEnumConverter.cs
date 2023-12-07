@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 /// JsonConverter for serializing and deserializing string-based enums.
 /// </summary>
 /// <typeparam name="TStringEnumType">The actual type implementing <see cref="IStringEnum"/>.</typeparam>
-public class StringEnumConverter<TStringEnumType>
+internal class StringEnumConverter<TStringEnumType>
     : JsonConverter
     where TStringEnumType : IStringEnum
 {
@@ -75,7 +75,7 @@ public class StringEnumConverter<TStringEnumType>
     /// Type converter from <see langword="string"/> to <typeparamref name="TStringEnumType"/>.
     /// This is required to support <see cref="DefaultValueAttribute(Type, string)"/>.
     /// </summary>
-    public class TypeConverter
+    internal class TypeConverter
         : System.ComponentModel.TypeConverter
     {
         /// <inheritdoc/>

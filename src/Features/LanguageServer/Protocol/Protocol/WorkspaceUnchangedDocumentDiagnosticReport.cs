@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 /// </summary>
 [DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
-public class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
+internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the URI associated with this diagnostic report.

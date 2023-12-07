@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// <see cref="VSDiagnosticRank"/> represents the rank of a <see cref="VSDiagnostic"/> object.
     /// </summary>
-    public enum VSDiagnosticRank
+    internal enum VSDiagnosticRank
     {
         /// <summary>
         /// Highest priority.

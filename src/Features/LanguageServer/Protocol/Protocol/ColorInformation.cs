@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ColorInformation
+    internal class ColorInformation
     {
         /// <summary>
         /// Gets or sets the text range representing the color.

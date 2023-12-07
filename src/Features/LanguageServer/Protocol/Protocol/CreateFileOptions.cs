@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#createFileOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CreateFileOptions
+    internal class CreateFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists. (Overwrite wins over ignoreIfExists).

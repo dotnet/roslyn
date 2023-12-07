@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#inlayHintRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+    internal class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.

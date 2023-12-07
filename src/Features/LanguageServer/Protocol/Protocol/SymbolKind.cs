@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "Names are defined by the LSP")]
-    public enum SymbolKind
+    internal enum SymbolKind
     {
         /// <summary>
         /// Symbol is a file.

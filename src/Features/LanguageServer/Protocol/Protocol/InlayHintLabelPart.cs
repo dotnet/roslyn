@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintLabelPart">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InlayHintLabelPart
+    internal class InlayHintLabelPart
     {
         /// <summary>
         /// Gets or sets the value associated with this label part.

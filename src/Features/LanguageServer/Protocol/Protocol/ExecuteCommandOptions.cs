@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ExecuteCommandOptions : IWorkDoneProgressOptions
+    internal class ExecuteCommandOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the commands that are to be executed on the server.

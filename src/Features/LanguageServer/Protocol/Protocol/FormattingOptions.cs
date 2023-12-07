@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#formattingOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class FormattingOptions
+    internal class FormattingOptions
     {
         /// <summary>
         /// Gets or sets the number of spaces to be inserted per tab.

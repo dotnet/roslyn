@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing the options for on auto insert.
     /// </summary>
     [DataContract]
-    public class VSInternalDocumentOnAutoInsertOptions
+    internal class VSInternalDocumentOnAutoInsertOptions
     {
         /// <summary>
         /// Gets or sets trigger characters for on auto insert.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRanges">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class LinkedEditingRanges
+    internal class LinkedEditingRanges
     {
         /// <summary>
         /// Gets or sets the ranges for the type rename.

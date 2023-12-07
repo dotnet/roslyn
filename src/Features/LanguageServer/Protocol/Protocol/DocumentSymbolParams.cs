@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DocumentSymbolParams : ITextDocumentParams
+    internal class DocumentSymbolParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the text document.

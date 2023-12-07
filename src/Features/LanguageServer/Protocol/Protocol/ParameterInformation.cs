@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [JsonConverter(typeof(ParameterInformationConverter))]
-    public class ParameterInformation
+    internal class ParameterInformation
     {
         /// <summary>
         /// Gets or sets the label of the parameter.

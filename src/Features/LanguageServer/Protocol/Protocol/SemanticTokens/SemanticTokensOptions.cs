@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensOptions : IWorkDoneProgressOptions
+    internal class SemanticTokensOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a legend describing how semantic token types and modifiers are encoded in responses.

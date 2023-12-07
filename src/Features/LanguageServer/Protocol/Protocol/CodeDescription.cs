@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeDescription">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeDescription : IEquatable<CodeDescription>
+    internal class CodeDescription : IEquatable<CodeDescription>
     {
         /// <summary>
         /// Gets or sets URI to open with more information about the diagnostic error.

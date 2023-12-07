@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 /// <summary>
 /// JsonConverter for serializing and deserializing <see cref="ImageId"/>.
 /// </summary>
-public class ImageIdConverter : JsonConverter
+internal class ImageIdConverter : JsonConverter
 {
     /// <summary>
     /// A reusable instance of the <see cref="ImageIdConverter"/>.

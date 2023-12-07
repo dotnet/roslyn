@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// The version of support that is available from the client.
     /// </summary>
-    public enum VSInternalSnippetSupportLevel
+    internal enum VSInternalSnippetSupportLevel
     {
         /// <summary>
         /// Only default tab stops ($0) are supported.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ParameterInformationSetting
+    internal class ParameterInformationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether the client supports label offset.

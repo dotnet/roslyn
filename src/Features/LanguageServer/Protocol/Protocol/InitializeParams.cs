@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InitializeParams
+    internal class InitializeParams
     {
         /// <summary>
         /// Gets or sets the ID of the process which launched the language server.

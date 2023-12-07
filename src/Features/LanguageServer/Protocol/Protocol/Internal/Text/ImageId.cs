@@ -15,7 +15,7 @@ namespace Roslyn.Core.Imaging
     //     On Windows systems, Microsoft.VisualStudio.Core.Imaging.ImageId can be converted
     //     to and from various other image representations via the ImageIdExtensions extension
     //     methods.
-    public struct ImageId : IEquatable<ImageId>
+    internal struct ImageId : IEquatable<ImageId>
     {
         //
         // Summary:

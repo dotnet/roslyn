@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [Kind("delete")]
-    public class DeleteFile
+    internal class DeleteFile
     {
         /// <summary>
         /// Gets the kind value.

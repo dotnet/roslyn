@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSaveReason">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum TextDocumentSaveReason
+    internal enum TextDocumentSaveReason
     {
         /// <summary>
         /// Save was manually triggered.

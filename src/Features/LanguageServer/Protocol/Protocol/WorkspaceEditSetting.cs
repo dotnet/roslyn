@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceEditClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class WorkspaceEditSetting
+    internal class WorkspaceEditSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether document changes event is supported.

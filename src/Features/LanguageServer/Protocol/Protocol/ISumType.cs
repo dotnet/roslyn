@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// This abstraction is guaranteed to be typesafe, meaning you cannot access the underlying value without knowing
     /// its specific type.
     /// </summary>
-    public interface ISumType
+    internal interface ISumType
     {
         /// <summary>
         /// Gets the value stored in the SumType. This can be matched against using the "is" operator.

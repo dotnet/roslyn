@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents a setting that can be dynamically registered.
     /// </summary>
     [DataContract]
-    public class DynamicRegistrationSetting
+    internal class DynamicRegistrationSetting
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DynamicRegistrationSetting"/> class.

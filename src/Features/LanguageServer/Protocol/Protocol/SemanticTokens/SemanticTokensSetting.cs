@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensSetting : DynamicRegistrationSetting
+    internal class SemanticTokensSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating which requests the client supports and might send to the server

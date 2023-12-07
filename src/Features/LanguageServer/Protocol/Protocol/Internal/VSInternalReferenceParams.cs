@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
     /// </summary>
-    public class VSInternalReferenceParams : ReferenceParams
+    internal class VSInternalReferenceParams : ReferenceParams
     {
         /// <summary>
         /// Gets or sets a value indicating the scope of returned items.

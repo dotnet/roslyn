@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#publishDiagnosticsClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class PublishDiagnosticsSetting
+    internal class PublishDiagnosticsSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether gets or sets the <see cref="TagSupport"/> capabilities.

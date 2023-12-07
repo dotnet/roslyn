@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Converter to translate to and from SumTypes.
     /// </summary>
-    public class SumConverter : JsonConverter
+    internal class SumConverter : JsonConverter
     {
         private static readonly ConcurrentDictionary<Type, SumTypeInfoCache> SumTypeCache = new ConcurrentDictionary<Type, SumTypeInfoCache>();
 
@@ -250,7 +250,7 @@ namespace Roslyn.LanguageServer.Protocol
                 return Nullable.GetUnderlyingType(sumTypeType) ?? sumTypeType;
             }
 
-            public class UnionTypeInfo
+            internal class UnionTypeInfo
             {
                 public UnionTypeInfo(Type type, ConstructorInfo constructor, KindAttribute? kindAttribute)
                 {

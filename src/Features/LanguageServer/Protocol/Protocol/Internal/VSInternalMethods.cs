@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which contains the string values for all Language Server Protocol Visual Studio specific methods.
     /// </summary>
-    public static class VSInternalMethods
+    internal static class VSInternalMethods
     {
         /// <summary>
         /// Method name for 'textDocument/foldingRange/_vs_refresh'.

@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// <see cref="VSMethods"/> contains the string values for all Language Server Protocol Visual Studio specific methods.
     /// </summary>
-    public static class VSMethods
+    internal static class VSMethods
     {
         /// <summary>
         /// Method name for 'textDocument/_vs_getProjectContexts'.

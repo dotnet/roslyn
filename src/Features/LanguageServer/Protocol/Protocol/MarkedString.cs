@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markedString">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class MarkedString
+    internal class MarkedString
     {
         /// <summary>
         /// Gets or sets the language of the code stored in <see cref="Value" />.

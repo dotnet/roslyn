@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Well-known semantic token modifiers.
     /// </summary>
-    public static class SemanticTokenModifiers
+    internal static class SemanticTokenModifiers
     {
         /// <summary>
         /// Semantic token modifier for 'declaration'.

@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DiagnosticRegistrationOptions : DiagnosticOptions, IStaticRegistrationOptions, ITextDocumentRegistrationOptions
+internal class DiagnosticRegistrationOptions : DiagnosticOptions, IStaticRegistrationOptions, ITextDocumentRegistrationOptions
 {
     /// <summary>
     /// Gets or sets the document filters for this registration option.

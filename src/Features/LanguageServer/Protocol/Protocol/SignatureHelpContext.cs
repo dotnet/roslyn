@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SignatureHelpContext
+    internal class SignatureHelpContext
     {
         /// <summary>
         /// Gets or sets the <see cref="SignatureHelpTriggerKind"/> indicating how the signature help was triggered.

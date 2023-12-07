@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 /// </summary>
 [DataContract]
 [Kind(DocumentDiagnosticReportKind.Full)]
-public class FullDocumentDiagnosticReport
+internal class FullDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets the kind of this report.

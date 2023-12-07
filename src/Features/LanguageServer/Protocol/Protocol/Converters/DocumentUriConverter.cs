@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// TODO: document.
     /// </summary>
-    public class DocumentUriConverter : JsonConverter
+    internal class DocumentUriConverter : JsonConverter
     {
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)

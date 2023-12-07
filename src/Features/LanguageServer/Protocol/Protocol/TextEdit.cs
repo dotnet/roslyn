@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textEdit">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class TextEdit
+    internal class TextEdit
     {
         /// <summary>
         /// Gets or sets the value which indicates the range of the text edit.

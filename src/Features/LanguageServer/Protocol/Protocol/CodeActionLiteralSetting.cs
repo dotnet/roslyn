@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeActionLiteralSetting
+    internal class CodeActionLiteralSetting
     {
         /// <summary>
         /// Gets or sets a value indicating what code action kinds are supported.

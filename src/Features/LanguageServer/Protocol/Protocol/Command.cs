@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#command">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Command
+    internal class Command
     {
         /// <summary>
         /// Gets or sets the title of the command.

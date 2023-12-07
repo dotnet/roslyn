@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
     /// </summary>
     [DataContract]
-    public class VSInternalCommitCharacter
+    internal class VSInternalCommitCharacter
     {
         /// <summary>
         /// Gets or sets the commit character.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentColorParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DocumentColorParams : ITextDocumentParams
+    internal class DocumentColorParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide links for.

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Utilities to aid work with the LSP Extensions.
     /// </summary>
-    public static class VSInternalExtensionUtilities
+    internal static class VSInternalExtensionUtilities
     {
         /// <summary>
         /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> necessary to deserialize

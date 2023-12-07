@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#symbolInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SymbolInformation : IEquatable<SymbolInformation>
+    internal class SymbolInformation : IEquatable<SymbolInformation>
     {
         /// <summary>
         /// Gets or sets the name of this symbol.

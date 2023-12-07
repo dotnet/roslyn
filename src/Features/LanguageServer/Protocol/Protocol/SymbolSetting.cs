@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_symbol">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SymbolSetting : DynamicRegistrationSetting
+    internal class SymbolSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="SymbolKindSetting"/> information.

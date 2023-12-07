@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CompletionSetting : DynamicRegistrationSetting
+    internal class CompletionSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets completion item setting.

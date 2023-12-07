@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeActionContext
+    internal class CodeActionContext
     {
         /// <summary>
         /// Gets or sets an array of diagnostics relevant to a code action.

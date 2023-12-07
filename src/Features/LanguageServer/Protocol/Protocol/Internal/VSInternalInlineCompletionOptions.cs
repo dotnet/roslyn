@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// The options for inline completion.
     /// </summary>
     [DataContract]
-    public class VSInternalInlineCompletionOptions
+    internal class VSInternalInlineCompletionOptions
     {
         /// <summary>
         /// Gets or sets a regex used by the client to determine when to ask the server for snippets.

@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileEvent">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class FileEvent
+    internal class FileEvent
     {
         /// <summary>
         /// Gets or sets the URI of the file.

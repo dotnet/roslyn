@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// used in an <see cref="ISumType"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
-    public class KindAttribute : Attribute
+    internal class KindAttribute : Attribute
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="KindAttribute"/> class.

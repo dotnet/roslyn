@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class WorkspaceClientCapabilities
+    internal class WorkspaceClientCapabilities
     {
         /// <summary>
         /// Gets or sets a value indicating whether apply edit is supported.

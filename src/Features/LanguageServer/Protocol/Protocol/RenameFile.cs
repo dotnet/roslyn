@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [Kind("rename")]
-    public class RenameFile
+    internal class RenameFile
     {
         /// <summary>
         /// Gets the kind value.

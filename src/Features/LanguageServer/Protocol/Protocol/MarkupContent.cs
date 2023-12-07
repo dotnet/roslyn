@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markupContentInnerDefinition">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class MarkupContent
+    internal class MarkupContent
     {
         /// <summary>
         /// Gets or sets the <see cref="MarkupKind"/> representing the text's format.

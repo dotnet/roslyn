@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Interface to identify a text document.
     /// </summary>
-    public interface ITextDocumentParams
+    internal interface ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the value which identifies the document.

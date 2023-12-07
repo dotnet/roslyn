@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DefaultBehaviorPrepareRename
+    internal class DefaultBehaviorPrepareRename
     {
         /// <summary>
         /// Gets or sets a value indicating whether the rename position is valid and the client should use its

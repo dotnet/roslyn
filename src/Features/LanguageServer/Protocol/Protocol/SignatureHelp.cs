@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelp">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SignatureHelp
+    internal class SignatureHelp
     {
         /// <summary>
         /// Gets or sets an array of signatures associated with the callable item.

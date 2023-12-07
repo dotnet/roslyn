@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didOpenTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DidOpenTextDocumentParams
+    internal class DidOpenTextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentItem"/> which represents the text document that was opened.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing a diagnostic pull request report.
     /// </summary>
     [DataContract]
-    public class VSInternalDiagnosticReport
+    internal class VSInternalDiagnosticReport
     {
         /// <summary>
         /// Gets or sets the server-generated version number for the diagnostics.

@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing a renaming option for customizing the edit in the 'textDocument/rename' request.
     /// </summary>
     [DataContract]
-    public class VSInternalRenameOptionSupport
+    internal class VSInternalRenameOptionSupport
     {
         /// <summary>
         /// Gets or sets the name that identifies the option.

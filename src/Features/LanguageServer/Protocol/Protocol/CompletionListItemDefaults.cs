@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents default properties associated with the entire completion list.
     /// </summary>
     [DataContract]
-    public class CompletionListItemDefaults
+    internal class CompletionListItemDefaults
     {
         /// <summary>
         /// Gets or sets the default commit character set.

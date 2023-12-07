@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class RenameRange
+    internal class RenameRange
     {
         /// <summary>
         /// Gets or sets the range of the string to rename.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InsertTextModeSupportSetting
+    internal class InsertTextModeSupportSetting
     {
         /// <summary>
         /// Gets or sets a value indicating the client supports the `insertTextMode` property on a completion item to override the whitespace handling mode as defined by the client.

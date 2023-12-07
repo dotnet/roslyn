@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionTriggerKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum CodeActionTriggerKind
+    internal enum CodeActionTriggerKind
     {
         /// <summary>
         /// Code actions were explicitly requested by the user or by an extension.

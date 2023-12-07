@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// This is a temporary protocol and should not be used.
     /// </remarks>
     [DataContract]
-    public class VSInternalSymbolInformation : VSSymbolInformation
+    internal class VSInternalSymbolInformation : VSSymbolInformation
     {
         /// <summary>
         /// Gets or sets the string kind used for icons.

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Well-known semantic tokens types.
     /// </summary>
-    public static class SemanticTokenTypes
+    internal static class SemanticTokenTypes
     {
         /// <summary>
         /// Semantic token modifier for 'namespace'.

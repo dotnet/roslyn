@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLens">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeLens
+    internal class CodeLens
     {
         /// <summary>
         /// Gets or sets the range that the code lens applies to.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#prepareRenameParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class PrepareRenameParams : ITextDocumentPositionParams
+    internal class PrepareRenameParams : ITextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the value which identifies the document.

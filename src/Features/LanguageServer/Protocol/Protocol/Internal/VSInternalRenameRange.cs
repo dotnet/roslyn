@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// together with extra VS-specific options.
     /// </summary>
     [DataContract]
-    public class VSInternalRenameRange : RenameRange
+    internal class VSInternalRenameRange : RenameRange
     {
         /// <summary>
         /// Gets or sets the supported options for the rename request.

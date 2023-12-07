@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 /// </summary>
 [DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
-public class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
+internal class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.

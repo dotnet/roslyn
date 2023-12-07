@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SignatureHelpSetting : DynamicRegistrationSetting
+    internal class SignatureHelpSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets the <see cref="SignatureInformationSetting"/> information.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing the response of an AutoInsert response.
     /// </summary>
     [DataContract]
-    public class VSInternalDocumentOnAutoInsertResponseItem
+    internal class VSInternalDocumentOnAutoInsertResponseItem
     {
         /// <summary>
         /// Gets or sets the insert text format of the primary text edit. <see cref="TextEditFormat"/> for supported formats.

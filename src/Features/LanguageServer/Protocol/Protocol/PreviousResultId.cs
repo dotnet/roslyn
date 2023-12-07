@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#previousResultId">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class PreviousResultId
+internal class PreviousResultId
 {
     /// <summary>
     /// Gets or sets the URI for which the client knows a result id.

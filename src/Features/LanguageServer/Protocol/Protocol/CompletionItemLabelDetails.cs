@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemLabelDetails">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CompletionItemLabelDetails
+    internal class CompletionItemLabelDetails
     {
         /// <summary>
         /// Gets or sets an optional string which is rendered less prominently directly after label, without any spacing.

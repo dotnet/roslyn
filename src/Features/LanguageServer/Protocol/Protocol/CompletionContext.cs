@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CompletionContext
+    internal class CompletionContext
     {
         /// <summary>
         /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.

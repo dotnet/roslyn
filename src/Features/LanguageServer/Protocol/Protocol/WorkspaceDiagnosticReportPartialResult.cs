@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceDiagnosticReportPartialResult">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class WorkspaceDiagnosticReportPartialResult
+internal class WorkspaceDiagnosticReportPartialResult
 {
     /// <summary>
     /// Gets or sets the items in this diagnostic report.

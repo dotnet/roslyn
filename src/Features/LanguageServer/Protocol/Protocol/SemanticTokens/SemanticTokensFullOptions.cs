@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensFullOptions
+    internal class SemanticTokensFullOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server supports deltas for full documents.

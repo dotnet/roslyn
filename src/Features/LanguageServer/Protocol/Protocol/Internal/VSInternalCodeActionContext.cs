@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing the parameters sent from the client to the server for the textDocument/codeAction request.
     /// </summary>
     [DataContract]
-    public class VSInternalCodeActionContext : CodeActionContext
+    internal class VSInternalCodeActionContext : CodeActionContext
     {
         /// <summary>
         /// Gets or sets the range of the current selection in the document for which the command was invoked.

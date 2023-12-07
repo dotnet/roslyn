@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<ResourceOperationKind>))]
     [TypeConverter(typeof(StringEnumConverter<ResourceOperationKind>.TypeConverter))]
-    public readonly record struct ResourceOperationKind(string Value) : IStringEnum
+    internal readonly record struct ResourceOperationKind(string Value) : IStringEnum
     {
         /// <summary>
         /// Supports creating new files and folders.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CompletionItemOptions
+    internal class CompletionItemOptions
     {
         /// <summary>
         /// Gets or sets a value indicating The server has support for completion item label details

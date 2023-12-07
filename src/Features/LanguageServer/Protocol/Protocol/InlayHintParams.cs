@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InlayHintParams : ITextDocumentParams
+    internal class InlayHintParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document identifier to fetch inlay hints results for.

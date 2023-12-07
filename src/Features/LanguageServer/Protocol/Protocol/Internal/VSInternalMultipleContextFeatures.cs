@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Lists the features that support sending off feature requests for all available project contexts instead of the default active one.
     /// </summary>
     [DataContract]
-    public class VSInternalMultipleContextFeatures
+    internal class VSInternalMultipleContextFeatures
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server provides support for sending diagnostics requests for all project contexts.

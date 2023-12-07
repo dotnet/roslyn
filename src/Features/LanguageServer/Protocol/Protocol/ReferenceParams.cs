@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ReferenceParams : TextDocumentPositionParams, IPartialResultParams<object>
+    internal class ReferenceParams : TextDocumentPositionParams, IPartialResultParams<object>
     {
         // Using IPartialResultParams<object> instead of IPartialResultParams<Location[]> to
         // allow the VS protocol extension to allow returning VSReferenceItem[]

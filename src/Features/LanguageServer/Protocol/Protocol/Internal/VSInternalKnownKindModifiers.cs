@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Known VS response kind modifiers.
     /// </summary>
-    public static class VSInternalKnownKindModifiers
+    internal static class VSInternalKnownKindModifiers
     {
         /// <summary>
         /// Response kind modifier string for 'public'.

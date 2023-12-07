@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which contains the string values for all well-known Visual Studion LSP code action commands.
     /// </summary>
-    public static class VSInternalWellKnownCodeActionCommands
+    internal static class VSInternalWellKnownCodeActionCommands
     {
         /// <summary>
         /// Command name for '_ms_setClipboard'.

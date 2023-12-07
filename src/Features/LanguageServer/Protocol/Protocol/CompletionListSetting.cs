@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents capabilites for the completion list type.
     /// </summary>
     [DataContract]
-    public class CompletionListSetting
+    internal class CompletionListSetting
     {
         /// <summary>
         /// Gets or sets a value containing the supported property names of the <see cref="CompletionList.ItemDefaults"/> object.

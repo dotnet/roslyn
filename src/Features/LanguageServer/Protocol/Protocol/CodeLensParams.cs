@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLensParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeLensParams : ITextDocumentParams
+    internal class CodeLensParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document identifier to fetch code lens results for.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// 'textDocument/rename' request.
     /// </summary>
     [DataContract]
-    public class VSInternalRenameParams : RenameParams
+    internal class VSInternalRenameParams : RenameParams
     {
         /// <summary>
         /// Gets or sets the rename option values as selected by the user.

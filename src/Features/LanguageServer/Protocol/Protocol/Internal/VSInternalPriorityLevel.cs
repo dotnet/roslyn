@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum which represents the various reference kinds.
     /// </summary>
-    public enum VSInternalPriorityLevel
+    internal enum VSInternalPriorityLevel
     {
         /// <summary>
         /// Lowest priority.

@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbol">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DocumentSymbol
+    internal class DocumentSymbol
     {
         /// <summary>
         /// Gets or sets the name of this symbol.

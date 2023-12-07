@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSTextDocumentIdentifier"/> extends <see cref="TextDocumentIdentifier"/> providing additional properties used by Visual Studio.
     /// </summary>
     [DataContract]
-    public class VSTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<VSTextDocumentIdentifier>
+    internal class VSTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<VSTextDocumentIdentifier>
     {
         /// <summary>
         /// Gets or sets the project context of the text document.

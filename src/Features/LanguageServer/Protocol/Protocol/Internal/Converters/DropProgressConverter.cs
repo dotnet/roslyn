@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Converter used to deserialize objects dropping any <see cref="IProgress{T}"/> property.
     /// </summary>
-    public class DropProgressConverter : JsonConverter
+    internal class DropProgressConverter : JsonConverter
     {
         /// <inheritdoc/>
         public override bool CanWrite => true;

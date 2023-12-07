@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#insertTextFormat">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public enum InsertTextFormat
+    internal enum InsertTextFormat
     {
         /// <summary>
         /// Completion item insertion is plaintext.

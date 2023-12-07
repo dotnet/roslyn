@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents default range of InsertReplaceEdit for the entire completion list
     /// </summary>
     [DataContract]
-    public class InsertReplaceRange
+    internal class InsertReplaceRange
     {
         /// <summary>
         /// Gets or sets the insert range.

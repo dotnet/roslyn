@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum TextDocumentSyncKind
+    internal enum TextDocumentSyncKind
     {
         /// <summary>
         /// Documents should not be synced at all.

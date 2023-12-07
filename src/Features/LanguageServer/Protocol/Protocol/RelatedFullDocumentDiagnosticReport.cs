@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 /// </summary>
 [DataContract]
 [Kind(DocumentDiagnosticReportKind.Full)]
-public class RelatedFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
+internal class RelatedFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.

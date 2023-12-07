@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpTriggerKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum SignatureHelpTriggerKind
+    internal enum SignatureHelpTriggerKind
     {
         /// <summary>
         /// Signature help was invoked manually by the user or a command.

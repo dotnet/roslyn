@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class containing the set of code action default groups that are supported.
     /// </summary>
     [DataContract]
-    public class VSInternalCodeActionGroupSetting
+    internal class VSInternalCodeActionGroupSetting
     {
         /// <summary>
         /// Gets or sets the code actions default group names the client supports.

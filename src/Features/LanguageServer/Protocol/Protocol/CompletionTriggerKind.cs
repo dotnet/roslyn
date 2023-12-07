@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionTriggerKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum CompletionTriggerKind
+    internal enum CompletionTriggerKind
     {
         /// <summary>
         /// Completion was triggered by typing an identifier.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ApplyWorkspaceEditParams
+    internal class ApplyWorkspaceEditParams
     {
         /// <summary>
         /// Gets or sets the label associated with this edit.

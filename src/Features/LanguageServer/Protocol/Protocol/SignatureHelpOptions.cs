@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SignatureHelpOptions : IWorkDoneProgressOptions
+    internal class SignatureHelpOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the characters that trigger signature help automatically.
