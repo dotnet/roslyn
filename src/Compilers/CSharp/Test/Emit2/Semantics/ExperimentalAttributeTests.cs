@@ -2309,7 +2309,7 @@ class D
     }
 
     [Theory, CombinatorialData]
-    public void PriorityOrder(ObsoleteKind one, ObsoleteKind other, bool inSource, bool reversed)
+    public void PriorityOrder(ObsoleteKind one, ObsoleteKind other, bool inSource)
     {
         if (one == other) return;
 
@@ -2317,8 +2317,8 @@ class D
         var otherAttr = getAttribute(other);
 
         var libSrc = $$"""
-{{(reversed ? otherAttr : oneAttr)}}
-{{(reversed ? oneAttr : otherAttr)}}
+{{oneAttr}}
+{{otherAttr}}
 public class C { }
 """;
 
