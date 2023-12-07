@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SpecialType.System_Collections_Generic_ICollection_T,
             SpecialType.System_Collections_Generic_IList_T,
         };
-        
+
         private static readonly SpecialType[] s_readOnlyInterfacesSpecialTypes = new[]
         {
             SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
