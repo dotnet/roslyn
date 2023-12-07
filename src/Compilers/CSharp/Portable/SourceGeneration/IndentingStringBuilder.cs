@@ -10,108 +10,109 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Not threadsafe.
+/// </summary>
+internal struct IndentingStringBuilder : IDisposable
 {
-    /// <summary>
-    /// Not threadsafe.
-    /// </summary>
-    internal struct IndentingStringBuilder : IDisposable
+    private const string DefaultIndentation = "    ";
+    private const string DefaultNewLine = "\r\n";
+    private const int DefaultIndentationCount = 8;
+
+    private static readonly ImmutableArray<string> s_defaultIndentationStrings;
+
+    static IndentingStringBuilder()
     {
-        private const string DefaultIndentation = "    ";
-        private const string DefaultNewLine = "\r\n";
-        private const int DefaultIndentationCount = 8;
+        var builder = ArrayBuilder<string>.GetInstance(DefaultIndentationCount);
 
-        private static readonly ImmutableArray<string> s_defaultIndentationStrings;
+        PopulateIndentationStrings(builder, DefaultIndentation);
 
-        static IndentingStringBuilder()
+        s_defaultIndentationStrings = builder.ToImmutableAndFree();
+    }
+
+    private readonly PooledStringBuilder _builder = PooledStringBuilder.GetInstance();
+
+    private readonly ArrayBuilder<string> _indentationStrings = ArrayBuilder<string>.GetInstance();
+
+    private readonly string _indentationString;
+    private readonly string _newLine;
+
+    /// <summary>
+    /// The current indentation level.
+    /// </summary>
+    private int _currentIndentationLevel = 0;
+
+    /// <summary>
+    /// The current indentation, as text.
+    /// </summary>
+    private string _currentIndentation = "";
+
+    public IndentingStringBuilder(string indentationString, string newLine)
+    {
+        _indentationString = indentationString;
+        _newLine = newLine;
+
+        // Avoid allocating indentation strings in the common case where the client is using the defaults.
+        if (indentationString == DefaultIndentation)
         {
-            var builder = ArrayBuilder<string>.GetInstance(DefaultIndentationCount);
-
-            PopulateIndentationStrings(builder, DefaultIndentation);
-
-            s_defaultIndentationStrings = builder.ToImmutableAndFree();
+            _indentationStrings.AddRange(s_defaultIndentationStrings);
         }
-
-        private readonly PooledStringBuilder _builder = PooledStringBuilder.GetInstance();
-
-        private readonly ArrayBuilder<string> _indentationStrings = ArrayBuilder<string>.GetInstance();
-
-        private readonly string _indentationString;
-        private readonly string _newLine;
-
-        /// <summary>
-        /// The current indentation level.
-        /// </summary>
-        private int _currentIndentationLevel = 0;
-
-        /// <summary>
-        /// The current indentation, as text.
-        /// </summary>
-        private string _currentIndentation = "";
-
-        public IndentingStringBuilder(string indentationString, string newLine)
+        else
         {
-            _indentationString = indentationString;
-            _newLine = newLine;
-
-            // Avoid allocating indentation strings in the common case where the client is using the defaults.
-            if (indentationString == DefaultIndentation)
-            {
-                _indentationStrings.AddRange(s_defaultIndentationStrings);
-            }
-            else
-            {
-                PopulateIndentationStrings(_indentationStrings, indentationString);
-            }
+            PopulateIndentationStrings(_indentationStrings, indentationString);
         }
+    }
 
-        public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string newLine = DefaultNewLine)
-            => new(indentation, newLine);
+    public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string newLine = DefaultNewLine)
+        => new(indentation, newLine);
 
-        private static void PopulateIndentationStrings(ArrayBuilder<string> builder, string indentation)
-        {
-            builder.Count = builder.Capacity;
-            builder[0] = "";
-            for (int i = 1; i < builder.Capacity; i++)
-                builder[i] = builder[i - 1] + indentation;
-        }
+    private static void PopulateIndentationStrings(ArrayBuilder<string> builder, string indentation)
+    {
+        builder.Add("");
+        for (int i = 1; i < builder.Capacity; i++)
+            builder.Add(builder.Last() + indentation);
+    }
 
+    public readonly void Dispose()
+    {
+        _indentationStrings.Free();
+        _builder.Free();
+    }
+
+    public void IncreaseIndent()
+    {
+        _currentIndentationLevel++;
+        if (_currentIndentationLevel == _indentationStrings.Count)
+            _indentationStrings.Add(_indentationStrings.Last() + _indentationString);
+
+        _currentIndentation = _indentationStrings[_currentIndentationLevel];
+    }
+
+    public void DecreaseIndent()
+    {
+        if (_currentIndentationLevel == 0)
+            throw new InvalidOperationException($"Current indent is already zero.");
+
+        _currentIndentationLevel--;
+        _currentIndentation = _indentationStrings[_currentIndentationLevel];
+    }
+
+    public Block StartBlock()
+    {
+        this.WriteLine("{");
+        this.IncreaseIndent();
+
+        return new Block(this);
+    }
+
+    public struct Block(IndentingStringBuilder builder) : IDisposable
+    {
         public void Dispose()
         {
-            _indentationStrings.Free();
-            _builder.Free();
-        }
-
-        public void IncreaseIndent()
-        {
-            _currentIndentationLevel++;
-            if (_currentIndentationLevel == _indentationStrings.Count)
-                _indentationStrings.Add(_indentationStrings.Last() + _indentationString);
-        }
-
-        public void DecreaseIndent()
-        {
-            if (_currentIndentationLevel == 0)
-                throw new InvalidOperationException($"Current indent is already zero.");
-
-            _currentIndentationLevel--;
-        }
-
-        public Block StartBlock()
-        {
-            this.WriteLine("{");
-            this.IncreaseIndent();
-
-            return new Block(this);
-        }
-
-        public struct Block(IndentingStringBuilder builder) : IDisposable
-        {
-            public void Dispose()
-            {
-                builder.DecreaseIndent();
-                builder.WriteLine("}");
-            }
+            builder.DecreaseIndent();
+            builder.WriteLine("}");
         }
     }
 }
