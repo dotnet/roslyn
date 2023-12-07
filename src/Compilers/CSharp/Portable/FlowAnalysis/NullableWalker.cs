@@ -3030,10 +3030,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var localFunc = node.Symbol;
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
-            // The starting state is the top state, but with captured
-            // variables set according to Joining the state at all the
-            // local function use sites
+
+            // The starting state (`state`) is the top state (maybe null) by default,
+            // but with captured variables in the bottom state (not null).
             var state = TopState();
+            Normalize(ref state);
+            state.ForEach(
+                (slot, variables) =>
+                {
+                    var symbol = variables[slot].Symbol;
+                    if (Symbol.IsCaptured(symbol, localFunc))
+                    {
+                        SetState(ref state, slot, NullableFlowState.NotNull);
+                    }
+                },
+                _variables);
+
+            // It is joined with the state at all the local function use sites
+            // (can be unreachable if no use sites have been visited yet).
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
                 (slot, variables) =>
@@ -3045,6 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 },
                 _variables);
+
             localFunctionState.Visited = true;
 
             AnalyzeLocalFunctionOrLambda(
