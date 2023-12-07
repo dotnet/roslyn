@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Globalization;
+    using Microsoft.CodeAnalysis.LanguageServer;
     using Microsoft.CommonLanguageServerProtocol.Framework;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -75,7 +76,7 @@ namespace Roslyn.LanguageServer.Protocol
                 return textDocSync;
             }
 
-            throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LSPFrameworkResources.TextDocumentSyncSerializationError, reader.Value));
+            throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.TextDocumentSyncSerializationError, reader.Value));
         }
 
         /// <inheritdoc/>

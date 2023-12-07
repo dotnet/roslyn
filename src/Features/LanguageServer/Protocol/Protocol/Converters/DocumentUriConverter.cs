@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Globalization;
+    using Microsoft.CodeAnalysis.LanguageServer;
     using Microsoft.CommonLanguageServerProtocol.Framework;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -37,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
                 return null;
             }
 
-            throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LSPFrameworkResources.DocumentUriSerializationError, reader.Value));
+            throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.DocumentUriSerializationError, reader.Value));
         }
 
         /// <inheritdoc/>

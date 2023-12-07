@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Microsoft.CodeAnalysis.LanguageServer;
     using Microsoft.CommonLanguageServerProtocol.Framework;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -96,7 +97,7 @@ namespace Roslyn.LanguageServer.Protocol
                 }
             }
 
-            throw new JsonSerializationException(LSPFrameworkResources.NoSumTypeMatch);
+            throw new JsonSerializationException(LanguageServerProtocolResources.NoSumTypeMatch);
         }
 
         /// <inheritdoc/>

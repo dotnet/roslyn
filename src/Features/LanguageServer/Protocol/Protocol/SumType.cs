@@ -10,6 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     using Newtonsoft.Json;
     using System.Runtime.CompilerServices;
     using Microsoft.CommonLanguageServerProtocol.Framework;
+    using Microsoft.CodeAnalysis.LanguageServer;
 
     /// <summary>
     /// Struct that may contain a <typeparamref name="T1"/> or a <typeparamref name="T2"/>.
@@ -881,7 +882,7 @@ namespace Roslyn.LanguageServer.Protocol
         {
             if (typeof(ISumType).IsAssignableFrom(type))
             {
-                throw new NotSupportedException(LSPFrameworkResources.NestedSumType);
+                throw new NotSupportedException(LanguageServerProtocolResources.NestedSumType);
             }
         }
     }

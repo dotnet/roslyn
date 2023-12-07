@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq.Expressions;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Newtonsoft.Json;
 
@@ -27,7 +28,7 @@ public class StringEnumConverter<TStringEnumType>
         var constructor = typeof(TStringEnumType).GetConstructor(new Type[] { typeof(string) });
         if (constructor is null)
         {
-            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, LSPFrameworkResources.StringEnumMissingConstructor, typeof(TStringEnumType).FullName));
+            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumMissingConstructor, typeof(TStringEnumType).FullName));
         }
 
         var param = Expression.Parameter(typeof(string), "value");
@@ -52,7 +53,7 @@ public class StringEnumConverter<TStringEnumType>
             return default(TStringEnumType);
         }
 
-        throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LSPFrameworkResources.StringEnumSerializationError, reader.Value));
+        throw new JsonSerializationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumSerializationError, reader.Value));
     }
 
     /// <inheritdoc/>
