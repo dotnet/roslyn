@@ -14,17 +14,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
+    internal partial class AbstractSyntaxIndex<TIndex>
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("37");
+        private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("38");
 
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
         /// within.  Useful so we don't have to continually reenumerate and regenerate the checksum given how rarely
         /// these ever change.
         /// </summary>
-        private static readonly ConditionalWeakTable<ParseOptions, Checksum> s_ppDirectivesToChecksum = new();
+        private static readonly ConditionalWeakTable<ParseOptions, StrongBox<Checksum>> s_ppDirectivesToChecksum = new();
 
         public readonly Checksum? Checksum;
 
@@ -116,10 +116,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var directivesChecksum = s_ppDirectivesToChecksum.GetValue(
                 project.ParseOptions!,
-                static parseOptions => Checksum.Create(parseOptions.PreprocessorSymbolNames));
+                static parseOptions =>
+                    new StrongBox<Checksum>(CodeAnalysis.Checksum.Create(parseOptions.PreprocessorSymbolNames)));
 
-            var textChecksum = Checksum.Create(documentChecksumState.Text, s_serializationFormatChecksum);
-            var textAndDirectivesChecksum = Checksum.Create(textChecksum, directivesChecksum);
+            var textChecksum = CodeAnalysis.Checksum.Create(documentChecksumState.Text, s_serializationFormatChecksum);
+            var textAndDirectivesChecksum = CodeAnalysis.Checksum.Create(textChecksum, directivesChecksum.Value);
 
             return (textChecksum, textAndDirectivesChecksum);
         }
@@ -179,8 +180,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return false;
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public abstract void WriteTo(ObjectWriter writer);
     }

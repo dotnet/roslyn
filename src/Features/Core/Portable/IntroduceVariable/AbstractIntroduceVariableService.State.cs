@@ -80,6 +80,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (expressionType is IErrorTypeSymbol)
                     return false;
 
+                // Inside an attribute we can only extract out constant values (so no arrays or 'System.Type's).
+                if (this.IsInAttributeContext() &&
+                    !Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue)
+                {
+                    return false;
+                }
+
                 var containingType = Expression.AncestorsAndSelf()
                     .Select(n => Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                     .OfType<INamedTypeSymbol>()

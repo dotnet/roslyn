@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -72,12 +73,12 @@ class Program
                 await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
                 await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-                MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+                MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
                 var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
                 var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
                 AssertEx.SetEqual(renameSpans, tagSpans);
 
-                await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+                await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
                 await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
                 await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -98,7 +99,7 @@ class Program
 
     }
 }", HangMitigatingCancellationToken);
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/rename/inlinesession/session", "vs/ide/vbcs/rename/commitcore"], HangMitigatingCancellationToken);
             }
         }
 
@@ -115,12 +116,12 @@ class [|$$ustom|]Attribute : Attribute
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "Custom", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["Custom", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -144,7 +145,7 @@ class [|$$stom|]Attribute : Attribute
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -178,7 +179,7 @@ class [|stom|]Attribute : Attribute
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -217,7 +218,7 @@ class [|$$stom|]Attribute : Attribute
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -275,12 +276,12 @@ class Program
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeCommentsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 using System;
@@ -337,12 +338,12 @@ class Program
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeStringsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class Program
@@ -387,12 +388,12 @@ class B : I
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeOverloadsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 interface I
@@ -429,7 +430,7 @@ class SomeOtherClass
         [|Program|] p = new [|Program|]();
     }
 }";
-            MarkupTestFile.GetSpans(class2Markup, out var code, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(class2Markup, out var code, out var renameSpans);
 
             await TestServices.Editor.SetTextAsync(code, HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: 0, HangMitigatingCancellationToken);
@@ -440,7 +441,7 @@ class SomeOtherClass
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class SomeOtherClass
@@ -543,7 +544,7 @@ public class Class2 { static void Main(string [] args) { } }", HangMitigatingCan
             await TestServices.Editor.PlaceCaretAsync("Class2", charsOffset: 0, HangMitigatingCancellationToken);
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class RenameRocks 
@@ -600,7 +601,7 @@ class Program
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.VK_Y, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(@"
 class Program
@@ -630,7 +631,7 @@ class Program
 
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.HOME, VirtualKeyCode.DELETE, VirtualKeyCode.VK_P, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextEqualsAsync(
@@ -643,7 +644,7 @@ class p$$rogram
 }", HangMitigatingCancellationToken);
         }
 
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68880")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/71088")]
         public async Task VerifyTextSync()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
@@ -658,7 +659,7 @@ public class Class2
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Field123", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "F", "i" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["F", "i"], HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(
                 @"
@@ -667,7 +668,7 @@ public class Class2
     public int Fi$$;
 }", HangMitigatingCancellationToken);
             await TestServices.InlineRename.VerifyStringInFlyout("Fi", HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "e", "l", "d", "3", "2", "1" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["e", "l", "d", "3", "2", "1"], HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
 
@@ -710,7 +711,7 @@ public class Class2
             await TestServices.Editor.SetSelectionAsync(selectedSpan, HangMitigatingCancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(
                 new InputKey(VirtualKeyCode.BACK, ImmutableArray<VirtualKeyCode>.Empty), HangMitigatingCancellationToken);
-            await TestServices.Input.SendWithoutActivateAsync(new InputKey[] { "Other", "Stuff" }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendWithoutActivateAsync(["Other", "Stuff"], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextEqualsAsync(
                 @"
 public class Class2

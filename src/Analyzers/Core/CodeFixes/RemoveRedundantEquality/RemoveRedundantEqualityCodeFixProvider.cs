@@ -16,68 +16,62 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
+namespace Microsoft.CodeAnalysis.RemoveRedundantEquality;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveRedundantEquality), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class RemoveRedundantEqualityCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveRedundantEquality), Shared]
-    internal sealed class RemoveRedundantEqualityCodeFixProvider
-        : SyntaxEditorBasedCodeFixProvider
+    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId);
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RemoveRedundantEqualityCodeFixProvider()
+        foreach (var diagnostic in context.Diagnostics)
         {
+            RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality), diagnostic);
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId);
+        return Task.CompletedTask;
+    }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var diagnostic in diagnostics)
         {
-            foreach (var diagnostic in context.Diagnostics)
+            var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+
+            editor.ReplaceNode(node, (n, _) =>
             {
-                RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality), diagnostic);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-
-                editor.ReplaceNode(node, (n, _) =>
+                if (!syntaxFacts.IsBinaryExpression(n))
                 {
-                    if (!syntaxFacts.IsBinaryExpression(n))
-                    {
-                        // This should happen only in error cases.
-                        return n;
-                    }
-
-                    syntaxFacts.GetPartsOfBinaryExpression(n, out var left, out var right);
-                    if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right)
-                    {
-                        return WithElasticTrailingTrivia(left);
-                    }
-                    else if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left)
-                    {
-                        return WithElasticTrailingTrivia(right);
-                    }
-
+                    // This should happen only in error cases.
                     return n;
-                });
-            }
+                }
 
-            return;
+                syntaxFacts.GetPartsOfBinaryExpression(n, out var left, out var right);
+                if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right)
+                {
+                    return WithElasticTrailingTrivia(left);
+                }
+                else if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left)
+                {
+                    return WithElasticTrailingTrivia(right);
+                }
 
-            static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
-            {
-                return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
+                return n;
+            });
+        }
+
+        return;
+
+        static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
+        {
+            return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
         }
     }
 }

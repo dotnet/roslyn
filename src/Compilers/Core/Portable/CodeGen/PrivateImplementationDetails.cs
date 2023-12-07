@@ -14,7 +14,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<string, Cci.IMethodDefinition> _synthesizedMethods =
             new ConcurrentDictionary<string, Cci.IMethodDefinition>();
 
-        // synthesized top-level types (for inline arrays currently)
+        // synthesized top-level types (for inline arrays and collection expression types currently)
         private ImmutableArray<Cci.INamespaceTypeDefinition> _orderedTopLevelTypes;
         private readonly ConcurrentDictionary<string, Cci.INamespaceTypeDefinition> _synthesizedTopLevelTypes = new ConcurrentDictionary<string, Cci.INamespaceTypeDefinition>();
 
@@ -321,6 +320,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _orderedSynthesizedMethods;
         }
 
+        public IEnumerable<Cci.IMethodDefinition> GetTopLevelTypeMethods(EmitContext context)
+        {
+            Debug.Assert(IsFrozen);
+            foreach (var type in _orderedTopLevelTypes)
+            {
+                foreach (var method in type.GetMethods(context))
+                {
+                    yield return method;
+                }
+            }
+        }
+
         // Get method by name, if one exists. Otherwise return null.
         internal Cci.IMethodDefinition? GetMethod(string name)
         {
@@ -523,6 +534,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public abstract ImmutableArray<byte> MappedData { get; }
 
+        public bool IsEncDeleted => false;
+
         public bool IsCompileTimeConstant => false;
 
         public bool IsNotSerialized => false;
@@ -674,6 +687,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public IEnumerable<Cci.TypeReferenceWithAttributes> Interfaces(EmitContext context)
             => SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
+
+        public bool IsEncDeleted => false;
 
         public bool IsAbstract => false;
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -63,34 +64,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
             bool useProgress = false,
             bool includeTaskListItems = false,
-            string? category = null)
+            string? category = null,
+            bool triggerConnectionClose = true)
         {
             var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles, includeTaskListItems);
 
             if (useVSDiagnostics)
             {
-                return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category);
+                return await RunVSGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, category, triggerConnectionClose);
             }
             else
             {
-                return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, triggerConnectionClose: true);
+                return await RunPublicGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults, useProgress, triggerConnectionClose);
             }
         }
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunVSGetWorkspacePullDiagnosticsAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-            bool useProgress = false,
-            string? category = null)
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
+            bool useProgress,
+            string? category,
+            bool triggerConnectionClose)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
             BufferedProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceDiagnosticReport[]>(null) : null;
-            var diagnostics = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
+            var diagnosticsTask = testLspServer.ExecuteRequestAsync<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]>(
                 VSInternalMethods.WorkspacePullDiagnosticName,
                 CreateWorkspaceDiagnosticParams(previousResults, progress, category),
                 CancellationToken.None).ConfigureAwait(false);
+
+            if (triggerConnectionClose)
+            {
+                // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
+                var service = testLspServer.GetRequiredLspService<WorkspacePullDiagnosticHandler>();
+                service.GetTestAccessor().TriggerConnectionClose();
+            }
+
+            var diagnostics = await diagnosticsTask;
 
             if (useProgress)
             {
@@ -104,9 +116,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunPublicGetWorkspacePullDiagnosticsAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
-            bool useProgress = false,
-            bool triggerConnectionClose = true)
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
+            bool useProgress,
+            bool triggerConnectionClose)
         {
             await testLspServer.WaitForDiagnosticsAsync();
 
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             if (triggerConnectionClose)
             {
-                // Public spec diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
+                // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
                 var service = testLspServer.GetRequiredLspService<PublicWorkspacePullDiagnosticsHandler>();
                 service.GetTestAccessor().TriggerConnectionClose();
             }
@@ -303,14 +315,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
         }
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markup, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush, additionalAnalyzers: additionalAnalyzers));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
+        private protected Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateTestLspServerAsync(markups, mutatingLspWorkspace, GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush, additionalAnalyzers: additionalAnalyzers));
 
-        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null)
-            => CreateXmlTestLspServerAsync(xmlMarkup, mutatingLspWorkspace, initializationOptions: GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush));
+        private protected Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, bool mutatingLspWorkspace, BackgroundAnalysisScope analyzerDiagnosticsScope, bool useVSDiagnostics, bool pullDiagnostics = true, CompilerDiagnosticsScope? compilerDiagnosticsScope = null, IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
+            => CreateXmlTestLspServerAsync(xmlMarkup, mutatingLspWorkspace, initializationOptions: GetInitializationOptions(analyzerDiagnosticsScope, compilerDiagnosticsScope, useVSDiagnostics, pullDiagnostics ? DiagnosticMode.LspPull : DiagnosticMode.SolutionCrawlerPush, additionalAnalyzers: additionalAnalyzers));
 
         private protected static InitializationOptions GetInitializationOptions(
             BackgroundAnalysisScope analyzerDiagnosticsScope,
@@ -318,7 +330,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             DiagnosticMode mode,
             WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
-            string[]? sourceGeneratedMarkups = null)
+            string[]? sourceGeneratedMarkups = null,
+            IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
         {
             // If no explicit compiler diagnostics scope has been provided, match it with the provided analyzer diagnostics scope
             compilerDiagnosticsScope ??= analyzerDiagnosticsScope switch
@@ -345,7 +358,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, true);
                 },
                 ServerKind = serverKind,
-                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()
+                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>(),
+                AdditionalAnalyzers = additionalAnalyzers
             };
         }
 

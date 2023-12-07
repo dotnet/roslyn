@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedParameter,
         TEmbeddedTypeParameter>
     {
-        internal abstract class CommonEmbeddedTypeParameter : Cci.IGenericMethodParameter
+        internal abstract class CommonEmbeddedTypeParameter : Cci.IEmbeddedDefinition, Cci.IGenericMethodParameter
         {
             public readonly TEmbeddedMethod ContainingMethod;
             public readonly TTypeParameterSymbol UnderlyingTypeParameter;
@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 this.ContainingMethod = containingMethod;
                 this.UnderlyingTypeParameter = underlyingTypeParameter;
             }
+
+            public bool IsEncDeleted
+                => false;
 
             protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
             protected abstract bool MustBeReferenceType { get; }

@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities? capabilities)
         {
             VerifySemantics(
-                new[] { editScript },
+                [editScript],
                 TargetFramework.NetStandard20,
-                new[] { new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics) },
+                [new DocumentAnalysisResultsDescription(semanticEdits: expectedSemanticEdits, lineEdits: expectedLineEdits, diagnostics: expectedDiagnostics)],
                 capabilities);
         }
 
@@ -280,10 +280,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             SyntaxNode newRoot,
             string? message = null)
         {
+            // sort expected and actual edits to ignore differences in order, which are insignificant:
+            expectedSemanticEdits = expectedSemanticEdits.Sort((x, y) => CompareEdits(CreateSymbolKey(x), x.Kind, CreateSymbolKey(y), y.Kind));
+            actualSemanticEdits = actualSemanticEdits.Sort((x, y) => CompareEdits(x.Symbol, x.Kind, y.Symbol, y.Kind));
+
+            static int CompareEdits(SymbolKey leftKey, SemanticEditKind leftKind, SymbolKey rightKey, SemanticEditKind rightKind)
+                => leftKey.ToString().CompareTo(rightKey.ToString()) is not 0 and var result ? result : leftKind.CompareTo(rightKind);
+
+            SymbolKey CreateSymbolKey(SemanticEditDescription edit)
+                => SymbolKey.Create(edit.SymbolProvider((edit.Kind == SemanticEditKind.Delete) ? oldCompilation : newCompilation));
+
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
                 expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider((e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation))}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
+                actualSemanticEdits.Select(e => $"{e.Kind}: {e.Symbol.Resolve(e.Kind == SemanticEditKind.Delete ? oldCompilation : newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -354,20 +364,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol,
                     message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Partial types do not match");
 
+                var expectedSyntaxMap = expectedSemanticEdit.GetSyntaxMap();
+
                 // Edit is expected to have a syntax map:
-                var actualSyntaxMap = actualSemanticEdit.SyntaxMap;
+                var actualSyntaxMaps = actualSemanticEdit.SyntaxMaps;
                 AssertEx.AreEqual(
-                    expectedSemanticEdit.HasSyntaxMap,
-                    actualSyntaxMap != null,
+                    expectedSyntaxMap != null,
+                    actualSyntaxMaps.HasMap,
                     message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Incorrect syntax map");
 
                 // If expected map is specified validate its mappings with the actual one:
-                var expectedSyntaxMap = expectedSemanticEdit.SyntaxMap;
-
                 if (expectedSyntaxMap != null)
                 {
-                    Contract.ThrowIfNull(actualSyntaxMap);
-                    VerifySyntaxMap(oldRoot, newRoot, expectedSyntaxMap, actualSyntaxMap);
+                    VerifySyntaxMaps(oldRoot, newRoot, expectedSyntaxMap, actualSyntaxMaps);
                 }
             }
         }
@@ -375,27 +384,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {
             var result = root.FindToken(span.Start).Parent!;
-            while (result.Span != span)
+            while (result != null)
             {
+                if (result.Span == span)
+                {
+                    return result;
+                }
+
                 result = result.Parent!;
             }
 
-            return result;
+            throw new Exception($"Unable to find node with span {span} `{root.GetText().GetSubText(span)}` in:{Environment.NewLine}{root}");
         }
 
-        private static void VerifySyntaxMap(
+        private static void VerifySyntaxMaps(
             SyntaxNode oldRoot,
             SyntaxNode newRoot,
-            IEnumerable<KeyValuePair<TextSpan, TextSpan>> expectedSyntaxMap,
-            Func<SyntaxNode, SyntaxNode?> actualSyntaxMap)
+            IEnumerable<(TextSpan oldSpan, TextSpan newSpan, RuntimeRudeEditDescription? runtimeRudeEdit)> expectedMapping,
+            SyntaxMaps actualSyntaxMaps)
         {
-            foreach (var expectedSpanMapping in expectedSyntaxMap)
-            {
-                var newNode = FindNode(newRoot, expectedSpanMapping.Value);
-                var expectedOldNode = FindNode(oldRoot, expectedSpanMapping.Key);
-                var actualOldNode = actualSyntaxMap(newNode);
+            Contract.ThrowIfFalse(actualSyntaxMaps.HasMap);
 
+            foreach (var (oldSpan, newSpan, expectedRuntimeRudeEdit) in expectedMapping)
+            {
+                var newNode = FindNode(newRoot, newSpan);
+                var expectedOldNode = FindNode(oldRoot, oldSpan);
+                var actualOldNode = actualSyntaxMaps.MatchingNodes(newNode);
                 Assert.Equal(expectedOldNode, actualOldNode);
+
+                AssertEx.Equal(
+                    expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree),
+                    actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message);
             }
         }
 
@@ -456,7 +475,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().IncludeLambdaBodyMaps(BidirectionalMap<SyntaxNode>.FromMatch(bodyMatch), new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
+            var map = analyzer.GetTestAccessor().IncludeLambdaBodyMaps(DeclarationBodyMap.FromMatch(bodyMatch), new ArrayBuilder<ActiveNode>(), ref lazyActiveOrMatchedLambdas);
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

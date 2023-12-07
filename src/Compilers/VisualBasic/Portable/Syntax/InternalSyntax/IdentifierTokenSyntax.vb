@@ -22,10 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(kind, errors, annotations, text, precedingTrivia, followingTrivia)
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-        End Sub
-
         ''' <summary>
         ''' Contextual Nodekind
         ''' </summary>

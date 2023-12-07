@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -108,7 +109,7 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         public override string Title => _installPackageOperation.Title;
 
         internal override async Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var newSolution = workspace.CurrentSolution.WithDocumentText(
                 _changedDocumentId, _newText);

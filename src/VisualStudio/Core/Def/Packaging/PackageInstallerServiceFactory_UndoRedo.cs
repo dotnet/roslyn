@@ -5,10 +5,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryInstallAndAddUndoActionAsync(
             string? source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var installed = await TryInstallPackageAsync(
                 source, packageName, version, includePrerelease,
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<bool> TryUninstallAndAddRedoActionAsync(
             string? source, string packageName, string? version, bool includePrerelease,
             Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             var uninstalled = await TryUninstallPackageAsync(
                 packageName, projectGuid, dte, dteProject, progressTracker, cancellationToken).ConfigureAwait(false);
@@ -149,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await packageInstallerService.TryUninstallAndAddRedoActionAsync(
                     source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
-                    new UIThreadOperationContextProgressTracker(scope),
+                    scope.GetCodeAnalysisProgress(),
                     context.UserCancellationToken).ConfigureAwait(false);
             }
 
@@ -187,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await packageInstallerService.TryInstallAndAddUndoActionAsync(
                     source, packageName, version, includePrerelease,
                     projectGuid, dte, dteProject, undoManager,
-                    new UIThreadOperationContextProgressTracker(scope),
+                    scope.GetCodeAnalysisProgress(),
                     context.UserCancellationToken).ConfigureAwait(false);
             }
         }

@@ -6,8 +6,10 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -151,13 +153,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static bool IsSynthesized(this ISymbol symbol)
-            => symbol.IsImplicitlyDeclared || symbol.IsSynthesizedAutoProperty();
+            => symbol.IsImplicitlyDeclared || symbol.IsSynthesizedAutoProperty() || symbol.IsSynthesizedParameter();
 
         public static bool IsSynthesizedAutoProperty(this IPropertySymbol property)
             => property is { GetMethod.IsImplicitlyDeclared: true, SetMethod.IsImplicitlyDeclared: true };
 
         public static bool IsSynthesizedAutoProperty(this ISymbol symbol)
             => symbol is IPropertySymbol property && property.IsSynthesizedAutoProperty();
+
+        public static bool IsSynthesizedParameter(this ISymbol symbol)
+            => symbol is IParameterSymbol parameter && parameter.IsSynthesizedParameter();
+
+        /// <summary>
+        /// True if the parameter is synthesized based on some other symbol (origin).
+        /// In some cases <see cref="ISymbol.IsImplicitlyDeclared"/> of parameters of synthezied methods might be false.
+        /// The parameter syntax in these cases is associated with multiple symbols.
+        /// We pick one that is considered the origin and the others are considered synthesized based on it.
+        /// 
+        /// 1) Parameter of a record deconstructor
+        ///    Considered synthesized since the primary parameter syntax represents the parameter of the primary constructor.
+        ///    The deconstructor is synthesized based on the primary constructor.
+        /// 2) Parameter of an Invoke method of a delegate type
+        ///    The Invoke method is synthesized but its parameters represent the parameters of the delegate.
+        ///    The parameters of BeginInvoke and EndInvoke are synthesized based on the Invoke method parameters.
+        /// </summary>
+        public static bool IsSynthesizedParameter(this IParameterSymbol parameter)
+            => parameter.IsImplicitlyDeclared || parameter.ContainingSymbol.IsSynthesized() && parameter.ContainingSymbol != parameter.ContainingType.DelegateInvokeMethod;
 
         public static bool IsAutoProperty(this ISymbol symbol)
             => symbol is IPropertySymbol property && IsAutoProperty(property);
@@ -201,6 +222,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public static IMethodSymbol? GetMatchingDeconstructor(this IMethodSymbol constructor)
             => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
-                static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor);
+                static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
+
+        public static ISymbol PartialAsImplementation(this ISymbol symbol)
+            => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
     }
 }

@@ -267,15 +267,16 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
+        verifier.VerifyMemberInIL("<PrivateImplementationDetails>." + PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
+
         verifier.VerifyIL("C.M", """
- {
+{
   // Code size      786 (0x312)
   .maxstack  2
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x62366ffa
@@ -498,6 +499,263 @@ public class C
   IL_030f:  stloc.0
   IL_0310:  ldloc.0
   IL_0311:  ret
+}
+""");
+
+        comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+        verifier.VerifyIL("C.M", """
+{
+  // Code size      819 (0x333)
+  .maxstack  2
+  .locals init (string V_0,
+                uint V_1,
+                string V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  brtrue.s   IL_0005
+  IL_0004:  nop
+  IL_0005:  ldarg.0
+  IL_0006:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4     0x62366ffa
+  IL_0012:  bgt.un     IL_00a3
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4     0x3ec721c0
+  IL_001d:  bgt.un.s   IL_0061
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4     0x2f69f5a5
+  IL_0025:  bgt.un.s   IL_0044
+  IL_0027:  ldloc.1
+  IL_0028:  ldc.i4     0x242602e6
+  IL_002d:  beq        IL_0215
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.1
+  IL_0035:  ldc.i4     0x2f69f5a5
+  IL_003a:  beq        IL_01ac
+  IL_003f:  br         IL_0321
+  IL_0044:  ldloc.1
+  IL_0045:  ldc.i4     0x3448ae58
+  IL_004a:  beq        IL_0200
+  IL_004f:  br.s       IL_0051
+  IL_0051:  ldloc.1
+  IL_0052:  ldc.i4     0x3ec721c0
+  IL_0057:  beq        IL_0269
+  IL_005c:  br         IL_0321
+  IL_0061:  ldloc.1
+  IL_0062:  ldc.i4     0x4f9f2cab
+  IL_0067:  bgt.un.s   IL_0086
+  IL_0069:  ldloc.1
+  IL_006a:  ldc.i4     0x4e9f3590
+  IL_006f:  beq        IL_0197
+  IL_0074:  br.s       IL_0076
+  IL_0076:  ldloc.1
+  IL_0077:  ldc.i4     0x4f9f2cab
+  IL_007c:  beq        IL_01eb
+  IL_0081:  br         IL_0321
+  IL_0086:  ldloc.1
+  IL_0087:  ldc.i4     0x5cb7aa8a
+  IL_008c:  beq        IL_027e
+  IL_0091:  br.s       IL_0093
+  IL_0093:  ldloc.1
+  IL_0094:  ldc.i4     0x62366ffa
+  IL_0099:  beq        IL_0182
+  IL_009e:  br         IL_0321
+  IL_00a3:  ldloc.1
+  IL_00a4:  ldc.i4     0xb51d04ba
+  IL_00a9:  bgt.un.s   IL_00ea
+  IL_00ab:  ldloc.1
+  IL_00ac:  ldc.i4     0x811c9dc5
+  IL_00b1:  bgt.un.s   IL_00cd
+  IL_00b3:  ldloc.1
+  IL_00b4:  ldc.i4     0x63cb5a27
+  IL_00b9:  beq        IL_0254
+  IL_00be:  br.s       IL_00c0
+  IL_00c0:  ldloc.1
+  IL_00c1:  ldc.i4     0x811c9dc5
+  IL_00c6:  beq.s      IL_0130
+  IL_00c8:  br         IL_0321
+  IL_00cd:  ldloc.1
+  IL_00ce:  ldc.i4     0x872213e7
+  IL_00d3:  beq        IL_01c1
+  IL_00d8:  br.s       IL_00da
+  IL_00da:  ldloc.1
+  IL_00db:  ldc.i4     0xb51d04ba
+  IL_00e0:  beq        IL_022a
+  IL_00e5:  br         IL_0321
+  IL_00ea:  ldloc.1
+  IL_00eb:  ldc.i4     0xe60c2c52
+  IL_00f0:  bgt.un.s   IL_0109
+  IL_00f2:  ldloc.1
+  IL_00f3:  ldc.i4     0xe40c292c
+  IL_00f8:  beq.s      IL_0143
+  IL_00fa:  br.s       IL_00fc
+  IL_00fc:  ldloc.1
+  IL_00fd:  ldc.i4     0xe60c2c52
+  IL_0102:  beq.s      IL_016d
+  IL_0104:  br         IL_0321
+  IL_0109:  ldloc.1
+  IL_010a:  ldc.i4     0xe6e5718f
+  IL_010f:  beq        IL_023f
+  IL_0114:  br.s       IL_0116
+  IL_0116:  ldloc.1
+  IL_0117:  ldc.i4     0xe70c2de5
+  IL_011c:  beq.s      IL_0158
+  IL_011e:  br.s       IL_0120
+  IL_0120:  ldloc.1
+  IL_0121:  ldc.i4     0xf76b8c8e
+  IL_0126:  beq        IL_01d6
+  IL_012b:  br         IL_0321
+  IL_0130:  ldarg.0
+  IL_0131:  brfalse.s  IL_013e
+  IL_0133:  ldarg.0
+  IL_0134:  call       "int string.Length.get"
+  IL_0139:  brfalse    IL_0293
+  IL_013e:  br         IL_0321
+  IL_0143:  ldarg.0
+  IL_0144:  ldstr      "a"
+  IL_0149:  call       "bool string.op_Equality(string, string)"
+  IL_014e:  brtrue     IL_029e
+  IL_0153:  br         IL_0321
+  IL_0158:  ldarg.0
+  IL_0159:  ldstr      "b"
+  IL_015e:  call       "bool string.op_Equality(string, string)"
+  IL_0163:  brtrue     IL_02a9
+  IL_0168:  br         IL_0321
+  IL_016d:  ldarg.0
+  IL_016e:  ldstr      "c"
+  IL_0173:  call       "bool string.op_Equality(string, string)"
+  IL_0178:  brtrue     IL_02b1
+  IL_017d:  br         IL_0321
+  IL_0182:  ldarg.0
+  IL_0183:  ldstr      "no"
+  IL_0188:  call       "bool string.op_Equality(string, string)"
+  IL_018d:  brtrue     IL_02b9
+  IL_0192:  br         IL_0321
+  IL_0197:  ldarg.0
+  IL_0198:  ldstr      "yes"
+  IL_019d:  call       "bool string.op_Equality(string, string)"
+  IL_01a2:  brtrue     IL_02c1
+  IL_01a7:  br         IL_0321
+  IL_01ac:  ldarg.0
+  IL_01ad:  ldstr      "four"
+  IL_01b2:  call       "bool string.op_Equality(string, string)"
+  IL_01b7:  brtrue     IL_02c9
+  IL_01bc:  br         IL_0321
+  IL_01c1:  ldarg.0
+  IL_01c2:  ldstr      "alice"
+  IL_01c7:  call       "bool string.op_Equality(string, string)"
+  IL_01cc:  brtrue     IL_02d1
+  IL_01d1:  br         IL_0321
+  IL_01d6:  ldarg.0
+  IL_01d7:  ldstr      "blurb"
+  IL_01dc:  call       "bool string.op_Equality(string, string)"
+  IL_01e1:  brtrue     IL_02d9
+  IL_01e6:  br         IL_0321
+  IL_01eb:  ldarg.0
+  IL_01ec:  ldstr      "hello"
+  IL_01f1:  call       "bool string.op_Equality(string, string)"
+  IL_01f6:  brtrue     IL_02e1
+  IL_01fb:  br         IL_0321
+  IL_0200:  ldarg.0
+  IL_0201:  ldstr      "lamps"
+  IL_0206:  call       "bool string.op_Equality(string, string)"
+  IL_020b:  brtrue     IL_02e9
+  IL_0210:  br         IL_0321
+  IL_0215:  ldarg.0
+  IL_0216:  ldstr      "lambs"
+  IL_021b:  call       "bool string.op_Equality(string, string)"
+  IL_0220:  brtrue     IL_02f1
+  IL_0225:  br         IL_0321
+  IL_022a:  ldarg.0
+  IL_022b:  ldstr      "lower"
+  IL_0230:  call       "bool string.op_Equality(string, string)"
+  IL_0235:  brtrue     IL_02f9
+  IL_023a:  br         IL_0321
+  IL_023f:  ldarg.0
+  IL_0240:  ldstr      "names"
+  IL_0245:  call       "bool string.op_Equality(string, string)"
+  IL_024a:  brtrue     IL_0301
+  IL_024f:  br         IL_0321
+  IL_0254:  ldarg.0
+  IL_0255:  ldstr      "slurp"
+  IL_025a:  call       "bool string.op_Equality(string, string)"
+  IL_025f:  brtrue     IL_0309
+  IL_0264:  br         IL_0321
+  IL_0269:  ldarg.0
+  IL_026a:  ldstr      "towed"
+  IL_026f:  call       "bool string.op_Equality(string, string)"
+  IL_0274:  brtrue     IL_0311
+  IL_0279:  br         IL_0321
+  IL_027e:  ldarg.0
+  IL_027f:  ldstr      "words"
+  IL_0284:  call       "bool string.op_Equality(string, string)"
+  IL_0289:  brtrue     IL_0319
+  IL_028e:  br         IL_0321
+  IL_0293:  ldstr      "blank"
+  IL_0298:  stloc.0
+  IL_0299:  br         IL_0329
+  IL_029e:  ldstr      "a"
+  IL_02a3:  stloc.0
+  IL_02a4:  br         IL_0329
+  IL_02a9:  ldstr      "b"
+  IL_02ae:  stloc.0
+  IL_02af:  br.s       IL_0329
+  IL_02b1:  ldstr      "c"
+  IL_02b6:  stloc.0
+  IL_02b7:  br.s       IL_0329
+  IL_02b9:  ldstr      "no"
+  IL_02be:  stloc.0
+  IL_02bf:  br.s       IL_0329
+  IL_02c1:  ldstr      "yes"
+  IL_02c6:  stloc.0
+  IL_02c7:  br.s       IL_0329
+  IL_02c9:  ldstr      "four"
+  IL_02ce:  stloc.0
+  IL_02cf:  br.s       IL_0329
+  IL_02d1:  ldstr      "alice"
+  IL_02d6:  stloc.0
+  IL_02d7:  br.s       IL_0329
+  IL_02d9:  ldstr      "blurb"
+  IL_02de:  stloc.0
+  IL_02df:  br.s       IL_0329
+  IL_02e1:  ldstr      "hello"
+  IL_02e6:  stloc.0
+  IL_02e7:  br.s       IL_0329
+  IL_02e9:  ldstr      "lamps"
+  IL_02ee:  stloc.0
+  IL_02ef:  br.s       IL_0329
+  IL_02f1:  ldstr      "lambs"
+  IL_02f6:  stloc.0
+  IL_02f7:  br.s       IL_0329
+  IL_02f9:  ldstr      "lower"
+  IL_02fe:  stloc.0
+  IL_02ff:  br.s       IL_0329
+  IL_0301:  ldstr      "names"
+  IL_0306:  stloc.0
+  IL_0307:  br.s       IL_0329
+  IL_0309:  ldstr      "slurp"
+  IL_030e:  stloc.0
+  IL_030f:  br.s       IL_0329
+  IL_0311:  ldstr      "towed"
+  IL_0316:  stloc.0
+  IL_0317:  br.s       IL_0329
+  IL_0319:  ldstr      "words"
+  IL_031e:  stloc.0
+  IL_031f:  br.s       IL_0329
+  IL_0321:  ldstr      "default"
+  IL_0326:  stloc.0
+  IL_0327:  br.s       IL_0329
+  IL_0329:  ldc.i4.1
+  IL_032a:  brtrue.s   IL_032d
+  IL_032c:  nop
+  IL_032d:  ldloc.0
+  IL_032e:  stloc.2
+  IL_032f:  br.s       IL_0331
+  IL_0331:  ldloc.2
+  IL_0332:  ret
 }
 """);
     }
@@ -777,7 +1035,7 @@ public class C
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
         var helper = useReadonly ? "ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)" : "ComputeSpanHash(System.Span<char>)";
-        verifier.VerifyMemberInIL(helper, expected: true);
+        verifier.VerifyMemberInIL("<PrivateImplementationDetails>." + helper, expected: true);
         verifier.VerifyIL("C.M", $$"""
 {
   // Code size      861 (0x35d)
@@ -785,7 +1043,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "{{helper}}"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.{{helper}}"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x62366ffa
@@ -1214,7 +1472,7 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
+        verifier.VerifyMemberInIL("<PrivateImplementationDetails>." + PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
         verifier.VerifyIL("C.M", """
 {
   // Code size      335 (0x14f)
@@ -1228,7 +1486,7 @@ public class C
   IL_0007:  ldloc.1
   IL_0008:  brfalse    IL_0147
   IL_000d:  ldloc.1
-  IL_000e:  call       "ComputeStringHash(string)"
+  IL_000e:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0013:  stloc.2
   IL_0014:  ldloc.2
   IL_0015:  ldc.i4     0x749bcf08
@@ -2172,7 +2430,7 @@ public class C
         comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
         comp.VerifyDiagnostics();
         verifier = CompileAndVerify(comp, expectedOutput: "RAN");
-        verifier.VerifyMemberInIL(PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
+        verifier.VerifyMemberInIL("<PrivateImplementationDetails>." + PrivateImplementationDetails.SynthesizedStringHashFunctionName + "(string)", expected: true);
         verifier.VerifyIL("C.M", """
 {
   // Code size      357 (0x165)
@@ -2186,7 +2444,7 @@ public class C
   IL_0007:  ldloc.1
   IL_0008:  brfalse    IL_0110
   IL_000d:  ldloc.1
-  IL_000e:  call       "ComputeStringHash(string)"
+  IL_000e:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0013:  stloc.2
   IL_0014:  ldloc.2
   IL_0015:  ldc.i4     0x749bcf08
@@ -2612,7 +2870,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0xad238cee
@@ -2917,7 +3175,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x87f05176
@@ -4132,7 +4390,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x93254270
@@ -7510,7 +7768,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x77c08b8d
@@ -8933,7 +9191,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x8979e177
@@ -9330,7 +9588,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x2607050f
@@ -10091,7 +10349,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x6ccaf138
@@ -11391,7 +11649,7 @@ public class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0xb508d68f
@@ -12396,7 +12654,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x76692b6a
@@ -12857,7 +13115,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x62fa988f
@@ -13334,7 +13592,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x5ef81c51
@@ -13769,7 +14027,7 @@ public class C
   .locals init (string V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       "ComputeStringHash(string)"
+  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x4569f715

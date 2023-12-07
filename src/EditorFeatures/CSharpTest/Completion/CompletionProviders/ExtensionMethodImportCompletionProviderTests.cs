@@ -1333,7 +1333,7 @@ namespace Foo
                 }
                 """;
 
-            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, new[] { refDoc1, refDoc2 });
+            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, [refDoc1, refDoc2]);
 
             await VerifyImportItemExistsAsync(
                  markup,

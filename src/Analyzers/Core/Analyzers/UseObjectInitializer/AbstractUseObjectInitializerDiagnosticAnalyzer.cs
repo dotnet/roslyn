@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TAssignmentStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TAnalyzer>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
@@ -28,11 +30,22 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TObjectCreationExpressionSyntax : TExpressionSyntax
         where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TAssignmentStatementSyntax : TStatementSyntax
+        where TLocalDeclarationStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TMemberAccessExpressionSyntax,
+            TAssignmentStatementSyntax,
+            TLocalDeclarationStatementSyntax,
+            TVariableDeclaratorSyntax,
+            TAnalyzer>, new()
     {
         private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
             EnforceOnBuildValues.UseObjectInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: false);
@@ -40,11 +53,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
             IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
             EnforceOnBuildValues.UseObjectInitializer,
+            hasAnyCodeStyleOption: true,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
 
         protected abstract bool FadeOutOperatorToken { get; }
+        protected abstract TAnalyzer GetAnalyzer();
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
@@ -55,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
-        protected override void InitializeWorker(AnalysisContext context)
+        protected sealed override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(context =>
             {
@@ -89,14 +104,14 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
             var option = context.GetAnalyzerOptions().PreferObjectInitializer;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 // not point in analyzing if the option is off.
                 return;
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            using var analyzer = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Allocate();
+            using var analyzer = GetAnalyzer();
             var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
             if (matches.IsDefaultOrEmpty)
@@ -118,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
-                option.Notification.Severity,
+                option.Notification,
                 locations,
                 properties: null));
 
@@ -148,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                         s_unnecessaryCodeDescriptor,
                         location1,
-                        ReportDiagnostic.Default,
+                        NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
                         additionalLocations: locations,
                         additionalUnnecessaryLocations: ImmutableArray.Create(
                             syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)))));
@@ -161,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }
