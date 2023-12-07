@@ -3764,4 +3764,78 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(string x)
+                {
+                    private int i = int.TryParse(x, out var result) ? result : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+                    private int r;
+
+                    public Test(string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                        r = result;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestPatternVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](object x)
+                    {
+                        i = x is string s ? s.Length : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object x)
+                {
+                    private int i = x is string s ? s.Length : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
