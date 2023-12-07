@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -36,6 +35,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public void LogEndContext(string message, params object[] @params)
         {
+        }
+
+        public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+        {
+            throw new NotImplementedException();
         }
     }
 }

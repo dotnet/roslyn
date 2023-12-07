@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
@@ -32,4 +34,11 @@ internal sealed class LspServiceLogger : ILspServiceLogger
     public void LogStartContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][Start]{message}", @params);
 
     public void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
+
+    public ILspRequestScope TrackLspRequest(string lspMethodName, ILspServices lspServices)
+    {
+        var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
+
+        return new RequestTelemetryScope(lspMethodName, telemetryLogger);
+    }
 }

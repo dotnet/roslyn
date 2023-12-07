@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -20,8 +19,6 @@ internal sealed class NoValue
 
 internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TRequestContext>
 {
-    private readonly ILspLogger _logger;
-
     private readonly TRequest _request;
     private readonly IMethodHandler _handler;
 
@@ -39,6 +36,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
     public IMethodHandler MethodHandler { get; }
 
+    private readonly ILspRequestScope _requestScope;
+
     private QueueItem(
         bool mutatesSolutionState,
         string methodName,
@@ -53,13 +52,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
         _handler = handler;
-        _logger = logger;
         _request = request;
         LspServices = lspServices;
         MethodHandler = methodHandler;
 
         MutatesServerState = mutatesSolutionState;
         MethodName = methodName;
+
+        _requestScope = logger.TrackLspRequest(methodName, LspServices);
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
@@ -88,6 +88,9 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     public async Task<TRequestContext?> CreateRequestContextAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _requestScope.RecordExecutionStart();
+
         var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
         var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
         return context;
@@ -102,7 +105,6 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(TRequestContext? context, CancellationToken cancellationToken)
     {
-        _logger.LogStartContext($"{MethodName}");
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -116,7 +118,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
-                _logger.LogWarning($"Could not get request context for {MethodName}");
+                _requestScope.RecordWarning($"Could not get request context for {MethodName}");
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
             else if (_handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
@@ -153,7 +155,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            _logger.LogInformation($"{MethodName} - Canceled");
+            _requestScope.RecordCancellation();
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -161,13 +163,13 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         {
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
-            _logger.LogException(ex);
+            _requestScope.RecordException(ex);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
-            _logger.LogEndContext($"{MethodName}");
+            _requestScope.Dispose();
         }
 
         // Return the result of this completion source to the caller

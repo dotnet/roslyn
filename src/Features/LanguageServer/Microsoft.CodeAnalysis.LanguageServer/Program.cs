@@ -198,7 +198,7 @@ static CliRootCommand CreateCommandLineParser()
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
-        var launchDebugger = parseResult.GetValue(debugOption);
+        var launchDebugger = parseResult.GetValue(debugOption) || true;
         var logLevel = parseResult.GetValue(logLevelOption);
         var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);

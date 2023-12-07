@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -16,4 +14,6 @@ public interface ILspLogger
     void LogWarning(string message, params object[] @params);
     void LogError(string message, params object[] @params);
     void LogException(Exception exception, string? message = null, params object[] @params);
+
+    ILspRequestScope TrackLspRequest(string message, ILspServices lspServices);
 }

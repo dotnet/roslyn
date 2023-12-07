@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -17,6 +18,11 @@ public class TestOutputLspLogger : ILspServiceLogger
     public TestOutputLspLogger(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
+    }
+
+    public ILspRequestScope BeginScope(string message)
+    {
+        throw new NotImplementedException();
     }
 
     public void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
@@ -31,6 +37,11 @@ public class TestOutputLspLogger : ILspServiceLogger
     public void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
     public void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
+
+    public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+    {
+        throw new NotImplementedException();
+    }
 
     private void Log(string level, string message, params object[] @params)
         => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{level}]{message}", @params);

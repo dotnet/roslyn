@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -34,5 +32,10 @@ public class NoOpLspLogger : ILspLogger
 
     public void LogWarning(string message, params object[] @params)
     {
+    }
+
+    public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+    {
+        throw new NotImplementedException();
     }
 }

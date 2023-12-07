@@ -4,9 +4,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LogHub;
 using Roslyn.Utilities;
 
@@ -70,6 +70,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public void LogEndContext(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
+        }
+
+        public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+        {
+            var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
+
+            return new LogHubLspRequestScope(message, this, telemetryLogger);
+        }
+
+        internal sealed class LogHubLspRequestScope : AbstractLspRequestScope
+        {
+            private readonly ILspServiceLogger _hostLogger;
+            private readonly RequestTelemetryScope _telemetryScope;
+
+            public LogHubLspRequestScope(string name, ILspServiceLogger hostLogger, RequestTelemetryLogger requestTelemetryLogger)
+                : base(name)
+            {
+                _telemetryScope = new RequestTelemetryScope(name, requestTelemetryLogger);
+
+                _hostLogger = hostLogger;
+                _hostLogger.LogStartContext(name);
+            }
+
+            public override void RecordCancellation()
+            {
+                _hostLogger.LogInformation($"{Name} - Canceled");
+                _telemetryScope.RecordCancellation();
+            }
+
+            public override void RecordException(Exception exception)
+            {
+                _hostLogger.LogException(exception);
+                _telemetryScope.RecordException(exception);
+            }
+
+            public override void RecordWarning(string message)
+            {
+                _hostLogger.LogWarning(message);
+                _telemetryScope.RecordWarning(message);
+            }
+
+            public override void Dispose()
+            {
+                _hostLogger.LogEndContext(Name);
+                _telemetryScope.Dispose();
+            }
         }
     }
 }
