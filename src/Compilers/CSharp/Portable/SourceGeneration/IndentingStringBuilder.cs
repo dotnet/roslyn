@@ -138,11 +138,11 @@ internal struct IndentingStringBuilder : IDisposable
     /// <summary>
     /// Appends a simple end of line to the underlying buffer.  No indentation is written prior to the end of line.
     /// </summary>
-    public IndentingStringBuilder AppendEndOfLine(string endOfLine = DefaultEndOfLine)
+    private IndentingStringBuilder AppendEndOfLine(string endOfLine = DefaultEndOfLine)
         => AppendEndOfLine(endOfLine.AsSpan());
 
     /// <inheritdoc cref="AppendEndOfLine(string)"/>
-    public IndentingStringBuilder AppendEndOfLine(ReadOnlySpan<char> endOfLine)
+    private IndentingStringBuilder AppendEndOfLine(ReadOnlySpan<char> endOfLine)
     {
         var builder = this.Builder;
 
@@ -157,46 +157,9 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     /// <summary>
-    /// Appends content to the underlying buffer.  If the buffer is at the start of a line, then indentation will be
-    /// appended first before the content.  By default, for performance reasons, the content is assumed to contain no
-    /// newlines in it.  If the content may contain newlines, then <see langword="true"/> should be passed in for
-    /// <paramref name="splitContent"/>.  This will cause the provided content to be split into constituent lines,
-    /// with each line being appended one at a time.
+    /// Appends a single line to the underlying buffer.  Indentation is written out if the underlying buffer
+    /// is at the start of a line.
     /// </summary>
-    public IndentingStringBuilder AppendContent(string content, bool splitContent = false)
-        => AppendContent(content.AsSpan(), splitContent);
-
-    /// <inheritdoc cref="AppendContent(string, bool)"/>
-    public IndentingStringBuilder AppendContent(ReadOnlySpan<char> content, bool splitContent = false)
-    {
-        if (splitContent)
-        {
-            while (content.Length > 0)
-            {
-                var newLineIndex = content.IndexOfAny(NewLineChars);
-                if (newLineIndex < 0)
-                {
-                    // no new line, append the rest of the content to the buffer.
-                    AppendSingleLine(content);
-                }
-                else
-                {
-                    while (newLineIndex < content.Length && NewLineChars.IndexOf(content[newLineIndex + 1]) >= 0)
-                        newLineIndex++;
-
-                    AppendSingleLine(content[0..newLineIndex]);
-                    content = content[newLineIndex..];
-                }
-            }
-        }
-        else
-        {
-            AppendSingleLine(content);
-        }
-
-        return this;
-    }
-
     private void AppendSingleLine(ReadOnlySpan<char> line)
     {
         if (line.Length == 0)
@@ -210,18 +173,73 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     /// <summary>
+    /// Writes content to the underlying buffer.  If the buffer is at the start of a line, then indentation will be
+    /// appended first before the content.  By default, for performance reasons, the content is assumed to contain no
+    /// newlines in it.  If the content may contain newlines, then <see langword="true"/> should be passed in for
+    /// <paramref name="splitContent"/>.  This will cause the provided content to be split into constituent lines,
+    /// with each line being appended one at a time.
+    /// </summary>
+    public IndentingStringBuilder Write(string content, bool splitContent = false)
+        => Write(content.AsSpan(), splitContent);
+
+    /// <inheritdoc cref="Write(string, bool)"/>
+    public IndentingStringBuilder Write(ReadOnlySpan<char> content, bool splitContent = false)
+    {
+        if (splitContent)
+        {
+            while (content.Length > 0)
+            {
+                var newLineIndex = content.IndexOfAny(NewLineChars);
+                if (newLineIndex < 0)
+                {
+                    // no new line, append the rest of the content to the buffer.
+                    AppendSingleLine(this, content);
+                }
+                else
+                {
+                    while (newLineIndex < content.Length && NewLineChars.IndexOf(content[newLineIndex + 1]) >= 0)
+                        newLineIndex++;
+
+                    AppendSingleLine(this, content[0..newLineIndex]);
+                    content = content[newLineIndex..];
+                }
+            }
+        }
+        else
+        {
+            AppendSingleLine(this, content);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Equivalent to <see cref="Write(string, bool)"/> except that a final <paramref name="endOfLine"/> will be written after the content is written.
+    /// </summary>
+    public IndentingStringBuilder WriteLine(string content, string endOfLine = DefaultEndOfLine, bool splitContent = false)
+        => WriteLine(content.AsSpan(), endOfLine.AsSpan(), splitContent);
+
+    /// <inheritdoc cref="WriteLine(string, string, bool)"/>
+    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, ReadOnlySpan<char> endOfLine, bool splitContent = false)
+    {
+        Write(content, splitContent);
+        AppendEndOfLine(endOfLine);
+        return this;
+    }
+
+    /// <summary>
     /// Opens a block of code to write new content into.  Can be used like so:
     /// <code>
     /// using (writer.StartBlock())
     /// {
-    ///     write.AppendContent("...");
-    ///     write.AppendContent("...");
+    ///     write.WriteLine("...");
+    ///     write.WriteLine("...");
     /// }
     /// </code>
     /// </summary>
     public Block StartBlock()
     {
-        this.AppendContent("{");
+        this.WriteLine("{");
         this.IncreaseIndent();
 
         return new Block(this);
@@ -232,7 +250,7 @@ internal struct IndentingStringBuilder : IDisposable
         public readonly void Dispose()
         {
             builder.DecreaseIndent();
-            builder.AppendContent("}");
+            builder.WriteLine("}");
         }
     }
 }
