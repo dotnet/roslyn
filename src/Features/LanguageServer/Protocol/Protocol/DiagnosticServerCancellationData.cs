@@ -12,7 +12,7 @@ using System.Runtime.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticServerCancellationData">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DiagnosticServerCancellationData
+internal class DiagnosticServerCancellationData
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client should re-trigger the request.

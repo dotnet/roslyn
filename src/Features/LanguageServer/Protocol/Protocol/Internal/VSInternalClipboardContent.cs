@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents content to be sent to the clipboard.
     /// </summary>
     [DataContract]
-    public class VSInternalClipboardContent
+    internal class VSInternalClipboardContent
     {
         /// <summary>
         /// Gets or sets a string that describes clipboard format types, for example, "text/plain".

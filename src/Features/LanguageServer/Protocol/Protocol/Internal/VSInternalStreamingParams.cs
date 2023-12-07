@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// TODO: Deprecate VSInternalDiagnosticParams.cs to use this merged param instead.
     /// </summary>
     [DataContract]
-    public class VSInternalStreamingParams : ITextDocumentParams
+    internal class VSInternalStreamingParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document for which the feature is being requested for.

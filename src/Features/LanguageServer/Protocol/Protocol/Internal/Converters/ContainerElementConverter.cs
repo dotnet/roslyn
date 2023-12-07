@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 /// <summary>
 /// JsonConverter for serializing and deserializing <see cref="ContainerElement"/>.
 /// </summary>
-public class ContainerElementConverter : JsonConverter
+internal class ContainerElementConverter : JsonConverter
 {
     /// <summary>
     /// A reusable instance of the <see cref="ContainerElementConverter"/>.

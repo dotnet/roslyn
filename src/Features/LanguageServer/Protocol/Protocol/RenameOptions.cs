@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class RenameOptions : IWorkDoneProgressOptions
+    internal class RenameOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether renames should be checked and tested before being executed.

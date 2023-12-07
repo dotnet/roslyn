@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnostic">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Diagnostic : IEquatable<Diagnostic>
+    internal class Diagnostic : IEquatable<Diagnostic>
     {
         /// <summary>
         /// Gets or sets the source code range.

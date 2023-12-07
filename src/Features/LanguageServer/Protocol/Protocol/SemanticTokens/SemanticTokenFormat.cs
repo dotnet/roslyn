@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<SemanticTokenFormat>))]
     [TypeConverter(typeof(StringEnumConverter<SemanticTokenFormat>.TypeConverter))]
-    public readonly record struct SemanticTokenFormat(string Value) : IStringEnum
+    internal readonly record struct SemanticTokenFormat(string Value) : IStringEnum
     {
         /// <summary>
         /// Tokens are described using relative positions.

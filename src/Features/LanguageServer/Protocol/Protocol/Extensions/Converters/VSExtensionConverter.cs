@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <typeparam name="TBase">Base class that is specified in the
     /// Microsoft.VisualStudio.LanguageServer.Protocol package.</typeparam>
     /// <typeparam name="TExtension">Extension class that extends TBase.</typeparam>
-    public class VSExtensionConverter<TBase, TExtension> : JsonConverter
+    internal class VSExtensionConverter<TBase, TExtension> : JsonConverter
         where TExtension : TBase
     {
         /// <inheritdoc/>

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLensOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeLensOptions : IWorkDoneProgressOptions
+    internal class CodeLensOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether or not the code lens support has a resolve provider.

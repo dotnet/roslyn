@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class RenameClientCapabilities : DynamicRegistrationSetting
+    internal class RenameClientCapabilities : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether the client supports testing for validity of rename operations before execution.

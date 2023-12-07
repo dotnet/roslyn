@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <typeparam name="T1">The first type this struct is designed to contain.</typeparam>
     /// <typeparam name="T2">The second type this struct is designed to contain.</typeparam>
     [JsonConverter(typeof(SumConverter))]
-    public struct SumType<T1, T2> : ISumType, IEquatable<SumType<T1, T2>>
+    internal struct SumType<T1, T2> : ISumType, IEquatable<SumType<T1, T2>>
         where T1 : notnull
         where T2 : notnull
     {
@@ -210,7 +210,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <typeparam name="T2">The second type this struct is designed to contain.</typeparam>
     /// <typeparam name="T3">The third type this struct is designed to contain.</typeparam>
     [JsonConverter(typeof(SumConverter))]
-    public struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
+    internal struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
         where T1 : notnull
         where T2 : notnull
         where T3 : notnull
@@ -494,7 +494,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <typeparam name="T3">The third type this struct is designed to contain.</typeparam>
     /// <typeparam name="T4">The fourth type this struct is designed to contain.</typeparam>
     [JsonConverter(typeof(SumConverter))]
-    public struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T3, T4>>
+    internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T3, T4>>
         where T1 : notnull
         where T2 : notnull
         where T3 : notnull

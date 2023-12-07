@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Server provided options for pull diagnostic requests.
     /// </summary>
     [DataContract]
-    public class VSInternalDiagnosticOptions : IWorkDoneProgressOptions
+    internal class VSInternalDiagnosticOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a list of id's used to identify diagnostics that may be coming

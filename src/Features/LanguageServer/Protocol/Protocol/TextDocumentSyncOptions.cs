@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class TextDocumentSyncOptions
+    internal class TextDocumentSyncOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether open and close notifications are sent to the server.

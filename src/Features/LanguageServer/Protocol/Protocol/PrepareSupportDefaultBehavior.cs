@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#prepareSupportDefaultBehavior">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum PrepareSupportDefaultBehavior
+    internal enum PrepareSupportDefaultBehavior
     {
         /// <summary>
         /// The client's default behavior is to select the identifier according to the language's syntax rule.

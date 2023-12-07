@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSProjectKind" /> represents the various kinds of contexts.
     /// </summary>
     [DataContract]
-    public enum VSProjectKind
+    internal enum VSProjectKind
     {
         /// <summary>
         /// C++ project.

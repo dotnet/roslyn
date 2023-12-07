@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#staticRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
-public interface IStaticRegistrationOptions
+internal interface IStaticRegistrationOptions
 {
     /// <summary>
     /// Gets or sets the id used to register the request.  The id can be used to deregister the request again.

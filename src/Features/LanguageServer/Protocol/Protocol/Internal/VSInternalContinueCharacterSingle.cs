@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing single continue character for completion.
     /// </summary>
     [DataContract]
-    public class VSInternalContinueCharacterSingle
+    internal class VSInternalContinueCharacterSingle
     {
         /// <summary>
         /// Gets the type value.

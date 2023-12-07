@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeActionOptions : IWorkDoneProgressOptions
+    internal class CodeActionOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the kinds of code action that this server may return.

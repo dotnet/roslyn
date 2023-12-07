@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class RenameParams : TextDocumentPositionParams
+    internal class RenameParams : TextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the new name of the renamed symbol.

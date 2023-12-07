@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing the user configuration (as defined in <see cref="VSInternalRenameOptionSupport"/>) for a rename request.
     /// </summary>
     [DataContract]
-    public class VSInternalRenameOptionSelection
+    internal class VSInternalRenameOptionSelection
     {
         /// <summary>
         /// Gets or sets the name that identifies the option.

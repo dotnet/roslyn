@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#location">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Location : IEquatable<Location>
+    internal class Location : IEquatable<Location>
     {
         /// <summary>
         /// Gets or sets the URI for the document the location belongs to.

@@ -6,7 +6,7 @@ using Roslyn.Core.Imaging;
 
 namespace Roslyn.Text.Adornments;
 
-public sealed class ImageElement
+internal sealed class ImageElement
 {
     public static readonly ImageElement Empty = new(default, string.Empty);
 

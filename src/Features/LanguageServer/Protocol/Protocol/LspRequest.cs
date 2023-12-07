@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     /// <typeparam name="TIn">The parameter type.</typeparam>
     /// <typeparam name="TOut">The return type.</typeparam>
-    public class LspRequest<TIn, TOut>
+    internal class LspRequest<TIn, TOut>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LspRequest{TIn, TOut}"/> class.

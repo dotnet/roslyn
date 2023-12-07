@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <remarks>
     /// This is to support backwards compatibility for the protocol.
     /// </remarks>
-    public class TextDocumentSyncConverter : JsonConverter
+    internal class TextDocumentSyncConverter : JsonConverter
     {
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)

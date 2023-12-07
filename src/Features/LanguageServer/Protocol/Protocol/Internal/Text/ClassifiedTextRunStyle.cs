@@ -15,7 +15,7 @@ namespace Roslyn.Text.Adornments
     //     text editor colors in order to make tooltips that look visually like UI, but
     //     match the semantic colorization of the code.
     [Flags]
-    public enum ClassifiedTextRunStyle
+    internal enum ClassifiedTextRunStyle
     {
         //
         // Summary:

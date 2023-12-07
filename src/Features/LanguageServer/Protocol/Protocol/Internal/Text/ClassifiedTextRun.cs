@@ -6,7 +6,7 @@ using System;
 
 namespace Roslyn.Text.Adornments;
 
-public sealed class ClassifiedTextRun(
+internal sealed class ClassifiedTextRun(
     string classificationTypeName,
     string text,
     ClassifiedTextRunStyle style = ClassifiedTextRunStyle.Plain,

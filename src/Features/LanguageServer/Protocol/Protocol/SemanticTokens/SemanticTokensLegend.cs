@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensLegend">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensLegend
+    internal class SemanticTokensLegend
     {
         /// <summary>
         /// Gets or sets an array of token types that can be encoded in semantic tokens responses.

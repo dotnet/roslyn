@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#serverCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ServerCapabilities
+    internal class ServerCapabilities
     {
         /// <summary>
         /// Gets or sets the value which indicates how text document are synced.

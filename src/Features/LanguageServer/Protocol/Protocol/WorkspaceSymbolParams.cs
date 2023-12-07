@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class WorkspaceSymbolParams : IPartialResultParams<SymbolInformation[]>
+    internal class WorkspaceSymbolParams : IPartialResultParams<SymbolInformation[]>
     {
         /// <summary>
         /// Gets or sets the query (a non-empty string).

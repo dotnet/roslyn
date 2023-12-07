@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Strongly typed object used to specify a LSP notification's parameter type.
     /// </summary>
     /// <typeparam name="TIn">The parameter type.</typeparam>
-    public class LspNotification<TIn>
+    internal class LspNotification<TIn>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LspNotification{TIn}"/> class.

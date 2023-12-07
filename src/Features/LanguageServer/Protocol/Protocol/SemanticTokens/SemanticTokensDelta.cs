@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDelta">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensDelta
+    internal class SemanticTokensDelta
     {
         /// <summary>
         /// Gets or sets the Id for the client's new version after applying all

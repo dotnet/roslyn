@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter<TraceSetting>))]
     [TypeConverter(typeof(StringEnumConverter<TraceSetting>.TypeConverter))]
-    public readonly record struct TraceSetting(string Value) : IStringEnum
+    internal readonly record struct TraceSetting(string Value) : IStringEnum
     {
         /// <summary>
         /// Setting for 'off'.

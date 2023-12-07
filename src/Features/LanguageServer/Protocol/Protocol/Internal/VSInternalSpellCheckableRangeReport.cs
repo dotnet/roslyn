@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Report of spell checkable ranges.
     /// </summary>
     [DataContract]
-    public class VSInternalSpellCheckableRangeReport
+    internal class VSInternalSpellCheckableRangeReport
     {
         /// <summary>
         /// Gets or sets the server-generated version number for the spell checkable ranges.

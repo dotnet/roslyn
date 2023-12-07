@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDeltaPartialResult">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensDeltaPartialResult
+    internal class SemanticTokensDeltaPartialResult
     {
         /// <summary>
         /// Gets or sets an array of edits to apply to a previous response from a

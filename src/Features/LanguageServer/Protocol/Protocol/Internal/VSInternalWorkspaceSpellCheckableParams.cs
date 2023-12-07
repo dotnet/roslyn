@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Parameter for workspace/_vs_spellCheckableRanges.
     /// </summary>
     [DataContract]
-    public class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
+    internal class VSInternalWorkspaceSpellCheckableParams : IPartialResultParams<VSInternalWorkspaceSpellCheckableReport[]>
     {
         /// <summary>
         /// Gets or sets the current state of the documents the client already has received.

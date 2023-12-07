@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#range">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Range : IEquatable<Range>
+    internal class Range : IEquatable<Range>
     {
         /// <summary>
         /// Gets or sets the text start position.

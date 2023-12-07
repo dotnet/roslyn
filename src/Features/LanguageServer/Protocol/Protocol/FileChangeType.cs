@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#fileChangeType">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public enum FileChangeType
+    internal enum FileChangeType
     {
         /// <summary>
         /// File was created.

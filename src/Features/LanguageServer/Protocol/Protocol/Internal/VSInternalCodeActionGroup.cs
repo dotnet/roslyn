@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum which represents the various kinds of code actions.
     /// </summary>
-    public static class VSInternalCodeActionGroup
+    internal static class VSInternalCodeActionGroup
     {
         /// <summary>
         /// Code action is a quick fix.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ReferenceOptions : IWorkDoneProgressOptions
+    internal class ReferenceOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Extension class for <see cref="Protocol.Location"/>.  Used to relay reference text information with colorization.
     /// </summary>
     [DataContract]
-    public class VSInternalLocation : VSLocation
+    internal class VSInternalLocation : VSLocation
     {
         private object? textValue = null;
 

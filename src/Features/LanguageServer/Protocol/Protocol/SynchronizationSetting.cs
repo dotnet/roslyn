@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SynchronizationSetting : DynamicRegistrationSetting
+    internal class SynchronizationSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether WillSave event is supported.

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SymbolKindSetting
+    internal class SymbolKindSetting
     {
         /// <summary>
         /// Gets or sets the types of symbol kind the client supports.

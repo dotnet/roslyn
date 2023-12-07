@@ -10,7 +10,7 @@ namespace Roslyn.Text.Adornments
     // Summary:
     //     The layout style for a Microsoft.VisualStudio.Text.Adornments.ContainerElement.
     [Flags]
-    public enum ContainerElementStyle
+    internal enum ContainerElementStyle
     {
         //
         // Summary:

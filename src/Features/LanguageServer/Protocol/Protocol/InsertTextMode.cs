@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#insertTextMode">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public enum InsertTextMode
+    internal enum InsertTextMode
     {
         /// <summary>
         /// The insertion or replace strings is taken as it is.

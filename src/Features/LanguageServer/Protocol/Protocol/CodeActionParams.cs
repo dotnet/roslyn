@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CodeActionParams : ITextDocumentParams
+    internal class CodeActionParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the document identifier indicating where the command was invoked.

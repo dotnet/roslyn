@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class FoldingRangeSettingOptions : DynamicRegistrationSetting
+    internal class FoldingRangeSettingOptions : DynamicRegistrationSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether if client supports collapsedText on folding ranges.

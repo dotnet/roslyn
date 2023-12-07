@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum which represents the various reference kinds.
     /// </summary>
-    public enum VSInternalReferenceKind
+    internal enum VSInternalReferenceKind
     {
         /// <summary>
         /// Reference in inactive code block.

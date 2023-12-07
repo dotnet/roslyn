@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents initialization setting for VS completion.
     /// </summary>
     [DataContract]
-    public class VSInternalCompletionSetting : CompletionSetting
+    internal class VSInternalCompletionSetting : CompletionSetting
     {
         /// <summary>
         /// Gets or sets completion list setting.

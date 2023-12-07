@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [Kind("create")]
-    public class CreateFile
+    internal class CreateFile
     {
         /// <summary>
         /// Gets the kind value.

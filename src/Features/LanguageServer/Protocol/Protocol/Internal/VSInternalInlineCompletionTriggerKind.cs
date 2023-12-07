@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L58.
     /// </summary>
     [DataContract]
-    public enum VSInternalInlineCompletionTriggerKind
+    internal enum VSInternalInlineCompletionTriggerKind
     {
         /// <summary>
         /// Inline completions were triggered automatically while editing.

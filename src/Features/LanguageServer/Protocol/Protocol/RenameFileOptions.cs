@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#renameFileOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class RenameFileOptions
+    internal class RenameFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the rename should overwrite the target if it already exists. (Overwrite wins over ignoreIfExists).

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionItemKind">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    public enum CompletionItemKind
+    internal enum CompletionItemKind
     {
         /// <summary>
         /// Value to use when no kind was provided.

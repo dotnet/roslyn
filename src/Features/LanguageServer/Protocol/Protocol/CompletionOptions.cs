@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class CompletionOptions : IWorkDoneProgressOptions
+    internal class CompletionOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets the trigger characters.

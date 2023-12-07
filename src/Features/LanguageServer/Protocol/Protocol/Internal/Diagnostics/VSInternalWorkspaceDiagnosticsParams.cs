@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing a diagnostic pull request for all documents.
     /// </summary>
     [DataContract]
-    public class VSInternalWorkspaceDiagnosticsParams : IPartialResultParams<VSInternalWorkspaceDiagnosticReport[]>
+    internal class VSInternalWorkspaceDiagnosticsParams : IPartialResultParams<VSInternalWorkspaceDiagnosticReport[]>
     {
         /// <summary>
         /// Gets or sets the current state of the documents the client already has received.

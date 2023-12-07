@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<CodeActionKind>))]
     [TypeConverter(typeof(StringEnumConverter<CodeActionKind>.TypeConverter))]
-    public readonly record struct CodeActionKind(string Value) : IStringEnum
+    internal readonly record struct CodeActionKind(string Value) : IStringEnum
     {
         /// <summary>
         /// Empty kind.

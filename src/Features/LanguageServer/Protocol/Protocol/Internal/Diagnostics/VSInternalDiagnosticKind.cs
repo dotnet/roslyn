@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>))]
     [TypeConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>.TypeConverter))]
-    public readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
+    internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
     {
         /// <summary>
         /// Task list diagnostic kind.

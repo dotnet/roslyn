@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class FoldingRangeParams : ITextDocumentParams
+    internal class FoldingRangeParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the text document associated with the folding range request.

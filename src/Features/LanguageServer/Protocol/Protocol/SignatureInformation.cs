@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SignatureInformation
+    internal class SignatureInformation
     {
         /// <summary>
         /// Gets or sets the label of this signature.

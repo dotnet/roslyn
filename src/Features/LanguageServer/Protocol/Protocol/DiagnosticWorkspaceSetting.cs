@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DiagnosticWorkspaceSetting
+internal class DiagnosticWorkspaceSetting
 {
     /// <summary>
     /// Gets or sets a value indicating whether the client supports a refresh request sent from the server to the client.

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Known VS response kinds.
     /// </summary>
-    public static class VSInternalKnownKinds
+    internal static class VSInternalKnownKinds
     {
         /// <summary>
         /// Response kind string for 'text'.

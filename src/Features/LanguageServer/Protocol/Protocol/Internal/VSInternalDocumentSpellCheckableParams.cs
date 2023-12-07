@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Parameter for tD/_vs_spellCheckableRanges.
     /// </summary>
     [DataContract]
-    public class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
+    internal class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
     {
         /// <summary>
         /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.

@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSLocation"/> extends <see cref="Location"/> providing additional properties used by Visual Studio.
     /// </summary>
     [DataContract]
-    public class VSLocation : Location
+    internal class VSLocation : Location
     {
         /// <summary>
         /// Gets or sets the project name to be displayed to user.

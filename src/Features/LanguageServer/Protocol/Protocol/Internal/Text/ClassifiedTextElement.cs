@@ -9,7 +9,7 @@ using Roslyn.Text.Adornments;
 
 namespace Roslyn.Text.Adornments
 {
-    public sealed class ClassifiedTextElement
+    internal sealed class ClassifiedTextElement
     {
         public const string TextClassificationTypeName = "text";
 

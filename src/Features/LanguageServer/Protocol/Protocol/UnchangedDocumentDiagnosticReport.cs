@@ -13,7 +13,7 @@ using System.Runtime.Serialization;
 /// </summary>
 [DataContract]
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
-public class UnchangedDocumentDiagnosticReport
+internal class UnchangedDocumentDiagnosticReport
 {
     /// <summary>
     /// Gets the kind of this report.

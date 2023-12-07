@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// how completion was invoked.
     /// </summary>
     [DataContract]
-    public enum VSInternalCompletionInvokeKind
+    internal enum VSInternalCompletionInvokeKind
     {
         /// <summary>
         /// Completion was triggered by explicit user's gesture (e.g. Ctrl+Space, Ctr+J) or via API.

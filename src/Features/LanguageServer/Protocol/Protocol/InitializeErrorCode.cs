@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeErrorCodes">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public enum InitializeErrorCode
+    internal enum InitializeErrorCode
     {
         /// <summary>
         /// Protocol version can't be handled by the server.

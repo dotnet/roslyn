@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#position">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Position : IEquatable<Position>
+    internal class Position : IEquatable<Position>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Position"/> class.

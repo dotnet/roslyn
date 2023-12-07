@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [JsonConverter(typeof(OptimizedVSCompletionListJsonConverter))]
-    public sealed class OptimizedVSCompletionList : VSInternalCompletionList
+    internal sealed class OptimizedVSCompletionList : VSInternalCompletionList
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="OptimizedVSCompletionList"/> class.

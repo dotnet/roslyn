@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// with the 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
     [DataContract]
-    public class VSGetProjectContextsParams
+    internal class VSGetProjectContextsParams
     {
         /// <summary>
         /// Gets or sets the document for which project contexts are queried.

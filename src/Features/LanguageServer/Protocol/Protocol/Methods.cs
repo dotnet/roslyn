@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which contains the string values for all common language protocol methods.
     /// </summary>
-    public static class Methods
+    internal static class Methods
     {
         /// <summary>
         /// Method name for 'initialize'.

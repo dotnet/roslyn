@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum which represents the origin of an item.
     /// </summary>
-    public enum VSInternalItemOrigin
+    internal enum VSInternalItemOrigin
     {
         /// <summary>
         /// The entry is contained in exact code.

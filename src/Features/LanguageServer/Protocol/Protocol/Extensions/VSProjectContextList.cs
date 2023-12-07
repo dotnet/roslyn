@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
     [DataContract]
-    public class VSProjectContextList
+    internal class VSProjectContextList
     {
         /// <summary>
         /// Gets or sets the document contexts associated with a text document.

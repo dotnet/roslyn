@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensParams : ITextDocumentParams, IPartialResultParams<SemanticTokensPartialResult>
+    internal class SemanticTokensParams : ITextDocumentParams, IPartialResultParams<SemanticTokensPartialResult>
     {
         /// <summary>
         /// Gets or sets an identifier for the document to fetch semantic tokens from.

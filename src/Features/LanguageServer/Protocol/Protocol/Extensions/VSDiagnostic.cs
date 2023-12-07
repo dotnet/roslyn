@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSDiagnostic"/> extends <see cref="Diagnostic"/> providing additional properties used by Visual Studio.
     /// </summary>
     [DataContract]
-    public class VSDiagnostic : Diagnostic
+    internal class VSDiagnostic : Diagnostic
     {
         /// <summary>
         /// Gets or sets the project and context (e.g. Win32, MacOS, etc.) in which the diagnostic was generated.

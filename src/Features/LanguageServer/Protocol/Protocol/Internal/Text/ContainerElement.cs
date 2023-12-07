@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 
 namespace Roslyn.Text.Adornments
 {
-    public sealed class ContainerElement
+    internal sealed class ContainerElement
     {
         public IEnumerable<object> Elements { get; }
 

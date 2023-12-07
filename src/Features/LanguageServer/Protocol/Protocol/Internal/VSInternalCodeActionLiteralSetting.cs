@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing support for code action literals.
     /// </summary>
     [DataContract]
-    public class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
+    internal class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
     {
         /// <summary>
         /// Gets or sets a value indicating what code action default groups are supported.

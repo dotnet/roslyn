@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<MarkupKind>))]
     [TypeConverter(typeof(StringEnumConverter<MarkupKind>.TypeConverter))]
-    public readonly record struct MarkupKind(string Value) : IStringEnum
+    internal readonly record struct MarkupKind(string Value) : IStringEnum
     {
         /// <summary>
         /// Markup type is plain text.

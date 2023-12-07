@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// from the Visual Studio SDK.
     /// </summary>
     [DataContract]
-    public class VSImageId : IEquatable<VSImageId>
+    internal class VSImageId : IEquatable<VSImageId>
     {
         /// <summary>
         /// Gets or sets the <see cref="Guid" /> component of the unique identifier.

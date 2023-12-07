@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSProjectContext"/> represents a project context.
     /// </summary>
     [DataContract]
-    public class VSProjectContext : IEquatable<VSProjectContext>
+    internal class VSProjectContext : IEquatable<VSProjectContext>
     {
         /// <summary>
         /// Gets or sets the label for the project context.

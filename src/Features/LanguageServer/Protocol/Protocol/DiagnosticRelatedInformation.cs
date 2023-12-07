@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticRelatedInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DiagnosticRelatedInformation
+    internal class DiagnosticRelatedInformation
     {
         /// <summary>
         /// Gets or sets the location for the related information.

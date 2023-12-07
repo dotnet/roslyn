@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// A subclass of the LSP protocol <see cref="CompletionList"/> that contains extensions specific to Visual Studio.
     /// </summary>
     [DataContract]
-    public class VSInternalCompletionList : CompletionList
+    internal class VSInternalCompletionList : CompletionList
     {
         internal const string SuggestionModeSerializedName = "_vs_suggestionMode";
         internal const string ContinueCharactersSerializedName = "_vs_continueCharacters";

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceContext">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ReferenceContext
+    internal class ReferenceContext
     {
         /// <summary>
         /// Gets or sets a value indicating whether declaration should be included.

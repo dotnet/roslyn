@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 /// <summary>
 /// JsonConverter for serializing and deserializing <see cref="ClassifiedTextRun"/>.
 /// </summary>
-public class ClassifiedTextRunConverter : JsonConverter
+internal class ClassifiedTextRunConverter : JsonConverter
 {
     /// <summary>
     /// A reusable instance of the <see cref="ClassifiedTextRunConverter"/>.

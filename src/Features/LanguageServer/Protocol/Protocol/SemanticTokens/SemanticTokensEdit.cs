@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     [DataContract]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Pending implementation of IComparable")]
-    public class SemanticTokensEdit : IComparable<SemanticTokensEdit>
+    internal class SemanticTokensEdit : IComparable<SemanticTokensEdit>
     {
         /// <summary>
         /// Gets or sets the position in the previous response's <see cref="SemanticTokens.Data"/>

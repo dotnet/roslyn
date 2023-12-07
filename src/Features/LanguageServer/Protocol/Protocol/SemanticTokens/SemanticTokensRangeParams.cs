@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensRangeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class SemanticTokensRangeParams : SemanticTokensParams
+    internal class SemanticTokensRangeParams : SemanticTokensParams
     {
         /// <summary>
         /// Gets or sets the range within the document to fetch semantic tokens for.

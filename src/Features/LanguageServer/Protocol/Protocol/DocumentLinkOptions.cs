@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLinkOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class DocumentLinkOptions : IWorkDoneProgressOptions
+    internal class DocumentLinkOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether or not the server supports resolve providers.

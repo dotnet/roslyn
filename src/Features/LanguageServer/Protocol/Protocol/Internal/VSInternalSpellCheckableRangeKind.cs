@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum to represent the spell checkable region kinds.
     /// </summary>
-    public enum VSInternalSpellCheckableRangeKind
+    internal enum VSInternalSpellCheckableRangeKind
     {
         /// <summary>
         /// Represents a span of a string.

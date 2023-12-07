@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing a diagnostic pull request parameter used.
     /// </summary>
     [DataContract]
-    public class VSInternalDiagnosticParams
+    internal class VSInternalDiagnosticParams
     {
         /// <summary>
         /// Gets or sets the document for which diagnostics are desired.

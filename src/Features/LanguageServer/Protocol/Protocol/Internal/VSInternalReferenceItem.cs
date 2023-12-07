@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents references information.
     /// </summary>
     [DataContract]
-    public class VSInternalReferenceItem
+    internal class VSInternalReferenceItem
     {
         private object? definitionTextValue = null;
         private object? textValue = null;

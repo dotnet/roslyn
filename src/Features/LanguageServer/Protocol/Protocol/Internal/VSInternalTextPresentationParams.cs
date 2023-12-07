@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
     /// </summary>
     [DataContract]
-    public class VSInternalTextPresentationParams : ITextDocumentParams
+    internal class VSInternalTextPresentationParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the identifier for the text document to be operate on.

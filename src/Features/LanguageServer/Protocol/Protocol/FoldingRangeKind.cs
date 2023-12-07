@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     [DataContract]
     [JsonConverter(typeof(StringEnumConverter<FoldingRangeKind>))]
     [TypeConverter(typeof(StringEnumConverter<FoldingRangeKind>.TypeConverter))]
-    public readonly record struct FoldingRangeKind(string Value) : IStringEnum
+    internal readonly record struct FoldingRangeKind(string Value) : IStringEnum
     {
         /// <summary>
         /// Comment folding range.

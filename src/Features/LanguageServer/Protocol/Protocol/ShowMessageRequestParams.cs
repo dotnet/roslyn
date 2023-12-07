@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#showMessageRequestParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class ShowMessageRequestParams : ShowMessageParams
+    internal class ShowMessageRequestParams : ShowMessageParams
     {
         /// <summary>
         /// Gets or sets an array of <see cref="MessageActionItem"/>s to present.

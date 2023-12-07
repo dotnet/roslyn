@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentEdit">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class TextDocumentEdit
+    internal class TextDocumentEdit
     {
         /// <summary>
         /// Gets or sets a document identifier indication which document to apply the edits to.

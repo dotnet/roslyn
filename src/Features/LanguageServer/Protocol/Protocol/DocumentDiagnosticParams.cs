@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams">Language Server Protocol specification</see> for additional information.
 /// </summary>
 [DataContract]
-public class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
+internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
 {
     /// <summary>
     /// Gets or sets the value of the Progress instance.

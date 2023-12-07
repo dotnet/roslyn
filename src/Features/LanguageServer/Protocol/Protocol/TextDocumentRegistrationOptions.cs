@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class TextDocumentRegistrationOptions : ITextDocumentRegistrationOptions
+    internal class TextDocumentRegistrationOptions : ITextDocumentRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class InlayHintResolveSupportSetting
+    internal class InlayHintResolveSupportSetting
     {
         /// <summary>
         /// Gets or sets a value indicating the properties that a client can resolve lazily.

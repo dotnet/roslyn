@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Utility functions to simplify working with the Visual Studio extensions to the Language Server Protocol.
     /// </summary>
-    public static class VSExtensionUtilities
+    internal static class VSExtensionUtilities
     {
         /// <summary>
         /// Adds <see cref="VSExtensionConverter{TBase, TExtension}"/> to the <paramref name="serializer"/> allowing to

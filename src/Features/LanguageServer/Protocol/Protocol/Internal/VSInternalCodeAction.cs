@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class used to extend <see cref="CodeAction" /> to add the data field for codeAction/_ms_resolve support.
     /// </summary>
     [DataContract]
-    public class VSInternalCodeAction : CodeAction
+    internal class VSInternalCodeAction : CodeAction
     {
         /// <summary>
         /// Gets or sets the group this CodeAction belongs to.

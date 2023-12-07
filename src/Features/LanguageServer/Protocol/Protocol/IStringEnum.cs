@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// When implementing this interface, a constructor that takes a single string as parameters is required by
 /// <see cref="StringEnumConverter{TStringEnumType}"/>.
 /// </remarks>
-public interface IStringEnum
+internal interface IStringEnum
 {
     /// <summary>
     /// Gets the value of the enumeration.

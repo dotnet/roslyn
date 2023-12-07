@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Enum which represents the various resolutions for a reference entry.
     /// </summary>
-    public enum VSInternalResolutionStatusKind
+    internal enum VSInternalResolutionStatusKind
     {
         /// <summary>
         /// Entry has been processed and confirmed as a reference.

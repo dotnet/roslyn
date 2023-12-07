@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hover">Language Server Protocol specification</see> for additional information.
     /// </summary>
     [DataContract]
-    public class Hover
+    internal class Hover
     {
         /// <summary>
         /// Gets or sets the content for the hover. Object can either be an array or a single object.
