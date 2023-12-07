@@ -26,11 +26,7 @@ internal abstract class AbstractRazorCohostRequestHandler<TRequestType, TRespons
         // This does mean we can't nicely pass through the original Uri, which would have ProjectContext info, but
         // we get the Project so that will have to do.
 
-        var razorRequestContext = new RazorCohostRequestContext(
-            context.Method,
-            context.TextDocument?.GetURI(),
-            context.Solution,
-            context.TextDocument);
+        var razorRequestContext = new RazorCohostRequestContext(context);
         return HandleRequestAsync(request, razorRequestContext, cancellationToken);
     }
 
@@ -70,11 +66,19 @@ internal abstract class AbstractRazorCohostDocumentRequestHandler<TRequestType, 
     protected abstract RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(TRequestType request);
 }
 
-internal interface IRazorLspService : ILspService
+internal readonly struct RazorCohostRequestContext(RequestContext context)
 {
-}
+    internal string Method => context.Method;
+    internal Uri? Uri => context.TextDocument?.GetURI();
+    /// <inheritdoc cref="RequestContext.Workspace"/>
+    internal Workspace? Workspace => context.Workspace;
+    /// <inheritdoc cref="RequestContext.Solution"/>
+    internal Solution? Solution => context.Solution;
+    /// <inheritdoc cref="RequestContext.Document"/>
+    internal TextDocument? TextDocument => context.TextDocument;
 
-internal record struct RazorCohostRequestContext(string Method, Uri? Uri, Solution? Solution, TextDocument? TextDocument);
+    internal T GetRequiredService<T>() where T : class => context.GetRequiredService<T>();
+}
 
 /// <summary>
 /// Custom type containing information in a <see cref="VSProjectContext"/> to avoid coupling LSP protocol versions.
