@@ -243,32 +243,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
-                if (numberIncludingLastSpread == 0 && node.Elements.Length == 0)
+                if (node.Elements.Length == 0)
                 {
+                    Debug.Assert(numberIncludingLastSpread == 0);
                     // arrayOrList = Array.Empty<ElementType>();
                     arrayOrList = CreateEmptyArray(syntax, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType));
                 }
                 else
                 {
                     var typeArgs = ImmutableArray.Create(elementType);
-                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, hasKnownLength: useKnownLength, _diagnostics.DiagnosticBag).Construct(typeArgs);
+                    var kind = useKnownLength
+                        ? numberIncludingLastSpread == 0 && node.Elements.Length == 1
+                            ? SynthesizedReadOnlyListKind.Singleton
+                            : SynthesizedReadOnlyListKind.Array
+                        : SynthesizedReadOnlyListKind.List;
+                    var synthesizedType = _factory.ModuleBuilderOpt.EnsureReadOnlyListTypeExists(syntax, kind: kind, _diagnostics.DiagnosticBag).Construct(typeArgs);
                     if (synthesizedType.IsErrorType())
                     {
                         return BadExpression(node);
                     }
 
-                    BoundExpression fieldValue;
-                    if (useKnownLength)
+                    BoundExpression fieldValue = kind switch
                     {
+                        // fieldValue = e1;
+                        SynthesizedReadOnlyListKind.Singleton => this.VisitExpression((BoundExpression)node.Elements.Single()),
                         // fieldValue = new ElementType[] { e1, ..., eN };
-                        var arrayType = ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType);
-                        fieldValue = CreateAndPopulateArray(node, arrayType);
-                    }
-                    else
-                    {
+                        SynthesizedReadOnlyListKind.Array => CreateAndPopulateArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
-                        fieldValue = CreateAndPopulateList(node, elementType);
-                    }
+                        SynthesizedReadOnlyListKind.List => CreateAndPopulateList(node, elementType),
+                        var v => throw ExceptionUtilities.UnexpectedValue(v)
+                    };
 
                     // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);
                     arrayOrList = new BoundObjectCreationExpression(syntax, synthesizedType.Constructors.Single(), fieldValue) { WasCompilerGenerated = true };

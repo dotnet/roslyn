@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             CompileAndVerify(
                 new[] { source, s_collectionExtensions },
-                expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlyArray<System.Int32>) [4], (<>z__ReadOnlyArray<System.Int32>) [5], ");
+                expectedOutput: "(<>z__ReadOnlySingletonList<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], (System.Collections.Generic.List<System.Int32>) [3], (<>z__ReadOnlySingletonList<System.Int32>) [4], (<>z__ReadOnlySingletonList<System.Int32>) [5], ");
         }
 
         [Fact]
@@ -9422,7 +9422,7 @@ static class Program
                 {
                     static void Main()
                     {
-                        IEnumerable<int> x = [0];
+                        IEnumerable<int> x = [0, 1];
                         IEnumerable<int> y = [..x];
                     }
                 }
