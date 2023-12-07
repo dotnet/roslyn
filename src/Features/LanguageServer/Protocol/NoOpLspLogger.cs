@@ -7,37 +7,37 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class NoOpLspLogger : ILspServiceLogger
+    internal sealed class NoOpLspLogger : AbstractLspLogger, ILspServiceLogger
     {
         public static readonly ILspServiceLogger Instance = new NoOpLspLogger();
 
         private NoOpLspLogger() { }
 
-        public void LogException(Exception exception, string? message = null, params object[] @params)
+        public override void LogException(Exception exception, string? message = null, params object[] @params)
         {
         }
 
-        public void LogInformation(string message, params object[] @params)
+        public override void LogInformation(string message, params object[] @params)
         {
         }
 
-        public void LogWarning(string message, params object[] @params)
+        public override void LogWarning(string message, params object[] @params)
         {
         }
 
-        public void LogError(string message, params object[] @params)
+        public override void LogError(string message, params object[] @params)
         {
         }
 
-        public void LogStartContext(string message, params object[] @params)
+        public override void LogStartContext(string message, params object[] @params)
         {
         }
 
-        public void LogEndContext(string message, params object[] @params)
+        public override void LogEndContext(string message, params object[] @params)
         {
         }
 
-        public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+        public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
         {
             throw new NotImplementedException();
         }

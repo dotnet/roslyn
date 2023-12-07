@@ -14,6 +14,4 @@ public interface ILspLogger
     void LogWarning(string message, params object[] @params);
     void LogError(string message, params object[] @params);
     void LogException(Exception exception, string? message = null, params object[] @params);
-
-    ILspRequestScope TrackLspRequest(string message, ILspServices lspServices);
 }

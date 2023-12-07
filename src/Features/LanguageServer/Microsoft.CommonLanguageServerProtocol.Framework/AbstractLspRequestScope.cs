@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
-public abstract class AbstractLspRequestScope : ILspRequestScope
+public abstract class AbstractLspRequestScope
 {
     private readonly Stopwatch _stopwatch;
 

@@ -3,16 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
-public class TestOutputLspLogger : ILspServiceLogger
+
+public sealed class TestOutputLspLogger : AbstractLspLogger, ILspServiceLogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
     public TestOutputLspLogger(ITestOutputHelper testOutputHelper)
@@ -20,25 +16,20 @@ public class TestOutputLspLogger : ILspServiceLogger
         _testOutputHelper = testOutputHelper;
     }
 
-    public ILspRequestScope BeginScope(string message)
-    {
-        throw new NotImplementedException();
-    }
+    public override void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
 
-    public void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
+    public override void LogError(string message, params object[] @params) => Log("Error", message, @params);
 
-    public void LogError(string message, params object[] @params) => Log("Error", message, @params);
-
-    public void LogException(Exception exception, string? message = null, params object[] @params)
+    public override void LogException(Exception exception, string? message = null, params object[] @params)
         => Log("Warning", $"{message}{Environment.NewLine}{exception}", @params);
 
-    public void LogInformation(string message, params object[] @params) => Log("Info", message, @params);
+    public override void LogInformation(string message, params object[] @params) => Log("Info", message, @params);
 
-    public void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
+    public override void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
-    public void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
+    public override void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
 
-    public ILspRequestScope TrackLspRequest(string message, ILspServices lspServices)
+    public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
     {
         throw new NotImplementedException();
     }
