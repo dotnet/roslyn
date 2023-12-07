@@ -348,12 +348,3 @@ internal struct IndentingStringBuilder : IDisposable
             => _builder.Write(value?.ToString(format, formatProvider: null));
     }
 }
-
-class C
-{
-    void M()
-    {
-        IndentingStringBuilder b = IndentingStringBuilder.Create();
-        b.Write($"foo{0}bar");
-    }
-}
