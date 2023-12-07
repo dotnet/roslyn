@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SpecialType.System_Collections_Generic_ICollection_T,
             SpecialType.System_Collections_Generic_IList_T,
         };
+        
+        private static readonly SpecialType[] s_readOnlyInterfacesSpecialTypes = new[]
+        {
+            SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
+            SpecialType.System_Collections_Generic_IReadOnlyList_T,
+        };
 
         private static readonly WellKnownType[] s_requiredWellKnownTypes = new[]
         {
@@ -75,6 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             WellKnownMember.System_NotSupportedException__ctor,
         };
 
+        private static readonly WellKnownMember[] s_readOnlyInterfacesWellKnownMembers = new[]
+        {
+            WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count,
+            WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item,
+        };
+
         private static readonly WellKnownMember[] s_requiredWellKnownMembersUnknownLength = new[]
         {
             WellKnownMember.System_Collections_Generic_List_T__Count,
@@ -89,12 +101,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingModule.DeclaringCompilation;
             DiagnosticInfo? diagnosticInfo = null;
 
+            var hasReadOnlyInterfaces =
+                !compilation.IsTypeMissing(SpecialType.System_Collections_Generic_IReadOnlyCollection_T)
+                && !compilation.IsTypeMissing(SpecialType.System_Collections_Generic_IReadOnlyList_T);
+
             foreach (var type in s_requiredSpecialTypes)
             {
                 diagnosticInfo = compilation.GetSpecialType(type).GetUseSiteInfo().DiagnosticInfo;
                 if (diagnosticInfo is { })
                 {
                     break;
+                }
+            }
+
+            if (hasReadOnlyInterfaces && diagnosticInfo is null)
+            {
+                foreach (var type in s_readOnlyInterfacesSpecialTypes)
+                {
+                    diagnosticInfo = compilation.GetSpecialType(type).GetUseSiteInfo().DiagnosticInfo;
+                    if (diagnosticInfo is { })
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -134,6 +162,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (hasReadOnlyInterfaces && diagnosticInfo is null)
+            {
+                foreach (var member in s_readOnlyInterfacesWellKnownMembers)
+                {
+                    diagnosticInfo = getWellKnownTypeMemberDiagnosticInfo(compilation, member);
+                    if (diagnosticInfo is { })
+                    {
+                        break;
+                    }
+                }
+            }
+
             if (!hasKnownLength)
             {
                 if (diagnosticInfo is null)
@@ -159,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new ExtendedErrorTypeSymbol(compilation, name, arity: 1, diagnosticInfo, unreported: true);
             }
 
-            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength);
+            return new SynthesizedReadOnlyListTypeSymbol(containingModule, name, hasKnownLength, hasReadOnlyInterfaces);
 
             static DiagnosticInfo? getSpecialTypeMemberDiagnosticInfo(CSharpCompilation compilation, SpecialMember member)
             {
@@ -186,16 +226,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private readonly ModuleSymbol _containingModule;
+        private readonly bool _hasReadOnlyInterfaces;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
         private readonly ImmutableArray<Symbol> _members;
         private readonly FieldSymbol _field;
 
-        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, bool hasKnownLength)
+        private SynthesizedReadOnlyListTypeSymbol(SourceModuleSymbol containingModule, string name, bool hasKnownLength, bool hasReadOnlyInterfaces)
         {
             var compilation = containingModule.DeclaringCompilation;
 
             _containingModule = containingModule;
             Name = name;
+            _hasReadOnlyInterfaces = hasReadOnlyInterfaces;
             var typeParameter = new SynthesizedReadOnlyListTypeParameterSymbol(this);
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
             var typeArgs = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
@@ -214,12 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var iCollectionT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T).Construct(typeArgs);
             var iListT = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T).Construct(typeArgs);
 
-            _interfaces = iReadOnlyCollectionT.IsErrorType() || iReadOnlyListT.IsErrorType()
+            _interfaces = _hasReadOnlyInterfaces
                 ? ImmutableArray.Create(
                     iEnumerable,
                     iCollection,
                     iList,
                     iEnumerableT,
+                    iReadOnlyCollectionT,
+                    iReadOnlyListT,
                     iCollectionT,
                     iListT)
                 : ImmutableArray.Create(
@@ -227,8 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     iCollection,
                     iList,
                     iEnumerableT,
-                    iReadOnlyCollectionT,
-                    iReadOnlyListT,
                     iCollectionT,
                     iListT);
 
@@ -318,18 +360,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this,
                     ((MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator)!).AsMember(iEnumerableT),
                     generateGetEnumeratorT));
-            if ((PropertySymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count) is { } wellKnownReadOnlyCollectionCount
-                && (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item) is { } wellKnownReadOnlyListIndexer)
+            if (_hasReadOnlyInterfaces)
             {
                 addProperty(membersBuilder,
                     new SynthesizedReadOnlyListProperty(
                         this,
-                        wellKnownReadOnlyCollectionCount.AsMember(iReadOnlyCollectionT),
+                        ((PropertySymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count)).AsMember(iReadOnlyCollectionT),
                         generateCount));
                 addProperty(membersBuilder,
                     new SynthesizedReadOnlyListProperty(
                         this,
-                        ((PropertySymbol)wellKnownReadOnlyListIndexer.AssociatedSymbol).AsMember(iReadOnlyListT),
+                        ((PropertySymbol)((MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item)).AssociatedSymbol).AsMember(iReadOnlyListT),
                         generateIndexer));
             }
             addProperty(membersBuilder,
