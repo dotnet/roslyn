@@ -49,6 +49,7 @@ internal struct IndentingStringBuilder : IDisposable
     private readonly ArrayBuilder<string> _indentationStrings = ArrayBuilder<string>.GetInstance();
 
     private readonly string _indentationString;
+    private readonly string _endOfLine;
 
     /// <summary>
     /// The current indentation level.
@@ -60,9 +61,10 @@ internal struct IndentingStringBuilder : IDisposable
     /// </summary>
     private string _currentIndentation = "";
 
-    public IndentingStringBuilder(string indentationString)
+    public IndentingStringBuilder(string indentationString, string endOfLine)
     {
         _indentationString = indentationString;
+        _endOfLine = endOfLine;
 
         // Avoid allocating indentation strings in the common case where the client is using the defaults.
         if (indentationString == DefaultIndentation)
@@ -75,8 +77,8 @@ internal struct IndentingStringBuilder : IDisposable
         }
     }
 
-    public static IndentingStringBuilder Create(string indentation = DefaultIndentation)
-        => new(indentation);
+    public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string endOfLine = DefaultEndOfLine)
+        => new(indentation, endOfLine);
 
     private static void PopulateIndentationStrings(ArrayBuilder<string> builder, string indentation)
     {
@@ -136,23 +138,11 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     /// <summary>
-    /// Appends a simple end of line to the underlying buffer.  No indentation is written prior to the end of line.
+    /// Appends a single end of line sequence to the underlying buffer.  No indentation is written prior to the end of line.
     /// </summary>
-    private IndentingStringBuilder AppendEndOfLine(string endOfLine = DefaultEndOfLine)
-        => AppendEndOfLine(endOfLine.AsSpan());
-
-    /// <inheritdoc cref="AppendEndOfLine(string)"/>
-    private IndentingStringBuilder AppendEndOfLine(ReadOnlySpan<char> endOfLine)
+    private IndentingStringBuilder AppendEndOfLine()
     {
-        var builder = this.Builder;
-
-#if NET
-        builder.Append(endOfLine);
-#else
-        foreach (var ch in endOfLine)
-            builder.Append(ch);
-#endif
-
+        this.Builder.Append(_endOfLine);
         return this;
     }
 
@@ -193,37 +183,38 @@ internal struct IndentingStringBuilder : IDisposable
                 if (newLineIndex < 0)
                 {
                     // no new line, append the rest of the content to the buffer.
-                    AppendSingleLine(this, content);
+                    AppendSingleLine(content);
                 }
                 else
                 {
                     while (newLineIndex < content.Length && NewLineChars.IndexOf(content[newLineIndex + 1]) >= 0)
                         newLineIndex++;
 
-                    AppendSingleLine(this, content[0..newLineIndex]);
+                    AppendSingleLine(content[0..newLineIndex]);
                     content = content[newLineIndex..];
                 }
             }
         }
         else
         {
-            AppendSingleLine(this, content);
+            AppendSingleLine(content);
         }
 
         return this;
     }
 
     /// <summary>
-    /// Equivalent to <see cref="Write(string, bool)"/> except that a final <paramref name="endOfLine"/> will be written after the content is written.
+    /// Equivalent to <see cref="Write(string, bool)"/> except that a final end of line sequence will be written after
+    /// the content is written.
     /// </summary>
-    public IndentingStringBuilder WriteLine(string content, string endOfLine = DefaultEndOfLine, bool splitContent = false)
-        => WriteLine(content.AsSpan(), endOfLine.AsSpan(), splitContent);
+    public IndentingStringBuilder WriteLine(string content, bool splitContent = false)
+        => WriteLine(content.AsSpan(), splitContent);
 
-    /// <inheritdoc cref="WriteLine(string, string, bool)"/>
-    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, ReadOnlySpan<char> endOfLine, bool splitContent = false)
+    /// <inheritdoc cref="WriteLine(string, bool)"/>
+    public IndentingStringBuilder WriteLine(ReadOnlySpan<char> content, bool splitContent = false)
     {
         Write(content, splitContent);
-        AppendEndOfLine(endOfLine);
+        AppendEndOfLine();
         return this;
     }
 
