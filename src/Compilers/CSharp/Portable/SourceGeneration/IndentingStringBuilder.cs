@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,13 +14,24 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 /// <summary>
-/// Not threadsafe.
+/// A helper type for generating C# source code efficiently.  Content written is added to a <see cref="StringBuilder"/>,
+/// with default behavior provided for controlling the current indent level of the code.
 /// </summary>
+/// <remarks>
+/// Not threadsafe.
+/// </remarks>
 internal struct IndentingStringBuilder : IDisposable
 {
     private const string DefaultIndentation = "    ";
-    private const string DefaultNewLine = "\r\n";
+    private const string DefaultEndOfLine = "\r\n";
     private const int DefaultIndentationCount = 8;
+
+    // On net8 we should use SearchValues here.
+
+    /// <summary>
+    /// The new line characters accepted by C#.
+    /// </summary>
+    private static ReadOnlySpan<char> NewLineChars => new[] { '\r', '\n', '\f', '\u0085', '\u2028', '\u2029' };
 
     private static readonly ImmutableArray<string> s_defaultIndentationStrings;
 
@@ -32,12 +44,11 @@ internal struct IndentingStringBuilder : IDisposable
         s_defaultIndentationStrings = builder.ToImmutableAndFree();
     }
 
-    private readonly PooledStringBuilder _builder = PooledStringBuilder.GetInstance();
+    private PooledStringBuilder? _builder = PooledStringBuilder.GetInstance();
 
     private readonly ArrayBuilder<string> _indentationStrings = ArrayBuilder<string>.GetInstance();
 
     private readonly string _indentationString;
-    private readonly string _newLine;
 
     /// <summary>
     /// The current indentation level.
@@ -49,10 +60,9 @@ internal struct IndentingStringBuilder : IDisposable
     /// </summary>
     private string _currentIndentation = "";
 
-    public IndentingStringBuilder(string indentationString, string newLine)
+    public IndentingStringBuilder(string indentationString)
     {
         _indentationString = indentationString;
-        _newLine = newLine;
 
         // Avoid allocating indentation strings in the common case where the client is using the defaults.
         if (indentationString == DefaultIndentation)
@@ -65,8 +75,8 @@ internal struct IndentingStringBuilder : IDisposable
         }
     }
 
-    public static IndentingStringBuilder Create(string indentation = DefaultIndentation, string newLine = DefaultNewLine)
-        => new(indentation, newLine);
+    public static IndentingStringBuilder Create(string indentation = DefaultIndentation)
+        => new(indentation);
 
     private static void PopulateIndentationStrings(ArrayBuilder<string> builder, string indentation)
     {
@@ -75,12 +85,34 @@ internal struct IndentingStringBuilder : IDisposable
             builder.Add(builder.Last() + indentation);
     }
 
-    public readonly void Dispose()
+    [MemberNotNull(nameof(_builder))]
+    private void CheckDisposed()
     {
-        _indentationStrings.Free();
-        _builder.Free();
+        if (_builder is null)
+            throw new ObjectDisposedException(nameof(IndentingStringBuilder));
     }
 
+    private StringBuilder Builder
+    {
+        get
+        {
+            CheckDisposed();
+            return _builder;
+        }
+    }
+
+    public void Dispose()
+    {
+        CheckDisposed();
+        _indentationStrings.Free();
+        _builder.Free();
+        _builder = null!;
+    }
+
+    /// <summary>
+    /// Increases the current indentation level, increasing the amount of indentation written at the start of a
+    /// new line when content is written to this.
+    /// </summary>
     public void IncreaseIndent()
     {
         _currentIndentationLevel++;
@@ -90,6 +122,10 @@ internal struct IndentingStringBuilder : IDisposable
         _currentIndentation = _indentationStrings[_currentIndentationLevel];
     }
 
+    /// <summary>
+    /// Decreases the current indentation level, decreasing the amount of indentation written at the start of a
+    /// new line when content is written to it.
+    /// </summary>
     public void DecreaseIndent()
     {
         if (_currentIndentationLevel == 0)
@@ -99,20 +135,104 @@ internal struct IndentingStringBuilder : IDisposable
         _currentIndentation = _indentationStrings[_currentIndentationLevel];
     }
 
+    /// <summary>
+    /// Appends a simple end of line to the underlying buffer.  No indentation is written prior to the end of line.
+    /// </summary>
+    public IndentingStringBuilder AppendEndOfLine(string endOfLine = DefaultEndOfLine)
+        => AppendEndOfLine(endOfLine.AsSpan());
+
+    /// <inheritdoc cref="AppendEndOfLine(string)"/>
+    public IndentingStringBuilder AppendEndOfLine(ReadOnlySpan<char> endOfLine)
+    {
+        var builder = this.Builder;
+
+#if NET
+        builder.Append(endOfLine);
+#else
+        foreach (var ch in endOfLine)
+            builder.Append(ch);
+#endif
+
+        return this;
+    }
+
+    /// <summary>
+    /// Appends content to the underlying buffer.  If the buffer is at the start of a line, then indentation will be
+    /// appended first before the content.  By default, for performance reasons, the content is assumed to contain no
+    /// newlines in it.  If the content may contain newlines, then <see langword="true"/> should be passed in for
+    /// <paramref name="splitContent"/>.  This will cause the provided content to be split into constituent lines,
+    /// with each line being appended one at a time.
+    /// </summary>
+    public IndentingStringBuilder AppendContent(string content, bool splitContent = false)
+        => AppendContent(content.AsSpan(), splitContent);
+
+    /// <inheritdoc cref="AppendContent(string, bool)"/>
+    public IndentingStringBuilder AppendContent(ReadOnlySpan<char> content, bool splitContent = false)
+    {
+        if (splitContent)
+        {
+            while (content.Length > 0)
+            {
+                var newLineIndex = content.IndexOfAny(NewLineChars);
+                if (newLineIndex < 0)
+                {
+                    // no new line, append the rest of the content to the buffer.
+                    AppendSingleLine(content);
+                }
+                else
+                {
+                    while (newLineIndex < content.Length && NewLineChars.IndexOf(content[newLineIndex + 1]) >= 0)
+                        newLineIndex++;
+
+                    AppendSingleLine(content[0..newLineIndex]);
+                    content = content[newLineIndex..];
+                }
+            }
+        }
+        else
+        {
+            AppendSingleLine(content);
+        }
+
+        return this;
+    }
+
+    private void AppendSingleLine(ReadOnlySpan<char> line)
+    {
+        if (line.Length == 0)
+            return;
+
+        var builder = this.Builder;
+        if (builder.Length == 0 || NewLineChars.IndexOf(builder[^1]) >= 0)
+            builder.Append(_currentIndentation);
+
+        builder.Append(line);
+    }
+
+    /// <summary>
+    /// Opens a block of code to write new content into.  Can be used like so:
+    /// <code>
+    /// using (writer.StartBlock())
+    /// {
+    ///     write.AppendContent("...");
+    ///     write.AppendContent("...");
+    /// }
+    /// </code>
+    /// </summary>
     public Block StartBlock()
     {
-        this.WriteLine("{");
+        this.AppendContent("{");
         this.IncreaseIndent();
 
         return new Block(this);
     }
 
-    public struct Block(IndentingStringBuilder builder) : IDisposable
+    public readonly struct Block(IndentingStringBuilder builder) : IDisposable
     {
-        public void Dispose()
+        public readonly void Dispose()
         {
             builder.DecreaseIndent();
-            builder.WriteLine("}");
+            builder.AppendContent("}");
         }
     }
 }
