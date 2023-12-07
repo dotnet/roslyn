@@ -151,12 +151,12 @@ class Program
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(ParamsCollections): Note, there is no error at the declaration site because
-            //                               according to https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#conversions
-            //                               there is a conversion from a collection expression consisting `char`s to a `string` type.
-            //                               Even though `string` lacks APIs need to perform the conversion.
+            // PROTOTYPE(ParamsCollections): Note, there is no error at the declaration site, because
+            //                               according to https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/collection-expressions.md#conversions,
+            //                               there is a conversion from a collection expression consisting of `char`s to a `string` type.
+            //                               Even though `string` lacks APIs needed to perform the conversion.
             //                               Similar situation can happen with other types. Are we fine with this behavior, or should we
-            //                               enforce existence of the APIs at the declaration site?
+            //                               enforce existence of at least some APIs at the declaration site?
             comp.VerifyDiagnostics(
                 // (6,9): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         Test();
