@@ -2317,6 +2317,11 @@
         <target state="translated">与常量字符串上的 ReadOnly/Span&lt;char&gt; 匹配的模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2638,13 +2643,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">对于元素字段为“ref”字段或类型无效的类型作为类型参数的内联数组类型，不支持“内联数组”语言功能。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">对于元素字段为“ref”字段或类型无效的类型作为类型参数的内联数组类型，不支持“内联数组”语言功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">对于元素字段为“ref”字段或类型无效的类型作为类型参数的内联数组类型，不支持“内联数组”语言功能。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">对于元素字段为“ref”字段或类型无效的类型作为类型参数的内联数组类型，不支持“内联数组”语言功能。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

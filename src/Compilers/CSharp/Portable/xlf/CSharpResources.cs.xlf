@@ -2317,6 +2317,11 @@
         <target state="translated">vzor odpovídající ReadOnly/Span&lt;char&gt; na konstantním řetězci</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2638,13 +2643,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Funkce jazyka Inline arrays není podporována pro vložené typy polí s polem elementu, které je buď polem ref, nebo má typ, který není platný jako argument typu.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Funkce jazyka Inline arrays není podporována pro vložené typy polí s polem elementu, které je buď polem ref, nebo má typ, který není platný jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Funkce jazyka Inline arrays není podporována pro vložené typy polí s polem elementu, které je buď polem ref, nebo má typ, který není platný jako argument typu.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="needs-review-translation">Funkce jazyka Inline arrays není podporována pro vložené typy polí s polem elementu, které je buď polem ref, nebo má typ, který není platný jako argument typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">

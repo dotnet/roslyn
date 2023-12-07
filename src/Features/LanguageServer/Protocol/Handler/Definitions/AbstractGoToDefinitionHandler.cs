@@ -46,7 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var service = document.GetRequiredLanguageService<INavigableItemsService>();
+            var service = document.GetLanguageService<INavigableItemsService>();
+            if (service is null)
+                return null;
 
             var definitions = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (definitions.Length > 0)
