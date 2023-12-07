@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -241,6 +242,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 sections:=ImmutableArray.Create(
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, builder.ToTaggedText()),
                     QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText)))))
+        End Function
+
+        Protected Overrides Function GetBindableNodeForTokenIndicatingCollectionExpression(token As SyntaxToken, <NotNullWhen(True)> ByRef found As SyntaxNode) As Boolean
+            found = Nothing
+            Return False
         End Function
     End Class
 End Namespace

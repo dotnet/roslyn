@@ -72,6 +72,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return false;
         }
 
+        protected override bool GetBindableNodeForTokenIndicatingCollectionExpression(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
+        {
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken &&
+                token.Parent is CollectionExpressionSyntax collectionExpression)
+            {
+                found = collectionExpression;
+                return true;
+            }
+
+            found = null;
+            return false;
+        }
+
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
             => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
