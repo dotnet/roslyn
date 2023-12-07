@@ -84,9 +84,11 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
     public static bool IsViableMemberToAssignTo(
         INamedTypeSymbol namedType,
         [NotNullWhen(true)] ISymbol? member,
+        [NotNullWhen(true)] out MemberDeclarationSyntax? memberNode,
         [NotNullWhen(true)] out SyntaxNode? nodeToRemove,
         CancellationToken cancellationToken)
     {
+        memberNode = null;
         nodeToRemove = null;
         if (member is not IFieldSymbol and not IPropertySymbol)
             return false;
@@ -116,9 +118,19 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
             {
                 return false;
             }
-        }
 
-        return true;
+            memberNode = property;
+            return true;
+        }
+        else if (nodeToRemove is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Parent: FieldDeclarationSyntax field } })
+        {
+            memberNode = field;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -471,7 +483,7 @@ internal sealed class CSharpUsePrimaryConstructorDiagnosticAnalyzer()
 
                 // Has to bind to a field/prop on this type.
                 member = semanticModel.GetSymbolInfo(leftIdentifier, cancellationToken).GetAnySymbol()?.OriginalDefinition;
-                if (!IsViableMemberToAssignTo(namedType, member, out var assignedMemberDeclaration, cancellationToken))
+                if (!IsViableMemberToAssignTo(namedType, member, out _, out var assignedMemberDeclaration, cancellationToken))
                     return false;
 
                 // Left side looks good.  Now check the right side.  It cannot reference 'this' (as that is not

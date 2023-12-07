@@ -3691,4 +3691,77 @@ public partial class UsePrimaryConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                    private object _value;
+                #pragma warning restore IDE0044
+
+                    private int? _other;
+
+                    public [|Test|](object value)
+                    {
+                        _value = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value)
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                #pragma warning restore IDE0044
+                
+                    private int? _other;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1;
+
+                #pragma warning restore IDE0044
+                    private object _value2;
+
+                    public [|Test|](object value2)
+                    {
+                        _value1 = new();
+                        _value2 = value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value2)
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1 = new();
+
+                #pragma warning restore IDE0044
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
