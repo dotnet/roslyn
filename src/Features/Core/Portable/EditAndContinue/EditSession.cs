@@ -413,7 +413,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        internal static async Task PopulateChangedAndAddedDocumentsAsync(
+            Project oldProject,
+            Project newProject,
+            ArrayBuilder<Document> changedOrAddedDocuments,
+            ArrayBuilder<ProjectDiagnostics> diagnostics,
+            TraceLog log,
+            CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
 
@@ -422,13 +428,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+            var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(oldProject).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(newProject).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
             {
@@ -450,6 +451,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
+            }
+
+            async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(Project project)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var states = await project.Solution.State.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+                var sourceGeneratorDiagnostics = await project.Solution.State.GetSourceGeneratorDiagnosticsAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+                foreach (var diagnostic in sourceGeneratorDiagnostics)
+                {
+                    log.Write("Source generator failed: {0}", diagnostic);
+                }
+
+                diagnostics.Add(new(project.Id, sourceGeneratorDiagnostics));
+
+                return states;
             }
         }
 
@@ -827,7 +846,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                    await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, diagnostics, log, cancellationToken).ConfigureAwait(false);
                     if (changedOrAddedDocuments.IsEmpty())
                     {
                         continue;
