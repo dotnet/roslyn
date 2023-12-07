@@ -10,6 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\BitOperations.cs" Link="Hashing\BitOperations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\Crc32.cs" Link="Hashing\Crc32.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\Crc32.Table.cs" Link="Hashing\Crc32.Table.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\NonCryptographicHashAlgorithm.cs" Link="Hashing\NonCryptographicHashAlgorithm.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash128.cs" Link="Hashing\XxHash128.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Hashing\XxHash64.State.cs" Link="Hashing\XxHash64.State.cs" />
