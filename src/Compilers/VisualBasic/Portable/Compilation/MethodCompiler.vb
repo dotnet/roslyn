@@ -1010,7 +1010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             lambdaDebugInfoBuilder.Free()
             closureDebugInfoBuilder.Free()
             stateMachineStateDebugInfoBuilder.Free()
-            lambdaRuntimeRudeEditsBuilder.Free();
+            lambdaRuntimeRudeEditsBuilder.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
