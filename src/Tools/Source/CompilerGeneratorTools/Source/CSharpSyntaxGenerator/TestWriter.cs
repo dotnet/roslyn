@@ -300,21 +300,17 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRewriterTests()
+        private void WriteRewriterTests(IndentingStringBuilder builder)
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
-            bool first = true;
-            foreach (var node in nodes)
-            {
-                if (!first)
+            builder.WriteBlankLineSeparated(
+                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                static (builder, node, @this) =>
                 {
-                    WriteLine();
-                }
-                first = false;
-                WriteTokenDeleteRewriterTest((Node)node);
-                WriteLine();
-                WriteIdentityRewriterTest((Node)node);
-            }
+                    @this.WriteTokenDeleteRewriterTest(builder, (Node)node);
+                    builder.WriteLine();
+                    @this.WriteIdentityRewriterTest(builder, (Node)node);
+                },
+                this);
         }
 
         private void WriteTokenDeleteRewriterTest(IndentingStringBuilder builder, Node node)
