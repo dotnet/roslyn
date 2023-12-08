@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace CSharpSyntaxGenerator
 {
@@ -98,45 +99,30 @@ namespace CSharpSyntaxGenerator
             builder.Write($"    => {syntaxFactory}.{strippedName}(");
             //instantiate node
 
-            bool first = true;
+            var arguments = ArrayBuilder<string>.GetInstance();
 
             if (node.Kinds.Count > 1)
-            {
-                builder.Write($"SyntaxKind.{node.Kinds[0].Name}"); //TODO: other kinds?
-                first = false;
-            }
+                arguments.Add($"SyntaxKind.{node.Kinds[0].Name}"); //TODO: other kinds?
 
             foreach (var field in nodeFields)
             {
-                if (!first)
-                {
-                    builder.Write(", ");
-                }
-                first = false;
-
                 if (IsOptional(field))
                 {
                     if (isGreen)
                     {
-                        builder.Write("null");
+                        arguments.Add("null");
                     }
                     else
                     {
-                        builder.Write($"default({field.Type})");
+                        arguments.Add($"default({field.Type})");
                     }
                 }
                 else if (IsAnyList(field.Type))
                 {
-                    string typeName;
-                    if (isGreen)
-                    {
-                        typeName = internalNamespace + field.Type.Replace("<", "<" + csharpNamespace);
-                    }
-                    else
-                    {
-                        typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
-                    }
-                    builder.Write($"new {typeName}()");
+                    var typeName = isGreen
+                        ? internalNamespace + field.Type.Replace("<", "<" + csharpNamespace)
+                        : (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
+                    arguments.Add($"new {typeName}()");
                 }
                 else if (field.Type == "SyntaxToken")
                 {
@@ -145,15 +131,15 @@ namespace CSharpSyntaxGenerator
                     var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
                     {
-                        builder.Write($"{syntaxFactory}.Identifier(\"{field.Name}\")");
+                        arguments.Add($"{syntaxFactory}.Identifier(\"{field.Name}\")");
                     }
                     else if (kind == "StringLiteralToken")
                     {
-                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"string\", \"string\"{trailingTrivia})");
+                        arguments.Add($"{syntaxFactory}.Literal({leadingTrivia}\"string\", \"string\"{trailingTrivia})");
                     }
                     else if (kind == "CharacterLiteralToken")
                     {
-                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"a\", 'a'{trailingTrivia})");
+                        arguments.Add($"{syntaxFactory}.Literal({leadingTrivia}\"a\", 'a'{trailingTrivia})");
                     }
                     else if (kind == "NumericLiteralToken")
                     {
@@ -161,12 +147,12 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        builder.Write($"{syntaxFactory}.Token(SyntaxKind.{kind})");
+                        arguments.Add($"{syntaxFactory}.Token(SyntaxKind.{kind})");
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
                 {
-                    builder.Write($"{syntaxFactory}.IdentifierName({syntaxFactory}.Identifier(\"{field.Name}\"))");
+                    arguments.Add($"{syntaxFactory}.IdentifierName({syntaxFactory}.Identifier(\"{field.Name}\"))");
                 }
                 else
                 {
@@ -181,20 +167,14 @@ namespace CSharpSyntaxGenerator
                         }
                         type = subTypes.First();
                     }
-                    builder.Write($"Generate{StripPost(type, "Syntax")}()");
+                    arguments.Add($"Generate{StripPost(type, "Syntax")}()");
                 }
             }
 
             foreach (var field in valueFields)
-            {
-                if (!first)
-                {
-                    builder.Write(", ");
-                }
-                first = false;
+                arguments.Add($"new {field.Type}()");
 
-                builder.Write($"new {field.Type}()");
-            }
+            builder.WriteBlankLineSeparated
 
             builder.WriteLine(");");
         }

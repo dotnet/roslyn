@@ -343,7 +343,7 @@ internal struct IndentingStringBuilder : IDisposable
     /// Writes out the individual elements of <paramref name="content"/> ensuring that there is a blank line written
     /// between each element.
     /// </summary>
-    public IndentingStringBuilder WriteBlankLineSeparated<T>(
+    public readonly IndentingStringBuilder WriteBlankLineSeparated<T>(
         IEnumerable<T> content,
         Action<IndentingStringBuilder, T> writeElement)
     {
@@ -354,8 +354,46 @@ internal struct IndentingStringBuilder : IDisposable
     }
 
     /// <inheritdoc cref="WriteBlankLineSeparated{T}(IEnumerable{T}, Action{IndentingStringBuilder, T})"/>
-    public IndentingStringBuilder WriteBlankLineSeparated<T, TArg>(
+    public readonly IndentingStringBuilder WriteBlankLineSeparated<T, TArg>(
         IEnumerable<T> content,
+        Action<IndentingStringBuilder, T, TArg> writeElement,
+        TArg arg)
+    {
+        return WriteSeparated<T, TArg>(
+            content,
+            static (@this, _) => @this.EnsureBlankLine(),
+            writeElement,
+            arg);
+    }
+
+    public readonly IndentingStringBuilder WriteSeparated<T>(
+        IEnumerable<T> content,
+        string separator,
+        Action<IndentingStringBuilder, T> writeElement)
+    {
+        return WriteSeparated(
+            content,
+            separator,
+            static (builder, element, writeElement) => writeElement(builder, element),
+            writeElement);
+    }
+
+    public readonly IndentingStringBuilder WriteSeparated<T, TArg>(
+        IEnumerable<T> content,
+        string separator,
+        Action<IndentingStringBuilder, T, TArg> writeElement,
+        TArg arg)
+    {
+        return WriteSeparated(
+            content,
+            static (@this, tuple) => @this.Write(tuple.separator),
+            static (@this, item, tuple) => tuple.writeElement(@this, item, tuple.arg),
+            (this, separator, writeElement, arg));
+    }
+
+    private readonly IndentingStringBuilder WriteSeparated<T, TArg>(
+        IEnumerable<T> content,
+        Action<IndentingStringBuilder, TArg> writeSpearator,
         Action<IndentingStringBuilder, T, TArg> writeElement,
         TArg arg)
     {
@@ -363,9 +401,10 @@ internal struct IndentingStringBuilder : IDisposable
         foreach (var item in content)
         {
             if (!first)
-                this.EnsureBlankLine();
+                writeSpearator(this, arg);
 
             writeElement(this, item, arg);
+            first = false;
         }
 
         return this;
