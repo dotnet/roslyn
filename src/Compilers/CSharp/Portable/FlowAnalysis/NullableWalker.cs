@@ -3031,23 +3031,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localFunc = node.Symbol;
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
 
-            // The starting state (`state`) is the top state (maybe null) by default,
-            // but with captured variables in the bottom state (not null).
+            // The starting state (`state`) is the top state ("maybe null").
             var state = TopState();
-            Normalize(ref state);
-            state.ForEach(
-                (slot, variables) =>
-                {
-                    var symbol = variables[slot].Symbol;
-                    if (Symbol.IsCaptured(symbol, localFunc))
-                    {
-                        SetState(ref state, slot, NullableFlowState.NotNull);
-                    }
-                },
-                _variables);
 
-            // It is joined with the state at all the local function use sites
-            // (can be unreachable if no use sites have been visited yet).
+            // Captured variables are joined with the state
+            // at all the local function use sites (`localFunctionState.StartingState`)
+            // which starts as the bottom state ("not null").
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
                 (slot, variables) =>
@@ -12110,7 +12099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.UnreachableState(variables));
+            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>
