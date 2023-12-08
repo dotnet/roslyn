@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal abstract class EditAndContinueMethodDebugInfoReader
     {
+        // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
+        internal static bool IgnoreCaseWhenComparingDocumentNames;
+
         public abstract bool IsPortable { get; }
         public abstract EditAndContinueMethodDebugInformation GetDebugInfo(MethodDefinitionHandle methodHandle);
         public abstract StandaloneSignatureHandle GetLocalSignature(MethodDefinitionHandle methodHandle);
@@ -106,12 +109,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => TryGetDocumentChecksum(_symReader, documentPath, out checksum, out algorithmId);
         }
 
-        private sealed class Portable : EditAndContinueMethodDebugInfoReader
+        private sealed class Portable(MetadataReader pdbReader) : EditAndContinueMethodDebugInfoReader
         {
-            private readonly MetadataReader _pdbReader;
-
-            public Portable(MetadataReader pdbReader)
-                => _pdbReader = pdbReader;
+            private readonly MetadataReader _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 
@@ -157,7 +157,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var documentHandle in _pdbReader.Documents)
                 {
                     var document = _pdbReader.GetDocument(documentHandle);
-                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath))
+
+                    if (_pdbReader.StringComparer.Equals(document.Name, documentPath, IgnoreCaseWhenComparingDocumentNames))
                     {
                         checksum = _pdbReader.GetBlobContent(document.Hash);
                         algorithmId = _pdbReader.GetGuid(document.HashAlgorithm);

@@ -11,16 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
-        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly, BindingDiagnosticBag diagnostics)
-            : base(containingType, name, isReadOnly: isReadOnly, hasBody: true, memberOffset, diagnostics)
+        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly)
+            : base(containingType, name, memberOffset,
+                   DeclarationModifiers.Public | DeclarationModifiers.Override | (isReadOnly ? DeclarationModifiers.ReadOnly : 0))
         {
-        }
-
-        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
-        {
-            const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
-            Debug.Assert((result & ~allowedModifiers) == 0);
-            return result;
         }
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)

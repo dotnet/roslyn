@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // First attempt to fetch diagnostics from the cache, while computing the analyzers that are not cached.
                 using var _ = ArrayBuilder<(DiagnosticAnalyzer analyzer, ActiveFileState state)>.GetInstance(out var nonCachedAnalyzersAndStates);
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                 foreach (var stateSet in stateSets)
                 {
                     var (activeFileState, existingData) = TryGetCachedDocumentAnalysisData(document, stateSet, kind, version,
@@ -75,13 +77,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         isOpenDocument, isGeneratedRazorDocument, cancellationToken, out var isAnalyzerSuppressed);
                     if (existingData.HasValue)
                     {
-                        PersistAndRaiseDiagnosticsIfNeeded(existingData.Value, stateSet.Analyzer, activeFileState);
+                        PersistAndAddDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), existingData.Value, stateSet.Analyzer, activeFileState);
                     }
                     else if (!isAnalyzerSuppressed)
                     {
                         nonCachedAnalyzersAndStates.Add((stateSet.Analyzer, activeFileState));
                     }
                 }
+
+                // Send events for cached analyzers as a batch. The preceding loop is expected to quickly aggregate
+                // results from cached analyzers, since it will not wait for analyzers that are not already complete.
+                AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
                 // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
                 if (nonCachedAnalyzersAndStates.Count > 0)
@@ -92,7 +98,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var (analyzer, state) in nonCachedAnalyzersAndStates)
                     {
                         var computedData = await ComputeDocumentAnalysisDataAsync(executor, analyzer, state, logTelemetry, cancellationToken).ConfigureAwait(false);
-                        PersistAndRaiseDiagnosticsIfNeeded(computedData, analyzer, state);
+
+                        PersistAndAddDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), computedData, analyzer, state);
+
+                        // Send events for non-cached analyzers as soon as they complete, to avoid delaying error list
+                        // updates when a subset of the analyzers takes a noticeably longer time to complete.
+                        AnalyzerService.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                     }
                 }
             }
@@ -101,18 +112,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 throw ExceptionUtilities.Unreachable();
             }
 
-            void PersistAndRaiseDiagnosticsIfNeeded(DocumentAnalysisData result, DiagnosticAnalyzer analyzer, ActiveFileState state)
+            void PersistAndAddDiagnosticsArgsIfNeeded(
+                ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+                DocumentAnalysisData result, DiagnosticAnalyzer analyzer, ActiveFileState state)
             {
                 if (result.FromCache == true)
                 {
-                    RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, result.Items);
+                    AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, result.Items);
                     return;
                 }
 
                 // no cancellation after this point.
                 state.Save(kind, result.ToPersistData());
 
-                RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, result.OldItems, result.Items);
+                AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, result.OldItems, result.Items);
             }
 
             void OnAnalysisException()
@@ -143,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
+                                        .Where(a => (forceAnalyzerRun || DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions)) && !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
 
                 CompilationWithAnalyzers? compilationWithAnalyzers = null;
 
@@ -321,13 +334,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // remove all diagnostics for the document
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                 foreach (var stateSet in stateSets)
                 {
                     // clear all doucment diagnostics
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal, raiseEvents);
+                    AddDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax);
+                    AddDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic);
+                    AddDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal);
                 }
+
+                raiseEvents(argsBuilder.ToImmutableAndClear());
             });
         }
 
@@ -348,11 +364,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // remove all diagnostics for the project
                     AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                     {
+                        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                         foreach (var stateSet in stateSets)
                         {
                             // clear all project diagnostics
-                            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet.Analyzer, raiseEvents);
+                            AddDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), projectId, solution: null, stateSet.Analyzer);
                         }
+
+                        raiseEvents(argsBuilder.ToImmutableAndClear());
                     });
                 }
             }
@@ -432,11 +451,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (project.CompilationOptions is null)
+            {
+                // Skip compilation options based checks for non-C#/VB projects.
+                return true;
+            }
+
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.project.CompilationOptions!, arg.analyzerConfigOptions?.AnalyzerOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project, analyzerConfigOptions));
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.analyzerConfigOptions?.AnalyzerOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, analyzerConfigOptions));
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -461,6 +486,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
             {
+                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                 foreach (var stateSet in stateSets)
                 {
                     var analyzer = stateSet.Analyzer;
@@ -482,14 +508,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
 
                         // remove old diagnostics
-                        RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, handleActiveFile: false, raiseEvents);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, handleActiveFile: false);
                         continue;
                     }
 
                     if (oldAnalysisResult.IsEmpty && !newAnalysisResult.IsEmpty)
                     {
                         // add new diagnostics
-                        await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
+                        argsBuilder.AddRange(await CreateProjectDiagnosticsCreatedArgsAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, CancellationToken.None).ConfigureAwait(false));
                         continue;
                     }
 
@@ -499,27 +525,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // first remove ones no longer needed.
                     var documentsToRemove = oldAnalysisResult.DocumentIds.Except(newAnalysisResult.DocumentIds);
-                    RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false, raiseEvents);
+                    AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false);
 
                     // next update or create new ones
-                    await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
+                    argsBuilder.AddRange(await CreateProjectDiagnosticsCreatedArgsAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, CancellationToken.None).ConfigureAwait(false));
                 }
+
+                raiseEvents(argsBuilder.ToImmutableAndClear());
             });
         }
 
-        private void RaiseDocumentDiagnosticsIfNeeded(TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
-            => RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, ImmutableArray<DiagnosticData>.Empty, items);
+        private void AddDocumentDiagnosticsArgsIfNeeded(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
+            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
+            => AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, ImmutableArray<DiagnosticData>.Empty, items);
 
-        private void RaiseDocumentDiagnosticsIfNeeded(
+        private void AddDocumentDiagnosticsArgsIfNeeded(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
             TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
         {
-            RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, oldItems, newItems, AnalyzerService.RaiseDiagnosticsUpdated, forceUpdate: false);
+            AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, oldItems, newItems, forceUpdate: false);
         }
 
-        private void RaiseDocumentDiagnosticsIfNeeded(
+        private void AddDocumentDiagnosticsArgsIfNeeded(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
             TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
-            DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult,
-            Action<DiagnosticsUpdatedArgs> raiseEvents)
+            DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult)
         {
             // if our old result is from build and we don't have actual data, don't try micro-optimize and always refresh diagnostics.
             // most of time, we don't actually load or hold the old data in memory from persistent storage due to perf reasons.
@@ -534,13 +565,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var oldItems = oldResult.GetDocumentDiagnostics(document.Id, kind);
             var newItems = newResult.GetDocumentDiagnostics(document.Id, kind);
 
-            RaiseDocumentDiagnosticsIfNeeded(document, analyzer, kind, oldItems, newItems, raiseEvents, forceUpdate);
+            AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, oldItems, newItems, forceUpdate);
         }
 
-        private void RaiseDocumentDiagnosticsIfNeeded(
+        private void AddDocumentDiagnosticsArgsIfNeeded(
+            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
             TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
-            Action<DiagnosticsUpdatedArgs> raiseEvents,
             bool forceUpdate)
         {
             if (!forceUpdate && oldItems.IsEmpty && newItems.IsEmpty)
@@ -549,13 +580,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            RaiseDiagnosticsCreated(document, analyzer, kind, newItems, raiseEvents);
+            AddDiagnosticsCreatedArgs(ref builder, document, analyzer, kind, newItems);
         }
 
-        private async Task RaiseProjectDiagnosticsCreatedAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticsUpdatedArgs>> CreateProjectDiagnosticsCreatedArgsAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
 
+            using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetTextDocument(documentId);
@@ -580,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult);
 
                 // we don't raise events for active file. it will be taken cared by active file analysis
                 if (stateSet.IsActiveFile(documentId))
@@ -588,18 +620,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult, raiseEvents);
-                RaiseDocumentDiagnosticsIfNeeded(document, stateSet.Analyzer, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult);
             }
 
-            RaiseDiagnosticsCreated(project, stateSet.Analyzer, newAnalysisResult.GetOtherDiagnostics(), raiseEvents);
+            AddDiagnosticsCreatedArgs(ref argsBuilder.AsRef(), project, stateSet.Analyzer, newAnalysisResult.GetOtherDiagnostics());
+
+            return argsBuilder.ToImmutableAndClear();
         }
 
-        private void RaiseProjectDiagnosticsRemoved(StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile)
         {
             foreach (var documentId in documentIds)
             {
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal, raiseEvents);
+                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal);
 
                 // we don't raise events for active file. it will be taken care of by active file analysis
                 if (!handleActiveFile && stateSet.IsActiveFile(documentId))
@@ -607,11 +641,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax, raiseEvents);
-                RaiseDiagnosticsRemoved(documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic, raiseEvents);
+                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax);
+                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic);
             }
 
-            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet.Analyzer, raiseEvents);
+            AddDiagnosticsRemovedArgs(ref builder, projectId, solution: null, stateSet.Analyzer);
         }
     }
 }

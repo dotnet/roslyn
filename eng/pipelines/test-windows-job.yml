@@ -1,5 +1,7 @@
 # Test on Windows Desktop using Helix
 parameters:
+- name: helixQueueName
+  type: string
 - name: testRunName
   type: string
   default: ''
@@ -13,6 +15,9 @@ parameters:
   type: string
   default: 'Debug'
 - name: testArguments
+  type: string
+  default: ''
+- name: helixApiAccessToken
   type: string
   default: ''
 
@@ -44,7 +49,7 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 

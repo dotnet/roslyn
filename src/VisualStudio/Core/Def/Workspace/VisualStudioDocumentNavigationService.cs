@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var vsTextSpan = GetVsTextSpan(text, textSpan, allowInvalidSpan);
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
             if (boundedPosition != position)
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             static async Task<TextSpan> GetTextSpanFromLineAndOffsetAsync(Document document, int lineNumber, int offset, CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var linePosition = new LinePosition(lineNumber, offset);
                 return text.Lines.GetTextSpan(new LinePositionSpan(linePosition, linePosition));
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             static async Task<TextSpan> GetTextSpanFromPositionAsync(Document document, int position, int virtualSpace, CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 text.GetLineAndOffset(position, out var lineNumber, out var offset);
 
                 offset += virtualSpace;
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 // Reacquire the SourceText for it as well.  This will be a practically free as this just wraps
                 // the open text buffer.  So it's ok to do this in the navigation step.
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // Map the given span to the right location in the buffer.  If we're in a projection scenario, ensure
                 // the span reflects that.

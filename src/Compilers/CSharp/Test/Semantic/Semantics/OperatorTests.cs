@@ -3200,8 +3200,9 @@ class C
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            diagnostics.Free();
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())

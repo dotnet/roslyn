@@ -10,13 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -25,42 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private partial class CSharpCodeGenerator
         {
-            public sealed class MultipleStatementsCodeGenerator : CSharpCodeGenerator
+            public sealed class MultipleStatementsCodeGenerator(
+                CSharpSelectionResult selectionResult,
+                AnalyzerResult analyzerResult,
+                CSharpCodeGenerationOptions options,
+                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
-                public MultipleStatementsCodeGenerator(
-                    InsertionPoint insertionPoint,
-                    SelectionResult selectionResult,
-                    AnalyzerResult analyzerResult,
-                    CSharpCodeGenerationOptions options,
-                    bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
-                {
-                }
-
-                public static bool IsExtractMethodOnMultipleStatements(SelectionResult code)
-                {
-                    var result = (CSharpSelectionResult)code;
-                    var first = result.GetFirstStatement();
-                    var last = result.GetLastStatement();
-
-                    if (first != last)
-                    {
-                        var firstUnderContainer = result.GetFirstStatementUnderContainer();
-                        var lastUnderContainer = result.GetLastStatementUnderContainer();
-                        Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
+                protected override SyntaxToken CreateMethodName()
+                    => GenerateMethodNameForStatementGenerators();
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
                     var firstSeen = false;
-                    var firstStatementUnderContainer = CSharpSelectionResult.GetFirstStatementUnderContainer();
-                    var lastStatementUnderContainer = CSharpSelectionResult.GetLastStatementUnderContainer();
+                    var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
+                    var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
 
                     using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
                     foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
@@ -89,24 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return list.ToImmutable();
                 }
 
-                protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
-                {
-                    var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                    if (callSiteContainer != null)
-                    {
-                        return callSiteContainer;
-                    }
-                    else
-                    {
-                        var firstStatement = CSharpSelectionResult.GetFirstStatementUnderContainer();
-                        var container = firstStatement.Parent;
-                        if (container is GlobalStatementSyntax)
-                            return container.Parent;
-
-                        return container;
-                    }
-                }
-
                 private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
                 {
                     Contract.ThrowIfNull(node);
@@ -122,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                    => CSharpSelectionResult.GetFirstStatementUnderContainer();
+                    => this.SelectionResult.GetFirstStatementUnderContainer();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                    => CSharpSelectionResult.GetLastStatementUnderContainer();
+                    => this.SelectionResult.GetLastStatementUnderContainer();
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {

@@ -14,18 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
 {
     internal partial class CSharpOrganizingService
     {
-        private class Rewriter : CSharpSyntaxRewriter
+        private class Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken) : CSharpSyntaxRewriter
         {
-            private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter;
-            private readonly SemanticModel _semanticModel;
-            private readonly CancellationToken _cancellationToken;
-
-            public Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
-                _semanticModel = semanticModel;
-                _cancellationToken = cancellationToken;
-            }
+            private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
+            private readonly SemanticModel _semanticModel = semanticModel;
+            private readonly CancellationToken _cancellationToken = cancellationToken;
 
             public override SyntaxNode DefaultVisit(SyntaxNode node)
             {

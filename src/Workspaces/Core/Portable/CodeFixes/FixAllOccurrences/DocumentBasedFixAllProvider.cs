@@ -73,13 +73,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
             => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,
-                    originalFixAllContext.GetProgressTracker(),
+                    originalFixAllContext.Progress,
                     this.GetFixAllTitle(originalFixAllContext),
                     DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> DetermineDiagnosticsAndGetFixedDocumentsAsync(
             FixAllContext fixAllContext,
-            IProgressTracker progressTracker)
+            IProgress<CodeAnalysisProgress> progressTracker)
         {
             // First, determine the diagnostics to fix.
             var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
         {
             using var _ = progressTracker.ItemCompletedScope();
             return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, IProgressTracker progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
+            FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         // For documents that support syntax, grab the tree so that we can clean it up later.  If it's a
                         // language that doesn't support that, then just grab the text.
                         var node = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                        var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                         return (document.Id, (node, text));
                     }, cancellationToken));

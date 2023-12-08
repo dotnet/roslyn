@@ -18,19 +18,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<ISourceGenerator> _generators;
+        private readonly ImmutableArray<MetadataReference> _additionalReferences;
         internal Compilation Compilation;
         internal AnalyzerOptions AnalyzerOptions;
+        internal ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> DescriptorsWithInfo;
+        internal double TotalAnalyzerExecutionTime;
 
-        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null)
-            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, loader)
+        public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, ImmutableArray<MetadataReference> additionalReferences = default)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, loader, additionalReferences: additionalReferences)
         {
         }
 
-        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null)
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, GeneratorDriverCache driverCache = null, ImmutableArray<MetadataReference> additionalReferences = default)
             : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader(), driverCache)
         {
             _analyzers = analyzers.NullToEmpty();
             _generators = generators.NullToEmpty();
+            _additionalReferences = additionalReferences.NullToEmpty();
         }
 
         private static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null) => RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory);
@@ -78,6 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
         {
             Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
+
+            if (!_additionalReferences.IsEmpty)
+            {
+                Compilation = Compilation.AddReferences(_additionalReferences);
+            }
+
             return Compilation;
         }
 
@@ -88,5 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
             return AnalyzerOptions;
         }
+
+        protected override void AddAnalyzerDescriptorsAndExecutionTime(ErrorLogger errorLogger, ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptorsWithInfo, double totalAnalyzerExecutionTime)
+        {
+            DescriptorsWithInfo = descriptorsWithInfo;
+            TotalAnalyzerExecutionTime = totalAnalyzerExecutionTime;
+
+            base.AddAnalyzerDescriptorsAndExecutionTime(errorLogger, descriptorsWithInfo, totalAnalyzerExecutionTime);
+        }
+
+        public string GetAnalyzerExecutionTimeFormattedString()
+            => ReportAnalyzerUtil.GetFormattedAnalyzerExecutionTime(TotalAnalyzerExecutionTime, Culture).Trim();
     }
 }

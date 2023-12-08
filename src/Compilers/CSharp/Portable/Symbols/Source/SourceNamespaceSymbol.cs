@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<Location> _locations;
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name)
+        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamespaceOrTypeSymbol> members;
             return this.GetNameToMembersMap().TryGetValue(name, out members)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance);
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
             ImmutableArray<NamedTypeSymbol> members;
             return this.GetNameToTypeMembersMap().TryGetValue(name, out members)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray((s, arity) => s.Arity == arity, arity);
         }
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> GetNameToMembersMap()
         {
             if (_nameToMembersMap == null)
             {
@@ -243,67 +243,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _nameToMembersMap;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> GetNameToTypeMembersMap()
         {
             if (_nameToTypeMembersMap == null)
             {
                 // NOTE: This method depends on MakeNameToMembersMap() on creating a proper
                 // NOTE: type of the array, see comments in MakeNameToMembersMap() for details
-                Interlocked.CompareExchange(ref _nameToTypeMembersMap, GetTypesFromMemberMap(GetNameToMembersMap()), null);
+                Interlocked.CompareExchange(
+                    ref _nameToTypeMembersMap,
+                    ImmutableArrayExtensions.GetTypesFromMemberMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol>(
+                        GetNameToMembersMap(), ReadOnlyMemoryOfCharComparer.Instance),
+                    comparand: null);
             }
 
             return _nameToTypeMembersMap;
         }
 
-        private static Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypesFromMemberMap(Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> map)
-        {
-            var dictionary = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
-
-            foreach (var kvp in map)
-            {
-                ImmutableArray<NamespaceOrTypeSymbol> members = kvp.Value;
-
-                bool hasType = false;
-                bool hasNamespace = false;
-
-                foreach (var symbol in members)
-                {
-                    if (symbol.Kind == SymbolKind.NamedType)
-                    {
-                        hasType = true;
-                        if (hasNamespace)
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(symbol.Kind == SymbolKind.Namespace);
-                        hasNamespace = true;
-                        if (hasType)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (hasType)
-                {
-                    if (hasNamespace)
-                    {
-                        dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().AsImmutable());
-                    }
-                    else
-                    {
-                        dictionary.Add(kvp.Key, members.As<NamedTypeSymbol>());
-                    }
-                }
-            }
-
-            return dictionary;
-        }
-
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
+        private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as
             // NOTE: values if the name is mapped into an array of named types, which is frequently
@@ -314,13 +270,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: a name maps into values collection containing types only instead of allocating another
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
-            var builder = new NameToSymbolMapBuilder();
+            var builder = s_nameToObjectPool.Allocate();
             foreach (var declaration in _mergedDeclaration.Children)
             {
-                builder.Add(BuildSymbol(declaration, diagnostics));
+                NamespaceOrTypeSymbol symbol = BuildSymbol(declaration, diagnostics);
+                ImmutableArrayExtensions.AddToMultiValueDictionaryBuilder(builder, symbol.Name.AsMemory(), symbol);
             }
 
-            var result = builder.CreateMap();
+            var result = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>>(builder.Count, ReadOnlyMemoryOfCharComparer.Instance);
+            ImmutableArrayExtensions.CreateNameToMembersMap<ReadOnlyMemory<char>, NamespaceOrTypeSymbol, NamedTypeSymbol, NamespaceSymbol>(builder, result);
             builder.Free();
 
             CheckMembers(this, result, diagnostics);
@@ -328,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -343,7 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Array.Clear(memberOfArity, 0, memberOfArity.Length);
                 foreach (var symbol in result[name])
                 {
-                    var nts = symbol as NamedTypeSymbol;
+                    var nts = symbol as SourceMemberContainerTypeSymbol;
+                    // It should be impossible to have a type member of a source namespace symbol which is not a SourceMemberContainerTypeSymbol
+                    Debug.Assert((object)nts != null || symbol is not TypeSymbol);
+
                     var arity = ((object)nts != null) ? nts.Arity : 0;
                     if (arity >= memberOfArity.Length)
                     {
@@ -378,19 +339,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
+                        // To decide whether type declarations are duplicates, we need to access members which are only meaningful on source original definition symbols.
+                        Debug.Assert((object)nts?.OriginalDefinition == nts && (object)other.OriginalDefinition == other);
+
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(left, right) || isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left, SourceMemberContainerTypeSymbol right) when isFileLocalTypeInSeparateFileFrom(right, left):
+                            case ({ } left1, NamespaceOrTypeSymbol right1) when isFileLocalTypeInSeparateFileFrom(left1, right1):
                                 // no error
                                 break;
-                            case (SourceNamedTypeSymbol { IsFileLocal: true }, _) or (_, SourceNamedTypeSymbol { IsFileLocal: true }):
-                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
+                            case ({ IsFileLocal: true }, _) or (_, SourceMemberContainerTypeSymbol { IsFileLocal: true }):
+                                diagnostics.Add(ErrorCode.ERR_FileLocalDuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
-                            case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
+                            case ({ IsPartial: true }, SourceMemberContainerTypeSymbol { IsPartial: true }):
                                 diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.GetFirstLocationOrNone(), symbol);
                                 break;
                             default:
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), name, @namespace);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.GetFirstLocationOrNone(), symbol.Name, @namespace);
                                 break;
                         }
                     }
@@ -409,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool isFileLocalTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileLocalType, SourceNamedTypeSymbol otherSymbol)
+            static bool isFileLocalTypeInSeparateFileFrom(SourceMemberContainerTypeSymbol possibleFileLocalType, NamespaceOrTypeSymbol otherSymbol)
             {
                 if (!possibleFileLocalType.IsFileLocal)
                 {
@@ -417,12 +382,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var leftTree = possibleFileLocalType.MergedDeclaration.Declarations[0].Location.SourceTree;
-                if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                if (otherSymbol is SourceNamedTypeSymbol { MergedDeclaration.NameLocations: var typeNameLocations })
                 {
-                    return false;
+                    return !typeNameLocations.Any(static (loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
+                }
+                else if (otherSymbol is SourceNamespaceSymbol { MergedDeclaration.NameLocations: var namespaceNameLocations })
+                {
+                    return !namespaceNameLocations.Any(static (loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree);
                 }
 
-                return true;
+                throw ExceptionUtilities.UnexpectedValue(otherSymbol);
             }
         }
 
@@ -513,80 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        private readonly struct NameToSymbolMapBuilder
-        {
-            private readonly PooledDictionary<string, object> _dictionary = PooledDictionary<string, object>.GetInstance();
-
-            public NameToSymbolMapBuilder()
-            {
-            }
-
-            public void Free()
-            {
-                _dictionary.Free();
-            }
-
-            public void Add(NamespaceOrTypeSymbol symbol)
-            {
-                string name = symbol.Name;
-                object item;
-                if (_dictionary.TryGetValue(name, out item))
-                {
-                    var builder = item as ArrayBuilder<NamespaceOrTypeSymbol>;
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-                        builder.Add((NamespaceOrTypeSymbol)item);
-                        _dictionary[name] = builder;
-                    }
-                    builder.Add(symbol);
-                }
-                else
-                {
-                    _dictionary[name] = symbol;
-                }
-            }
-
-            public Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> CreateMap()
-            {
-                var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count);
-
-                foreach (var kvp in _dictionary)
-                {
-                    object value = kvp.Value;
-                    ImmutableArray<NamespaceOrTypeSymbol> members;
-
-                    var builder = value as ArrayBuilder<NamespaceOrTypeSymbol>;
-                    if (builder != null)
-                    {
-                        Debug.Assert(builder.Count > 1);
-                        bool hasNamespaces = false;
-                        for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
-                        {
-                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
-                        }
-
-                        members = hasNamespaces
-                            ? builder.ToImmutable()
-                            : StaticCast<NamespaceOrTypeSymbol>.From(builder.ToDowncastedImmutable<NamedTypeSymbol>());
-
-                        builder.Free();
-                    }
-                    else
-                    {
-                        NamespaceOrTypeSymbol symbol = (NamespaceOrTypeSymbol)value;
-                        members = symbol.Kind == SymbolKind.Namespace
-                            ? ImmutableArray.Create<NamespaceOrTypeSymbol>(symbol)
-                            : StaticCast<NamespaceOrTypeSymbol>.From(ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)symbol));
-                    }
-
-                    result.Add(kvp.Key, members);
-                }
-
-                return result;
-            }
         }
     }
 }

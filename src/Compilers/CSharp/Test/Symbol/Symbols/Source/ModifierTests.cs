@@ -179,10 +179,7 @@ struct S<T> where T : struct
 public class Base {
     public void M(ref readonly int X) {
     }
-}").VerifyDiagnostics(
-                // (3,23): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
-                //     public void M(ref readonly int X) {
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 23));
+}").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -193,9 +190,9 @@ public class Base {
     public void M(readonly ref int X) {
     }
 }").VerifyDiagnostics(
-            // (3,19): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+            // (3,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     public void M(readonly ref int X) {
-            Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 19));
+            Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 19));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -206,9 +203,9 @@ public class Base {
     public void M(readonly int X) {
     }
 }").VerifyDiagnostics(
-                // (3,19): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (3,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //     public void M(readonly int X) {
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(3, 19));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 19));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -221,9 +218,9 @@ public class Base {
         var v = (readonly int i) => { };
     }
 }").VerifyDiagnostics(
-                // (5,18): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (5,18): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //         var v = (readonly int i) => { };
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(5, 18));
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -235,10 +232,7 @@ public class Base {
     {
         var v = (ref readonly int i) => { };
     }
-}").VerifyDiagnostics(
-                // (5,22): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
-                //         var v = (ref readonly int i) => { };
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(5, 22));
+}").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(63758, "https://github.com/dotnet/roslyn/issues/63758")]
@@ -251,9 +245,9 @@ public class Base {
         var v = (readonly ref int i) => { };
     }
 }").VerifyDiagnostics(
-                // (5,18): error CS9068: 'readonly' is not supported as a parameter modifier. Did you mean 'in'?
+                // (5,18): error CS9190: 'readonly' modifier must be specified after 'ref'.
                 //         var v = (readonly ref int i) => { };
-                Diagnostic(ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn, "readonly").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(5, 18));
         }
 
         [Fact]

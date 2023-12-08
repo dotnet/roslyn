@@ -165,7 +165,7 @@ public class C2
                     exception.Message,
                     (IFormattable)$@"{new LazyToString(() =>
                         exception.ToString().Substring(0, exception.ToString().IndexOf("---")) + "-----" + Environment.NewLine + Environment.NewLine +
-                        string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, AnalyzerName, exception.ToString() + Environment.NewLine + "-----" + Environment.NewLine))}")
+                        string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, AnalyzerName, exception.GetType().ToString(), exception.Message, exception.ToString() + Environment.NewLine + "-----"))}")
                 .WithLocation(1, 1);
 
             await VerifyCSharpAsync("public class C { }",

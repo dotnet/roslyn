@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
     [Method(Methods.WorkspaceDidChangeConfigurationName)]
     internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
+        private bool _supportWorkspaceConfiguration;
         private readonly ILspLogger _lspLogger;
         private readonly IGlobalOptionService _globalOptionService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
@@ -66,6 +67,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task RefreshOptionsAsync(CancellationToken cancellationToken)
         {
+            // We rely on the workspace/configuration to get the option values. If client doesn't support this, don't update.
+            if (!_supportWorkspaceConfiguration)
+            {
+                return;
+            }
+
             var configurationsFromClient = await GetConfigurationsAsync(cancellationToken).ConfigureAwait(false);
             if (configurationsFromClient.IsEmpty)
             {
@@ -189,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         /// Example:Full name of <see cref="ImplementTypeOptionsStorage.InsertionBehavior"/> would be:
         /// implement_type.dotnet_insertion_behavior
         /// </remarks>
-        private static string GenerateFullNameForOption(IOption2 option)
+        internal static string GenerateFullNameForOption(IOption2 option)
         {
             var optionGroupName = GenerateOptionGroupName(option);
             // All options send to the client should have group name and config name.

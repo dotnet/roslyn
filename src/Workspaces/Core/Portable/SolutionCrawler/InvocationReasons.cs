@@ -10,20 +10,17 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [DataContract]
-    internal partial struct InvocationReasons : IEnumerable<string>
+    internal partial struct InvocationReasons(ImmutableHashSet<string> reasons) : IEnumerable<string>
     {
         public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
-        private readonly ImmutableHashSet<string> _reasons;
+        private readonly ImmutableHashSet<string> _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public InvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
         {
         }
-
-        public InvocationReasons(ImmutableHashSet<string> reasons)
-            => _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public bool IsEmpty => _reasons.IsEmpty;
 

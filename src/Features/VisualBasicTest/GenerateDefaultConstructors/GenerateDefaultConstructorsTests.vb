@@ -148,7 +148,6 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
-
 Class Program
     Inherits Exception
 
@@ -177,7 +176,6 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
-
 Class Program
     Inherits Exception
 
@@ -260,7 +258,6 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
-
 Class Program
     Inherits Exception
     Public Sub New()

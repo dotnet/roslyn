@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
                 return null;
             }
 
-            if (!methodDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.AsyncKeyword)))
+            if (!methodDeclaration.Modifiers.Any(SyntaxKind.AsyncKeyword))
             {
                 return null;
             }

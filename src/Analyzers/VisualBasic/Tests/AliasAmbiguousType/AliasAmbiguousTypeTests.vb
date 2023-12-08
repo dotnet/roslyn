@@ -139,7 +139,6 @@ End Class
             Dim expectedMarkup = "
 Imports N1, N2
 Imports Goo = N1.Goo
-
 Namespace N1
     Module K
         Class Goo
@@ -178,7 +177,6 @@ End Class
             Dim expectedMarkup = "
 Imports N1, N2
 Imports I1 = N1.I1
-
 Namespace N1
     Interface I1
     End Interface

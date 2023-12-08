@@ -51,14 +51,14 @@
     &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
   &lt;/PropertyGroup&gt;
     </source>
-        <target state="new">Add the following PropertyGroup to your MSBuild project file to enable IDE0005 (Remove unnecessary usings/imports) on build:
+        <target state="translated">Adicione o PropertyGroup a seguir ao arquivo de projeto do MSBuild para habilitar IDE0005 (Remover usos/importações desnecessários) no build:
   &lt;PropertyGroup&gt;
     &lt;!--
-      Make sure any documentation comments which are included in code get checked for syntax during the build, but do
-      not report warnings for missing comments.
-      CS1573: Parameter 'parameter' has no matching param tag in the XML comment for 'parameter' (but other parameters do)
-      CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
-      CS1712: Type parameter 'type_parameter' has no matching typeparam tag in the XML comment on 'type_or_member' (but other type parameters do)
+      Verifique se todos os comentários de documentação incluídos no código são verificados para sintaxe durante a compilação, mas
+      não relatar avisos para comentários ausentes.
+      CS1573: o parâmetro 'parameter' não tem marca de parâmetro correspondente no comentário XML para 'parameter' (mas outros parâmetros têm)
+      CS1591: Comentário XML ausente para o tipo ou membro publicamente visível 'Type_or_Member'
+      CS1712: o parâmetro de tipo 'type_parameter' não tem marca typeparam correspondente no comentário XML em 'type_or_member' (mas outros parâmetros de tipo têm)
     --&gt;
     &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;
     &lt;NoWarn&gt;$(NoWarn),1573,1591,1712&lt;/NoWarn&gt;
@@ -343,12 +343,12 @@
       </trans-unit>
       <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true">
         <source>Set MSBuild property 'GenerateDocumentationFile' to 'true'</source>
-        <target state="new">Set MSBuild property 'GenerateDocumentationFile' to 'true'</target>
+        <target state="translated">Definir a propriedade 'GenerateDocumentationFile' do MSBuild como 'true'</target>
         <note />
       </trans-unit>
       <trans-unit id="Set_MSBuild_Property_GenerateDocumentationFile_to_true_in_project_file_to_enable_IDE0005_Remove_unnecessary_usings_imports_on_build">
         <source>Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</source>
-        <target state="new">Set MSBuild property 'GenerateDocumentationFile' to 'true' in project file to enable IDE0005 (Remove unnecessary usings/imports) on build</target>
+        <target state="translated">Defina a propriedade 'GenerateDocumentationFile' do MSBuild como 'true' no arquivo de projeto para habilitar IDE0005 (Remover usos/importações desnecessários) no build</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_LINQ_expression">

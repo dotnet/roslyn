@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -10001,7 +10002,7 @@ index: PropertyIndex);
                         public (int y, int z) X { get; internal set; }
                     }
                 }
-                """ + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+                """ + TestResources.NetFX.ValueTuple.tuplelib_cs, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact]
@@ -10045,7 +10046,7 @@ index: PropertyIndex);
                     {
                     }
                 }
-                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact]
@@ -10091,7 +10092,7 @@ index: PropertyIndex);
                     {
                     }
                 }
-                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+                """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9090")]
@@ -11065,15 +11066,77 @@ $@"class Program
         public async Task TestMissingWhenGeneratingFunctionPointer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"using System;
+                """
+                using System;
 
-public unsafe class Bar
-{
-    public static ZZZ()
-    {
-         delegate*<void> i = &[|Goo|];
-    }
-}");
+                public unsafe class Bar
+                {
+                    public static ZZZ()
+                    {
+                         delegate*<void> i = &[|Goo|];
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+        public async Task TestImplicitObjectCreationExpression()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class Example
+                {
+                    public Example(int argument) { }
+
+                    void M()
+                    {
+                        Example e = new([|_field|]);
+                    }
+                }
+                """,
+                """
+                class Example
+                {
+                    private int _field;
+
+                    public Example(int argument) { }
+
+                    void M()
+                    {
+                        Example e = new(_field);
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68322")]
+        public async Task TestImplicitCollectionCreationExpression()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class Example
+                {
+                    void M()
+                    {
+                        List<int> list = new() { [|_field|] };
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class Example
+                {
+                    private int _field;
+
+                    void M()
+                    {
+                        List<int> list = new() { [|_field|] };
+                    }
+                }
+                """);
         }
     }
 }

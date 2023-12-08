@@ -64,46 +64,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact]
         public async Task NameCref()
         {
-            var text = @"using System;
-namespace Goo
-{
-    /// <see cref=""$$""/> 
-    class Program
-    {
-    }
-}";
+            var text = """
+                using System;
+                namespace Goo
+                {
+                    /// <see cref="$$"/> 
+                    class Program
+                    {
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "AccessViolationException");
         }
 
         [Fact]
         public async Task QualifiedCref()
         {
-            var text = @"using System;
-namespace Goo
-{
+            var text = """
+                using System;
+                namespace Goo
+                {
 
-    class Program
-    {
-        /// <see cref=""Program.$$""/> 
-        void goo() { }
-    }
-}";
+                    class Program
+                    {
+                        /// <see cref="Program.$$"/> 
+                        void goo() { }
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "goo");
         }
 
         [Fact]
         public async Task CrefArgumentList()
         {
-            var text = @"using System;
-namespace Goo
-{
+            var text = """
+                using System;
+                namespace Goo
+                {
 
-    class Program
-    {
-        /// <see cref=""Program.goo($$""/> 
-        void goo(int i) { }
-    }
-}";
+                    class Program
+                    {
+                        /// <see cref="Program.goo($$"/> 
+                        void goo(int i) { }
+                    }
+                }
+                """;
             await VerifyItemIsAbsentAsync(text, "goo(int)");
             await VerifyItemExistsAsync(text, "int");
         }
@@ -111,60 +117,67 @@ namespace Goo
         [Fact]
         public async Task CrefTypeParameterInArgumentList()
         {
-            var text = @"using System;
-namespace Goo
-{
+            var text = """
+                using System;
+                namespace Goo
+                {
 
-    class Program<T>
-    {
-        /// <see cref=""Program{Q}.goo($$""/> 
-        void goo(T i) { }
-    }
-}";
+                    class Program<T>
+                    {
+                        /// <see cref="Program{Q}.goo($$"/> 
+                        void goo(T i) { }
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "Q");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
         public async Task PrivateMember()
         {
-            var text = @"using System;
-namespace Goo
-{
-    /// <see cref=""C.$$""/> 
-    class Program<T>
-    {
-    }
+            var text = """
+                using System;
+                namespace Goo
+                {
+                    /// <see cref="C.$$"/> 
+                    class Program<T>
+                    {
+                    }
 
-    class C
-    {
-        private int Private;
-        public int Public;
-    }
-}";
+                    class C
+                    {
+                        private int Private;
+                        public int Public;
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "Private");
         }
 
         [Fact]
         public async Task AfterSingleQuote()
         {
-            var text = @"using System;
-namespace Goo
-{
-    /// <see cref='$$'/> 
-    class Program
-    {
-    }
-}";
+            var text = """
+                using System;
+                namespace Goo
+                {
+                    /// <see cref='$$'/> 
+                    class Program
+                    {
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "Exception");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         public async Task EscapePredefinedTypeName()
         {
-            var text = @"using System;
-/// <see cref=""@vo$$""/>
-class @void { }
-";
+            var text = """
+                using System;
+                /// <see cref="@vo$$"/>
+                class @void { }
+                """;
             await VerifyItemExistsAsync(text, "@void");
         }
 
@@ -172,15 +185,15 @@ class @void { }
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         public async Task ShowParameterNames()
         {
-            var text = @"/// <see cref=""C.$$""/>
-class C
-{
-    void M(int x) { }
-    void M(ref long x) { }
-    void M<T>(T x) { }
-}
-
-";
+            var text = """
+                /// <see cref="C.$$"/>
+                class C
+                {
+                    void M(int x) { }
+                    void M(ref long x) { }
+                    void M<T>(T x) { }
+                }
+                """;
             await VerifyItemExistsAsync(text, "M(int)");
             await VerifyItemExistsAsync(text, "M(ref long)");
             await VerifyItemExistsAsync(text, "M{T}(T)");
@@ -189,34 +202,34 @@ class C
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
         public async Task ShowTypeParameterNames()
         {
-            var text = @"/// <see cref=""C$$""/>
-class C<TGoo>
-{
-    void M(int x) { }
-    void M(long x) { }
-    void M(string x) { }
-}
-
-";
+            var text = """
+                /// <see cref="C$$"/>
+                class C<TGoo>
+                {
+                    void M(int x) { }
+                    void M(long x) { }
+                    void M(string x) { }
+                }
+                """;
             await VerifyItemExistsAsync(text, "C{TGoo}");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
         public async Task ShowConstructors()
         {
-            var text = @"using System;
+            var text = """
+                using System;
 
-/// <see cref=""C.$$""/>
-class C<T>
-{
-    public C(int x) { }
+                /// <see cref="C.$$"/>
+                class C<T>
+                {
+                    public C(int x) { }
 
-    public C() { }
+                    public C() { }
 
-    public C(T x) { }
-}
-
-";
+                    public C(T x) { }
+                }
+                """;
             await VerifyItemExistsAsync(text, "C()");
             await VerifyItemExistsAsync(text, "C(T)");
             await VerifyItemExistsAsync(text, "C(int)");
@@ -225,73 +238,72 @@ class C<T>
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
         public async Task NoParamsModifier()
         {
-            var text = @"/// <summary>
-/// <see cref=""C.$$""/>
-/// </summary>
-class C
-        {
-            void M(int x) { }
-            void M(params long[] x) { }
-        }
-
-
-";
+            var text = """
+                /// <summary>
+                /// <see cref="C.$$"/>
+                /// </summary>
+                class C
+                        {
+                            void M(int x) { }
+                            void M(params long[] x) { }
+                        }
+                """;
             await VerifyItemExistsAsync(text, "M(long[])");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         public async Task UnqualifiedTypes()
         {
-            var text = @"
-using System.Collections.Generic;
-/// <see cref=""List{T}.$$""/>
-class C { }
-";
+            var text = """
+                using System.Collections.Generic;
+                /// <see cref="List{T}.$$"/>
+                class C { }
+                """;
             await VerifyItemExistsAsync(text, "Enumerator");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
         public async Task CommitUnqualifiedTypes()
         {
-            var text = @"
-using System.Collections.Generic;
-/// <see cref=""List{T}.Enum$$""/>
-class C { }
-";
+            var text = """
+                using System.Collections.Generic;
+                /// <see cref="List{T}.Enum$$"/>
+                class C { }
+                """;
 
-            var expected = @"
-using System.Collections.Generic;
-/// <see cref=""List{T}.Enumerator ""/>
-class C { }
-";
+            var expected = """
+                using System.Collections.Generic;
+                /// <see cref="List{T}.Enumerator "/>
+                class C { }
+                """;
             await VerifyProviderCommitAsync(text, "Enumerator", expected, ' ');
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
         public async Task SuggestOperators()
         {
-            var text = @"
-class Test
-{
-    /// <see cref=""$$""/>
-    public static Test operator !(Test t)
-    {
-        return new Test();
-    }
-    public static int operator +(Test t1, Test t2) // Invoke FAR here on operator
-    {
-        return 1;
-    }
-    public static bool operator true(Test t)
-    {
-        return true;
-    }
-    public static bool operator false(Test t)
-    {
-        return false;
-    }
-}
-";
+            var text = """
+                class Test
+                {
+                    /// <see cref="$$"/>
+                    public static Test operator !(Test t)
+                    {
+                        return new Test();
+                    }
+                    public static int operator +(Test t1, Test t2) // Invoke FAR here on operator
+                    {
+                        return 1;
+                    }
+                    public static bool operator true(Test t)
+                    {
+                        return true;
+                    }
+                    public static bool operator false(Test t)
+                    {
+                        return false;
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "operator !(Test)");
             await VerifyItemExistsAsync(text, "operator +(Test, Test)");
             await VerifyItemExistsAsync(text, "operator true(Test)");
@@ -301,49 +313,51 @@ class Test
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
         public async Task SuggestIndexers()
         {
-            var text = @"
-/// <see cref=""thi$$""/>
-class Program
-{
-    int[] arr;
+            var text = """
+                /// <see cref="thi$$"/>
+                class Program
+                {
+                    int[] arr;
 
-    public int this[int i]
-    {
-        get { return arr[i]; }
-    }
-}
-";
+                    public int this[int i]
+                    {
+                        get { return arr[i]; }
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "this[int]");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
         public async Task CommitEscapedPredefinedTypeName()
         {
-            var text = @"using System;
-/// <see cref=""@vo$$""/>
-class @void { }
-";
+            var text = """
+                using System;
+                /// <see cref="@vo$$"/>
+                class @void { }
+                """;
 
-            var expected = @"using System;
-/// <see cref=""@void ""/>
-class @void { }
-";
+            var expected = """
+                using System;
+                /// <see cref="@void "/>
+                class @void { }
+                """;
             await VerifyProviderCommitAsync(text, "@void", expected, ' ');
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
         public async Task RefOutModifiers()
         {
-            var text = @"/// <summary>
-/// <see cref=""C.$$""/>
-/// </summary>
-class C
-{
-    void M(ref int x) { }
-    void M(out long x) { }
-}
-
-";
+            var text = """
+                /// <summary>
+                /// <see cref="C.$$"/>
+                /// </summary>
+                class C
+                {
+                    void M(ref int x) { }
+                    void M(out long x) { }
+                }
+                """;
             await VerifyItemExistsAsync(text, "M(ref int)");
             await VerifyItemExistsAsync(text, "M(out long)");
         }
@@ -351,28 +365,30 @@ class C
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673587")]
         public async Task NestedNamespaces()
         {
-            var text = @"namespace N
-{
-    class C
-    {
-        void sub() { }
-    }
-    namespace N
-    {
-        class C
-        { }
-    }
-}
-class Program
-{
-    /// <summary>
-    /// <see cref=""N.$$""/> // type N. here
-    /// </summary>
-    static void Main(string[] args)
-    {
+            var text = """
+                namespace N
+                {
+                    class C
+                    {
+                        void sub() { }
+                    }
+                    namespace N
+                    {
+                        class C
+                        { }
+                    }
+                }
+                class Program
+                {
+                    /// <summary>
+                    /// <see cref="N.$$"/> // type N. here
+                    /// </summary>
+                    static void Main(string[] args)
+                    {
 
-    }
-}";
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(text, "N");
             await VerifyItemExistsAsync(text, "C");
         }
@@ -380,51 +396,52 @@ class Program
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         public async Task PermitTypingTypeParameters()
         {
-            var text = @"
-using System.Collections.Generic;
-/// <see cref=""List$$""/>
-class C { }
-";
+            var text = """
+                using System.Collections.Generic;
+                /// <see cref="List$$"/>
+                class C { }
+                """;
 
-            var expected = @"
-using System.Collections.Generic;
-/// <see cref=""List{""/>
-class C { }
-";
+            var expected = """
+                using System.Collections.Generic;
+                /// <see cref="List{"/>
+                class C { }
+                """;
             await VerifyProviderCommitAsync(text, "List{T}", expected, '{');
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
         public async Task PermitTypingParameterTypes()
         {
-            var text = @"
-using System.Collections.Generic;
-/// <see cref=""goo$$""/>
-class C 
-{ 
-    public void goo(int x) { }
-}
-";
+            var text = """
+                using System.Collections.Generic;
+                /// <see cref="goo$$"/>
+                class C 
+                { 
+                    public void goo(int x) { }
+                }
+                """;
 
-            var expected = @"
-using System.Collections.Generic;
-/// <see cref=""goo(""/>
-class C 
-{ 
-    public void goo(int x) { }
-}
-";
+            var expected = """
+                using System.Collections.Generic;
+                /// <see cref="goo("/>
+                class C 
+                { 
+                    public void goo(int x) { }
+                }
+                """;
             await VerifyProviderCommitAsync(text, "goo(int)", expected, '(');
         }
 
         [Fact]
         public async Task CrefCompletionSpeculatesOutsideTrivia()
         {
-            var text = @"
-/// <see cref=""$$
-class C
-{
-}";
+            var text = """
+                /// <see cref="$$
+                class C
+                {
+                }
+                """;
             using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
             var called = false;
 
@@ -451,14 +468,14 @@ class C
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]
         public async Task SpecialTypeNames()
         {
-            var text = @"
-using System;
-/// <see cref=""$$""/>
-class C 
-{ 
-    public void goo(int x) { }
-}
-";
+            var text = """
+                using System;
+                /// <see cref="$$"/>
+                class C 
+                { 
+                    public void goo(int x) { }
+                }
+                """;
 
             await VerifyItemExistsAsync(text, "uint");
             await VerifyItemExistsAsync(text, "UInt32");
@@ -467,14 +484,14 @@ class C
         [Fact]
         public async Task NoSuggestionAfterEmptyCref()
         {
-            var text = @"
-using System;
-/// <see cref="""" $$
-class C 
-{ 
-    public void goo(int x) { }
-}
-";
+            var text = """
+                using System;
+                /// <see cref="" $$
+                class C 
+                { 
+                    public void goo(int x) { }
+                }
+                """;
 
             await VerifyNoItemsExistAsync(text);
         }
@@ -482,16 +499,31 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23957")]
         public async Task CRef_InParameter()
         {
-            var text = @"
-using System;
-class C 
-{ 
-    /// <see cref=""C.My$$
-    public void MyMethod(in int x) { }
-}
-";
+            var text = """
+                using System;
+                class C 
+                { 
+                    /// <see cref="C.My$$
+                    public void MyMethod(in int x) { }
+                }
+                """;
 
             await VerifyItemExistsAsync(text, "MyMethod(in int)");
+        }
+
+        [Fact]
+        public async Task CRef_RefReadonlyParameter()
+        {
+            var text = $$"""
+                using System;
+                class C 
+                { 
+                    /// <see cref="C.My$$
+                    public void MyMethod(ref readonly int x) { }
+                }
+                """;
+
+            await VerifyItemExistsAsync(text, "MyMethod(ref readonly int)");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]

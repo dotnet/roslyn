@@ -140,7 +140,7 @@ namespace ResetInteractiveTestsDocument
         /// <param name="workspace">Workspace with the solution.</param>
         /// <param name="project">A project that should be built.</param>
         /// <returns>A list of paths that should be referenced.</returns>
-        private IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
+        private static IEnumerable<string> GetProjectReferences(TestWorkspace workspace, Project project)
         {
             var metadataReferences = project.MetadataReferences.Select(r => r.Display);
             var projectReferences = project.ProjectReferences.SelectMany(p => GetProjectReferences(

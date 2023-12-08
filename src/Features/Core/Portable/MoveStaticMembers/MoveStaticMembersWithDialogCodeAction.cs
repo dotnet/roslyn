@@ -17,41 +17,32 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
-    internal class MoveStaticMembersWithDialogCodeAction : CodeActionWithOptions
+    internal sealed class MoveStaticMembersWithDialogCodeAction(
+        Document document,
+        IMoveStaticMembersOptionsService service,
+        INamedTypeSymbol selectedType,
+        CleanCodeGenerationOptionsProvider fallbackOptions,
+        ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
     {
-        private readonly Document _document;
-        private readonly ImmutableArray<ISymbol> _selectedMembers;
-        private readonly INamedTypeSymbol _selectedType;
-        private readonly IMoveStaticMembersOptionsService _service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
+        private readonly Document _document = document;
+        private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
+        private readonly INamedTypeSymbol _selectedType = selectedType;
+        private readonly IMoveStaticMembersOptionsService _service = service;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
-
-        public MoveStaticMembersWithDialogCodeAction(
-            Document document,
-            IMoveStaticMembersOptionsService service,
-            INamedTypeSymbol selectedType,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            ImmutableArray<ISymbol> selectedMembers)
-        {
-            _document = document;
-            _service = service;
-            _selectedType = selectedType;
-            _fallbackOptions = fallbackOptions;
-            _selectedMembers = selectedMembers;
-        }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
             return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             if (options is not MoveStaticMembersOptions moveOptions || moveOptions.IsCancelled)
             {

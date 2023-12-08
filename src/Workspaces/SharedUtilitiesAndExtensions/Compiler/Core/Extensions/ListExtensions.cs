@@ -65,12 +65,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int IndexOf<T>(this IList<T> list, Func<T, bool> predicate)
         {
-            Contract.ThrowIfNull(list);
-            Contract.ThrowIfNull(predicate);
-
             for (var i = 0; i < list.Count; i++)
             {
                 if (predicate(list[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int IndexOf<T, TArg>(this IList<T> list, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (predicate(list[i], arg))
                 {
                     return i;
                 }

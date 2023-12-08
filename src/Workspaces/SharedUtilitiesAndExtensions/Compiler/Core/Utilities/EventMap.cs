@@ -94,13 +94,10 @@ namespace Roslyn.Utilities
             _eventNameToRegistries[eventName] = registries;
         }
 
-        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>?>
+        internal class Registry<TEventHandler>(TEventHandler handler) : IEquatable<Registry<TEventHandler>?>
             where TEventHandler : class
         {
-            private TEventHandler? _handler;
-
-            public Registry(TEventHandler handler)
-                => _handler = handler;
+            private TEventHandler? _handler = handler;
 
             public void Unregister()
                 => _handler = null;

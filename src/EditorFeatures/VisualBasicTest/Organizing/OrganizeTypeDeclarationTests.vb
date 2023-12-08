@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeTypeDeclarationTests
@@ -941,7 +942,10 @@ End Namespace</element>
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler(workspace.GetService(Of IThreadingContext), workspace.GlobalOptions)
+                Dim handler = New OrganizeDocumentCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GlobalOptions,
+                    workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

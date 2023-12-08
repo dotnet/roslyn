@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,30 +32,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
-                if (programType != null)
+                var mainMethod = compilation.GetTopLevelStatementsMethod();
+                if (mainMethod is not null)
                 {
-                    if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)
+                    var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
+
+                    var classDeclaration = await GenerateProgramClassAsync(
+                        document, oldClassDeclaration, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
+
+                    var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
+                    if (oldClassDeclaration is not null)
                     {
-                        var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
-
-                        var classDeclaration = await GenerateProgramClassAsync(
-                            document, oldClassDeclaration, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
-
-                        var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
-                        if (oldClassDeclaration is not null)
-                        {
-                            Contract.ThrowIfNull(newRoot);
-                            newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
-                        }
-
                         Contract.ThrowIfNull(newRoot);
-
-                        var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
-                        newRoot = newRoot.ReplaceNode(firstGlobalStatement, classDeclaration);
-
-                        return document.WithSyntaxRoot(newRoot);
+                        newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
                     }
+
+                    Contract.ThrowIfNull(newRoot);
+
+                    var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
+                    newRoot = newRoot.ReplaceNode(firstGlobalStatement, classDeclaration);
+
+                    return document.WithSyntaxRoot(newRoot);
                 }
             }
 
@@ -73,11 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         private static async Task<ClassDeclarationSyntax> GenerateProgramClassAsync(
             Document document,
             ClassDeclarationSyntax? oldClassDeclaration,
-            INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
             AccessibilityModifiersRequired accessibilityModifiersRequired,
             CancellationToken cancellationToken)
         {
+            var programType = mainMethod.ContainingType;
+
             // Respect user settings on if they want explicit or implicit accessibility modifiers.
             var useDeclaredAccessibity = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 

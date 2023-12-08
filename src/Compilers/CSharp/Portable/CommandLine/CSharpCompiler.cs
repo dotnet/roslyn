@@ -377,5 +377,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider);
         }
+
+        private protected override void DiagnoseBadAccesses(TextWriter consoleOutput, ErrorLogger? errorLogger, Compilation compilation, ImmutableArray<Diagnostic> diagnostics)
+        {
+            DiagnosticBag newDiagnostics = DiagnosticBag.GetInstance();
+            foreach (var diag in diagnostics)
+            {
+                var symbol = diag switch
+                {
+                    { Code: (int)ErrorCode.ERR_BadAccess, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleGetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_InaccessibleSetter, Arguments: [Symbol s] } => s,
+                    { Code: (int)ErrorCode.ERR_ImplicitImplementationOfInaccessibleInterfaceMember, Arguments: [_, Symbol s, _] } => s,
+                    _ => null
+                };
+
+                if (symbol is null || ReferenceEquals(compilation.Assembly, symbol.ContainingAssembly))
+                {
+                    // Can't be IVT related
+                    continue;
+                }
+
+                // '{0}' is defined in assembly '{1}'.
+                newDiagnostics.Add(new CSDiagnostic(
+                    new CSDiagnosticInfo(ErrorCode.ERR_SymbolDefinedInAssembly, symbol, symbol.ContainingAssembly),
+                    diag.Location));
+            }
+
+            ReportDiagnostics(newDiagnostics.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation);
+        }
     }
 }

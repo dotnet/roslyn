@@ -5,21 +5,21 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
+    using static InitializeParameterHelpersCore;
+
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
-    internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
+    internal sealed class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
         AbstractInitializeMemberFromParameterCodeRefactoringProvider<
             BaseTypeDeclarationSyntax,
             ParameterSyntax,
@@ -56,55 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             => InitializeParameterHelpers.GetBody(functionDeclaration);
 
         protected override SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
-        {
-            var node = accessor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            if (node is AccessorDeclarationSyntax accessorDeclaration)
-                return accessorDeclaration.ExpressionBody ?? (SyntaxNode?)accessorDeclaration.Body;
-
-            // `int Age => ...;`
-            if (node is ArrowExpressionClauseSyntax arrowExpression)
-                return arrowExpression;
-
-            return null;
-        }
+            => InitializeParameterHelpers.GetAccessorBody(accessor, cancellationToken);
 
         protected override SyntaxNode RemoveThrowNotImplemented(SyntaxNode node)
-        {
-            if (node is PropertyDeclarationSyntax propertyDeclaration)
-            {
-                if (propertyDeclaration.ExpressionBody != null)
-                {
-                    var result = propertyDeclaration
-                        .WithExpressionBody(null)
-                        .WithSemicolonToken(default)
-                        .AddAccessorListAccessors(SyntaxFactory
-                            .AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))
-                        .WithTrailingTrivia(propertyDeclaration.SemicolonToken.TrailingTrivia)
-                        .WithAdditionalAnnotations(Formatter.Annotation);
-                    return result;
-                }
-
-                if (propertyDeclaration.AccessorList != null)
-                {
-                    var accessors = propertyDeclaration.AccessorList.Accessors.Select(RemoveThrowNotImplemented);
-                    return propertyDeclaration.WithAccessorList(
-                        propertyDeclaration.AccessorList.WithAccessors(SyntaxFactory.List(accessors)));
-                }
-            }
-
-            return node;
-        }
-
-        private static AccessorDeclarationSyntax RemoveThrowNotImplemented(AccessorDeclarationSyntax accessorDeclaration)
-        {
-            var result = accessorDeclaration
-                .WithExpressionBody(null)
-                .WithBody(null)
-                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-            return result.WithTrailingTrivia(accessorDeclaration.Body?.GetTrailingTrivia() ?? accessorDeclaration.SemicolonToken.TrailingTrivia);
-        }
+            => InitializeParameterHelpers.RemoveThrowNotImplemented(node);
 
         protected override bool TryUpdateTupleAssignment(
             IBlockOperation? blockStatement,

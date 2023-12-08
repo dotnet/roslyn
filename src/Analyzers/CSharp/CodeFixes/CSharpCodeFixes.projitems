@@ -11,6 +11,7 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" GenerateSource="true" Link="CSharpCodeFixesResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CSharpCodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
@@ -75,6 +76,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\CSharpUnsealClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\CSharpUpdateProjectToAllowUnsafeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpCollectionExpressionRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForBuilderCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForFluentCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForCreateCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForEmptyCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForArrayCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForStackAllocCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider_CollectionExpression.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider_CollectionInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
@@ -120,6 +130,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider_DocComments.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\CSharpUsePrimaryConstructorFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />

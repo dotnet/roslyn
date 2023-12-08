@@ -4402,5 +4402,25 @@ class C
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
             Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
+
+        [Fact]
+        public void GetRelatedDocumentsDoesNotReturnOtherTypesOfDocuments()
+        {
+            using var workspace = CreateWorkspace();
+
+            const string FilePath = "File.cs";
+
+            var solution = workspace.CurrentSolution
+                .AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("File.cs", "", filePath: FilePath).Project
+                .AddAdditionalDocument("File.cs", text: "", filePath: FilePath).Project.Solution;
+
+            // GetDocumentIdsWithFilePath should return two, since it'll count all types of documents
+            Assert.Equal(2, solution.GetDocumentIdsWithFilePath(FilePath).Length);
+
+            var regularDocumentId = solution.Projects.Single().DocumentIds.Single();
+
+            Assert.Single(solution.GetRelatedDocumentIds(regularDocumentId));
+        }
     }
 }

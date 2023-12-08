@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var result = new MetadataUnifyingSymbolHashSet();
                 foreach (var symbol in symbols)
-                    result.Add(await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false));
+                    result.AddIfNotNull(await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false));
 
                 return result;
             }
 
-            private static async Task<ISymbol> MapToAppropriateSymbolAsync(
+            private static async Task<ISymbol?> TryMapToAppropriateSymbolAsync(
                 Solution solution, ISymbol symbol, CancellationToken cancellationToken)
             {
                 // Never search for an alias.  Always search for it's target.  Note: if the caller was
@@ -109,7 +109,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var searchSymbol = symbol;
 
                 if (searchSymbol is IAliasSymbol aliasSymbol)
-                    searchSymbol = aliasSymbol.Target;
+                {
+                    // We currently only support searching for aliases to normal named types or namespaces. In the
+                    // future it would be nice to support searching for aliases to any arbitrary type.
+                    //
+                    // Tracked with: https://github.com/dotnet/roslyn/issues/67640
+                    if (aliasSymbol.Target is INamedTypeSymbol or INamespaceSymbol)
+                        searchSymbol = aliasSymbol.Target;
+                    else
+                        return null;
+                }
 
                 searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
 
@@ -188,20 +197,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferencesSearchEngine engine, ISymbol symbol, MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 var solution = engine._solution;
-                symbol = await MapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
+                var mapped = await TryMapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
+                if (mapped is null)
+                    return;
+
+                symbol = mapped;
 
                 foreach (var finder in engine._finders)
                 {
                     var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, solution, engine._options, cancellationToken).ConfigureAwait(false);
                     foreach (var cascade in cascaded)
-                        await MapAndAddLinkedSymbolsAsync(cascade).ConfigureAwait(false);
+                        await TryMapAndAddLinkedSymbolsAsync(cascade).ConfigureAwait(false);
                 }
 
                 return;
 
-                async Task<ISymbol> MapAndAddLinkedSymbolsAsync(ISymbol symbol)
+                async Task<ISymbol?> TryMapAndAddLinkedSymbolsAsync(ISymbol symbol)
                 {
-                    symbol = await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                    var mapped = await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                    if (mapped is null)
+                        return null;
+
+                    symbol = mapped;
                     foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
                         if (seenSymbols.Add(linked))

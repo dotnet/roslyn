@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
-        /// to calling <see cref="SourceText.GetChecksum"/>.
+        /// to calling <see cref="SourceText.GetContentHash"/>.
         /// </summary>
-        ImmutableArray<byte> GetChecksum();
+        ImmutableArray<byte> GetContentHash();
     }
 }

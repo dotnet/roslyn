@@ -68,6 +68,7 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
+  [string]$helixApiAccessToken = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -255,10 +256,7 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
- # Temporarily disable RestoreUseStaticGraphEvaluation to work around this NuGet issue 
-  # in our CI builds
-  # https://github.com/NuGet/Home/issues/12373
-  $restoreUseStaticGraphEvaluation = if ($ci) { $false } else { $true }
+  $restoreUseStaticGraphEvaluation = $true
   
   try {
     MSBuild $toolsetBuildProj `
@@ -329,7 +327,7 @@ function GetIbcDropName() {
     }
 
     # Bring in the ibc tools
-    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
 
     # Find the matching drop
@@ -401,7 +399,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0 --tfm net7.0"
+    $args += " --tfm net6.0 --tfm net7.0 --tfm net8.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
@@ -427,7 +425,7 @@ function TestUsingRunTests() {
   } elseif ($testVsi) {
     $args += " --timeout 110"
     $args += " --tfm net472"
-    $args += " --retry"
+    $args += " --tfm net6.0-windows" # For the MSBuildWorkspace tests, since we support .NET Core processes analyzing projects with the Visual Studio MSBuild
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
@@ -459,6 +457,10 @@ function TestUsingRunTests() {
 
   if ($helixQueueName) {
     $args += " --helixQueueName $helixQueueName"
+  }
+
+  if ($helixApiAccessToken) {
+    $args += " --helixApiAccessToken $helixApiAccessToken"
   }
 
   try {
@@ -573,6 +575,7 @@ function Deploy-VsixViaTool() {
   $orderedVsixFileNames = @(
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
+    "Roslyn.VisualStudio.ServiceHub.Setup.x64.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -600,6 +603,9 @@ function Deploy-VsixViaTool() {
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
+  # Disable text spell checker to avoid spurious warnings in the error list
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
@@ -613,9 +619,9 @@ function Deploy-VsixViaTool() {
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
 
-  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
-  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
+  # Configure RemoteHostOptions.OOPCoreClr for testing
+  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -708,11 +714,6 @@ try {
   if ($PSVersionTable.PSVersion.Major -lt "5") {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
     exit 1
-  }
-
-  $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
-  if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with `"reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1`""
   }
 
   Process-Arguments

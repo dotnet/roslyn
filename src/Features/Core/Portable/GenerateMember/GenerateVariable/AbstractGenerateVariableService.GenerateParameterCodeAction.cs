@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
@@ -12,20 +13,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
     internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
     {
-        private class GenerateParameterCodeAction : CodeAction
+        private sealed class GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex) : CodeAction
         {
-            private readonly Document _document;
-            private readonly State _state;
-            private readonly bool _includeOverridesAndImplementations;
-            private readonly int _parameterIndex;
-
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
-            {
-                _document = document;
-                _state = state;
-                _includeOverridesAndImplementations = includeOverridesAndImplementations;
-                _parameterIndex = parameterIndex;
-            }
+            private readonly Document _document = document;
+            private readonly State _state = state;
+            private readonly bool _includeOverridesAndImplementations = includeOverridesAndImplementations;
+            private readonly int _parameterIndex = parameterIndex;
 
             public override string Title
             {
@@ -41,7 +34,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 return AddParameterService.AddParameterAsync(
                     _document,

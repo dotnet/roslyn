@@ -11,27 +11,12 @@ namespace Microsoft.CodeAnalysis;
 /// <summary>
 /// Options used to load <see cref="SourceText"/>.
 /// </summary>
-public readonly struct LoadTextOptions : IEquatable<LoadTextOptions>
+public readonly record struct LoadTextOptions
 {
     public SourceHashAlgorithm ChecksumAlgorithm { get; }
 
     public LoadTextOptions(SourceHashAlgorithm checksumAlgorithm)
         => ChecksumAlgorithm = checksumAlgorithm;
-
-    public bool Equals(LoadTextOptions other)
-        => ChecksumAlgorithm == other.ChecksumAlgorithm;
-
-    public override bool Equals(object? obj)
-        => obj is LoadTextOptions options && Equals(options);
-
-    public static bool operator ==(LoadTextOptions left, LoadTextOptions right)
-        => left.Equals(right);
-
-    public static bool operator !=(LoadTextOptions left, LoadTextOptions right)
-        => !(left == right);
-
-    public override int GetHashCode()
-        => ((int)ChecksumAlgorithm).GetHashCode();
 
     public override string ToString()
         => $"{{ {nameof(ChecksumAlgorithm)}: {ChecksumAlgorithm} }}";

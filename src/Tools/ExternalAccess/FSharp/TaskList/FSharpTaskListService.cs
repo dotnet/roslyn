@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
             if (result.Length == 0)
                 return ImmutableArray<TaskListItem>.Empty;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             return result.SelectAsArray(d =>
             {

@@ -7,18 +7,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
-    internal sealed class TokenRenameInfo
+    internal sealed class TokenRenameInfo(bool hasSymbols, IEnumerable<ISymbol> symbols, bool isMemberGroup)
     {
-        public bool HasSymbols { get; private set; }
-        public IEnumerable<ISymbol> Symbols { get; private set; }
-        public bool IsMemberGroup { get; private set; }
-
-        public TokenRenameInfo(bool hasSymbols, IEnumerable<ISymbol> symbols, bool isMemberGroup)
-        {
-            HasSymbols = hasSymbols;
-            Symbols = symbols;
-            IsMemberGroup = isMemberGroup;
-        }
+        public bool HasSymbols { get; private set; } = hasSymbols;
+        public IEnumerable<ISymbol> Symbols { get; private set; } = symbols;
+        public bool IsMemberGroup { get; private set; } = isMemberGroup;
 
         public static TokenRenameInfo CreateMemberGroupTokenInfo(IEnumerable<ISymbol> symbols)
         {

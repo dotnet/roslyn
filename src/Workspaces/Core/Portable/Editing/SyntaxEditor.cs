@@ -244,12 +244,9 @@ namespace Microsoft.CodeAnalysis.Editing
             throw new ArgumentException(WorkspacesResources.The_node_is_not_part_of_the_tree, nameof(node));
         }
 
-        private abstract class Change
+        private abstract class Change(SyntaxNode node)
         {
-            internal readonly SyntaxNode OriginalNode;
-
-            public Change(SyntaxNode node)
-                => OriginalNode = node;
+            internal readonly SyntaxNode OriginalNode = node;
 
             public SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
@@ -266,29 +263,16 @@ namespace Microsoft.CodeAnalysis.Editing
             protected abstract SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator);
         }
 
-        private sealed class NoChange : Change
+        private sealed class NoChange(SyntaxNode node) : Change(node)
         {
-            public NoChange(SyntaxNode node)
-                : base(node)
-            {
-            }
-
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
                 => root;
         }
 
-        private sealed class RemoveChange : Change
+        private sealed class RemoveChange(SyntaxNode node, SyntaxRemoveOptions options) : Change(node)
         {
-            private readonly SyntaxRemoveOptions _options;
-
-            public RemoveChange(SyntaxNode node, SyntaxRemoveOptions options)
-                : base(node)
-            {
-                _options = options;
-            }
-
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => ValidateNewRoot(generator.RemoveNode(root, currentNode, _options));
+                => ValidateNewRoot(generator.RemoveNode(root, currentNode, options));
         }
 
         private sealed class ReplaceChange : Change
@@ -308,55 +292,29 @@ namespace Microsoft.CodeAnalysis.Editing
                 => ValidateNewRoot(generator.ReplaceNode(root, currentNode, _modifier(currentNode, generator)));
         }
 
-        private sealed class ReplaceWithCollectionChange : Change
+        private sealed class ReplaceWithCollectionChange(
+            SyntaxNode node,
+            Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier) : Change(node)
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> _modifier;
-
-            public ReplaceWithCollectionChange(
-                SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, IEnumerable<SyntaxNode>> modifier)
-                : base(node)
-            {
-                _modifier = modifier;
-            }
-
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => SyntaxGenerator.ReplaceNode(root, currentNode, _modifier(currentNode, generator));
+                => SyntaxGenerator.ReplaceNode(root, currentNode, modifier(currentNode, generator));
         }
 
-        private sealed class ReplaceChange<TArgument> : Change
+        private sealed class ReplaceChange<TArgument>(
+            SyntaxNode node,
+            Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
+            TArgument argument) : Change(node)
         {
-            private readonly Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> _modifier;
-            private readonly TArgument _argument;
-
-            public ReplaceChange(
-                SyntaxNode node,
-                Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> modifier,
-                TArgument argument)
-                : base(node)
-            {
-                _modifier = modifier;
-                _argument = argument;
-            }
-
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => ValidateNewRoot(generator.ReplaceNode(root, currentNode, _modifier(currentNode, generator, _argument)));
+                => ValidateNewRoot(generator.ReplaceNode(root, currentNode, modifier(currentNode, generator, argument)));
         }
 
-        private sealed class InsertChange : Change
+        private sealed class InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore) : Change(node)
         {
-            private readonly List<SyntaxNode> _newNodes;
-            private readonly bool _isBefore;
-
-            public InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore)
-                : base(node)
-            {
-                _newNodes = newNodes.ToList();
-                _isBefore = isBefore;
-            }
+            private readonly List<SyntaxNode> _newNodes = newNodes.ToList();
 
             protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
-                => _isBefore
+                => isBefore
                     ? generator.InsertNodesBefore(root, currentNode, _newNodes)
                     : generator.InsertNodesAfter(root, currentNode, _newNodes);
         }

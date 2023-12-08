@@ -26,11 +26,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
-    internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
+    internal interface IWorkspaceNavigateToSearcherHostService : IWorkspaceService
     {
-        private readonly Solution _solution;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationToken _disposalToken;
+        ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
+    }
+
+    internal class DefaultNavigateToSearchHost(
+        Solution solution,
+        IAsynchronousOperationListener asyncListener,
+        CancellationToken disposalToken) : INavigateToSearcherHost
+    {
+        private readonly Solution _solution = solution;
+        private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
+        private readonly CancellationToken _disposalToken = disposalToken;
 
         /// <summary>
         /// Single task used to both hydrate the remote host with the initial workspace solution,
@@ -41,21 +49,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static readonly object s_gate = new();
         private static Task? s_remoteHostHydrateTask = null;
 
-        public DefaultNavigateToSearchHost(
-            Solution solution,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken disposalToken)
-        {
-            _solution = solution;
-            _asyncListener = asyncListener;
-            _disposalToken = disposalToken;
-        }
-
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
+            var workspaceService = _solution.Workspace.Services.GetService<IWorkspaceNavigateToSearcherHostService>();
+            if (workspaceService != null)
+                return await workspaceService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
             var service = _solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded

@@ -22,41 +22,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        short x = short.MaxValue;
-        short y = short.MaxValue;
-        int z;
-        try
-        {
-            z = {|Cursor:[|checked|]|}((short)(x + y));
-        }
-        catch (OverflowException e)
-        {
-            z = -1;
-        }
+                """
+                class C
+                {
+                    void M()
+                    {
+                        short x = short.MaxValue;
+                        short y = short.MaxValue;
+                        int z;
+                        try
+                        {
+                            z = {|Cursor:[|checked|]|}((short)(x + y));
+                        }
+                        catch (OverflowException e)
+                        {
+                            z = -1;
+                        }
 
-        return z;
-    }
-}");
+                        return z;
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestExample2_1()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        short x = short.MaxValue;
-        short y = short.MaxValue;
-        int z = {|Cursor:[|unchecked|]|}((short)(x + y));
-        return z;
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        short x = short.MaxValue;
+                        short y = short.MaxValue;
+                        int z = {|Cursor:[|unchecked|]|}((short)(x + y));
+                        return z;
+                    }
+                }
+                """);
         }
     }
 }

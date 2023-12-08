@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -131,96 +137,120 @@ $$");
         public async Task TestNotInGenericMethod()
         {
             await VerifyAbsenceAsync(
-@"interface IGoo {
-    void Goo<$$");
+                """
+                interface IGoo {
+                    void Goo<$$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterOut()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo(out $$");
+                """
+                class C {
+                    void Goo(out $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo($$");
+                """
+                class C {
+                    void Goo($$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, $$");
+                """
+                class C {
+                    void Goo(int i, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, [Goo]$$");
+                """
+                class C {
+                    void Goo(int i, [Goo]$$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C($$");
+                """
+                class C {
+                    public C($$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C(int i, $$");
+                """
+                class C {
+                    public C(int i, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C(int i, [Goo]$$");
+                """
+                class C {
+                    public C(int i, [Goo]$$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializer()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C():this($$");
+                """
+                class C {
+                    public C():this($$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterThisConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C():this(Goo:$$");
+                """
+                class C {
+                    public C():this(Goo:$$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializer()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C():base($$");
+                """
+                class C {
+                    public C():base($$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/933972")]
         public async Task TestAfterBaseConstructorInitializerNamedArgument()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C():base(5, Goo:$$");
+                """
+                class C {
+                    public C():base(5, Goo:$$
+                """);
         }
 
         [Fact]
@@ -248,114 +278,140 @@ $$");
         public async Task TestNotAfterOperator()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static int operator +($$");
+                """
+                class C {
+                    static int operator +($$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterDestructor()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    ~C($$");
+                """
+                class C {
+                    ~C($$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterIndexer()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    int this[$$");
+                """
+                class C {
+                    int this[$$
+                """);
         }
 
         [Fact]
         public async Task TestInObjectCreationAfterOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      new Bar($$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar($$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterRef()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(ref $$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar(ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterOutParam()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    void Goo() {
-      new Bar(out $$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar(out $$
+                """);
         }
 
         [Fact]
         public async Task TestInObjectCreationAfterComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz, $$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar(baz, $$
+                """);
         }
 
         [Fact]
         public async Task TestInObjectCreationAfterSecondComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz, quux, $$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar(baz, quux, $$
+                """);
         }
 
         [Fact]
         public async Task TestInObjectCreationAfterSecondNamedParam()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      new Bar(baz: 4, quux: $$");
+                """
+                class C {
+                    void Goo() {
+                      new Bar(baz: 4, quux: $$
+                """);
         }
 
         [Fact]
         public async Task TestInInvocationExpression()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      Bar($$");
+                """
+                class C {
+                    void Goo() {
+                      Bar($$
+                """);
         }
 
         [Fact]
         public async Task TestInInvocationAfterComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      Bar(baz, $$");
+                """
+                class C {
+                    void Goo() {
+                      Bar(baz, $$
+                """);
         }
 
         [Fact]
         public async Task TestInInvocationAfterSecondComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      Bar(baz, quux, $$");
+                """
+                class C {
+                    void Goo() {
+                      Bar(baz, quux, $$
+                """);
         }
 
         [Fact]
         public async Task TestInInvocationAfterSecondNamedParam()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo() {
-      Bar(baz: 4, quux: $$");
+                """
+                class C {
+                    void Goo() {
+                      Bar(baz: 4, quux: $$
+                """);
         }
 
         [Fact]
@@ -403,11 +459,13 @@ $$");
         [Fact]
         public async Task TestInCrefParameterList()
         {
-            var text = @"Class c
-{
-    /// <see cref=""main($$""/>
-    void main(out goo) { }
-}";
+            var text = """
+                Class c
+                {
+                    /// <see cref="main($$"/>
+                    void main(out goo) { }
+                }
+                """;
 
             await VerifyKeywordAsync(text);
         }
@@ -423,41 +481,50 @@ $$");
         public async Task TestExtensionMethods_FirstParameter()
         {
             await VerifyKeywordAsync(
-@"static class Extensions {
-    static void Extension($$");
+                """
+                static class Extensions {
+                    static void Extension($$
+                """);
         }
 
         [Fact]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyAbsenceAsync(
-@"static class Extensions {
-    static void Extension(this $$");
+                """
+                static class Extensions {
+                    static void Extension(this $$
+                """);
         }
 
         [Fact]
         public async Task TestExtensionMethods_SecondParameter()
         {
             await VerifyKeywordAsync(
-@"static class Extensions {
-    static void Extension(this int i, $$");
+                """
+                static class Extensions {
+                    static void Extension(this int i, $$
+                """);
         }
 
         [Fact]
         public async Task TestExtensionMethods_SecondParameter_AfterThisKeyword()
         {
             await VerifyAbsenceAsync(
-@"static class Extensions {
-    static void Extension(this int i, this $$");
+                """
+                static class Extensions {
+                    static void Extension(this int i, this $$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerTypeNoExistingModifiers()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    delegate*<$$");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    delegate*<$$
+                """);
         }
 
         [Theory]

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                 return span;
             }
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var start = span.Start;
             var end = span.End;
 

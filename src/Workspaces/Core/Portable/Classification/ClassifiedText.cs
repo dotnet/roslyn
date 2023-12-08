@@ -4,15 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal readonly struct ClassifiedText
+    internal readonly struct ClassifiedText(string classificationType, string text)
     {
-        public string ClassificationType { get; }
-        public string Text { get; }
-
-        public ClassifiedText(string classificationType, string text)
-        {
-            ClassificationType = classificationType;
-            Text = text;
-        }
+        public string ClassificationType { get; } = classificationType;
+        public string Text { get; } = text;
     }
 }

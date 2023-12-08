@@ -127,6 +127,11 @@
         <target state="translated">Automatische Auswahl aufgrund einer potenziellen Mustervariablendeklaration deaktiviert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">In as-Ausdruck ändern</target>
@@ -150,6 +155,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">In Rohzeichenfolge konvertieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="new">Convert to regular constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -247,6 +257,11 @@
         <target state="translated">externer Alias</target>
         <note />
       </trans-unit>
+      <trans-unit id="for_loop">
+        <source>for loop</source>
+        <target state="translated">for-Schleife</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="init_only_property">
         <source>init-only property</source>
         <target state="translated">„init-only“-Eigenschaft</target>
@@ -305,11 +320,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">Qualifikation 'this' entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">Ein gültiger Bereich der zu extrahierenden Anweisungen kann nicht ermittelt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -412,6 +422,11 @@
         <target state="translated">Datensatzstruktur</target>
         <note />
       </trans-unit>
+      <trans-unit id="reversed_for_loop">
+        <source>reversed for loop</source>
+        <target state="translated">reversed for-Schleife</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">switch-Anweisung</target>
@@ -421,6 +436,16 @@
         <source>switch statement case clause</source>
         <target state="translated">case-Klausel für switch-Anweisung</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="top_level_code">
+        <source>top-level code</source>
+        <target state="translated">Code der obersten Ebene</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="top_level_statement">
+        <source>top-level statement</source>
+        <target state="translated">Anweisung der obersten Ebene</target>
+        <note />
       </trans-unit>
       <trans-unit id="try_block">
         <source>try block</source>
@@ -566,11 +591,6 @@
         <source>ref local or expression</source>
         <target state="translated">ref – "local" oder Ausdruck</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="global_statement">
-        <source>global statement</source>
-        <target state="translated">global – Anweisung</target>
-        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

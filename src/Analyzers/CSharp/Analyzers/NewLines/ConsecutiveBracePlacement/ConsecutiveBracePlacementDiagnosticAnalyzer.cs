@@ -29,24 +29,25 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeTree);
+            => context.RegisterCompilationStartAction(context =>
+                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
 
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context)
+        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
         {
             var option = context.GetCSharpAnalyzerOptions().AllowBlankLinesBetweenConsecutiveBraces;
-            if (option.Value)
+            if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
                 return;
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
-            Recurse(context, option.Notification.Severity, stack);
+            Recurse(context, option.Notification, stack);
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, ArrayBuilder<SyntaxNode> stack)
+        private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, ArrayBuilder<SyntaxNode> stack)
         {
             var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
 
-            var root = tree.GetRoot(cancellationToken);
+            var root = context.GetAnalysisRoot(findInTrivia: false);
             var text = tree.GetText(cancellationToken);
 
             stack.Add(root);
@@ -63,15 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
                 foreach (var child in current.ChildNodesAndTokens())
                 {
+                    if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                        continue;
+
                     if (child.IsNode)
                         stack.Add(child.AsNode()!);
                     else if (child.IsToken)
-                        ProcessToken(context, severity, text, child.AsToken());
+                        ProcessToken(context, notificationOption, text, child.AsToken());
                 }
             }
         }
 
-        private void ProcessToken(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SourceText text, SyntaxToken token)
+        private void ProcessToken(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SourceText text, SyntaxToken token)
         {
             if (!HasExcessBlankLinesAfter(text, token, out var secondBrace, out _))
                 return;
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 secondBrace.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }

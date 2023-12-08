@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -332,14 +332,14 @@ class C
 
             Assert.True(result.HasChanges);
 
-            var syntaxMap = result.SemanticEdits[0].SyntaxMap;
-            Assert.NotNull(syntaxMap);
+            var syntaxMaps = result.SemanticEdits[0].SyntaxMaps;
+            Assert.True(syntaxMaps.HasMap);
 
             var newStatementSpan = result.ActiveStatements[0].Span;
             var newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan);
             var newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan);
 
-            var oldStatementSyntaxMapped = syntaxMap(newStatementSyntax);
+            var oldStatementSyntaxMapped = syntaxMaps.MatchingNodes(newStatementSyntax);
             Assert.Same(oldStatementSyntax, oldStatementSyntaxMapped);
         }
 

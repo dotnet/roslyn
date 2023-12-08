@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,39 +19,28 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private class GenerateEqualsAndGetHashCodeWithDialogCodeAction : CodeActionWithOptions
+        private sealed class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+            GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+            Document document,
+            SyntaxNode typeDeclaration,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> viableMembers,
+            ImmutableArray<PickMembersOption> pickMembersOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            ILegacyGlobalOptionsWorkspaceService globalOptions,
+            bool generateEquals = false,
+            bool generateGetHashCode = false) : CodeActionWithOptions
         {
-            private readonly bool _generateEquals;
-            private readonly bool _generateGetHashCode;
-            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
-            private readonly Document _document;
-            private readonly SyntaxNode _typeDeclaration;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
-                Document document,
-                SyntaxNode typeDeclaration,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
-                bool generateEquals = false,
-                bool generateGetHashCode = false)
-            {
-                _service = service;
-                _document = document;
-                _typeDeclaration = typeDeclaration;
-                _containingType = containingType;
-                _viableMembers = viableMembers;
-                _pickMembersOptions = pickMembersOptions;
-                _fallbackOptions = fallbackOptions;
-                _generateEquals = generateEquals;
-                _generateGetHashCode = generateGetHashCode;
-            }
+            private readonly bool _generateEquals = generateEquals;
+            private readonly bool _generateGetHashCode = generateGetHashCode;
+            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service = service;
+            private readonly Document _document = document;
+            private readonly SyntaxNode _typeDeclaration = typeDeclaration;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
+            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions = pickMembersOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
+            private readonly ILegacyGlobalOptionsWorkspaceService _globalOptions = globalOptions;
 
             public override string EquivalenceKey => Title;
 
@@ -61,7 +51,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _viableMembers, _pickMembersOptions);
             }
 
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+                object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
@@ -76,16 +67,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null || implementIEqutableOption != null)
                 {
-                    var globalOptions = solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-
                     if (generateOperatorsOption != null)
                     {
-                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, generateOperatorsOption.Value);
+                        _globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, generateOperatorsOption.Value);
                     }
 
                     if (implementIEqutableOption != null)
                     {
-                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(_document.Project.Language, implementIEqutableOption.Value);
+                        _globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(_document.Project.Language, implementIEqutableOption.Value);
                     }
                 }
 
@@ -95,7 +84,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
-                return await action.GetOperationsAsync(solution, new ProgressTracker(), cancellationToken).ConfigureAwait(false);
+                return await action.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

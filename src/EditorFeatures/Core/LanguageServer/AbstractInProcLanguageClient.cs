@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,16 +25,22 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
+    internal abstract partial class AbstractInProcLanguageClient(
+        AbstractLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider,
+        AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly ILspServiceLoggerFactory _lspLoggerFactory;
-        private readonly ExportProvider _exportProvider;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
+        private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
+        private readonly ExportProvider _exportProvider = exportProvider;
 
-        protected readonly AbstractLspServiceProvider LspServiceProvider;
+        protected readonly AbstractLspServiceProvider LspServiceProvider = lspServiceProvider;
 
-        protected readonly IGlobalOptionService GlobalOptions;
+        protected readonly IGlobalOptionService GlobalOptions = globalOptions;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -100,22 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractInProcLanguageClient(
-            AbstractLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            ILspServiceLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            ExportProvider exportProvider,
-            AbstractLanguageClientMiddleLayer? middleLayer = null)
-        {
-            LspServiceProvider = lspServiceProvider;
-            GlobalOptions = globalOptions;
-            _lspLoggerFactory = lspLoggerFactory;
-            _threadingContext = threadingContext;
-            _exportProvider = exportProvider;
-            _middleLayer = middleLayer;
-        }
-
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
@@ -178,7 +169,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public async Task OnLoadedAsync()
         {
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            try
+            {
+                await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            }
+            catch (AggregateException e)
+            {
+                // The VS LSP client allows an unexpected OperationCanceledException to propagate out of the StartAsync
+                // callback. Avoid allowing it to propagate further.
+                e.Handle(ex => ex is OperationCanceledException);
+            }
         }
 
         /// <summary>

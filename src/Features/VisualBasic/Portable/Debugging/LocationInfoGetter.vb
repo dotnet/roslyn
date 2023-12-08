@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                                                              DisplayNameOptions.IncludeTypeParameters,
                                                              options.RootNamespace)
 
-                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim text = Await document.GetValueTextAsync(cancellationToken).ConfigureAwait(False)
                 Dim lineNumber = text.Lines.GetLineFromPosition(position).LineNumber
                 Dim memberLine = text.Lines.GetLineFromPosition(memberDeclaration.GetMemberBlockBegin().SpanStart).LineNumber
                 Dim lineOffset = lineNumber - memberLine

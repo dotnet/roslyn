@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -30,11 +30,19 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal static class ProtocolConversions
+    internal static partial class ProtocolConversions
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
-        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
+        private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
+        private const string BlockCodeFence = "```";
+        private const string InlineCodeFence = "`";
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
+#pragma warning restore
+
+        private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -144,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Local functions
             static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // We use 'position - 1' here since we want to find the character that was just inserted.
                 Contract.ThrowIfTrue(position < 1);
@@ -153,29 +161,101 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static Uri GetUriFromFilePath(string filePath)
-        {
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
+        public static string GetDocumentFilePathFromUri(Uri uri)
+            => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
 
-            return new Uri(filePath, UriKind.Absolute);
+        /// <summary>
+        /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
+        /// </summary>
+        /// <exception cref="UriFormatException">
+        /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
+        /// For example, UNC paths with invalid characters in server name.
+        /// </exception>
+        public static Uri CreateAbsoluteUri(string absolutePath)
+        {
+            var uriString = IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
+            try
+            {
+#pragma warning disable RS0030 // Do not use banned APIs
+                return new(uriString, UriKind.Absolute);
+#pragma warning restore
+
+            }
+            catch (UriFormatException e)
+            {
+                // The standard URI format exception does not include the failing path, however
+                // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
+                throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
+            }
         }
 
-        public static Uri GetUriFromPartialFilePath(string? filePath)
+        // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
+        internal static string GetAbsoluteUriString(string absolutePath)
         {
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
+            if (!PathUtilities.IsAbsolute(absolutePath))
+            {
+                return absolutePath;
+            }
 
-            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
+            var parts = absolutePath.Split(s_dirSeparators);
+
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                // Unix path: first part is empty, all parts should be escaped
+                return "file://" + string.Join("/", parts.Select(EscapeUriPart));
+            }
+
+            if (parts is ["", "", var serverName, ..])
+            {
+                // UNC path: first non-empty part is server name and shouldn't be escaped
+                return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
+            }
+
+            // Drive-rooted path: first part is "C:" and shouldn't be escaped
+            return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
+
+#pragma warning disable SYSLIB0013 // Type or member is obsolete
+            static string EscapeUriPart(string stringToEscape)
+                => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
+#pragma warning restore
         }
 
-        public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
+        public static Uri CreateUriFromSourceGeneratedFilePath(string filePath)
         {
-            if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))
-                return uri;
+            Debug.Assert(!PathUtilities.IsAbsolute(filePath));
 
-            context?.TraceInformation($"Could not convert '{filePath}' to uri");
-            return null;
+            // Fast path for common cases:
+            if (IsAscii(filePath))
+            {
+#pragma warning disable RS0030 // Do not use banned APIs
+                return new Uri(s_sourceGeneratedDocumentBaseUri, filePath);
+#pragma warning restore
+            }
+
+            // Workaround for https://github.com/dotnet/runtime/issues/89538:
+
+            var parts = filePath.Split(s_dirSeparators);
+            var url = SourceGeneratedDocumentBaseUri + string.Join("/", parts.Select(Uri.EscapeDataString));
+
+#pragma warning disable RS0030 // Do not use banned APIs
+            return new Uri(url, UriKind.Absolute);
+#pragma warning restore
+        }
+
+        private static bool IsAscii(char c)
+            => (uint)c <= '\x007f';
+
+        private static bool IsAscii(string filePath)
+        {
+            for (var i = 0; i < filePath.Length; i++)
+            {
+                if (!IsAscii(filePath[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
@@ -195,9 +275,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
             => new LinePosition(position.Line, position.Character);
-
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+            => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
@@ -209,10 +288,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 {
                     return text.Lines.GetTextSpan(linePositionSpan);
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
                     // Create a custom error for this so we can examine the data we're getting.
-                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}");
+                    throw new ArgumentException($"Range={RangeToString(range)}. text.Length={text.Length}. text.Lines.Count={text.Lines.Count}", ex);
                 }
             }
             // Temporary exception reporting to investigate https://github.com/dotnet/roslyn/issues/66258.
@@ -237,6 +316,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = TextSpanToRange(textChange.Span, oldText)
             };
         }
+
+        public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
+            => new TextChange(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
         public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
             => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
@@ -284,7 +366,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var newDocument = getNewDocumentFunc(docId);
                 var oldDocument = getOldDocumentFunc(docId);
 
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<TextChange> textChanges;
 
@@ -297,7 +379,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
                 else
                 {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                     textChanges = newText.GetTextChanges(oldText).ToImmutableArray();
                 }
 
@@ -320,7 +402,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         var textChange = textChanges[i];
                         if (!mappedSpan.IsDefault)
                         {
-                            uriToTextEdits.Add((GetUriFromFilePath(mappedSpan.FilePath), new LSP.TextEdit
+                            uriToTextEdits.Add((CreateAbsoluteUri(mappedSpan.FilePath), new LSP.TextEdit
                             {
                                 Range = MappedSpanResultToRange(mappedSpan),
                                 NewText = textChange.NewText ?? string.Empty
@@ -355,17 +437,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             RequestContext? context,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(document.FilePath != null);
+
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocationAsync(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
-            var uri = TryGetUriFromFilePath(mappedSpan.FilePath, context);
+            Uri? uri = null;
+            try
+            {
+                if (PathUtilities.IsAbsolute(mappedSpan.FilePath))
+                    uri = CreateAbsoluteUri(mappedSpan.FilePath);
+            }
+            catch (UriFormatException)
+            {
+            }
+
             if (uri == null)
+            {
+                context?.TraceInformation($"Could not convert '{mappedSpan.FilePath}' to uri");
                 return null;
+            }
 
             return new LSP.Location
             {
@@ -373,18 +469,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> TryConvertTextSpanToLocation(
+            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
                 Document document,
                 TextSpan span,
                 bool isStale,
-                RequestContext? context,
                 CancellationToken cancellationToken)
             {
-                var uri = document.TryGetURI(context);
-                if (uri == null)
-                    return null;
+                Debug.Assert(document.FilePath != null);
+                var uri = CreateAbsoluteUri(document.FilePath);
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
                 {
                     // in the case of a stale item, the span may be out of bounds of the document. Cap
@@ -752,40 +846,65 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
             }
 
-            var builder = new StringBuilder();
-            var isInCodeBlock = false;
+            using var markdownBuilder = new MarkdownContentBuilder();
+            string? codeFence = null;
             foreach (var taggedText in tags)
             {
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        var codeBlockLanguageName = GetCodeBlockLanguageName(language);
-                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = true;
+                        if (markdownBuilder.IsLineEmpty())
+                        {
+                            // If the current line is empty, we can append a code block.
+                            codeFence = BlockCodeFence;
+                            var codeBlockLanguageName = GetCodeBlockLanguageName(language);
+                            markdownBuilder.AppendLine($"{codeFence}{codeBlockLanguageName}");
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else
+                        {
+                            // There is text on the line already - we should append an in-line code block.
+                            codeFence = InlineCodeFence;
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
                         break;
                     case TextTags.CodeBlockEnd:
-                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
-                        builder.Append(taggedText.Text);
-                        isInCodeBlock = false;
+                        if (codeFence == BlockCodeFence)
+                        {
+                            markdownBuilder.AppendLine(codeFence);
+                            markdownBuilder.AppendLine(taggedText.Text);
+                        }
+                        else if (codeFence == InlineCodeFence)
+                        {
+                            markdownBuilder.Append(codeFence + taggedText.Text);
+                        }
+                        else
+                        {
+                            throw ExceptionUtilities.UnexpectedValue(codeFence);
+                        }
+
+                        codeFence = null;
+
                         break;
                     case TextTags.LineBreak:
                         // A line ending with double space and a new line indicates to markdown
                         // to render a single-spaced line break.
-                        builder.Append("  ");
-                        builder.Append(Environment.NewLine);
+                        markdownBuilder.Append("  ");
+                        markdownBuilder.AppendLine();
                         break;
                     default:
-                        var styledText = GetStyledText(taggedText, isInCodeBlock);
-                        builder.Append(styledText);
+                        var styledText = GetStyledText(taggedText, codeFence != null);
+                        markdownBuilder.Append(styledText);
                         break;
                 }
             }
 
+            var content = markdownBuilder.Build(Environment.NewLine);
+
             return new LSP.MarkupContent
             {
                 Kind = LSP.MarkupKind.Markdown,
-                Value = builder.ToString(),
+                Value = content,
             };
 
             static string GetCodeBlockLanguageName(string language)
@@ -800,15 +919,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
             {
-                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+                var isCode = isInCodeBlock || taggedText.Style is TaggedTextStyle.Code;
+                var text = isCode ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
 
                 // For non-cref links, the URI is present in both the hint and target.
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
                 // Markdown ignores spaces at the start of lines outside of code blocks, 
-                // so to get indented lines we replace the spaces with these.
-                if (!isInCodeBlock)
+                // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
+                // We want to use regular spaces everywhere else to allow the client to wrap long text.
+                if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
                     text = text.Replace(" ", "&nbsp;");
 
                 return taggedText.Style switch

@@ -2,19 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
-    internal class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
+    internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructureProvider<BlockSyntax>
     {
         protected override void CollectBlockSpans(
             SyntaxToken previousToken,
@@ -23,26 +23,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            var parentKind = node.Parent.Kind();
+            var parent = node.GetRequiredParent();
+            var parentKind = parent.Kind();
 
-            // For most types of statements, just consider the block 'attached' to the 
-            // parent node.  That means we'll show the parent node header when doing 
-            // things like hovering over the indent guide.
+            // For most types of statements, just consider the block 'attached' to the parent node.  That means we'll
+            // show the parent node header when doing things like hovering over the indent guide.
             //
-            // This also works nicely as the close brace for these constructs will always
-            // align with the start of these statements.
-            if (IsNonBlockStatement(node.Parent) ||
-                parentKind == SyntaxKind.ElseClause)
+            // This also works nicely as the close brace for these constructs will always align with the start of these
+            // statements.
+            if (parentKind == SyntaxKind.ElseClause ||
+                IsNonBlockStatement(parent))
             {
-                var type = GetType(node.Parent);
+                var autoCollapse = false;
+
+                // Treat a local function at the top level as if it was a definition.  Similarly, if the user has asked
+                // to always collapse local functions, then respect that option.
+                if (parentKind == SyntaxKind.LocalFunctionStatement)
+                {
+                    autoCollapse =
+                        options.CollapseLocalFunctionsWhenCollapsingToDefinitions ||
+                        parent.IsParentKind(SyntaxKind.GlobalStatement);
+                }
+
+                var type = GetType(parent);
                 if (type != null)
                 {
                     spans.Add(new BlockSpan(
                         isCollapsible: true,
                         textSpan: GetTextSpan(node),
                         hintSpan: GetHintSpan(node),
+                        // For an 'else' block, add information about the corresponding if-block so it shows up properly
+                        // in 'sticky scroll'.
+                        primarySpans: parent is ElseClauseSyntax { Parent: IfStatementSyntax { Statement: BlockSyntax trueBlock } }
+                            ? (GetTextSpan(trueBlock), GetHintSpan(trueBlock))
+                            : null,
                         type: type,
-                        autoCollapse: parentKind == SyntaxKind.LocalFunctionStatement && node.Parent.IsParentKind(SyntaxKind.GlobalStatement)));
+                        autoCollapse: autoCollapse));
                 }
             }
 
@@ -66,25 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // spanof the block alone, without consideration for the case clause.
             if (parentKind is SyntaxKind.Block or SyntaxKind.SwitchSection)
             {
-                var type = GetType(node.Parent);
-
-                spans.Add(new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: node.Span,
-                    hintSpan: node.Span,
-                    type: type));
+                var type = GetType(parent);
+                if (type != null)
+                {
+                    spans.Add(new BlockSpan(
+                        isCollapsible: true,
+                        textSpan: node.Span,
+                        hintSpan: node.Span,
+                        type: type));
+                }
             }
         }
 
         private static bool IsNonBlockStatement(SyntaxNode node)
-            => node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
+            => node is StatementSyntax(kind: not SyntaxKind.Block);
 
         private static TextSpan GetHintSpan(BlockSyntax node)
         {
-            var parent = node.Parent;
+            var parent = node.GetRequiredParent();
             if (parent.IsKind(SyntaxKind.IfStatement) && parent.IsParentKind(SyntaxKind.ElseClause))
             {
-                parent = parent.Parent;
+                parent = parent.GetRequiredParent();
             }
 
             var start = parent.Span.Start;
@@ -124,36 +142,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             {
                 // For all other constructs, we collapse up to the end of the parent
                 // construct.
-                return node.Parent.Span.End;
+                return node.GetRequiredParent().Span.End;
             }
         }
 
-        private static string GetType(SyntaxNode parent)
+        private static string? GetType(SyntaxNode? parent)
         {
-            switch (parent.Kind())
+            if (parent != null)
             {
-                case SyntaxKind.ForStatement: return BlockTypes.Loop;
-                case SyntaxKind.ForEachStatement: return BlockTypes.Loop;
-                case SyntaxKind.ForEachVariableStatement: return BlockTypes.Loop;
-                case SyntaxKind.WhileStatement: return BlockTypes.Loop;
-                case SyntaxKind.DoStatement: return BlockTypes.Loop;
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ForStatement: return BlockTypes.Loop;
+                    case SyntaxKind.ForEachStatement: return BlockTypes.Loop;
+                    case SyntaxKind.ForEachVariableStatement: return BlockTypes.Loop;
+                    case SyntaxKind.WhileStatement: return BlockTypes.Loop;
+                    case SyntaxKind.DoStatement: return BlockTypes.Loop;
 
-                case SyntaxKind.TryStatement: return BlockTypes.Statement;
-                case SyntaxKind.CatchClause: return BlockTypes.Statement;
-                case SyntaxKind.FinallyClause: return BlockTypes.Statement;
+                    case SyntaxKind.TryStatement: return BlockTypes.Statement;
+                    case SyntaxKind.CatchClause: return BlockTypes.Statement;
+                    case SyntaxKind.FinallyClause: return BlockTypes.Statement;
 
-                case SyntaxKind.UnsafeStatement: return BlockTypes.Statement;
-                case SyntaxKind.FixedStatement: return BlockTypes.Statement;
-                case SyntaxKind.LockStatement: return BlockTypes.Statement;
-                case SyntaxKind.UsingStatement: return BlockTypes.Statement;
+                    case SyntaxKind.UnsafeStatement: return BlockTypes.Statement;
+                    case SyntaxKind.FixedStatement: return BlockTypes.Statement;
+                    case SyntaxKind.LockStatement: return BlockTypes.Statement;
+                    case SyntaxKind.UsingStatement: return BlockTypes.Statement;
 
-                case SyntaxKind.IfStatement: return BlockTypes.Conditional;
-                case SyntaxKind.ElseClause: return BlockTypes.Conditional;
-                case SyntaxKind.SwitchSection: return BlockTypes.Conditional;
+                    case SyntaxKind.IfStatement: return BlockTypes.Conditional;
+                    case SyntaxKind.ElseClause: return BlockTypes.Conditional;
+                    case SyntaxKind.SwitchSection: return BlockTypes.Conditional;
 
-                case SyntaxKind.Block: return BlockTypes.Statement;
+                    case SyntaxKind.Block: return BlockTypes.Statement;
 
-                case SyntaxKind.LocalFunctionStatement: return BlockTypes.Statement;
+                    case SyntaxKind.LocalFunctionStatement: return BlockTypes.Statement;
+                }
             }
 
             return null;
