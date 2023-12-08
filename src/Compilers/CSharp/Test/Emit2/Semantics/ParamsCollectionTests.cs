@@ -180,6 +180,61 @@ class Program
         }
 
         [Fact]
+        public void CreateMethod()
+        {
+            var src = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection : IEnumerable<long>
+{
+    public long[] Array;
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class MyCollectionBuilder
+{
+    public static MyCollection Create(ReadOnlySpan<long> items) => new MyCollection() { Array = items.ToArray() };
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+        if (a.Array.Length == 0)
+        {
+            System.Console.WriteLine(a.Array.Length);
+        }
+        else
+        {
+            System.Console.WriteLine("{0}: {1} ... {2}", a.Array.Length, a.Array[0], a.Array[^1]);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(
+                comp,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                expectedOutput: ExpectedOutput(@"
+0
+1: 1 ... 1
+2: 2 ... 3
+")).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BetterNess_01_ElementType()
         {
             var src = @"
@@ -255,6 +310,48 @@ class C3 : C2 {}
                 expectedOutput: ExpectedOutput(@"
 C2
 C2")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BetterNess_03_ElementType()
+        {
+            var src = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1 : IEnumerable<char>
+{
+    public static void M1(params C1 x)
+    {
+    }
+    public static void M1(params ushort[] x)
+    {
+    }
+
+    void Test()
+    {
+        M1('a', 'b');
+        M2('a', 'b');
+    }
+
+    public static void M2(params ushort[] x)
+    {
+    }
+
+    IEnumerator<char> IEnumerable<char>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+
+            comp.VerifyDiagnostics(
+                // (16,12): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+                //         M1('a', 'b');
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'a'").WithArguments("C1", "Add").WithLocation(16, 12),
+                // (16,17): error CS1061: 'C1' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+                //         M1('a', 'b');
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "'b'").WithArguments("C1", "Add").WithLocation(16, 17)
+                );
         }
     }
 }

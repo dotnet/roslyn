@@ -5864,7 +5864,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(node.InvokedAsExtensionMethod);
                         var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
-                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded).Annotations;
+                        TypeWithAnnotations paramsIterationType = default;
+                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded, ref paramsIterationType).Annotations;
                         extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, default, refKind, annotations);
                         receiverType = default;
                     }
@@ -6469,6 +6470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!parametersOpt.IsDefault)
                 {
                     // Visit conversions, inbound assignments including pre-conditions
+                    TypeWithAnnotations paramsIterationType = default;
                     ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                     for (int i = 0; i < results.Length; i++)
                     {
@@ -6476,7 +6478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
-                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
+                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
                         if (parameter is null)
                         {
                             // If this assert fails, we are missing necessary info to visit the
@@ -6528,13 +6530,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // For CompareExchange method we need more context to determine the state of outbound assignment
                     CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results, argsToParamsOpt) : default;
+                    TypeWithAnnotations paramsIterationType = default;
 
                     // Visit outbound assignments and post-conditions
                     // Note: the state may get split in this step
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, _) =
-                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
+                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
                         if (parameter is null)
                         {
                             continue;
@@ -6806,9 +6809,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!parametersOpt.IsDefault)
             {
-                parameterAnnotationsOpt = arguments.SelectAsArray(
-                    static (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
-                    (self: this, parametersOpt, argsToParamsOpt, expanded));
+                if (expanded)
+                {
+                    TypeWithAnnotations paramsIterationType = default;
+                    parameterAnnotationsOpt = arguments.SelectAsArray(
+                        (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: true, ref paramsIterationType).Annotations,
+                        (self: this, parametersOpt, argsToParamsOpt));
+                }
+                else
+                {
+                    parameterAnnotationsOpt = arguments.SelectAsArray(
+                        static (argument, i, arg) =>
+                        {
+                            TypeWithAnnotations paramsIterationType = default;
+                            return arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: false, ref paramsIterationType).Annotations;
+                        },
+                        (self: this, parametersOpt, argsToParamsOpt));
+                }
             }
 
             return parameterAnnotationsOpt;
@@ -7320,7 +7337,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parametersOpt,
             ImmutableArray<int> argsToParamsOpt,
-            bool expanded)
+            bool expanded,
+            ref TypeWithAnnotations paramsIterationType)
         {
             if (parametersOpt.IsDefault)
             {
@@ -7335,10 +7353,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = parameter.TypeWithAnnotations;
-            if (expanded && parameter.Ordinal == parametersOpt.Length - 1 && type.IsSZArray())
+            if (expanded && parameter.Ordinal == parametersOpt.Length - 1)
             {
-                type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
-                return (parameter, type, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);
+                if (!paramsIterationType.HasType)
+                {
+                    OverloadResolution.TryInferParamsCollectionIterationType(_binder, type.Type, out paramsIterationType);
+                    Debug.Assert(paramsIterationType.HasType);
+                }
+
+                return (parameter, paramsIterationType, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);
             }
 
             return (parameter, type, GetParameterAnnotations(parameter), isExpandedParamsArgument: false);

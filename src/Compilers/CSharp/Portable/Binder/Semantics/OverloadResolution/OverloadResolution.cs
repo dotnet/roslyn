@@ -1094,7 +1094,7 @@ outerDefault:
             return false;
         }
 
-        private static bool TryInferParamsCollectionIterationType(Binder binder, TypeSymbol type, out TypeWithAnnotations elementType)
+        public static bool TryInferParamsCollectionIterationType(Binder binder, TypeSymbol type, out TypeWithAnnotations elementType)
         {
             if (type.IsSZArray())
             {
