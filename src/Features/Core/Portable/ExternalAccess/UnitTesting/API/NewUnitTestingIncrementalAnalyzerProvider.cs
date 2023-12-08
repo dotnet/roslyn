@@ -37,7 +37,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider : IUnitT
     {
         var solutionCrawlerService = _services.GetService<IUnitTestingSolutionCrawlerService>();
         solutionCrawlerService?.Reanalyze(
-            _workspaceKind, _services, this.CreateIncrementalAnalyzer(), projectIds: null, documentIds: null, highPriority: false);
+            _workspaceKind, _services, this.CreateIncrementalAnalyzer(), projectIds: null, documentIds: null);
     }
 
     public static NewUnitTestingIncrementalAnalyzerProvider? TryRegister(string? workspaceKind, SolutionServices services, string analyzerName, INewUnitTestingIncrementalAnalyzerProviderImplementation provider)
