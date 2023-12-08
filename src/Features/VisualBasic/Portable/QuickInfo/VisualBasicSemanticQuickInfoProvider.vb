@@ -243,11 +243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                     QuickInfoSection.Create(QuickInfoSectionKinds.Description, builder.ToTaggedText()),
                     QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, ImmutableArray.Create(New TaggedText(TextTags.Text, documentation.DocumentationText)))))
         End Function
-
-        Protected Overrides Function GetBindableNodeForTokenIndicatingCollectionExpression(token As SyntaxToken, <NotNullWhen(True)> ByRef found As SyntaxNode) As Boolean
-            found = Nothing
-            Return False
-        End Function
     End Class
 End Namespace
 
