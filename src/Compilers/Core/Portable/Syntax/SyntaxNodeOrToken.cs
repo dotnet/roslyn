@@ -852,7 +852,10 @@ namespace Microsoft.CodeAnalysis
             if (node._token != null)
             {
                 if (node._token.ContainsDirectives)
-                    GetDirectives(node.AsToken().LeadingTrivia, filter, ref directives);
+                {
+                    foreach (var trivia in node.AsToken().LeadingTrivia)
+                        GetDirectivesInTrivia(trivia, filter, ref directives);
+                }
             }
             else if (node._nodeOrParent != null)
             {
@@ -865,11 +868,11 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
             {
-                _ = GetDirectivesInTrivia(trivia, filter, ref directives);
+                GetDirectivesInTrivia(trivia, filter, ref directives);
             }
         }
 
-        private static bool GetDirectivesInTrivia<TDirective>(in SyntaxTrivia trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
+        private static void GetDirectivesInTrivia<TDirective>(in SyntaxTrivia trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
             where TDirective : SyntaxNode
         {
             if (trivia.IsDirective)
@@ -877,27 +880,8 @@ namespace Microsoft.CodeAnalysis
                 if (trivia.GetStructure() is TDirective directive &&
                     filter?.Invoke(directive) != false)
                 {
-                    if (directives == null)
-                    {
-                        directives = new List<TDirective>();
-                    }
-
+                    directives ??= [];
                     directives.Add(directive);
-                }
-
-                return true;
-            }
-            return false;
-        }
-
-        private static void GetDirectives<TDirective>(in SyntaxTriviaList trivia, Func<TDirective, bool>? filter, ref List<TDirective>? directives)
-            where TDirective : SyntaxNode
-        {
-            foreach (var tr in trivia)
-            {
-                if (!GetDirectivesInTrivia(tr, filter, ref directives) && tr.GetStructure() is SyntaxNode node)
-                {
-                    GetDirectives(node, filter, ref directives);
                 }
             }
         }
