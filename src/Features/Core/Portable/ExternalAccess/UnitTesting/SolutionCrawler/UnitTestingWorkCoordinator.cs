@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
                 var allFilesWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
                 var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     listener,
                     analyzerProviders,
                     _registration,
-                    activeFileBackOffTimeSpan,
                     allFilesWorkerBackOffTimeSpan,
                     entireProjectWorkerBackOffTimeSpan,
                     _shutdownToken);

@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -48,7 +45,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     UnitTestingRegistration registration,
-                    TimeSpan highBackOffTimeSpan,
                     TimeSpan normalBackOffTimeSpan,
                     TimeSpan lowBackOffTimeSpan,
                     CancellationToken shutdownToken)
