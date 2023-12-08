@@ -241,18 +241,18 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                     // Don't have to update if the member is already qualified.
 
                     if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax ||
-                        qualifiedNameSyntax.Right != nameSyntax)
+                        qualifiedNameSyntax.Left == nameSyntax)
                     {
                         // Qualified names occur in things like the `type` portion of the parameter
 
                         // reference to a nested type in an unqualified fashion.  Have to qualify this.
                         var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
                         if (symbol is INamedTypeSymbol { ContainingType: { } containingType })
-                            return QualifiedName(containingType.GenerateNameSyntax(), currentNameSyntax);
+                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
                     }
 
                     if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression ||
-                        memberAccessExpression.Name != nameSyntax)
+                        memberAccessExpression.Expression == nameSyntax)
                     {
                         // Member access expressions occur in things like the default initializer, or attribute
                         // arguments of the parameter.
@@ -263,12 +263,23 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                             namedType.Equals(containingType))
                         {
                             // reference to a member field an unqualified fashion.  Have to qualify this.
-                            return MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, namedType.GenerateNameSyntax(), currentNameSyntax);
+                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
                         }
                     }
 
                     return currentNameSyntax;
                 });
+
+            SyntaxNode CreateDottedName(
+                SimpleNameSyntax originalName,
+                SimpleNameSyntax currentName,
+                INamedTypeSymbol containingType)
+            {
+                var containingTypeSyntax = containingType.GenerateNameSyntax();
+                return SyntaxFacts.IsInTypeOnlyContext(originalName)
+                    ? QualifiedName(containingTypeSyntax, currentName)
+                    : MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, containingTypeSyntax, currentName);
+            }
         }
 
         static TListSyntax RemoveElementIndentation<TListSyntax>(
