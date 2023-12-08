@@ -48,7 +48,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
             OpenBlock();
             WriteLine();
-
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
@@ -63,7 +62,6 @@ namespace CSharpSyntaxGenerator
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
             OpenBlock();
             WriteLine();
-
             this.WriteRedTypes();
             CloseBlock();
         }
