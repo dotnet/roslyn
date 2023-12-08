@@ -53,9 +53,6 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider : IUnitT
 
         var metadata = new UnitTestingIncrementalAnalyzerProviderMetadata(
             analyzerName,
-#if false // Not used in unit testing crawling
-            highPriorityForActiveFile: false,
-#endif
             new[] { workspaceKind });
 
         solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
