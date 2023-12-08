@@ -4,6 +4,7 @@
 
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -239,11 +240,11 @@ internal struct IndentingStringBuilder : IDisposable
 
     /// <summary>
     /// Ensures that the current buffer has at least one blank line between the last written content and the content
-    /// that would be written.  Note: a line containing only whitespace/indentation is not considered an empty line.
-    /// Only a line with no content on it counts.
+    /// that would be written.  Note: a line containing only whitespace/indentation is not considered a blank line. Only
+    /// a line with no content on it counts.
     /// </summary>
     /// <returns></returns>
-    public readonly IndentingStringBuilder EnsureEmptyLine()
+    public readonly IndentingStringBuilder EnsureBlankLine()
     {
         if (GetLineCount() < 2)
             AppendEndOfLine();
@@ -337,6 +338,38 @@ internal struct IndentingStringBuilder : IDisposable
 
     public override readonly string ToString()
         => this.Builder.ToString();
+
+    /// <summary>
+    /// Writes out the individual elements of <paramref name="content"/> ensuring that there is a blank line written
+    /// between each element.
+    /// </summary>
+    public IndentingStringBuilder WriteBlankLineSeparated<T>(
+        IEnumerable<T> content,
+        Action<IndentingStringBuilder, T> writeElement)
+    {
+        return WriteBlankLineSeparated(
+            content,
+            static (builder, element, writeElement) => writeElement(builder, element),
+            writeElement);
+    }
+
+    /// <inheritdoc cref="WriteBlankLineSeparated{T}(IEnumerable{T}, Action{IndentingStringBuilder, T})"/>
+    public IndentingStringBuilder WriteBlankLineSeparated<T, TArg>(
+        IEnumerable<T> content,
+        Action<IndentingStringBuilder, T, TArg> writeElement,
+        TArg arg)
+    {
+        var first = true;
+        foreach (var item in content)
+        {
+            if (!first)
+                this.EnsureBlankLine();
+
+            writeElement(this, item, arg);
+        }
+
+        return this;
+    }
 
     /// <summary>
     /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.

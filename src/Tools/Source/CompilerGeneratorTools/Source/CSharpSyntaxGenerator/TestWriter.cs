@@ -77,20 +77,13 @@ namespace CSharpSyntaxGenerator
 
         private void WriteNodeGenerators(IndentingStringBuilder builder, bool isGreen)
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
-            bool first = true;
-            foreach (var node in nodes)
-            {
-                if (!first)
-                {
-                    WriteLine();
-                }
-                first = false;
-                WriteNodeGenerator((Node)node, isGreen);
-            }
+            builder.WriteBlankLineSeparated(
+                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                static (builder, node, tuple) => tuple.@this.WriteNodeGenerator(builder, (Node)node, tuple.isGreen),
+                (@this: this, isGreen));
         }
 
-        private void WriteNodeGenerator(Node node, bool isGreen)
+        private void WriteNodeGenerator(IndentingStringBuilder builder, Node node, bool isGreen)
         {
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
@@ -101,9 +94,8 @@ namespace CSharpSyntaxGenerator
 
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine($"private static {csharpNamespace}{node.Name} Generate{strippedName}()");
-
-            Write($"    => {syntaxFactory}.{strippedName}(");
+            builder.WriteLine($"private static {csharpNamespace}{node.Name} Generate{strippedName}()");
+            builder.Write($"    => {syntaxFactory}.{strippedName}(");
             //instantiate node
 
             bool first = true;
