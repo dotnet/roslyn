@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         private (ImmutableArray<TInput>, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)>) GetValuesAndInputs(
             NodeStateTable<TInput> sourceTable,
-            NodeStateTable<ImmutableArray<TInput>> previousTable,
+            NodeStateTable<ImmutableArray<TInput>>? previousTable,
             NodeStateTable<ImmutableArray<TInput>>.Builder newTable)
         {
             // Do an initial pass to both get the steps, and determine how many entries we'll have.
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis
 
             ImmutableArray<TInput>? tryReusePreviousTableValues(int entryCount)
             {
+                if (previousTable is null)
+                    return null;
+
                 if (previousTable.Count != 1)
                     return null;
 
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<ImmutableArray<TInput>> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<ImmutableArray<TInput>>? previousTable, CancellationToken cancellationToken)
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
@@ -116,28 +119,30 @@ namespace Microsoft.CodeAnalysis
             // - Modified otherwise
 
             // update the table
-            var newTable = builder.CreateTableBuilder(previousTable, _name, _comparer);
+            var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer);
 
             // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
-            Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
+            Debug.Assert(!tableBuilder.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
 
             var stopwatch = SharedStopwatch.StartNew();
 
-            var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, newTable);
+            var (sourceValues, sourceInputs) = GetValuesAndInputs(sourceTable, previousTable, tableBuilder);
 
-            if (previousTable.IsEmpty)
+            if (previousTable is null || previousTable.IsEmpty)
             {
-                newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+                tableBuilder.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
             }
-            else if (!sourceTable.IsCached || !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
+            else if (!sourceTable.IsCached || !tableBuilder.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
             {
-                if (!newTable.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
+                if (!tableBuilder.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
                 {
-                    newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
+                    tableBuilder.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
                 }
             }
 
-            return newTable.ToImmutableAndFree();
+            var newTable = tableBuilder.ToImmutableAndFree();
+            this.LogTables(_name, previousTable, newTable, sourceTable);
+            return newTable;
         }
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -55,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider,
             [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, globalOptions, serviceProvider)
+            EditorOptionsService editorOptionsService)
+            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
         {
             _argumentProviders = argumentProviders.ToImmutableArray();
         }
@@ -82,12 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return CommandState.Unspecified;
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
-            {
-                return CommandState.Unspecified;
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return CommandState.Unspecified;
             }
@@ -131,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     EditorCommandHandlerServiceFactory,
                     EditorAdaptersFactoryService,
                     _argumentProviders,
-                    GlobalOptions);
+                    EditorOptionsService);
 
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
@@ -150,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 EditorAdaptersFactoryService.GetViewAdapter(textView),
                 GetSnippetExpansionClient(textView, subjectBuffer),
                 Guids.CSharpLanguageServiceId,
-                bstrTypes: surroundWith ? new[] { "SurroundsWith" } : new[] { "Expansion", "SurroundsWith" },
+                bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
                 iCountTypes: surroundWith ? 1 : 2,
                 fIncludeNULLType: 1,
                 bstrKinds: null,

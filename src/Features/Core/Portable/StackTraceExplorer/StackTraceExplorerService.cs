@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 return null;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is not null)
             {
                 var result = await client.TryInvokeAsync<IRemoteStackTraceExplorerService, SerializableDefinitionItem?>(

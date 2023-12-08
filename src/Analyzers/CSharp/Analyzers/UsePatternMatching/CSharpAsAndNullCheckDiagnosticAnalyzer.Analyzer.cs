@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Contract.ThrowIfNull(comparison);
                 Contract.ThrowIfNull(operand);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
-                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
+                Debug.Assert(enclosingBlock.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection);
 
                 _semanticModel = semanticModel;
                 _comparison = comparison;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // Keep track of whether the pattern variable is definitely assigned when false/true.
                 // We start by the null-check itself, if it's compared with '==', the pattern variable
                 // will be definitely assigned when false, because we wrap the is-operator in a !-operator.
-                var defAssignedWhenTrue = _comparison.IsKind(SyntaxKind.NotEqualsExpression, SyntaxKind.IsExpression);
+                var defAssignedWhenTrue = _comparison.Kind() is SyntaxKind.NotEqualsExpression or SyntaxKind.IsExpression;
 
                 foreach (var current in _comparison.Ancestors())
                 {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // This is either an embedded statement or parented by a block.
                 // If we're parented by a block, then that block will be the scope
                 // of the new variable. Otherwise the scope is the statement itself.
-                if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax? block))
+                if (statement.Parent is BlockSyntax block)
                 {
                     // Check if the local is accessed before assignment 
                     // in the subsequent statements. If so, this can't
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     }
 
-                    if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName) &&
+                    if (descendentNode is IdentifierNameSyntax identifierName &&
                         identifierName.Identifier.ValueText == variableName &&
                         _localSymbol.Equals(_semanticModel.GetSymbolInfo(identifierName, _cancellationToken).Symbol))
                     {

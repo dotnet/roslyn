@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationOpt = _syntax.Declaration;
             if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
-                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, allowRefKind: false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable, initializer: null, hasScopedModifier: false));
+                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, allowRefKind: false, allowScoped: false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable, initializer: null));
             }
 
             if (_syntax.Filter != null)
@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Locals;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override SyntaxNode ScopeDesignator

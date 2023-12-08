@@ -15,10 +15,31 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         public string Description { get; }
         public ImmutableArray<string> DiagnosticIds { get; }
 
-        public DiagnosticSet(string description, params string[] diagnosticIds)
+        /// <summary>
+        /// Diagnostic set is enabled for all severities if it has been explicitly selected as part of the cleanup profile.
+        /// If the diagnostic set has not been explicitly selected, but gets bulk included by selecting
+        /// "Fix all warnings and errors set in EditorConfig", then we only include diagnostics with Warning Or Error severity.
+        /// </summary>
+        public bool IsAnyDiagnosticIdExplicitlyEnabled { get; }
+
+        private DiagnosticSet(string description, ImmutableArray<string> diagnosticIds, bool isAnyDiagnosticIdExplicitlyEnabled)
         {
             Description = description;
-            DiagnosticIds = ImmutableArray.Create(diagnosticIds);
+            DiagnosticIds = diagnosticIds;
+            IsAnyDiagnosticIdExplicitlyEnabled = isAnyDiagnosticIdExplicitlyEnabled;
+        }
+
+        public DiagnosticSet(string description, params string[] diagnosticIds)
+            : this(description, ImmutableArray.Create(diagnosticIds), isAnyDiagnosticIdExplicitlyEnabled: true)
+        {
+        }
+
+        public DiagnosticSet With(bool isAnyDiagnosticIdExplicitlyEnabled)
+        {
+            if (this.IsAnyDiagnosticIdExplicitlyEnabled == isAnyDiagnosticIdExplicitlyEnabled)
+                return this;
+
+            return new(Description, DiagnosticIds, isAnyDiagnosticIdExplicitlyEnabled);
         }
     }
 }

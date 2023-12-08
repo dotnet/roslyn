@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 if (_connectionPools.TryGetValue(databaseFilePath, out var pool))
                 {
-                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
                 }
 
                 // try to get db ownership lock. if someone else already has the lock. it will throw
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                     // Place the initial ownership reference in _connectionPools, and return another
                     _connectionPools.Add(databaseFilePath, pool);
-                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
+                    return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {

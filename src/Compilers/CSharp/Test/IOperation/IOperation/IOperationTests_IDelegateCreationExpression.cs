@@ -138,19 +138,19 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... t i) => { }')
     Declarators:
         IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = (int i) => { }')
-          Initializer: 
+          Initializer:
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= (int i) => { }')
               IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: '(int i) => { }')
-                Target: 
+                Target:
                   IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-                    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
     Initializer: 
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,38): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         /*<bind>*/Action a = (int i) => { };/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -235,14 +235,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
-  Target: 
+  Target:
     IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,47): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/(Action)((int i) => { })/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 47)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -340,22 +340,22 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
-  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
-    Declarators:
-        IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
-          Initializer: 
-            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate(int i) { }')
-              IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
-                Target: 
-                  IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
-                    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Action a =  ... (int i) { }')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = delegate(int i) { }')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= delegate(int i) { }')
+                  IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'delegate(int i) { }')
+                    Target:
+                      IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
+                        IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
     Initializer: 
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,30): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         /*<bind>*/Action a = delegate(int i) { };/*</bind>*/
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate(int i) { }").WithArguments("System.Action", "1").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate").WithArguments("System.Action", "1").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -941,17 +941,17 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action( ...  i) => { })')
-  Target: 
+  Target:
     IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
-        IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '{ }')
-          ReturnedValue: 
+      IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{ }')
+          ReturnedValue:
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,49): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/new Action((int i) => { })/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 41)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 49)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1401,16 +1401,16 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Syntax: 'new Action( ... i) => { }))')
-  Children(1):
-      IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
-        Target: 
-          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
-            IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+    Children(1):
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)((int i) => { })')
+        Target:
+            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '(int i) => { }')
+            IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1593: Delegate 'Action' does not take 1 arguments
+                // (7,58): error CS1593: Delegate 'Action' does not take 1 arguments
                 //         Action a = /*<bind>*/new Action((Action)((int i) => { }))/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(int i) => { }").WithArguments("System.Action", "1").WithLocation(7, 50)
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Action", "1").WithLocation(7, 58)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1997,6 +1997,77 @@ Block[B6] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        public void ExplicitCastOnTuple_01()
+        {
+            var code = """
+                using System;
+
+                (int i, Action invoke) = /*<bind>*/((int, Action))(1, M)/*</bind>*/;
+
+                void M() {}
+                """;
+
+            var expectedOperationTree = """
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.Action)) (Syntax: '((int, Action))(1, M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Action M)) (Syntax: '(1, M)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'M')
+            Target:
+              IMethodReferenceOperation: void M() (OperationKind.MethodReference, Type: null) (Syntax: 'M')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M')
+""";
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(code, expectedOperationTree, DiagnosticDescription.None);
+        }
+
+        [Fact, WorkItem(64774, "https://github.com/dotnet/roslyn/issues/64774")]
+        public void ExplicitCastOnTuple_02()
+        {
+            var code = """
+                unsafe
+                {
+                    (int i, delegate*<void> invoke) = /*<bind>*/((int, delegate*<void>))(1, &M)/*</bind>*/;
+                }
+
+                static void M() {}
+                """;
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,56): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //     (int i, delegate*<void> invoke) = /*<bind>*/((int, delegate*<void>))(1, &M)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(3, 56)
+            );
+
+            var expectedOperationTree = """
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, delegate*<System.Void>), IsInvalid) (Syntax: '((int, dele ... d>))(1, &M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, delegate*<System.Void>)) (Syntax: '(1, &M)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&M')
+            Reference:
+              IMethodReferenceOperation: void M() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M')
+                Instance Receiver:
+                  null
+""";
+
+            VerifyOperationTreeForTest<CastExpressionSyntax>(comp, expectedOperationTree);
         }
     }
 }

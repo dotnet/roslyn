@@ -1090,8 +1090,8 @@ end class
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1130,8 +1130,8 @@ end class
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1168,14 +1168,10 @@ end class
             driver = driver.RunGenerators(compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last()))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Removed, _step.Outputs.Single().Reason))
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
 
-            ' the per-file global aliases get changed (because the last file is removed).
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-
-            ' however, the collected global aliases stays the same.
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1216,13 +1212,12 @@ end class
 "))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
         End Sub
 
@@ -1259,14 +1254,13 @@ end class
 "))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1302,9 +1296,8 @@ end class
                 GlobalImport.Parse("BAttribute = AAttribute"))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
@@ -1341,14 +1334,13 @@ end class
 
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1380,14 +1372,13 @@ end class
                 compilation.Options.GlobalImports.Add(GlobalImport.Parse("BAttribute = XAttribute")))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
                 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
@@ -1425,15 +1416,12 @@ class D
 end class"))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Collection(runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs,
-                Sub(o) Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-                Sub(o) Assert.Equal(IncrementalStepRunReason.Modified, o.Reason))
+                Sub(o) Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason))
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("result_ForAttribute").Single().Outputs.Single().Reason)
         End Sub
@@ -1471,15 +1459,13 @@ class D
 end class"))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Collection(runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs,
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Reason),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Modified, _step.Reason))
+                Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Reason))
             Assert.Collection(runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute"),
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.Cached, _step.Outputs.Single().Reason),
                 Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
@@ -1526,9 +1512,8 @@ class D
 end class"))))
             runResult = driver.GetRunResult().Results(0)
 
-            Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-                Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"))
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)

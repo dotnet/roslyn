@@ -21,9 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
-        private BackgroundCompiler? _backgroundCompiler;
-        private readonly BackgroundParser _backgroundParser;
-
         static VisualStudioWorkspace()
         {
             FaultReporter.InitializeFatalErrorHandlers();
@@ -32,44 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            _backgroundCompiler = new BackgroundCompiler(this);
-
-            var cacheService = Services.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
-            {
-                cacheService.CacheFlushRequested += OnCacheFlushRequested;
-            }
-
-            _backgroundParser = new BackgroundParser(this);
-            _backgroundParser.Start();
         }
 
-        private void OnCacheFlushRequested(object sender, EventArgs e)
-        {
-            if (_backgroundCompiler != null)
-            {
-                _backgroundCompiler.Dispose();
-                _backgroundCompiler = null; // PartialSemanticsEnabled will now return false
-            }
-
-            // No longer need cache notifications
-            var cacheService = Services.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
-            {
-                cacheService.CacheFlushRequested -= OnCacheFlushRequested;
-            }
-        }
-
-        protected internal override bool PartialSemanticsEnabled
-        {
-            get { return _backgroundCompiler != null; }
-        }
-
-        protected override void OnDocumentTextChanged(Document document)
-            => _backgroundParser.Parse(document);
-
-        protected override void OnDocumentClosing(DocumentId documentId)
-            => _backgroundParser.CancelParse(documentId);
+        protected internal override bool PartialSemanticsEnabled => true;
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
 

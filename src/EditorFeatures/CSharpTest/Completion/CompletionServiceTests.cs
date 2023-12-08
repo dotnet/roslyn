@@ -27,9 +27,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class CompletionServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public void AcquireCompletionService()
         {
             var workspace = new AdhocWorkspace();
@@ -40,6 +41,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 
             var service = CompletionService.GetService(document);
             Assert.NotNull(service);
+        }
+
+        [Fact]
+        public void FindCompletionProvider()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
+            var text = SourceText.From("class C { }");
+
+            var document = workspace.CurrentSolution
+                .AddProject("TestProject", "Assembly", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", text);
+
+            var service = CompletionService.GetService(document);
+
+            // Create an item with ProviderName set to ThirdPartyCompletionProvider
+            // We should be able to find the provider object without calling into CompletionService for other operations.
+            var item = CompletionItem.Create("ThirdPartyCompletionProviderItem");
+            item.ProviderName = typeof(ThirdPartyCompletionProvider).FullName;
+
+            var provider = service.GetProvider(item, document.Project);
+            Assert.True(provider is ThirdPartyCompletionProvider);
         }
 
         [ExportCompletionProvider(nameof(ThirdPartyCompletionProvider), LanguageNames.CSharp)]
@@ -78,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions1()
         {
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
@@ -90,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 .AddDocument("TestDocument.cs", text);
 
             var service = CompletionService.GetService(document);
-            var options = new OptionValueSet(ImmutableDictionary<OptionKey, object>.Empty.Add(new OptionKey(ThirdPartyOption.Instance, LanguageNames.CSharp), 1));
+            var options = new TestOptionSet(ImmutableDictionary<OptionKey, object>.Empty.Add(new OptionKey(ThirdPartyOption.Instance, LanguageNames.CSharp), 1));
             service.ShouldTriggerCompletion(text, 1, CompletionTrigger.Invoke, options: options);
 
 #pragma warning disable RS0030 // Do not used banned APIs
@@ -101,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// <summary>
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PassThroughOptions2()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
@@ -126,18 +148,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         }
 
         [Theory, CombinatorialData]
-        public async Task GettingCompletionListShoudNotRunSourceGenerator(bool forkBeforeFreeze)
+        public async Task GettingCompletionListPerformSort(bool performSort)
         {
-            var sourceMarkup = @"
-using System;
+            var sourceMarkup = """
+                using System;
 
-namespace N
-{
-    public class C1
-    {
-        $$
-    }
-}";
+                namespace N
+                {
+                    public class C
+                    {
+                        void M()
+                        {
+                            $$
+                        }
+                    }
+                }
+                """;
+            MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
+
+            var workspace = new AdhocWorkspace();
+
+            var document = workspace
+                .AddProject("TestProject", LanguageNames.CSharp)
+                .AddDocument("TestDocument.cs", source);
+
+            var completionService = document.GetLanguageService<CompletionService>();
+
+            var options = CompletionOptions.Default with { PerformSort = performSort };
+            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
+
+            var completionListManuallySorted = completionList.ItemsList.ToList();
+            completionListManuallySorted.Sort();
+
+            Assert.True(performSort == completionList.ItemsList.SequenceEqual(completionListManuallySorted));
+        }
+
+        [Theory, CombinatorialData]
+        public async Task GettingCompletionListShouldNotRunSourceGenerator(bool forkBeforeFreeze)
+        {
+            var sourceMarkup = """
+                using System;
+
+                namespace N
+                {
+                    public class C1
+                    {
+                        $$
+                    }
+                }
+                """;
             MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
 
             var generatorRanCount = 0;
@@ -165,7 +224,7 @@ namespace N
 
             // We want to make sure import completion providers are also participating.
             var options = CompletionOptions.Default with { ShowItemsFromUnimportedNamespaces = true };
-            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionValueSet.Empty);
+            var completionList = await completionService.GetCompletionsAsync(document, position.Value, options, OptionSet.Empty);
 
             // We expect completion to run on frozen partial semantic, which won't run source generator.
             Assert.Equal(0, generatorRanCount);

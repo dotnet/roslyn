@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -431,6 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 allowCancellation: true,
                 showProgress: true);
 
+            var originalSolution = workspace.CurrentSolution;
             var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
             if (!selectedAction.HasValue)
                 return;
@@ -465,11 +467,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                             await editHandlerService.ApplyAsync(
                                 _workspace,
+                                originalSolution,
                                 fromDocument: null,
-                                operations: operations,
+                                operations,
                                 title: ServicesVSResources.Updating_severity,
-                                progressTracker: new UIThreadOperationContextProgressTracker(scope1),
-                                cancellationToken: context.UserCancellationToken).ConfigureAwait(true);
+                                scope1.GetCodeAnalysisProgress(),
+                                context.UserCancellationToken).ConfigureAwait(true);
                             continue;
                         }
 

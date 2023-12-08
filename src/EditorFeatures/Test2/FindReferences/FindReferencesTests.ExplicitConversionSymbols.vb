@@ -5,11 +5,12 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
 #Region "C#"
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -32,8 +33,8 @@ struct Goo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType1_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -56,8 +57,8 @@ struct Goo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType2_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -80,8 +81,8 @@ struct Goo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType1_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -104,8 +105,8 @@ struct Goo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType2_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -128,8 +129,8 @@ struct Goo
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionArrayType_CSharp(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -156,8 +157,8 @@ struct Goo
 
 #Region "Visual Basic"
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionPredefinedType_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -180,8 +181,8 @@ end structure
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -204,8 +205,8 @@ end structure
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionNamedType2_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -228,8 +229,8 @@ end structure
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType1_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -252,8 +253,8 @@ end structure
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionQualifiedNamedType2_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -276,8 +277,8 @@ end structure
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <WorkItem(50850, "https://github.com/dotnet/roslyn/issues/50850")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/50850")>
         Public Async Function TestExplicitConversionArrayType_VisualBasic(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

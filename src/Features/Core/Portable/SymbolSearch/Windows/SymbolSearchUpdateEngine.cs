@@ -30,14 +30,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
-            new();
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = new();
 
         /// <summary>
         /// Don't call directly. Use <see cref="SymbolSearchUpdateEngineFactory"/> instead.
         /// </summary>
-        public SymbolSearchUpdateEngine()
-            : this(new RemoteControlService(),
+        public SymbolSearchUpdateEngine(IFileDownloaderFactory fileDownloaderFactory)
+            : this(fileDownloaderFactory,
                    new DelayService(),
                    new IOService(),
                    new PatchService(),
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// For testing purposes only.
         /// </summary>
         internal SymbolSearchUpdateEngine(
-            IRemoteControlService remoteControlService,
+            IFileDownloaderFactory fileDownloaderFactory,
             IDelayService delayService,
             IIOService ioService,
             IPatchService patchService,
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             _delayService = delayService;
             _ioService = ioService;
-            _remoteControlService = remoteControlService;
+            _fileDownloaderFactory = fileDownloaderFactory;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowExceptionUnlessCanceled = reportAndSwallowExceptionUnlessCanceled;
@@ -202,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 select symbol);
         }
 
-        private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
+        private static PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
         {
             var nameParts = ArrayBuilder<string>.GetInstance();
             GetFullName(nameParts, type.FullName.Parent);
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private static bool IsType(Symbol symbol)
             => symbol.Type.IsType();
 
-        private void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
+        private static void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
         {
             if (!path.IsEmpty)
             {

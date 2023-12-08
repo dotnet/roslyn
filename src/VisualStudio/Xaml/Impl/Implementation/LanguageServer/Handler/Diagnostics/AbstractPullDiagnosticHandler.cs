@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : ILspServiceRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : VSInternalDiagnosticReport
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             // Go through the documents that we need to process and call XamlPullDiagnosticService to get the diagnostic report
             foreach (var document in GetDocuments(context))
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var documentId = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
 
                 // If we can get a previousId of the document, use it, 
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                             diagnosticReport.ResultId));
             }
 
-            return progress.GetValues();
+            return progress.GetFlattenedValues();
         }
 
         /// <summary>
@@ -135,14 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Tags = ConvertTags(d),
                 Source = d.Tool,
                 CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
-                Projects = new[]
-                {
+                Projects =
+                [
                     new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
+                ],
             }).ToArray();
         }
 
@@ -189,7 +189,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             return result.ToArray();
         }
-
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams request);
     }
 }

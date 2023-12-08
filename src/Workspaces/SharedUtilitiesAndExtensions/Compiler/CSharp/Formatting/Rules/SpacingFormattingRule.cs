@@ -4,13 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -84,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Case: public static implicit operator int[](Program p) { return null; }
             // Case: public static implicit operator (int, int)(Program p) { return null; }
             // Case: public static implicit operator Action<int>(Program p) { return null; }
-            if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
+            if ((previousToken.IsKeyword() || previousToken.Kind() is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.CloseBracketToken or SyntaxKind.CloseParenToken or SyntaxKind.GreaterThanToken)
                 && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterMethodDeclarationName));
@@ -162,8 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.ParenthesizedPattern) && previousKind == SyntaxKind.OpenParenToken) ||
-                (currentToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.ParenthesizedPattern) && currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.WithinExpressionParentheses));
             }
@@ -207,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // List patterns
-            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
+            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
                 // For the space after the middle comma in ([1, 2], [1, 2])
                 if (previousKind == SyntaxKind.CommaToken)
@@ -215,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
                 }
 
-                // For "is [", "and [", but not "(["
-                if (previousKind != SyntaxKind.OpenParenToken)
+                // For "is [", "and [", but not "([" or "[["
+                if (previousKind is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -282,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing delimiters - after comma
             if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken)
                 || previousToken.IsCommaInInitializerExpression()
+                || previousToken.IsCommaInCollectionExpression()
                 || (previousKind == SyntaxKind.CommaToken
                     && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(previousToken)))
@@ -292,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing delimiters - before comma
             if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken)
                 || currentToken.IsCommaInInitializerExpression()
+                || previousToken.IsCommaInCollectionExpression()
                 || (currentKind == SyntaxKind.CommaToken
                     && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(currentToken)))
@@ -328,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
                 previousToken.Parent is AssignmentExpressionSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.AndPattern, SyntaxKind.OrPattern, SyntaxKind.RelationalPattern) ||
-                previousToken.Parent.IsKind(SyntaxKind.AndPattern, SyntaxKind.OrPattern, SyntaxKind.RelationalPattern))
+                currentToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern ||
+                previousToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern)
             {
                 switch (_options.SpacingAroundBinaryOperator)
                 {
@@ -565,17 +564,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SuppressVariableDeclaration(list, node);
         }
 
-        private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
-            forStatement.Initializers.Count == 0
+        private static bool IsEmptyForStatement(ForStatementSyntax forStatement)
+            => forStatement.Initializers.Count == 0
             && forStatement.Declaration == null
             && forStatement.Condition == null
             && forStatement.Incrementors.Count == 0;
 
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
-                node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                node.IsKind(SyntaxKind.EnumMemberDeclaration))
+            if (node.Kind()
+                    is SyntaxKind.FieldDeclaration
+                    or SyntaxKind.EventDeclaration
+                    or SyntaxKind.EventFieldDeclaration
+                    or SyntaxKind.LocalDeclarationStatement
+                    or SyntaxKind.EnumMemberDeclaration)
             {
                 if (_options.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration))
                 {
@@ -600,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.ListPattern);
+            => token.Parent is (kind: SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern or SyntaxKind.CollectionExpression);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);

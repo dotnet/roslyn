@@ -57,7 +57,7 @@ Environment.Exit(0)
 ");
 
             var expected = $@"
-{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+{string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion)}
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}
@@ -72,8 +72,8 @@ Environment.Exit(0)
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, result.Output);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }
-(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll") }
+(1,7): error CS1504: {string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile)}
+(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "C.dll")}
 ", result.Errors);
 
             Assert.Equal(0, result.ExitCode);

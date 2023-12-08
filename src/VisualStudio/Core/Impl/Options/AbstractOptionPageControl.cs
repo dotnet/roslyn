@@ -17,14 +17,14 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    [System.ComponentModel.DesignerCategory("code")] // this must be fully qualified
+    [DesignerCategory("code")] // this must be fully qualified
     public abstract class AbstractOptionPageControl : UserControl
     {
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
         private readonly List<OptionPageSearchHandler> _searchHandlers = new();
 
-        protected AbstractOptionPageControl(OptionStore optionStore)
+        private protected AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
 

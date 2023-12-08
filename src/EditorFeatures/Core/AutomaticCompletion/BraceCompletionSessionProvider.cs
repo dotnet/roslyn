@@ -32,32 +32,18 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     [BracePair(DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter)]
     [BracePair(Parenthesis.OpenCharacter, Parenthesis.CloseCharacter)]
     [BracePair(LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter)]
-    internal partial class BraceCompletionSessionProvider : IBraceCompletionSessionProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class BraceCompletionSessionProvider(
+        IThreadingContext threadingContext,
+        ITextBufferUndoManagerProvider undoManager,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService) : IBraceCompletionSessionProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BraceCompletionSessionProvider(
-            IThreadingContext threadingContext,
-            ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IIndentationManagerService indentationManager,
-            IGlobalOptionService globalOptions)
-        {
-            _threadingContext = threadingContext;
-            _undoManager = undoManager;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ITextBufferUndoManagerProvider _undoManager = undoManager;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
         {
@@ -79,8 +65,8 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                         var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
-                            undoHistory, _editorOperationsFactoryService, _editorOptionsFactory, _indentationManager,
-                            editorSession, _globalOptions, _threadingContext);
+                            undoHistory, _editorOperationsFactoryService, _editorOptionsService,
+                            editorSession, _threadingContext);
                         return true;
                     }
                 }

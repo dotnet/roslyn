@@ -3,9 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -16,28 +26,89 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
-        private readonly ITextView _textView;
+        private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IWpfTextView _textView;
+        private readonly IWpfThemeService? _wpfThemeService;
+        private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
+        public RenameFlyout(
+            RenameFlyoutViewModel viewModel,
+            IWpfTextView textView,
+            IWpfThemeService? themeService,
+            IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IEditorFormatMapService editorFormatMapService,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
-
+            _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
-            _textView.LostAggregateFocus += TextView_LostFocus;
-            _textView.Caret.PositionChanged += TextView_CursorChanged;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
+            _threadingContext = threadingContext;
+            _wpfThemeService = themeService;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
-                Focus();
-                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                // Wait until load to position adornment for space negotiation
+                PositionAdornment();
+
+                IdentifierTextBox.Focus();
+                IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+                IdentifierTextBox.SelectionChanged += IdentifierTextBox_SelectionChanged;
             };
 
             InitializeComponent();
-            PositionAdornment();
+
+            // If smart rename is available, insert the control after the identifier text box.
+            if (viewModel.SmartRenameViewModel is not null)
+            {
+                var smartRenameControl = new SmartRenameControl(viewModel.SmartRenameViewModel);
+                var index = MainPanel.Children.IndexOf(IdentifierAndExpandButtonGrid);
+                MainPanel.Children.Insert(index + 1, smartRenameControl);
+            }
+
+            RefreshColors();
+
+            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
+
+            // Dismiss any current tooltips. Note that this does not disable tooltips
+            // from showing up again, so if a user has the mouse unmoved another
+            // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398
+            // tracks when we can handle this with IFeaturesService in VS
+            var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
+            _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+        }
+
+        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
+        {
+            RefreshColors();
+        }
+
+        private void RefreshColors()
+        {
+            if (_wpfThemeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                Background = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
+        }
+
+        private async Task DismissToolTipsAsync()
+        {
+            var infoSession = _asyncQuickInfoBroker.GetSession(_textView);
+            if (infoSession is null)
+            {
+                return;
+            }
+
+            await infoSession.DismissAsync().ConfigureAwait(false);
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
@@ -50,22 +121,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void TextView_CursorChanged(object sender, CaretPositionChangedEventArgs e)
-            => _viewModel.Cancel();
-
-        private void TextView_LostFocus(object sender, EventArgs e)
-            => _viewModel.Cancel();
-
         private void TextView_ViewPortChanged(object sender, EventArgs e)
             => PositionAdornment();
 
         private void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
-            => PositionAdornment();
+        {
+            // Since the textview will update for the buffer being updated, we only want to reposition
+            // in cases where there was an actual view translation instead of EVERY time it updates. Otherwise
+            // the user will see the flyout jumping as they type
+            if (e.VerticalTranslation || e.HorizontalTranslation)
+            {
+                PositionAdornment();
+            }
+        }
 
         private void PositionAdornment()
         {
-            var top = _textView.Caret.Bottom + 5;
-            var left = _textView.Caret.Left - 5;
+            var span = _viewModel.InitialTrackingSpan.GetSpan(_textView.TextSnapshot);
+            var line = _textView.GetTextViewLineContainingBufferPosition(span.Start);
+            var charBounds = line.GetCharacterBounds(span.Start);
+
+            var height = DesiredSize.Height;
+            var width = DesiredSize.Width;
+
+            var desiredTop = charBounds.TextBottom + 5;
+            var desiredLeft = charBounds.Left;
+
+            var top = (desiredTop + height) > _textView.ViewportBottom
+                ? _textView.ViewportBottom - height
+                : desiredTop;
+
+            var left = (desiredLeft + width) > _textView.ViewportRight
+                ? _textView.ViewportRight - width
+                : desiredLeft;
 
             Canvas.SetTop(this, top);
             Canvas.SetLeft(this, left);
@@ -78,8 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
-            _textView.LostAggregateFocus -= TextView_LostFocus;
-            _textView.Caret.PositionChanged -= TextView_CursorChanged;
+            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
+
+            // Restore focus back to the textview
+            _textView.VisualElement.Focus();
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)
@@ -143,6 +233,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ToggleExpand(object sender, RoutedEventArgs e)
         {
             _viewModel.IsExpanded = !_viewModel.IsExpanded;
+        }
+
+        /// <summary>
+        /// Respond to selection/cursor changes in the textbox the user is editing by
+        /// applying the same selection to the textview that initiated the command
+        /// </summary>
+        private void IdentifierTextBox_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            // When user is editing the text or make selection change in the text box, sync the selection with text view
+            if (!this.IdentifierTextBox.IsFocused)
+            {
+                return;
+            }
+
+            var start = IdentifierTextBox.SelectionStart;
+            var length = IdentifierTextBox.SelectionLength;
+
+            var buffer = _viewModel.InitialTrackingSpan.TextBuffer;
+            var startPoint = _viewModel.InitialTrackingSpan.GetStartPoint(buffer.CurrentSnapshot);
+            _textView.SetSelection(new SnapshotSpan(startPoint + start, length));
+        }
+
+        private void IdentifierTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // When smart rename is available, allow the user choose the suggestions using the up/down keys.
+            _threadingContext.ThrowIfNotOnUIThread();
+            var smartRenameViewModel = _viewModel.SmartRenameViewModel;
+            if (smartRenameViewModel is not null)
+            {
+                var currentIdentifier = IdentifierTextBox.Text;
+                if (e.Key is Key.Down or Key.Up)
+                {
+                    var newIdentifier = smartRenameViewModel.ScrollSuggestions(currentIdentifier, down: e.Key == Key.Down);
+                    if (newIdentifier is not null)
+                    {
+                        _viewModel.IdentifierText = newIdentifier;
+                        // Place the cursor at the end of the input text box.
+                        IdentifierTextBox.Select(newIdentifier.Length, 0);
+                        e.Handled = true;
+                    }
+                }
+            }
         }
     }
 }

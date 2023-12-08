@@ -586,7 +586,6 @@ End Module
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator -(x As A1) As A1"),
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1) As A1")}
 
-
             Dim a1 = compilation.GetTypeByMetadataName("A1")
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
@@ -1183,7 +1182,6 @@ End Module
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator -(x As A1) As A1"),
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1) As A1")}
 
-
             Dim a1 = compilation.GetTypeByMetadataName("A1")
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
@@ -1368,7 +1366,6 @@ Module Program
 End Module
     </file>
 </compilation>, customIL.Value, includeVbRuntime:=True, options:=TestOptions.ReleaseExe)
-
 
             Dim a1 = compilation.GetTypeByMetadataName("A1")
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
@@ -1947,7 +1944,6 @@ End Module
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator -(x As A1) As A1"),
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator +(x As A1) As A1")}
 
-
             Dim a1 = compilation.GetTypeByMetadataName("A1")
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()
 
@@ -2081,7 +2077,6 @@ End Module
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator <<(x As A1, y As Integer) As A1"),
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator Not(x As A1) As A1"),
                      New BaseLine(MethodKind.UserDefinedOperator, "Public Shared Overloads Operator >>(x As A1, y As Integer) As A1")}
-
 
             Dim a1 = compilation.GetTypeByMetadataName("A1")
             Dim members As ImmutableArray(Of Symbol) = a1.GetMembers()

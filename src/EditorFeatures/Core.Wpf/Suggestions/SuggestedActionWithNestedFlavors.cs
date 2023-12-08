@@ -38,11 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public SuggestedActionWithNestedFlavors(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
-            Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction,
+            Workspace workspace,
+            Solution originalSolution,
+            ITextBuffer subjectBuffer,
+            object provider,
+            CodeAction codeAction,
             SuggestedActionSet additionalFlavors)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   provider, codeAction)
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   provider,
+                   codeAction)
         {
             _additionalFlavors = additionalFlavors;
         }

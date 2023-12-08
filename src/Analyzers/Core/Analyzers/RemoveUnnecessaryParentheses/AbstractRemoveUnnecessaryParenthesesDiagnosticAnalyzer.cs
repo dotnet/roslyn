@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,16 +17,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     internal abstract class AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<
         TLanguageKindEnum,
         TParenthesizedExpressionSyntax>
-        : AbstractParenthesesDiagnosticAnalyzer
+        : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                   EnforceOnBuildValues.RemoveUnnecessaryParentheses,
+                  options: ParenthesesDiagnosticAnalyzersHelper.Options,
+                  fadingOption: null,
                   new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                  isUnnecessary: true)
+                  new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
@@ -82,9 +83,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             }
 
             var options = context.GetAnalyzerOptions();
-            var preference = GetLanguageOption(options, precedence);
+            var preference = ParenthesesDiagnosticAnalyzersHelper.GetLanguageOption(options, precedence);
 
-            if (preference.Notification.Severity == ReportDiagnostic.Suppress)
+            if (ShouldSkipAnalysis(context, preference.Notification))
             {
                 // User doesn't care about these parens.  So nothing for us to do.
                 return;
@@ -103,8 +104,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Debug.Assert(preference.Value == ParenthesesPreference.NeverIfUnnecessary ||
                          !clarifiesPrecedence);
 
-            var severity = preference.Notification.Severity;
-
             var additionalLocations = ImmutableArray.Create(
                 parenthesizedExpression.GetLocation());
             var additionalUnnecessaryLocations = ImmutableArray.Create(
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 Descriptor,
                 AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
-                severity,
+                preference.Notification,
                 additionalLocations,
                 additionalUnnecessaryLocations));
         }

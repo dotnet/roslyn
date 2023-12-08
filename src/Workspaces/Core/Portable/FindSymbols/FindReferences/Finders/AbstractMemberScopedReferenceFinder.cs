@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
             FindReferencesDocumentState state,
             FindReferencesSearchOptions options,
@@ -53,21 +53,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var container = GetContainer(symbol);
             if (container != null)
-                return FindReferencesInContainerAsync(symbol, container, state, cancellationToken);
+                return await FindReferencesInContainerAsync(symbol, container, state, cancellationToken).ConfigureAwait(false);
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
             {
-                var tokens = state.Root.DescendantTokens();
-                return FindReferencesInTokensWithSymbolNameAsync(symbol, state, tokens, cancellationToken);
+                var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+                return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
             }
 
-            return new(ImmutableArray<FinderLocation>.Empty);
+            return ImmutableArray<FinderLocation>.Empty;
         }
 
         private static ISymbol? GetContainer(ISymbol symbol)
         {
             for (var current = symbol; current != null; current = current.ContainingSymbol)
             {
+                if (current.DeclaringSyntaxReferences.Length == 0)
+                    continue;
+
                 if (current is IPropertySymbol)
                     return current;
 
@@ -75,37 +78,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // search for results within the property itself.
                 if (current is IFieldSymbol field)
                 {
-                    if (field.IsImplicitlyDeclared &&
-                        field.AssociatedSymbol?.Kind == SymbolKind.Property)
-                    {
-                        return field.AssociatedSymbol;
-                    }
-                    else
-                    {
-                        return field;
-                    }
+                    return field is { IsImplicitlyDeclared: true, AssociatedSymbol.Kind: SymbolKind.Property }
+                        ? field.AssociatedSymbol
+                        : field;
                 }
 
-                if (current is IMethodSymbol { MethodKind: not MethodKind.AnonymousFunction and not MethodKind.LocalFunction } method)
-                    return method;
+                // Note: this may hit a containing local-function/lambda.  That's fine as that's still the scope we want
+                // to look for this local within.
+                if (current is IMethodSymbol)
+                    return current;
             }
 
             return null;
-        }
-
-        protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
-            TSymbol symbol,
-            FindReferencesDocumentState state,
-            IEnumerable<SyntaxToken> tokens,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, name, _) => IdentifiersMatch(state.SyntaxFacts, name, token),
-                symbol.Name,
-                cancellationToken);
         }
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
@@ -115,16 +99,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
-            var declarations = service.GetDeclarations(container);
-            var tokens = declarations.SelectMany(r => r.GetSyntax(cancellationToken).DescendantTokens());
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
-            return FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, tuple, _) => tuple.self.TokensMatch(state, token, tuple.name),
-                (self: this, name: symbol.Name),
-                cancellationToken);
+            foreach (var declaration in service.GetDeclarations(container))
+            {
+                var syntax = declaration.GetSyntax(cancellationToken);
+                if (syntax.SyntaxTree != state.SyntaxTree)
+                    continue;
+
+                foreach (var token in syntax.DescendantTokens())
+                {
+                    if (TokensMatch(state, token, symbol.Name))
+                        tokens.Add(token);
+                }
+            }
+
+            return FindReferencesInTokensAsync(symbol, state, tokens.ToImmutable(), cancellationToken);
         }
     }
 }

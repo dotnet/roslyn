@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// <summary>
 /// Request handler type exposed to typescript.
 /// </summary>
-internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
+internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : ILspServiceRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler, ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier?>
 {
-    bool IRequestHandler.MutatesSolutionState => MutatesSolutionState;
+    bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
 
-    bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
-    TextDocumentIdentifier? IRequestHandler<TRequestType, TResponseType>.GetTextDocumentIdentifier(TRequestType request)
+    public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)
@@ -45,7 +45,7 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
         return textDocumentIdentifier;
     }
 
-    Task<TResponseType> IRequestHandler<TRequestType, TResponseType>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
+    public Task<TResponseType> HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
     {
         return HandleRequestAsync(request, new TypeScriptRequestContext(context.Solution, context.Document), cancellationToken);
     }

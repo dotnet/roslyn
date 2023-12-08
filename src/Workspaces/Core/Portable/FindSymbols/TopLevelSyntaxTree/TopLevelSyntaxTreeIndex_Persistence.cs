@@ -2,25 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class TopLevelSyntaxTreeIndex : IObjectWritable
+    internal sealed partial class TopLevelSyntaxTreeIndex
     {
-        public static Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
-            => PrecalculateAsync(document, CreateIndex, cancellationToken);
-
         public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {

@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Structure

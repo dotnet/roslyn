@@ -9,10 +9,11 @@ Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <Trait(Traits.Feature, Traits.Features.QuickInfo)>
     Public Class IntellisenseQuickInfoBuilderTests_Inheritdoc
         Inherits AbstractIntellisenseQuickInfoBuilderTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function NoImplicitInheritedQuickInfoForType() As Task
             Dim workspace =
                 <Workspace>
@@ -51,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function ExplicitInheritedQuickInfoForType() As Task
             Dim workspace =
                 <Workspace>
@@ -95,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function ExplicitInheritedQuickInfoForSummary1() As Task
             Dim workspace =
                 <Workspace>
@@ -141,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function ExplicitInheritedQuickInfoForSummary2() As Task
             Dim workspace =
                 <Workspace>
@@ -195,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function InheritedQuickInfoForParameterButNotSummary1() As Task
             Dim workspace =
                 <Workspace>
@@ -253,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ToolTipAssert.EqualContent(expected, container)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact>
         Public Async Function InheritedQuickInfoForParameterButNotSummary2() As Task
             Dim workspace =
                 <Workspace>

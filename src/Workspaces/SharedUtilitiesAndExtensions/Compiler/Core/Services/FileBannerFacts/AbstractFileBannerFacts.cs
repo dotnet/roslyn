@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract class AbstractFileBannerFacts : IFileBannerFacts
     {

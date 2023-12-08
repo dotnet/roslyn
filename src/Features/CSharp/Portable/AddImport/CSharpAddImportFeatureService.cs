@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS0308:
                 case CS0428:
                 case CS1061:
-                    if (node.IsKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax conditionalAccess))
+                    if (node is ConditionalAccessExpressionSyntax conditionalAccess)
                     {
                         node = conditionalAccess.WhenNotNull;
                     }
-                    else if (node.IsKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding1))
+                    else if (node is MemberBindingExpressionSyntax memberBinding1)
                     {
                         node = memberBinding1.Name;
                     }
@@ -116,18 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             }
 
             nameNode = node as SimpleNameSyntax;
-            if (!nameNode.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                !nameNode.IsParentKind(SyntaxKind.MemberBindingExpression))
-            {
+            if (nameNode?.Parent?.Kind() is not SyntaxKind.SimpleMemberAccessExpression and not SyntaxKind.MemberBindingExpression)
                 return false;
-            }
 
             var memberAccess = nameNode.Parent as MemberAccessExpressionSyntax;
             var memberBinding = nameNode.Parent as MemberBindingExpressionSyntax;
-            if (memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                memberAccess.IsParentKind(SyntaxKind.ElementAccessExpression) ||
-                memberBinding.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) ||
-                memberBinding.IsParentKind(SyntaxKind.ElementAccessExpression))
+            if (memberAccess?.Parent?.Kind() is SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ElementAccessExpression ||
+                memberBinding?.Parent?.Kind() is SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ElementAccessExpression)
             {
                 return false;
             }
@@ -285,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override string GetDescription(IReadOnlyList<string> nameParts)
-            => $"using { string.Join(".", nameParts) };";
+            => $"using {string.Join(".", nameParts)};";
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,
@@ -349,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
+        private static async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode, INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             AddImportPlacementOptions options, CancellationToken cancellationToken)
         {
@@ -403,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
+        private static NameSyntax CreateNameSyntax(IReadOnlyList<string> namespaceParts, int index)
         {
             var part = namespaceParts[index];
             if (SyntaxFacts.GetKeywordKind(part) != SyntaxKind.None)
@@ -433,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     hasExistingExtern);
         }
 
-        private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
+        private static (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
             Document document,
             AddImportPlacementOptions options,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
@@ -537,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return false;
         }
 
-        private NameSyntax AddOrReplaceAlias(
+        private static NameSyntax AddOrReplaceAlias(
             NameSyntax nameSyntax, IdentifierNameSyntax alias)
         {
             if (nameSyntax is SimpleNameSyntax simpleName)

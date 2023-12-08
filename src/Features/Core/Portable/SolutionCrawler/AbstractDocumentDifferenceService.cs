@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             try
             {
-                var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = newDocument.Project.Services.GetService<ISyntaxFactsService>();
                 if (syntaxFactsService == null)
                 {
                     // somehow, we can't get the service. without it, there is nothing we can do.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
                     !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // quicker common case
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

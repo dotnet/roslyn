@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         /// </summary>
         protected virtual int DefaultMatchPriority => MatchPriority.Default;
 
+        protected virtual int PreselectMatchPriority => SymbolMatchPriority.Keyword;
+
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
             bool isValidInPreprocessorContext = false,
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             _keywordPriorityRecommendedKeywords = ImmutableArray.Create(
                 new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
-                matchPriority: SymbolMatchPriority.Keyword));
+                matchPriority: PreselectMatchPriority));
             _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
                 new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
@@ -74,12 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         internal TestAccessor GetTestAccessor() => new(this);
 
-        internal readonly struct TestAccessor
+        internal readonly struct TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
         {
-            private readonly AbstractSyntacticSingleKeywordRecommender _recommender;
-
-            public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
-                => _recommender = recommender;
+            private readonly AbstractSyntacticSingleKeywordRecommender _recommender = recommender;
 
             public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context)
                 => _recommender.RecommendKeywords(position, context, CancellationToken.None);

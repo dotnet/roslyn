@@ -42,7 +42,7 @@ class Program
 
             await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
 
-            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true, HangMitigatingCancellationToken);
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
             Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);

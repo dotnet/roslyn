@@ -4,15 +4,15 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal sealed partial class RenameTrackingTaggerProvider
     {
-        private class RenameTrackingCodeAction : CodeAction
+        private sealed class RenameTrackingCodeAction : CodeAction
         {
             private readonly string _title;
             private readonly IThreadingContext _threadingContext;
@@ -45,29 +45,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _globalOptions = globalOptions;
+
+                // Backdoor that allows this provider to use the high-priority bucket.
+                this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
             }
 
             public override string Title => _title;
-            internal override CodeActionPriority Priority => CodeActionPriority.High;
 
-            protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected sealed override CodeActionPriority ComputePriority()
+                => CodeActionPriority.High;
+
+            protected override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 // Invoked directly without previewing.
                 if (_renameTrackingCommitter == null)
                 {
                     if (!TryInitializeRenameTrackingCommitter(cancellationToken))
                     {
-                        return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+                        return SpecializedTasks.EmptyImmutableArray<CodeActionOperation>();
                     }
                 }
 
                 var committerOperation = new RenameTrackingCommitterOperation(_renameTrackingCommitter, _threadingContext);
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(committerOperation as CodeActionOperation));
+                return Task.FromResult(ImmutableArray.Create<CodeActionOperation>(committerOperation));
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                if (!_globalOptions.GetOption(FeatureOnOffOptions.RenameTrackingPreview, _document.Project.Language) ||
+                if (!_globalOptions.GetOption(RenameTrackingOptionsStorage.RenameTrackingPreview, _document.Project.Language) ||
                     !TryInitializeRenameTrackingCommitter(cancellationToken))
                 {
                     return await SpecializedTasks.EmptyEnumerable<CodeActionOperation>().ConfigureAwait(false);
@@ -91,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
-                            _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
+                            _document.Project.Solution.Services.GetService<INotificationService>()
                                 ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
@@ -107,18 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return false;
             }
 
-            private sealed class RenameTrackingCommitterOperation : CodeActionOperation
+            private sealed class RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext) : CodeActionOperation
             {
-                private readonly RenameTrackingCommitter _committer;
-                private readonly IThreadingContext _threadingContext;
+                private readonly RenameTrackingCommitter _committer = committer;
+                private readonly IThreadingContext _threadingContext = threadingContext;
 
-                public RenameTrackingCommitterOperation(RenameTrackingCommitter committer, IThreadingContext threadingContext)
-                {
-                    _committer = committer;
-                    _threadingContext = threadingContext;
-                }
-
-                internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                internal override async Task<bool> TryApplyAsync(
+                    Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
                 {
                     var error = await _committer.TryCommitAsync(cancellationToken).ConfigureAwait(false);
                     if (error == null)

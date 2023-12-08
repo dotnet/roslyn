@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        public bool IsHighPriority => false;
 
         public bool OpenFileOnly(SimplifierOptions? options)
             => false;

@@ -3,30 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpIfSnippetProvider : AbstractIfSnippetProvider
+    internal sealed class CSharpIfSnippetProvider : AbstractIfSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,11 +24,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode)
+        protected override SyntaxNode GetCondition(SyntaxNode node)
         {
             var ifStatement = (IfStatementSyntax)node;
-            condition = ifStatement.Condition;
-            cursorPositionNode = ifStatement.Statement.SpanStart + 1;
+            return ifStatement.Condition;
+        }
+
+        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+        {
+            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<IfStatementSyntax>(
+                caretTarget,
+                static s => (BlockSyntax)s.Statement,
+                sourceText);
+        }
+
+        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+        {
+            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<IfStatementSyntax>(
+                document,
+                FindSnippetAnnotation,
+                static s => (BlockSyntax)s.Statement,
+                cancellationToken);
         }
     }
 }

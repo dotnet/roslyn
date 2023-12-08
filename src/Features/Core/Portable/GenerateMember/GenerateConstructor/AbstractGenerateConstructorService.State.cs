@@ -14,7 +14,8 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -238,8 +239,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var destinationProvider = _document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
-                var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
+                var syntaxFacts = _document.Project.Solution.Services.GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
                 return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
             }
 
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
                 var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
                 var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
                 var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
                               withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 Contract.ThrowIfNull(TypeToGenerateIn);
 
-                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var newMemberMap =

@@ -6,19 +6,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 {
     internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
+        protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
                   EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
-                  language: language,
                   title: title)
         {
         }
@@ -35,6 +30,9 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
 
         protected void AnalyzeAction(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             if (!IsValidTypeofAction(context) || !IsValidOperation(context.Operation))
             {
                 return;
@@ -49,13 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             }
 
             var location = parent.GetLocation();
-            var options = context.Compilation.Options;
-            context.ReportDiagnostic(
-                DiagnosticHelper.Create(Descriptor,
-                                        location,
-                                        Descriptor.GetEffectiveSeverity(options),
-                                        additionalLocations: null,
-                                        properties: null));
+            context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
 
         }
 

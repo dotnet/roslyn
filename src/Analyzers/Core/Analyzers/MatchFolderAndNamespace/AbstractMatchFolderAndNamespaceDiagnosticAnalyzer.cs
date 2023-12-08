@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetAnalyzerOptions().PreferNamespaceAndFolderMatchStructure;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }

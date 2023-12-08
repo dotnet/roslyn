@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return
-                useTriviaAsItIs ?
-                    new Whitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language) :
-                    new ModifiedWhitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language);
+                useTriviaAsItIs
+                    ? new Whitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language)
+                    : new ModifiedWhitespace(this.Options, lineBreaks, indentation, elastic, language: this.TreeInfo.Root.Language);
         }
 
         private void EnsureWhitespaceTriviaInfo(int lineIndex, int indentationLevel)

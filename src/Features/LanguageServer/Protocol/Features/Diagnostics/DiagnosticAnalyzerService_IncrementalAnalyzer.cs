@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -21,17 +18,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            if (GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
-            {
-                // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
-                // have happened to the project or closed files outside of VS.
-                // However, we still need to create the analyzer so that the map contains the analyzer to run when pull diagnostics asks.
-                _ = _map.GetValue(workspace, _createIncrementalAnalyzer);
+            var analyzer = _map.GetValue(workspace, _createIncrementalAnalyzer);
 
-                return NoOpIncrementalAnalyzer.Instance;
-            }
-
-            return _map.GetValue(workspace, _createIncrementalAnalyzer);
+            // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
+            // have happened to the project or closed files outside of VS. However, we still need to create the analyzer
+            // so that the map contains the analyzer to run when pull diagnostics asks.
+            return GlobalOptions.IsLspPullDiagnostics() ? NoOpIncrementalAnalyzer.Instance : analyzer;
         }
 
         public void ShutdownAnalyzerFrom(Workspace workspace)
@@ -49,11 +41,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache);
+            return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
         }
 
         private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-            => Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+            => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
     }
 
     internal class NoOpIncrementalAnalyzer : IncrementalAnalyzerBase

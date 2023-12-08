@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (testData != null)
             {
-                this.SetMethodTestData(testData.Methods);
-                testData.Module = this;
+                SetTestData(testData);
             }
         }
 
@@ -162,19 +161,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return false;
             }
 
-            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, out DebugId closureId)
+            public override bool TryGetPreviousClosure(SyntaxNode closureSyntax, DebugId? parentClosureId, ImmutableArray<string> structCaptures, out DebugId closureId, out RuntimeRudeEdit? runtimeRudeEdit)
             {
                 closureId = default;
+                runtimeRudeEdit = null;
                 return false;
             }
 
-            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
+            public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, int closureOrdinal, ImmutableArray<DebugId> structClosureIds, out DebugId lambdaId, out RuntimeRudeEdit? runtimeRudeEdit)
             {
                 lambdaId = default;
+                runtimeRudeEdit = null;
                 return false;
             }
 
-            public override bool TryGetPreviousStateMachineState(SyntaxNode awaitOrYieldSyntax, out StateMachineState state)
+            public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, AwaitDebugId awaitId, out StateMachineState state)
             {
                 state = 0;
                 return false;

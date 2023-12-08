@@ -477,7 +477,6 @@ namespace Microsoft.CodeAnalysis
             return SpecializedCollections.EmptyEnumerable<Diagnostic>();
         }
 
-
         /// <summary>
         /// Determines whether the underlying node or token has any descendant preprocessor directives.
         /// </summary>
@@ -853,7 +852,6 @@ namespace Microsoft.CodeAnalysis
             if (node._token != null && node.AsToken() is var token && token.ContainsDirectives)
             {
                 GetDirectives(token.LeadingTrivia, filter, ref directives);
-                GetDirectives(token.TrailingTrivia, filter, ref directives);
             }
             else if (node._nodeOrParent != null)
             {
@@ -958,7 +956,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SyntaxNodeOrToken GetNextSibling()

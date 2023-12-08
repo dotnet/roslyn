@@ -5,14 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             using var workspace = CreateWorkspace();
 
-            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
@@ -50,7 +51,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
             var project = workspace.AddProject("proj", LanguageNames.CSharp);
             var document = workspace.AddDocument(project.Id, "doc.cs", SourceText.From("code"));
-            workspace.ApplyTextChanges(document.Id, new[] { new TextChange(new TextSpan(0, 1), "abc") }, CancellationToken.None);
+
+            var oldText = document.GetTextSynchronously(CancellationToken.None);
+            var newText = oldText.WithChanges([new TextChange(new TextSpan(0, 1), "abc")]);
+            var newSolution = document.Project.Solution.WithDocumentText(document.Id, newText, PreservationMode.PreserveIdentity);
+
+            workspace.TryApplyChanges(newSolution);
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
@@ -72,12 +78,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
-            var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: mock);
+            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: null);
             Assert.True(await connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, "emptySource", Path.GetTempPath(), cancellationToken),
+                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
                 CancellationToken.None));
         }
 
@@ -92,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 // doesn't matter what it returns
                 return typeof(object).Assembly;
             }
-        }
-
-        private class MockLogService : ISymbolSearchLogService
-        {
-            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken) => default;
-            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken) => default;
         }
     }
 }

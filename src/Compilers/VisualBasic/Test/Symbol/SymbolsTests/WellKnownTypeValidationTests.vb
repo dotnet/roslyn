@@ -455,7 +455,8 @@ End Namespace
                 Assert.NotNull(symbol)
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
-                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                   special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
+                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -489,7 +490,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
+                   special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -526,6 +528,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -551,14 +554,23 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                        WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute,
-                         WellKnownType.System_MemoryExtensions
+                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
+                         WellKnownType.System_MemoryExtensions,
+                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+                         WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
+                         WellKnownType.System_Runtime_CompilerServices_Unsafe,
+                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
@@ -598,6 +610,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
                          WellKnownType.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute,
@@ -623,13 +636,22 @@ End Namespace
                          WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_LifetimeAnnotationAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
+                         WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
+                         WellKnownType.System_Runtime_CompilerServices_Unsafe,
+                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
+                         WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
+                         WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
@@ -677,11 +699,13 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -715,15 +739,53 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
                          WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
-                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
+                         WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogMethodEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLambdaEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineMethodEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineLambdaEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogReturn,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreBoolean,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreByte,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreParameterAlias,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreBoolean,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreByte,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt16,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt32,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt64,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreString,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreObject,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStorePointer,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUnmanaged,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreParameterAlias,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
@@ -739,7 +801,15 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
                         ' Not always available.
                         Continue For
                 End Select
@@ -829,11 +899,13 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -867,15 +939,53 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
                          WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
                          WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
-                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
+                         WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogMethodEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLambdaEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineMethodEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogStateMachineLambdaEntry,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogReturn,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreBoolean,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreByte,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt16,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt32,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUInt64,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreSingle,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDouble,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreDecimal,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreString,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreObject,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreParameterAlias,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreBoolean,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreByte,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt16,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt32,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUInt64,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreSingle,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDouble,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreDecimal,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreString,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreObject,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStorePointer,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreUnmanaged,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogParameterStoreParameterAlias,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreLocalAlias,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
@@ -891,7 +1001,15 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
                          WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
+                         WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+                         WellKnownMember.System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T,
+                         WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+                         WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+                         WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T
                         ' Not always available.
                         Continue For
                 End Select

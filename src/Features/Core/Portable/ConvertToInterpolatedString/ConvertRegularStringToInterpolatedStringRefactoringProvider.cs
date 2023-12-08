@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             context.RegisterRefactoring(
-                CodeAction.CreateWithPriority(
-                    CodeActionPriority.Low,
+                CodeAction.Create(
                     FeaturesResources.Convert_to_interpolated_string,
                     _ => UpdateDocumentAsync(document, root, token),
-                    nameof(FeaturesResources.Convert_to_interpolated_string)),
+                    nameof(FeaturesResources.Convert_to_interpolated_string),
+                    CodeActionPriority.Low),
                 literalExpression.Span);
         }
 

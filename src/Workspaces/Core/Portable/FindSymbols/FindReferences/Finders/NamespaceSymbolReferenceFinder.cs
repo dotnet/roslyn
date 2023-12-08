@@ -4,14 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
         /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
         /// </summary>
-        private static async Task AddNamedReferencesAsync(
+        private static async ValueTask AddNamedReferencesAsync(
             INamespaceSymbol symbol,
             string name,
             FindReferencesDocumentState state,
@@ -110,16 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 state, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, name, _) =>
-                {
-                    Debug.Assert(state.SyntaxFacts.TextMatch(token.ValueText, name));
-                    return true;
-                },
-                name,
-                cancellationToken).ConfigureAwait(false));
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false));
         }
 
         private static async Task AddGlobalNamespaceReferencesAsync(
@@ -128,18 +116,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var tokens = state.Root.DescendantTokens().Where(state.SyntaxFacts.IsGlobalNamespaceKeyword);
+            var tokens = state.Root
+                .DescendantTokens()
+                .WhereAsArray(
+                    static (token, state) => state.SyntaxFacts.IsGlobalNamespaceKeyword(token),
+                    state);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, _) =>
-                {
-                    Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
-                    return true;
-                },
-                cancellationToken).ConfigureAwait(false));
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false));
         }
     }
 }

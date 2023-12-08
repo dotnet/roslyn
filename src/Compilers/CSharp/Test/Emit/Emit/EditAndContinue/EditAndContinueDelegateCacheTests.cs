@@ -42,7 +42,7 @@ class C
     System.Func<int> F() => Target1;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -54,11 +54,11 @@ class C
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C.F");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C.F", @"
@@ -106,7 +106,7 @@ class C<T>
     System.Func<int> F() => Target1<T>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -118,11 +118,11 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F", @"
@@ -170,7 +170,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<T>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -182,11 +182,11 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"
@@ -234,7 +234,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<G>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -246,11 +246,11 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"
@@ -298,7 +298,7 @@ class C<T>
     System.Func<int> F<G>() => Target1<G>;
 }
 ";
-        var compilation0 = CreateCompilation(source0);
+        var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
         var compilation1 = compilation0.WithSource(source1);
 
         Assert.Equal(compilation0.LanguageVersion, compilation1.LanguageVersion);
@@ -310,11 +310,11 @@ class C<T>
         using var moduleData0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
         var methodData0 = v0.TestData.GetMethodData("C<T>.F<G>");
 
-        var generation0 = EmitBaseline.CreateInitialBaseline(moduleData0, methodData0.EncDebugInfoProvider());
+        var generation0 = CreateInitialBaseline(compilation0, moduleData0, methodData0.EncDebugInfoProvider());
         var diff1 = compilation1.EmitDifference(
             generation0,
             ImmutableArray.Create(
-                SemanticEdit.Create(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+                SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
         diff1.EmitResult.Diagnostics.Verify();
         diff1.VerifyIL("C<T>.F<G>", @"

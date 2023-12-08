@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                     lspSnippetString.Append("$0");
                 }
 
-                //Tries to see if a value exists at that position in the map, and if so it
+                // Tries to see if a value exists at that position in the map, and if so it
                 // generates a string that is LSP formatted.
                 if (dictionary.TryGetValue(i, out var placeholderInfo))
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition, int triggerLocation, CancellationToken cancellationToken)
         {
             var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition, triggerLocation);
-            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var newString = documentText.ToString(extendedSpan);
             var newTextChange = new TextChange(extendedSpan, newString);
 

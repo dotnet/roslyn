@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var value = pointer.Dereference(inspectionContext);
             var wasExceptionThrown = value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
 
-            var expansion = wasExceptionThrown ?
-                null :
-                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None, supportsFavorites: false);
+            var expansion = wasExceptionThrown
+                ? null
+                : resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None, supportsFavorites: false);
             var parentFullName = parent.ChildFullNamePrefix;
             var fullName = parentFullName == null ? null : $"*{parentFullName}";
             var editableValue = resultProvider.Formatter2.GetEditableValueString(value, inspectionContext, elementTypeAndInfo.Info);

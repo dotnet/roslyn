@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext inspectionContext)
+        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext? inspectionContext)
         {
             var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
             if (dkmAliases == null)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         void IDkmClrExpressionCompiler.CompileExpression(
             DkmLanguageExpression expression,
             DkmClrInstructionAddress instructionAddress,
-            DkmInspectionContext inspectionContext,
+            DkmInspectionContext? inspectionContext,
             out string? error,
             out DkmCompiledClrInspectionQuery? result)
         {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -158,6 +158,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
+                        // Concord marks this as nullable but it should always have a value in our scenario.
+                        RoslynDebug.AssertNotNull(lValue.FullName);
+
                         var compileResult = context.CompileAssignment(
                             lValue.FullName,
                             expression.Text,
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -211,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

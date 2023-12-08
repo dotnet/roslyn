@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly), Shared]
     internal class CSharpImplementExplicitlyCodeRefactoringProvider :
-        AbstractChangeImplementionCodeRefactoringProvider
+        AbstractChangeImplementationCodeRefactoringProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

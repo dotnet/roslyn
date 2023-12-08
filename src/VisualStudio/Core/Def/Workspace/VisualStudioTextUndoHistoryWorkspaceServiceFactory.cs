@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 switch (editorWorkspace)
                 {
-                    case VisualStudioWorkspaceImpl visualStudioWorkspace:
+                    case VisualStudioWorkspaceImpl:
 
                         // TODO: Handle undo if context changes
                         var documentId = editorWorkspace.GetDocumentIdInCurrentContext(textBuffer.AsTextContainer());
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // In the Visual Studio case, there might be projection buffers involved for Venus,
                         // where we associate undo history with the surface buffer and not the subject buffer.
-                        var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
+                        var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
 
                         if (containedDocument != null)
                         {

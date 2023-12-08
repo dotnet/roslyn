@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
         {
         }
 
-        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
+        public IEnumSettingViewModel CreateViewModel(Setting setting)
         {
             return new LabelPositionOptionsViewModel(setting);
         }
@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 
     internal class LabelPositionOptionsViewModel : EnumSettingViewModel<LabelPositionOptions>
     {
-        private readonly WhitespaceSetting _setting;
+        private readonly Setting _setting;
 
-        public LabelPositionOptionsViewModel(WhitespaceSetting setting)
+        public LabelPositionOptionsViewModel(Setting setting)
         {
             _setting = setting;
         }
@@ -58,9 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 
             static IEnumerable<(string description, LabelPositionOptions value)> EnumerateOptions()
             {
-                yield return ("place goto labels in leftmost column", LabelPositionOptions.LeftMost);
-                yield return ("indent labels normally", LabelPositionOptions.NoIndent);
-                yield return ("place goto labels one indent less than current", LabelPositionOptions.OneLess);
+                yield return (CSharpVSResources.Place_goto_labels_in_leftmost_column, LabelPositionOptions.LeftMost);
+                yield return (CSharpVSResources.Indent_labels_normally, LabelPositionOptions.NoIndent);
+                yield return (CSharpVSResources.Place_goto_labels_one_indent_less_than_current, LabelPositionOptions.OneLess);
             }
         }
     }

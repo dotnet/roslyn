@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public abstract SyntaxFormattingOptions DefaultOptions { get; }
-        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions);
+        public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
 
         public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
-        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null);
+        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null);
 
         protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
 
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (spans == null)
             {
-                spansToFormat = node.FullSpan.IsEmpty ?
-                    SpecializedCollections.EmptyReadOnlyList<TextSpan>() :
-                    SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
+                spansToFormat = node.FullSpan.IsEmpty
+                    ? SpecializedCollections.EmptyReadOnlyList<TextSpan>()
+                    : SpecializedCollections.SingletonReadOnlyList(node.FullSpan);
             }
             else
             {

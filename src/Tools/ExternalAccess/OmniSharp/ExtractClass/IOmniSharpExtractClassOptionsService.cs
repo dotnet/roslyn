@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractClass
 {
     internal interface IOmniSharpExtractClassOptionsService
     {
-        Task<OmniSharpExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ISymbol? selectedMember);
+        Task<OmniSharpExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers);
     }
 
     internal sealed class OmniSharpExtractClassOptions

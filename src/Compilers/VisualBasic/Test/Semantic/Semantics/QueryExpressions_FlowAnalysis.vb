@@ -1657,7 +1657,6 @@ End Class
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured))
         End Sub
 
-
         <Fact>
         Public Sub Select10()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(

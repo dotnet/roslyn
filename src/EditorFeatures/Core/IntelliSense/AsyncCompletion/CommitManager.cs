@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -83,20 +84,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             char typedChar,
             CancellationToken cancellationToken)
         {
-            if (!PotentialCommitCharacters.Contains(typedChar))
-            {
-                return false;
-            }
-
-            return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
-                && excludedCommitCharacter.Contains(typedChar));
+            // this is called only when the typedChar is in the list returned by PotentialCommitCharacters.
+            // It's possible typedChar is intended to be a filter char for some items (either currently considered for commit of not)
+            // we let this case to be handled in `TryCommit` instead, where we will have all the information needed to decide.
+            return true;
         }
 
         public AsyncCompletionData.CommitResult TryCommit(
             IAsyncCompletionSession session,
             ITextBuffer subjectBuffer,
             VSCompletionItem item,
-            char typeChar,
+            char typedChar,
             CancellationToken cancellationToken)
         {
             // We can make changes to buffers. We would like to be sure nobody can change them at the same time.
@@ -120,11 +118,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
-            if (Helpers.IsFilterCharacter(itemData.RoslynItem, typeChar, filterText))
+            var roslynItem = itemData.RoslynItem;
+            var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typedChar;
+
+            if (Helpers.IsFilterCharacter(roslynItem, typedChar, filterText))
             {
                 // Returning Cancel means we keep the current session and consider the character for further filtering.
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
+            }
+
+            // typedChar could be a filter character for another item. If we find such an item that the current filter
+            // text matches its start, then we should cancel commit and give ItemManager a chance to handle it.
+            // This is done here instead of in `ShouldCommitCompletion` because `ShouldCommitCompletion` might be called before
+            // CompletionSource add the `excludedCommitCharactersMap` to the session property bag.
+            if (session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharactersMap, out MultiDictionary<char, RoslynCompletionItem> excludedCommitCharactersMap))
+            {
+                foreach (var potentialItemForSelection in excludedCommitCharactersMap[typedChar])
+                {
+                    if (potentialItemForSelection != roslynItem && Helpers.TextTypedSoFarMatchesItem(potentialItemForSelection, filterText))
+                        return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
+                }
             }
 
             var options = _globalOptions.GetCompletionOptions(document.Project.Language);
@@ -133,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit character in the context of Rules that could change the list of commit characters.
 
-            if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, itemData.RoslynItem, typeChar))
+            if (!Helpers.IsStandardCommitCharacter(typedChar) && !IsCommitCharacter(serviceRules, roslynItem, typedChar))
             {
                 // Returning None means we complete the current session with a void commit. 
                 // The Editor then will try to trigger a new completion session for the character.
@@ -161,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
-            var commitChar = typeChar == '\0' ? null : (char?)typeChar;
+            var commitChar = typedChar == '\0' ? null : (char?)typedChar;
             return Commit(
                 session, triggerDocument, completionService, subjectBuffer,
-                itemData.RoslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
+                roslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
                 filterText, cancellationToken);
         }
 
@@ -197,6 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
+            // This might be an item promoted by us, make sure we restore it to the original state first.
+            roslynItem = Helpers.DemoteItem(roslynItem);
             CompletionChange change;
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not canceled.
@@ -210,6 +225,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (roslynItem.Flags.IsCached())
                     roslynItem.Span = completionListSpan;
 
+                // Adding import is not allowed in debugger view
+                if (_textView is IDebuggerTextView)
+                    roslynItem = ImportCompletionItem.MarkItemToAlwaysFullyQualify(roslynItem);
+
                 change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
@@ -221,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var view = session.TextView;
 
-            var provider = completionService.GetProvider(roslynItem);
+            var provider = completionService.GetProvider(roslynItem, document.Project);
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
@@ -249,62 +268,63 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
+            ITextSnapshot updatedCurrentSnapshot;
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
                 edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
                 // edit.Apply() may trigger changes made by extensions.
                 // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
-                var updatedCurrentSnapshot = edit.Apply();
+                updatedCurrentSnapshot = edit.Apply();
+            }
 
-                if (change.NewPosition.HasValue)
+            if (change.NewPosition.HasValue)
+            {
+                // Roslyn knows how to position the caret in the snapshot we just created.
+                // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
+                view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+            }
+            else
+            {
+                // Or, If we're doing a minimal change, then the edit that we make to the 
+                // buffer may not make the total text change that places the caret where we 
+                // would expect it to go based on the requested change. In this case, 
+                // determine where the item should go and set the care manually.
+
+                // Note: we only want to move the caret if the caret would have been moved 
+                // by the edit.  i.e. if the caret was actually in the mapped span that 
+                // we're replacing.
+                var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
+                if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
                 {
-                    // Roslyn knows how to position the caret in the snapshot we just created.
-                    // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
-                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+                    view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
                 }
                 else
                 {
-                    // Or, If we're doing a minimal change, then the edit that we make to the 
-                    // buffer may not make the total text change that places the caret where we 
-                    // would expect it to go based on the requested change. In this case, 
-                    // determine where the item should go and set the care manually.
-
-                    // Note: we only want to move the caret if the caret would have been moved 
-                    // by the edit.  i.e. if the caret was actually in the mapped span that 
-                    // we're replacing.
-                    var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
-                    if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
-                    {
-                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText?.Length ?? 0));
-                    }
-                    else
-                    {
-                        view.Caret.EnsureVisible();
-                    }
-                }
-
-                includesCommitCharacter = change.IncludesCommitCharacter;
-
-                if (roslynItem.Rules.FormatOnCommit)
-                {
-                    // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
-                    var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
-
-                    if (currentDocument != null && formattingService != null)
-                    {
-                        var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                        // Note: C# always completes synchronously, TypeScript is async
-                        var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
-                        currentDocument.Project.Solution.Workspace.ApplyTextChanges(currentDocument.Id, changes, cancellationToken);
-                    }
+                    view.Caret.EnsureVisible();
                 }
             }
 
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+            includesCommitCharacter = change.IncludesCommitCharacter;
+
+            if (roslynItem.Rules.FormatOnCommit)
+            {
+                // The edit updates the snapshot however other extensions may make changes there.
+                // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
+                var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
+
+                if (currentDocument != null && formattingService != null)
+                {
+                    var spanToFormat = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+                    // Note: C# always completes synchronously, TypeScript is async
+                    var changes = formattingService.GetFormattingChangesAsync(currentDocument, subjectBuffer, spanToFormat.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
+                    subjectBuffer.ApplyChanges(changes);
+                }
+            }
+
+            _recentItemsManager.MakeMostRecentItem(roslynItem);
 
             if (provider is INotifyCommittingItemCompletionProvider notifyProvider)
             {
@@ -383,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // That is why, there is no need to check for '\r\n'.
                     if (textTypedSoFar.LastOrDefault() == '\n')
                     {
-                        textTypedSoFar = textTypedSoFar.Substring(0, textTypedSoFar.Length - 1);
+                        textTypedSoFar = textTypedSoFar[..^1];
                     }
 
                     return item.GetEntireDisplayText() == textTypedSoFar;

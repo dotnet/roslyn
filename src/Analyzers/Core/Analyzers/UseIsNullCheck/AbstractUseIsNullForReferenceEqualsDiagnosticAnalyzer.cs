@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var semanticModel = context.SemanticModel;
 
             var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }
@@ -137,11 +137,10 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(UseIsNullConstants.Negated, "");
             }
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor, nameNode.GetLocation(),
-                    severity,
+                    option.Notification,
                     additionalLocations, properties));
         }
 

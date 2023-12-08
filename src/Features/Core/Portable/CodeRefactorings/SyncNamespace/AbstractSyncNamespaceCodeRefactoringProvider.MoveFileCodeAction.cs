@@ -23,23 +23,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private class MoveFileCodeAction : CodeAction
+        private sealed class MoveFileCodeAction(State state, ImmutableArray<string> newFolders) : CodeAction
         {
-            private readonly State _state;
-            private readonly ImmutableArray<string> _newfolders;
+            private readonly State _state = state;
+            private readonly ImmutableArray<string> _newfolders = newFolders;
 
             public override string Title
                 => _newfolders.Length > 0
                 ? string.Format(FeaturesResources.Move_file_to_0, string.Join(PathUtilities.DirectorySeparatorStr, _newfolders))
                 : FeaturesResources.Move_file_to_project_root_folder;
 
-            public MoveFileCodeAction(State state, ImmutableArray<string> newFolders)
-            {
-                _state = state;
-                _newfolders = newFolders;
-            }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var document = _state.Document;
                 var solution = _state.Document.Project.Solution;
@@ -47,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 solution = solution.RemoveDocument(document.Id);
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 solution = solution.AddDocument(newDocumentId, document.Name, text, folders: _newfolders);
 
                 return ImmutableArray.Create<CodeActionOperation>(
@@ -65,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 // set `parts` to empty to indicate that.
                 var parts = state.RelativeDeclaredNamespace.Length == 0
                     ? ImmutableArray<string>.Empty
-                    : state.RelativeDeclaredNamespace.Split(new[] { '.' }).ToImmutableArray();
+                    : state.RelativeDeclaredNamespace.Split(['.']).ToImmutableArray();
 
                 // Invalid char can only appear in namespace name when there's error,
                 // which we have checked before creating any code actions.

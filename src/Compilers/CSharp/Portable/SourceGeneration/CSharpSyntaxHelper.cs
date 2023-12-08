@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.SourceGeneration;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsCaseSensitive
             => true;
+
+        protected override int AttributeListKind
+            => (int)SyntaxKind.AttributeList;
 
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);
@@ -57,45 +60,81 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsLambdaExpression(SyntaxNode node)
             => node is LambdaExpressionSyntax;
 
-        public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
-            => ((NameSyntax)node).GetUnqualifiedName().Identifier;
+        public override string GetUnqualifiedIdentifierOfName(SyntaxNode node)
+            => ((NameSyntax)node).GetUnqualifiedName().Identifier.ValueText;
 
-        public override void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
+        public override void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
         {
-            if (node is CompilationUnitSyntax compilationUnit)
+            if (node is Syntax.InternalSyntax.CompilationUnitSyntax compilationUnit)
             {
                 AddAliases(compilationUnit.Usings, aliases, global);
             }
-            else if (node is BaseNamespaceDeclarationSyntax namespaceDeclaration)
+            else if (node is Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 AddAliases(namespaceDeclaration.Usings, aliases, global);
             }
             else
             {
-                throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                throw ExceptionUtilities.UnexpectedValue(node.KindText);
             }
         }
 
-        private static void AddAliases(SyntaxList<UsingDirectiveSyntax> usings, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
+        private static void AddAliases(
+            CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax> usings,
+            ArrayBuilder<(string aliasName, string symbolName)> aliases,
+            bool global)
         {
             foreach (var usingDirective in usings)
             {
                 if (usingDirective.Alias is null)
                     continue;
 
-                if (global != usingDirective.GlobalKeyword.Kind() is SyntaxKind.GlobalKeyword)
+                if (global != (usingDirective.GlobalKeyword != null))
+                    continue;
+
+                // We only care about aliases from one name to another name.  e.g. `using X = A.B.C;`  That's because
+                // the caller is only interested in finding a fully-qualified-metadata-name to an attribute.
+                if (usingDirective.NamespaceOrType is not Syntax.InternalSyntax.NameSyntax name)
                     continue;
 
                 var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
-                var symbolName = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
+                var symbolName = GetUnqualifiedName(name).Identifier.ValueText;
                 aliases.Add((aliasName, symbolName));
             }
         }
 
+        private static Syntax.InternalSyntax.SimpleNameSyntax GetUnqualifiedName(Syntax.InternalSyntax.NameSyntax name)
+            => name switch
+            {
+                Syntax.InternalSyntax.AliasQualifiedNameSyntax alias => alias.Name,
+                Syntax.InternalSyntax.QualifiedNameSyntax qualified => qualified.Right,
+                Syntax.InternalSyntax.SimpleNameSyntax simple => simple,
+                _ => throw ExceptionUtilities.UnexpectedValue(name.KindText),
+            };
+
         public override void AddAliases(CompilationOptions compilation, ArrayBuilder<(string aliasName, string symbolName)> aliases)
         {
-            // C# doesn't have global aliases at the compilation level.
+            // C# doesn't have global aliases at the compilation-options, only the compilation-unit level.
             return;
+        }
+
+        public override bool ContainsGlobalAliases(SyntaxNode root)
+        {
+            // Walk down the green tree to avoid unnecessary allocations of red nodes.
+            //
+            // Global usings can only exist at the compilation-unit level, so no need to dive any deeper than that.
+            var compilationUnit = (Syntax.InternalSyntax.CompilationUnitSyntax)root.Green;
+
+            foreach (var directive in compilationUnit.Usings)
+            {
+                if (directive.GlobalKeyword != null &&
+                    directive.Alias != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

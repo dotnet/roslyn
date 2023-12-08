@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -82,7 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     _isRenamableIdentifierTask.SafeContinueWithFromAsync(
                         async t =>
                         {
-                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+
+                            // Avoid throwing an exception in this common case
+                            if (_cancellationToken.IsCancellationRequested)
+                                return;
 
                             stateMachine.UpdateTrackingSessionIfRenamable();
                         },
@@ -109,7 +113,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 task.SafeContinueWithFromAsync(async t =>
                    {
-                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken);
+                       await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationToken).NoThrowAwaitable();
+
+                       // Avoid throwing an exception in this common case
+                       if (_cancellationToken.IsCancellationRequested)
+                           return;
 
                        if (_isRenamableIdentifierTask.Result != TriggerIdentifierKind.NotRenamable)
                        {

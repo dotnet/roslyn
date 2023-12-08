@@ -13,37 +13,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
-    internal readonly struct SemanticModelReuseInfo
+    internal readonly struct SemanticModelReuseInfo(SemanticModel previousNonSpeculativeSemanticModel, SemanticModel currentSemanticModel, SyntaxNode bodyNode, VersionStamp topLevelSementicVersion)
     {
         /// <summary>
         /// The original <em>non-speculative</em> semantic model we retrieved for this document at some point.
         /// </summary>
-        public readonly SemanticModel PreviousNonSpeculativeSemanticModel;
+        public readonly SemanticModel PreviousNonSpeculativeSemanticModel = previousNonSpeculativeSemanticModel;
 
         /// <summary>
         /// The current semantic model we retrieved <see cref="SemanticModel"/> for the <see cref="BodyNode"/>.  Could
         /// be speculative or non-speculative.
         /// </summary>
-        public readonly SemanticModel CurrentSemanticModel;
+        public readonly SemanticModel CurrentSemanticModel = currentSemanticModel;
 
         /// <summary>
         /// The current method body we retrieved the <see cref="CurrentSemanticModel"/> for.
         /// </summary>
-        public readonly SyntaxNode BodyNode;
+        public readonly SyntaxNode BodyNode = bodyNode;
 
         /// <summary>
         /// The top level version of the project when we retrieved <see cref="SemanticModel"/>.  As long as this is the
         /// same we can continue getting speculative models to use.
         /// </summary>
-        public readonly VersionStamp TopLevelSemanticVersion;
-
-        public SemanticModelReuseInfo(SemanticModel previousNonSpeculativeSemanticModel, SemanticModel currentSemanticModel, SyntaxNode bodyNode, VersionStamp topLevelSementicVersion)
-        {
-            PreviousNonSpeculativeSemanticModel = previousNonSpeculativeSemanticModel;
-            CurrentSemanticModel = currentSemanticModel;
-            BodyNode = bodyNode;
-            TopLevelSemanticVersion = topLevelSementicVersion;
-        }
+        public readonly VersionStamp TopLevelSemanticVersion = topLevelSementicVersion;
     }
 
     internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory

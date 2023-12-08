@@ -8,9 +8,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class TypeParameterSymbolKey
+        private sealed class TypeParameterSymbolKey : AbstractSymbolKey<ITypeParameterSymbol>
         {
-            public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly TypeParameterSymbolKey Instance = new();
+
+            public sealed override void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
             {
                 if (symbol.TypeParameterKind == TypeParameterKind.Cref)
                 {
@@ -25,7 +27,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, ITypeParameterSymbol? contextualSymbol, out string? failureReason)
             {
                 var isCref = reader.ReadBoolean();
 
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     var metadataName = reader.ReadString();
-                    var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                    var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
 
                     if (containingSymbolFailureReason != null)
                     {

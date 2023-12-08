@@ -16,17 +16,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected bool _isChecked;
 
         protected AbstractOptionPreviewViewModel Info { get; }
-        public IOption Option { get; }
+        public IOption2 Option { get; }
         public string Description { get; set; }
 
         internal virtual string GetPreview() => _isChecked ? _truePreview : _falsePreview;
 
-        public AbstractCheckBoxViewModel(IOption option, string description, string preview, AbstractOptionPreviewViewModel info)
+        public AbstractCheckBoxViewModel(IOption2 option, string description, string preview, AbstractOptionPreviewViewModel info)
             : this(option, description, preview, preview, info)
         {
         }
 
-        public AbstractCheckBoxViewModel(IOption option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info)
+        public AbstractCheckBoxViewModel(IOption2 option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info)
         {
             _truePreview = truePreview;
             _falsePreview = falsePreview;

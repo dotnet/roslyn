@@ -37,8 +37,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
+                editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext,
+                       languageServiceId,
+                       textView,
+                       subjectBuffer,
+                       signatureHelpControllerProvider,
+                       editorCommandHandlerServiceFactory,
+                       editorAdaptersFactoryService,
+                       argumentProviders,
+                       editorOptionsService)
         End Sub
 
         Public Shared Function GetSnippetExpansionClient(
@@ -49,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
+                editorOptionsService As EditorOptionsService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
@@ -63,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     editorCommandHandlerServiceFactory,
                     editorAdaptersFactoryService,
                     argumentProviders,
-                    globalOptions)
+                    editorOptionsService)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 

@@ -177,6 +177,38 @@ Module Module1
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
         }
 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1744118")]
+        public async Task TestSymbolWithEmptyIdentifier()
+        {
+            var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
+                @"
+Imports System
+Public Class C
+    private readonly property
+End Class
+            ");
+
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
+
+            var sln = CreateWorkspace().CurrentSolution
+                .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
+                .AddMetadataReference(prj1Id, MscorlibRef)
+                .AddDocument(docId, "testFile", tree.GetText());
+
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
+            var comp = await prj.GetCompilationAsync();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+
+            var propertyStatement = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.PropertyStatementSyntax>().FirstOrDefault();
+            var symbol = semanticModel.GetDeclaredSymbol(propertyStatement);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+
+            Assert.Equal(expected: 0, actual: references.ElementAt(0).Locations.Count());
+        }
+
         [Fact]
         public async Task PinvokeMethodReferences_CS()
         {
@@ -249,7 +281,7 @@ static class Module1
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
         }
 
-        [Fact, WorkItem(537936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
         public async Task FindReferences_InterfaceMapping()
         {
             var text = @"
@@ -308,7 +340,7 @@ class B : C, A
             Assert.Empty(expectedMatchedLines);
         }
 
-        [Fact, WorkItem(28827, "https://github.com/dotnet/roslyn/issues/28827")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28827")]
         public async Task FindReferences_DifferingAssemblies()
         {
             var solution = CreateWorkspace().CurrentSolution;
@@ -354,7 +386,7 @@ namespace N2
             Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
-        [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35786")]
         public async Task FindReferences_MultipleInterfaceInheritence()
         {
             var implText = @"namespace A
@@ -383,7 +415,7 @@ namespace N2
 }";
 
             using var workspace = CreateWorkspace();
-            var solution = GetMultipleDocumentSolution(workspace, new[] { implText, interface1Text, interface2Text });
+            var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
             solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
 
             var project = solution.Projects.Single();
@@ -401,8 +433,7 @@ namespace N2
             Assert.Equal(5, references.Count());
         }
 
-        [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4936")]
         public async Task OverriddenMethodsFromPortableToDesktop()
         {
             var solution = CreateWorkspace().CurrentSolution;
@@ -474,7 +505,7 @@ abstract class C<T> where T : unmanaged         // Line 4
             Verify(result, new HashSet<int> { 1, 4 });
         }
 
-        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
         public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
         {
             var text = @"
@@ -510,7 +541,7 @@ class Test
             Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
         }
 
-        [Fact, WorkItem(1177764, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
         public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
         {
             var text = @"
@@ -543,7 +574,7 @@ end class
             Assert.NotEqual(typeResult.Locations.Single().Location.SourceSpan, constructorResult.Locations.Single().Location.SourceSpan);
         }
 
-        [Fact, WorkItem(49624, "https://github.com/dotnet/roslyn/issues/49624")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49624")]
         public async Task DoNotIncludeSameNamedAlias()
         {
             var text = @"

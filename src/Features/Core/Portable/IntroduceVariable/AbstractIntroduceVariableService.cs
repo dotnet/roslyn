@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         // the code action as 'inlinable' so that if the lightbulb is not cluttered
                         // then the nested items can just be lifted into it, giving the user fast
                         // access to them.
-                        return CodeActionWithNestedActions.Create(title, actions, isInlinable: true);
+                        return CodeAction.Create(title, actions, isInlinable: true);
                     }
                 }
 
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = currentDocument.Project.Services.GetService<ISyntaxFactsService>();
             var originalSemanticModel = originalDocument.SemanticModel;
             var currentSemanticModel = currentDocument.SemanticModel;
 

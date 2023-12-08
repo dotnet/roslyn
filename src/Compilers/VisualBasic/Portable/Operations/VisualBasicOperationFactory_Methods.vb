@@ -183,6 +183,9 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.RaiseEventStatement
                     Dim boundRaiseEvent = DirectCast(boundNode, BoundRaiseEventStatement)
                     Return DeriveArguments(DirectCast(boundRaiseEvent.EventInvocation, BoundCall))
+                Case BoundKind.Attribute
+                    Dim boundAttribute = DirectCast(boundNode, BoundAttribute)
+                    Return DeriveArguments(boundAttribute.ConstructorArguments, boundAttribute.Constructor.Parameters, boundAttribute.ConstructorDefaultArguments)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select

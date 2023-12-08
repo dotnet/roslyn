@@ -10,6 +10,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports CallingConvention = Microsoft.Cci.CallingConvention ' to resolve ambiguity with System.Runtime.InteropServices.CallingConvention
@@ -138,7 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return Nothing
         End Function
-
 
         Private Shared Sub ReportPartialMethodErrors(modifiers As SyntaxTokenList, binder As Binder, diagBag As DiagnosticBag)
             ' Handle partial methods related errors
@@ -412,7 +412,6 @@ lReportErrorOnTwoTokens:
             Return methodSym
         End Function
 
-
         ' Decode the modifiers on the method, reporting errors where applicable.
         Private Shared Function DecodeMethodModifiers(modifiers As SyntaxTokenList,
                                                       container As SourceMemberContainerTypeSymbol,
@@ -472,7 +471,6 @@ lReportErrorOnTwoTokens:
                 computedFlags = computedFlags Or SourceMemberFlags.Shared
             End If
 
-
             If syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword Then
                 If (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) = 0 Then
                     binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
@@ -486,7 +484,6 @@ lReportErrorOnTwoTokens:
 
             Return New MemberModifiers(foundFlags, computedFlags)
         End Function
-
 
         ' Decode the modifiers on a constructor, reporting errors where applicable. Constructors are more restrictive
         ' than regular methods, so they have more errors.
@@ -732,7 +729,6 @@ lReportErrorOnTwoTokens:
                 Return (m_flags And SourceMemberFlags.MethodHandlesEvents) <> 0
             End Get
         End Property
-
 
         Friend NotOverridable Overrides ReadOnly Property CallingConvention As CallingConvention
             Get
@@ -1438,8 +1434,8 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
             ' (a) This is the entry point method.
@@ -1574,9 +1570,9 @@ lReportErrorOnTwoTokens:
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.UnmanagedCallersOnlyAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.UnmanagedCallersOnlyAttribute) Then
                 ' VB does not support UnmanagedCallersOnly attributes on methods at all
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_UnmanagedCallersOnlyNotSupported, arguments.AttributeSyntaxOpt.Location)
             End If
@@ -1601,7 +1597,7 @@ lReportErrorOnTwoTokens:
             ' Decode well-known attributes applied to method
             Dim attrData = arguments.Attribute
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                 ' Just report errors here. The extension attribute is decoded early.
 
                 If Me.MethodKind <> MethodKind.Ordinary AndAlso Me.MethodKind <> MethodKind.DeclareMethod Then
@@ -1630,7 +1626,7 @@ lReportErrorOnTwoTokens:
                     End If
                 End If
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.WebMethodAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.WebMethodAttribute) Then
 
                 ' Check for optional parameters
                 For Each parameter In Me.Parameters
@@ -1639,12 +1635,12 @@ lReportErrorOnTwoTokens:
                     End If
                 Next
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.PreserveSigAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.PreserveSigAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().SetPreserveSignature(arguments.Index)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MethodImplAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MethodImplAttribute) Then
                 AttributeData.DecodeMethodImplAttribute(Of MethodWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation)(arguments, MessageProvider.Instance)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DllImportAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DllImportAttribute) Then
                 If Not IsDllImportAttributeAllowed(arguments.AttributeSyntaxOpt, diagnostics) Then
                     Return
                 End If
@@ -1712,35 +1708,35 @@ lReportErrorOnTwoTokens:
                     DllImportData.MakeFlags(exactSpelling, charSet, setLastError, callingConvention, bestFitMapping, throwOnUnmappable),
                     preserveSig)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSpecialNameAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
                 attrData.DecodeSecurityAttribute(Of MethodWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.STAThreadAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.STAThreadAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasSTAThreadAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MTAThreadAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MTAThreadAttribute) Then
                 arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().HasMTAThreadAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ConditionalAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ConditionalAttribute) Then
                 If Not Me.IsSub Then
                     ' BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
                     diagnostics.Add(ERRID.WRN_ConditionalNotValidOnFunction, Me.Locations(0))
                 End If
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.ObsoleteAttribute) Then
             ElseIf VerifyObsoleteAttributeAppliedToMethod(arguments, AttributeDescription.DeprecatedAttribute) Then
-            ElseIf arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.ModuleInitializerAttribute) Then
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.ModuleInitializerAttribute) Then
                 diagnostics.Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.ModuleInitializerAttribute.FullName)
             Else
                 Dim methodImpl As MethodSymbol = If(Me.IsPartial, PartialImplementationPart, Me)
 
                 If methodImpl IsNot Nothing AndAlso (methodImpl.IsAsync OrElse methodImpl.IsIterator) AndAlso Not methodImpl.ContainingType.IsInterfaceType() Then
-                    If attrData.IsTargetAttribute(Me, AttributeDescription.SecurityCriticalAttribute) Then
+                    If attrData.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute) Then
                         Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecurityCritical")
                         Return
-                    ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SecuritySafeCriticalAttribute) Then
+                    ElseIf attrData.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute) Then
                         Binder.ReportDiagnostic(diagnostics, arguments.AttributeSyntaxOpt.GetLocation(), ERRID.ERR_SecurityCriticalAsync, "SecuritySafeCritical")
                         Return
                     End If
@@ -1752,7 +1748,7 @@ lReportErrorOnTwoTokens:
             ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation),
             description As AttributeDescription
         ) As Boolean
-            If arguments.Attribute.IsTargetAttribute(Me, description) Then
+            If arguments.Attribute.IsTargetAttribute(description) Then
                 ' Obsolete Attribute is not allowed on event accessors.
                 If Me.IsAccessor() AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Event Then
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ObsoleteInvalidOnEventMember, Me.Locations(0), description.FullName)
@@ -1769,7 +1765,7 @@ lReportErrorOnTwoTokens:
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
             End If
         End Sub
@@ -2021,6 +2017,12 @@ lReportErrorOnTwoTokens:
         Public MustOverride Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
 
         Friend MustOverride Overrides ReadOnly Property OverriddenMembers As OverriddenMembersResult(Of MethodSymbol)
+
+        Friend NotOverridable Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend MustInherit Class SourceNonPropertyAccessorMethodSymbol

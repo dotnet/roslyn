@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitCastExpression(CastExpressionSyntax node)
             {
-                return SimplifyExpression(
+                return SimplifyNode(
                     node,
                     newNode: base.VisitCastExpression(node),
                     simplifier: s_simplifyCast);

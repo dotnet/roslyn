@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation;
 
@@ -17,6 +18,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     TInvocationExpressionSyntax,
     TConditionalAccessExpressionSyntax,
     TElementAccessExpressionSyntax,
+    TMemberAccessExpressionSyntax,
     TIfStatementSyntax,
     TExpressionStatementSyntax>
 {
@@ -29,10 +31,10 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
     {
         var cancellationToken = context.CancellationToken;
         var option = context.GetAnalyzerOptions().PreferNullPropagation;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var syntaxFacts = GetSyntaxFacts();
+        var syntaxFacts = this.SyntaxFacts;
         var ifStatement = (TIfStatementSyntax)context.Node;
 
         // The true-statement if the if-statement has to be a statement of the form `<expr1>.Name(...)`;
@@ -59,9 +61,29 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (whenPartMatch == null)
             return;
 
+        // If we have:
+        //
+        // D D { get; }
+        // 
+        // public void Test()
+        // {
+        //     if (D != null)
+        //     {
+        //         D.Method(D);
+        //     }
+        // }
+        //
+        // Then `D.Method` is actually an access of a static member, and cannot be converted to `D?.Method`.
+        if (whenPartMatch.Parent is TMemberAccessExpressionSyntax memberAccess)
+        {
+            var memberSymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
+            if (memberSymbol?.IsStatic is true)
+                return;
+        }
+
         // can't use ?. on a pointer
         var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
-        if (whenPartType is IPointerTypeSymbol)
+        if (whenPartType is IPointerTypeSymbol or IFunctionPointerTypeSymbol)
             return;
 
         var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
@@ -72,7 +94,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             ifStatement.GetFirstToken().GetLocation(),
-            option.Notification.Severity,
+            option.Notification,
             ImmutableArray.Create(
                 ifStatement.GetLocation(),
                 trueStatement.GetLocation(),

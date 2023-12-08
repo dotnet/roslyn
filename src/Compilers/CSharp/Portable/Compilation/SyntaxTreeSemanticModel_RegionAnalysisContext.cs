@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about any node in a SyntaxTree within a Compilation.
     /// </summary>
-    internal partial class SyntaxTreeSemanticModel : CSharpSemanticModel
+    internal partial class SyntaxTreeSemanticModel
     {
         private RegionAnalysisContext RegionAnalysisContext(ExpressionSyntax expression)
         {

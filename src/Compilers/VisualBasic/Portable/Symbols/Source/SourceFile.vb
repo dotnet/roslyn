@@ -31,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' lazily populate with quick attribute checker that is initialized with the imports.
         Private _lazyQuickAttributeChecker As QuickAttributeChecker
 
-        Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
-
         ''' <summary>
         ''' The bound information from a file.
         ''' </summary>
@@ -140,9 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If _lazyBoundInformation Is Nothing Then
-                Dim diagBag As New BindingDiagnosticBag(New DiagnosticBag())
+                Dim diagBag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                 Dim lazyBoundInformation = BindFileInformation(diagBag.DiagnosticBag, cancellationToken)
                 _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag)
+                diagBag.Free()
             End If
 
             Return _lazyBoundInformation
@@ -151,9 +150,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsValidated()
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
-                Dim diagBag As New BindingDiagnosticBag()
+                Dim diagBag = BindingDiagnosticBag.GetInstance()
                 ValidateImports(_sourceModule.DeclaringCompilation, boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
                 _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag)
+                diagBag.Free()
             End If
             Debug.Assert(_importsValidated = 1)
         End Sub
@@ -476,17 +476,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Function Translate(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As Cci.IImportScope
-            If _lazyTranslatedImports.IsDefault Then
-                ImmutableInterlocked.InterlockedInitialize(_lazyTranslatedImports, TranslateImports(moduleBuilder, diagnostics))
+            If Not moduleBuilder.TryGetTranslatedImports(Me, Nothing) Then
+                moduleBuilder.GetOrAddTranslatedImports(Me, TranslateImports(moduleBuilder, diagnostics))
             End If
 
             Return Me
         End Function
 
-        Public Function GetUsedNamespaces() As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+        Public Function GetUsedNamespaces(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+            Dim [imports] As ImmutableArray(Of Cci.UsedNamespaceOrType) = Nothing
+            Dim result = DirectCast(context.Module, Emit.PEModuleBuilder).TryGetTranslatedImports(Me, [imports])
             ' The imports should have been translated during code gen.
-            Debug.Assert(Not _lazyTranslatedImports.IsDefault)
-            Return _lazyTranslatedImports
+            Debug.Assert(result)
+            Debug.Assert(Not [imports].IsDefault)
+            Return [imports]
         End Function
 
         Private Function TranslateImports(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.UsedNamespaceOrType)

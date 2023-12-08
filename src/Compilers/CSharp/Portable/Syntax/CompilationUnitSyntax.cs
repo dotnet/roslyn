@@ -70,29 +70,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
-        internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
-        {
-            IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
-            var directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
-            foreach (DirectiveTriviaSyntax directive in directives)
-            {
-                var internalDirective = (Syntax.InternalSyntax.DirectiveTriviaSyntax)directive.Green;
-                directiveStack = internalDirective.ApplyDirectives(directiveStack);
-            }
-            return directiveStack;
-        }
+        //internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
+        //{
+        //    IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
+        //    var directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
+        //    foreach (DirectiveTriviaSyntax directive in directives)
+        //    {
+        //        var internalDirective = (Syntax.InternalSyntax.DirectiveTriviaSyntax)directive.Green;
+        //        directiveStack = internalDirective.ApplyDirectives(directiveStack);
+        //    }
+        //    return directiveStack;
+        //}
 
-        private static bool IsActiveConditionalDirective(DirectiveTriviaSyntax directive)
-        {
-            switch (directive.Kind())
-            {
-                case SyntaxKind.DefineDirectiveTrivia:
-                    return ((DefineDirectiveTriviaSyntax)directive).IsActive;
-                case SyntaxKind.UndefDirectiveTrivia:
-                    return ((UndefDirectiveTriviaSyntax)directive).IsActive;
-                default:
-                    return false;
-            }
-        }
+        //internal bool HasLoadDirectives
+        //    // #r and #load directives are always on the first token of the compilation unit.
+        //    => HasFirstTokenDirective(static n => n is LoadDirectiveTriviaSyntax);
+
+        //private bool HasFirstTokenDirective(Func<SyntaxNode, bool> predicate)
+        //{
+        //    if (this.ContainsDirectives)
+        //    {
+        //        var firstToken = this.GetFirstToken(includeZeroWidth: true);
+        //        if (firstToken.ContainsDirectives)
+        //        {
+        //            foreach (var trivia in firstToken.LeadingTrivia)
+        //            {
+        //                if (trivia.GetStructure() is { } structure &&
+        //                    predicate(structure))
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    return false;
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Storage
 {
     internal static class PersistentStorageExtensions
     {
-        public static IChecksummedPersistentStorageService GetPersistentStorageService(this HostWorkspaceServices services)
+        public static IChecksummedPersistentStorageService GetPersistentStorageService(this SolutionServices services)
         {
             var workspaceConfiguration = services.GetService<IWorkspaceConfigurationService>();
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();

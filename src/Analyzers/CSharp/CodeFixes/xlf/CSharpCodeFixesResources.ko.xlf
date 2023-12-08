@@ -12,10 +12,30 @@
         <target state="translated">'await' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">괄호 추가</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">this'를 추가합니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="translated">이 프로젝트에서 안전하지 않은 코드 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">'out' 매개 변수 할당</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">'out' 매개 변수 할당(시작 시)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
@@ -31,6 +51,11 @@
         <source>Compare to '{0}'</source>
         <target state="translated">'{0}'과(와) 비교</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">위치 record로 변환</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
@@ -67,14 +92,39 @@
         <target state="translated">기본 멤버 숨기기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="translated">{0}에서 void 대신 Task를 반환하도록 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_required">
+        <source>Make field 'required'</source>
+        <target state="translated">필드 'required' 만들기</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="translated">메서드를 비동기로 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="translated">메서드를 비동기로 설정(void 유지)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_property_required">
+        <source>Make property 'required'</source>
+        <target state="translated">속성 'required' 만들기</target>
+        <note>{Locked="required"} "required" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="translated">'ref struct'로 지정</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">캡처된 변수를 인수로 전달</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_colon_on_following_line">
-        <source>Place colon on following line</source>
-        <target state="translated">다음 줄에 콜론 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
@@ -82,9 +132,9 @@
         <target state="translated">다음 줄에 문 배치</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">불필요한 Using 제거</target>
+      <trans-unit id="Place_token_on_following_line">
+        <source>Place token on following line</source>
+        <target state="translated">다음 줄에 토큰 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
@@ -92,9 +142,29 @@
         <target state="translated">중괄호 사이의 빈 줄 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">'in' 키워드 제거</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">'new' 한정자 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="new">Remove unnecessary usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">접근할 수 없는 코드 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="translated">사용하지 않는 함수 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
@@ -107,9 +177,44 @@
         <target state="translated">'{0}' 클래스 봉인 해제</target>
         <note />
       </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="translated">모든 C# 프로젝트를 언어 버전 '{0}'(으)로 업그레이드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="translated">이 프로젝트를 C# 언어 버전 '{0}'(으)로 업그레이드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="translated">'{0}' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_collection_expression">
+        <source>Use collection expression</source>
+        <target state="translated">컬렉션 식 사용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">보간된 축자 문자열 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_fields">
+        <source>Use primary constructor (and remove fields)</source>
+        <target state="translated">기본 생성자 사용(및 필드 제거)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_members">
+        <source>Use primary constructor (and remove members)</source>
+        <target state="translated">기본 생성자 사용(및 멤버 제거)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_primary_constructor_and_remove_properties">
+        <source>Use primary constructor (and remove properties)</source>
+        <target state="translated">기본 생성자 사용(및 속성 제거)</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

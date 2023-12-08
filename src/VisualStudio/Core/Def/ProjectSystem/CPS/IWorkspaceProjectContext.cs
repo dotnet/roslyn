@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,8 +11,7 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see
-    /// cref="IWorkspaceProjectContextFactory.CreateProjectContextAsync"/>. 
+    /// Project context to initialize properties and items of a Workspace project created by <see cref="IWorkspaceProjectContextFactory"/>. 
     /// </summary>
     /// <remarks>
     /// <see cref="IDisposable.Dispose"/> is safe to call on instances of this type on any thread.
@@ -23,10 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     {
         // Project properties.
         string DisplayName { get; set; }
-        string ProjectFilePath { get; set; }
+        string? ProjectFilePath { get; set; }
         Guid Guid { get; set; }
         bool LastDesignTimeBuildSucceeded { get; set; }
-        string BinOutputPath { get; set; }
+        string? BinOutputPath { get; set; }
 
         /// <summary>
         /// When this project is one of a multi-targeting group of projects, this value indicates whether or not this
@@ -40,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Options.
 
-        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         void SetOptions(string commandLineForOptions);
         void SetOptions(ImmutableArray<string> arguments);
 
@@ -56,11 +52,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveAnalyzerReference(string referencePath);
 
         // Files.
-        void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
+        void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular);
         void RemoveSourceFile(string filePath);
+        [Obsolete($"Call the {nameof(AddAdditionalFile)} method that takes folder names.")]
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
+        void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
-        void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
+        void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null);
         void RemoveDynamicFile(string filePath);
 
         /// <summary>
@@ -73,11 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// </summary>
         void RemoveAnalyzerConfigFile(string filePath);
 
-        void SetRuleSetFile(string filePath);
-
         void StartBatch();
-        [Obsolete($"Use {nameof(EndBatchAsync)}.")]
-        void EndBatch();
+        IAsyncDisposable CreateBatchScope();
         ValueTask EndBatchAsync();
 
         void ReorderSourceFiles(IEnumerable<string> filePaths);

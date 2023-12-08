@@ -7,9 +7,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="500">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer.Resources>
+            <system:Boolean x:Key="True">True</system:Boolean>
+            <system:Boolean x:Key="False">False</system:Boolean>
+        </ScrollViewer.Resources>
+        
         <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
         <StackPanel Margin="0,0,3,0">
             <GroupBox x:Uid="AnalysisGroupBox"
@@ -53,7 +59,16 @@
                               IsThreeState="True"/>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
+                              Checked="Run_code_analysis_in_separate_process_Checked"
+                              Unchecked="Run_code_analysis_in_separate_process_Unchecked"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <CheckBox x:Name="Run_code_analysis_on_dotnet"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
+                    </StackPanel>
+                    
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
@@ -69,6 +84,8 @@
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
+                    <CheckBox x:Name="Enable_navigation_to_sourcelink_and_embedded_sources"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_sourcelink_and_embedded_sources}" />
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Always_use_default_symbol_servers_for_navigation"
@@ -83,6 +100,16 @@
                 <StackPanel>
                     <CheckBox x:Name="Rename_asynchronously_exerimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
+
+                    <Label x:Name="Rename_UI_setting_label" Content="{x:Static local:AdvancedOptionPageStrings.Where_should_the_rename_UI_be_shown}" />
+                    <ComboBox x:Name="Rename_UI_setting">
+                        <ComboBoxItem x:Name="Rename_UI_inline"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_inline}"
+                            Tag="{StaticResource True}" />
+                        <ComboBoxItem x:Name="Rename_UI_dashboard"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_as_dashboard_in_top_right}" 
+                            Tag="{StaticResource False}" />
+                    </ComboBox>
                 </StackPanel>
             </GroupBox>
             
@@ -106,15 +133,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
                 </StackPanel>
             </GroupBox>
-            
-            <GroupBox x:Uid="QuickActionsBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
-                <StackPanel>
-                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
-                </StackPanel>
-            </GroupBox>
-            
+
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -152,6 +171,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_outlining_for_comments_and_preprocessor_regions}" />
                     <CheckBox x:Name="Collapse_regions_when_collapsing_to_definitions"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
+                    <CheckBox x:Name="Collapse_local_functions_when_collapsing_to_definitions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_local_functions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
             
@@ -367,6 +388,14 @@
                     <CheckBox x:Uid="AutomaticallyOpenStackTraceExplorer"
                               x:Name="AutomaticallyOpenStackTraceExplorer"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_open_stack_trace_explorer_on_focus}" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
+                <StackPanel>
+                    <CheckBox x:Uid="EnableDocumentOutline"
+                              x:Name="EnableDocumentOutline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

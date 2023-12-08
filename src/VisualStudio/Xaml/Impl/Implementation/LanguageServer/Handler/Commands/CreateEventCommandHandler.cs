@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request)
-            => ((JToken)request.Arguments.First()).ToObject<TextDocumentIdentifier>();
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request)
+            => ((JToken)request.Arguments.First()).ToObject<TextDocumentIdentifier>()!;
 
         public override async Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return false;
             }
 
-            var commandService = document.Project.LanguageServices.GetService<IXamlCommandService>();
+            var commandService = document.Project.Services.GetService<IXamlCommandService>();
             if (commandService == null)
             {
                 return false;

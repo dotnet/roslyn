@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static async Task<bool> IsFullyLoadedAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var workspaceStatusService = solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var workspaceStatusService = solution.Services.GetRequiredService<IWorkspaceStatusService>();
             var isFullyLoaded = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             return isFullyLoaded;
         }

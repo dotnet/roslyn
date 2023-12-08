@@ -6,9 +6,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
@@ -1235,6 +1237,35 @@ End Class
                 "C`1+D`1.#[blah]M`2(!0,!1,!!0)"); // Invalid calling convention
         }
 
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void TestNoResolutionForMalformedNames3()
+        {
+            var names = new[]
+            {
+                "C.#M`1(G`2<!1,!!0[]>)", // Wrong class type index
+                "C.#M`1(G`2<!0,!!1[]>)", // Wrong method type index
+            };
+
+            VerifyNoMemberResolution("""
+                class G<T0,T1> { }
+                class C<T3>
+                {
+                    G<int,int> M<T4>(G<T3, T4[]> g) { }
+                }
+                """,
+                LanguageNames.CSharp, false, names);
+
+            VerifyNoMemberResolution("""
+                Class G(Of T0, T1)
+                End Class
+                Class C(Of T3)
+                	Private Function M(Of T4)(g As G(Of T3, T4())) As G(Of Integer, Integer)
+                	End Function
+                End Class
+                """,
+                LanguageNames.VisualBasic, false, names);
+        }
+
         private static void VerifyNamespaceResolution(string markup, string language, bool rootNamespace, params string[] fxCopFullyQualifiedNames)
         {
             string rootNamespaceName = "";
@@ -1422,8 +1453,8 @@ End Class
             string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
 
             return language == LanguageNames.CSharp ?
-                CSharpSyntaxTree.ParseText(source, path: fileName) :
-                VisualBasicSyntaxTree.ParseText(source, path: fileName);
+                CSharpTestSource.Parse(source, path: fileName) :
+                BasicTestSource.Parse(source, path: fileName);
         }
     }
 }

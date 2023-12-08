@@ -16,13 +16,24 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\IAddAccessibilityModifiersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AbstractAddAnonymousTypeMemberNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AbstractAddExplicitCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\Fixer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\InheritanceDistanceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AbstractAddObsoleteAttributeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AbstractAddParameterCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\AddParameterService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\ArgumentInsertPositionData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\CodeFixData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddParameter\RegisterFixData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AbstractAliasAmbiguousTypeCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\AbstractConvertToAsyncCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\AbstractConvertTypeOfToNameOfCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractAddDocCommentNodesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\AbstractForEachCastCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixHelper.cs" />
@@ -30,7 +41,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\AbstractMakeMemberStaticCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\AbstractMakeMethodSynchronousCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\AbstractMakeTypeAbstractCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\AbstractMakeTypePartialCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.CustomFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
@@ -43,6 +57,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedConfigurationFixProviderNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\AbstractQualifyMemberAccessCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveAsyncModifier\AbstractRemoveAsyncModifierCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryPragmaSuppressionsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\AbstractUnsealClassCodeFixProvider.cs" />
@@ -55,8 +70,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\AbstractSimplifyLinqExpressionCodeFixProvider`3.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\AbstractUpgradeProjectCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\AbstractUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\AbstractUseConditionalExpressionCodeFixProvider.cs" />
@@ -69,7 +86,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

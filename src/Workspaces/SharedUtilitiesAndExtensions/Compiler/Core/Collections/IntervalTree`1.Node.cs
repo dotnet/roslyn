@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal partial class IntervalTree<T>
     {
-        protected class Node
+        protected sealed class Node
         {
             internal T Value { get; }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

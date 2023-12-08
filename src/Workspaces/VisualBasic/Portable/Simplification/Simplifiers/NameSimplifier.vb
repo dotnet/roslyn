@@ -152,7 +152,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     ' Don't simplify to predefined type if name is part of a QualifiedName.
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
-                    If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
+                    If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso
+                        Not name.Parent.IsKind(SyntaxKind.QualifiedName) AndAlso
+                        Not name.Parent.IsKind(SyntaxKind.NameOfExpression) Then
+
                         Dim type = semanticModel.GetTypeInfo(name, cancellationToken).Type
                         If type IsNot Nothing Then
                             Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
@@ -366,8 +369,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 If name.Parent.Kind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
 
-                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    If identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation) Then
+                    ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DoNotSimplifyAnnotation
+                    If identifierToken.HasAnnotation(SimplificationHelpers.DoNotSimplifyAnnotation) Then
                         newIdentifierText = identifierToken.ValueText + "Attribute"
                     ElseIf identifierToken.ValueText.TryReduceAttributeSuffix(newIdentifierText) Then
                         issueSpan = New TextSpan(name.Span.End - 9, 9)

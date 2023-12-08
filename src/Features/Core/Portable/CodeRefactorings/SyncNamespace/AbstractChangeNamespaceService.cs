@@ -14,11 +14,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         where TCompilationUnitSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private static readonly char[] s_dotSeparator = new[] { '.' };
+        private static readonly char[] s_dotSeparator = ['.'];
 
         /// <summary>
         /// The annotation used to track applicable container in each document to be fixed.
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
 
         protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
-            => parts.Length == 1 && parts[0].Length == 0;
+            => parts is [""];
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -277,8 +279,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
             var documents = ids.SelectAsArray(solution.GetRequiredDocument);
-            using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
-            using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
+            using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
+            using var _2 = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
             foreach (var document in documents)
             {
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
 
                 // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol
+                if (memberSymbol is INamedTypeSymbol typeSymbol
                     && typeSymbol.DeclaringSyntaxReferences.Length > 1
                     && semanticFacts.IsPartial(typeSymbol, cancellationToken))
                 {
@@ -401,13 +403,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
             for (var i = 0; i < names.Length; ++i)
-            {
                 builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
-            }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
@@ -472,7 +472,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .ConfigureAwait(false);
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
-            var refLocationGroups = refLocationsInOtherDocuments.GroupBy(loc => loc.Document.Id);
+            var refLocationsInSolution = refLocationsInOtherDocuments
+                .Where(loc => solutionWithChangedNamespace.ContainsDocument(loc.Document.Id))
+                .ToImmutableArray();
+
+            if (refLocationsInSolution.Length != refLocationsInOtherDocuments.Count)
+            {
+                // We have received feedback indicate some documents are not in the solution.
+                // Report this as non-fatal error if this happens.
+                FatalError.ReportNonFatalError(
+                    new SyncNamespaceDocumentsNotInSolutionException(refLocationsInOtherDocuments
+                    .Where(loc => !solutionWithChangedNamespace.ContainsDocument(loc.Document.Id)).Distinct().SelectAsArray(loc => loc.Document.Id)));
+            }
+
+            var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
             var fixedDocuments = await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
@@ -500,17 +513,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private readonly struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
         {
-            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-            {
-                ReferenceLocation = location;
-                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
-            }
+            public ReferenceLocation ReferenceLocation { get; } = location;
 
-            public ReferenceLocation ReferenceLocation { get; }
-
-            public bool IsReferenceToExtensionMethod { get; }
+            public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
 
             public Document Document => ReferenceLocation.Document;
         }
@@ -630,7 +637,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            var services = documentWithAddedImports.Project.Solution.Workspace.Services;
+            var services = documentWithAddedImports.Project.Solution.Services;
             root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
@@ -780,7 +787,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
-                document = await RemoveUnnecessaryImportsWorker(
+                document = await RemoveUnnecessaryImportsWorkerAsync(
                     document,
                     CreateImports(document, names, withFormatterAnnotation: false),
                     cancellationToken).ConfigureAwait(false);
@@ -790,14 +797,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
-                    doc => RemoveUnnecessaryImportsWorker(
+                    doc => RemoveUnnecessaryImportsWorkerAsync(
                         doc,
                         CreateImports(doc, names, withFormatterAnnotation: false),
                         cancellationToken))).ConfigureAwait(false);
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            async Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorkerAsync(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)

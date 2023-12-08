@@ -55,6 +55,16 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+#nullable enable
+        string? Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return null;
+            }
+        }
+#nullable disable
+
         bool Cci.ITypeReference.IsEnum
         {
             get
@@ -183,13 +193,13 @@ namespace Microsoft.CodeAnalysis.Emit
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

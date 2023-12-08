@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -272,11 +272,11 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
-            var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
+            var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
             return await service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             {
                 var document = solution.GetDocument(documentId);
                 var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(currentRoot, solution.Workspace.Services);
+                var editor = new SyntaxEditor(currentRoot, solution.Services);
 
                 var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
                 var typeReference = syntaxGenerator.TypeExpression(extractedInterfaceSymbol);

@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeCleanupService : AbstractCodeCleanupService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService) : AbstractCodeCleanupService(codeFixService, diagnosticAnalyzerService)
     {
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 // Expression-level preferences
                 //   dotnet_style_coalesce_expression
                 new DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
-                    IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId),
+                    IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 //   dotnet_style_collection_initializer
                 new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
@@ -187,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     IDEDiagnosticIds.OrderModifiersDiagnosticId,
                     "CS0267"),
+                new DiagnosticSet(CSharpFeaturesResources.Apply_readonly_struct_preferences,
+                    IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId),
 
                 // Code-block preferences
                 //   csharp_prefer_braces
@@ -268,13 +272,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
                     IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
                 );
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(codeFixService, diagnosticAnalyzerService)
-        {
-        }
 
         protected override string OrganizeImportsDescription
             => CSharpFeaturesResources.Organize_Usings;

@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         /// This hits a special codepath in the product that is optimized for more than 100 spans.
         /// I'm leaving this test here because it covers that code path (as shown by code coverage)
         /// </summary>
-        [WpfFact]
-        [WorkItem(530368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530368")]
         public async Task LargeNumberOfSpans()
         {
             using var workspace = TestWorkspace.CreateCSharp(@"class Program
@@ -74,10 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
-            var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
+            using var tagger = taggerProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
             var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);
 
@@ -100,10 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
-            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            using var tagger = tagProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             // The very first all to get tags will not be synchronous as this contains no #region tag
             var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
             Assert.Equal(0, tags.Count());
@@ -126,10 +123,9 @@ class Program
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
-            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+            using var tagger = tagProvider.CreateTagger(textBuffer);
             Contract.ThrowIfNull(tagger);
 
-            using var disposable = (IDisposable)tagger;
             // The very first all to get tags will be synchronous because of the #region
             var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
             Assert.Equal(2, tags.Count());
@@ -184,6 +180,9 @@ class Program
 
                 return Task.CompletedTask;
             }
+
+            protected override bool TagEquals(TestTag tag1, TestTag tag2)
+                => tag1 == tag2;
         }
 
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource

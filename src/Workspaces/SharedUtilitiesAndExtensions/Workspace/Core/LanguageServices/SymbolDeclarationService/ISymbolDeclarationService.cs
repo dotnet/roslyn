@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal interface ISymbolDeclarationService : ILanguageService
     {

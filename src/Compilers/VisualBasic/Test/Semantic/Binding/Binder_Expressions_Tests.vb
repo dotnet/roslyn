@@ -944,7 +944,6 @@ End Module
     expectedOutput:="Public")
         End Sub
 
-
         <Fact>
         Public Sub Bug4249()
 
@@ -1165,7 +1164,6 @@ BC32045: 'goo' has no type parameters and so cannot have type arguments.
         goo(Of Integer)()
            ~~~~~~~~~~~~
                                                </errors>)
-
 
         End Sub
 
@@ -1601,7 +1599,6 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             AssertTheseDiagnostics(compilation,
                                                <errors>
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property Color(x As Integer) As Module1.Color'.
@@ -1664,10 +1661,8 @@ End Module
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             AssertNoDiagnostics(compilation)
         End Sub
-
 
         <Fact>
         Public Sub ColorColorOverloadedAddressOf()
@@ -3451,5 +3446,121 @@ End Class    </file>
 
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70007")>
+        <Fact()>
+        Public Sub CycleThroughAttribute_01()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: AssemblyVersion(MainVersion.CurrentVersion)>
+
+Public Class MainVersion
+    Public Const Hauptversion As String = "8"
+    Public Const Nebenversion As String = "2"
+    Public Const Build As String = "0"
+    Public Const Revision As String = "1"
+
+    Public Const CurrentVersion As String = Hauptversion & "." & Nebenversion & "." & Build & "." & Revision
+End Class
+    ]]></file>
+</compilation>)
+
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70007")>
+        <Fact()>
+        Public Sub CycleThroughAttribute_02()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Module: MyAttribute(MainVersion.CurrentVersion)>
+
+Public Class MainVersion
+    Public Const Hauptversion As String = "8"
+    Public Const Nebenversion As String = "2"
+    Public Const Build As String = "0"
+    Public Const Revision As String = "1"
+
+    Public Const CurrentVersion As String = Hauptversion & "." & Nebenversion & "." & Build & "." & Revision
+End Class
+
+class MyAttribute
+	Inherits System.Attribute
+
+	Sub New(x as String)
+	End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70007")>
+        <Fact()>
+        Public Sub CycleThroughAttribute_03()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<MyAttribute(MainVersion.CurrentVersion)>
+Public Class MainVersion
+    Public Const Hauptversion As String = "8"
+    Public Const Nebenversion As String = "2"
+    Public Const Build As String = "0"
+    Public Const Revision As String = "1"
+
+    Public Const CurrentVersion As String = Hauptversion & "." & Nebenversion & "." & Build & "." & Revision
+End Class
+
+class MyAttribute
+	Inherits System.Attribute
+
+	Sub New(x as String)
+	End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70007")>
+        <Fact()>
+        Public Sub CycleThroughAttribute_04()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Reflection
+
+<Assembly: AssemblyVersion(MainVersion.CurrentVersion)>
+
+<Module: MyAttribute(MainVersion.CurrentVersion)>
+
+<MyAttribute(MainVersion.CurrentVersion)>
+Public Class MainVersion
+    Public Const Hauptversion As String = "8"
+    Public Const Nebenversion As String = "2"
+    Public Const Build As String = "0"
+    Public Const Revision As String = "1"
+
+    Public Const CurrentVersion As String = Hauptversion & "." & Nebenversion & "." & Build & "." & Revision
+End Class
+
+class MyAttribute
+	Inherits System.Attribute
+
+	Sub New(x as String)
+	End Sub
+End Class
+    ]]></file>
+</compilation>)
+
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace

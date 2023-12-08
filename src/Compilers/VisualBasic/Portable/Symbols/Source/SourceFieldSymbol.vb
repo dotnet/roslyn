@@ -9,6 +9,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -137,6 +138,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return ImmutableArray(Of CustomModifier).Empty
+            End Get
+        End Property
+
+        Public NotOverridable Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -652,8 +659,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyCustomAttributesBag = attributeData
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.IsConst Then
                 If Me.GetConstantValue(ConstantFieldsInProgress.Empty) IsNot Nothing Then
@@ -713,13 +720,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
             Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasSpecialNameAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.NonSerializedAttribute) Then
 
                 If Me.ContainingType.IsSerializable Then
                     arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().HasNonSerializedAttribute = True
@@ -727,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     diagnostics.Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.FieldOffsetAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.FieldOffsetAttribute) Then
                 Dim offset = attrData.CommonConstructorArguments(0).DecodeValue(Of Integer)(SpecialType.System_Int32)
                 If offset < 0 Then
                     diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
@@ -736,11 +743,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)().SetFieldOffset(offset)
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonFieldWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Field, MessageProvider.Instance)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DateTimeConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute) Then
                 VerifyConstantValueMatches(attrData.DecodeDateTimeConstantValue(), arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DecimalConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DecimalConstantAttribute) Then
                 VerifyConstantValueMatches(attrData.DecodeDecimalConstantValue(), arguments)
             Else
                 MyBase.DecodeWellKnownAttribute(arguments)

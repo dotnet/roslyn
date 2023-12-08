@@ -172,7 +172,7 @@ namespace CSharpSyntaxGenerator.Grammar
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
     }
 
-    internal struct Production : IComparable<Production>
+    internal readonly struct Production : IComparable<Production>
     {
         public readonly string Text;
         public readonly ImmutableArray<string> ReferencedRules;

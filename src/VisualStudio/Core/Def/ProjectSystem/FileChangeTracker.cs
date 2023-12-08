@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
+using IVsAsyncFileChangeEx2 = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx2;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 try
                 {
                     // TODO: Should we pass in cancellationToken here insead of CancellationToken.None?
-                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, CancellationToken.None).ConfigureAwait(false);
+                    return await ((IVsAsyncFileChangeEx2)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e) when (ReportException(e))
                 {
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     return null;
                 }
-            }, cacheResult: true);
+            });
 
             lock (s_lastBackgroundTaskGate)
             {

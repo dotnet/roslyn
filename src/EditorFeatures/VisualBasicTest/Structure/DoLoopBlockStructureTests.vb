@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class DoLoopBlockStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of DoLoopBlockSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New DoLoopBlockStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDoLoopBlock1() As Task
             Const code = "
 Class C
@@ -29,7 +30,7 @@ End Class
                 Region("span", "Do While (True) ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDoLoopBlock2() As Task
             Const code = "
 Class C

@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
 
-            var progressTracker = fixAllContext.GetProgressTracker();
+            var progressTracker = fixAllContext.Progress;
 
             switch (fixAllContext.Scope)
             {
@@ -130,9 +131,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => solution.GetDocument(d.Location.SourceTree)))
+
+            // NOTE: We use 'GetTextDocumentForLocation' extension to ensure we also handle external location diagnostics in non-C#/VB languages.
+            foreach (var (textDocument, diagnosticsForDocument) in diagnostics.GroupBy(d => solution.GetTextDocumentForLocation(d.Location)))
             {
-                if (document is null)
+                if (textDocument is not Document document)
                     continue;
 
                 cancellationToken.ThrowIfCancellationRequested();

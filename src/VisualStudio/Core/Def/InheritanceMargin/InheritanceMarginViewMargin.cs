@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IGlobalOptionService _globalOptions;
         private readonly InheritanceGlyphManager _glyphManager;
         private readonly string _languageName;
-        private readonly Grid _grid;
         private readonly Canvas _mainCanvas;
 
         /// <summary>
@@ -61,8 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _globalOptions = globalOptions;
             _languageName = languageName;
             _mainCanvas = new Canvas { ClipToBounds = true, Width = HeightAndWidthOfMargin };
-            _grid = new Grid();
-            _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
                 workspace,
                 textView,
@@ -81,12 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _tagAggregator.BatchedTagsChanged += OnTagsChanged;
             _textView.LayoutChanged += OnLayoutChanged;
             _textView.ZoomLevelChanged += OnZoomLevelChanged;
-            _globalOptions.OptionChanged += OnGlobalOptionChanged;
+            _globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
 
-            _grid.LayoutTransform = new ScaleTransform(
-                scaleX: _textView.ZoomLevel / 100,
-                scaleY: _textView.ZoomLevel / 100);
-            _grid.LayoutTransform.Freeze();
             UpdateMarginVisibility();
         }
 
@@ -99,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _tagAggregator.BatchedTagsChanged -= OnTagsChanged;
                 _textView.LayoutChanged -= OnLayoutChanged;
                 _textView.ZoomLevelChanged -= OnZoomLevelChanged;
-                _globalOptions.OptionChanged -= OnGlobalOptionChanged;
+                _globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
                 _tagAggregator.Dispose();
                 ((IDisposable)_glyphManager).Dispose();
             }
@@ -107,7 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
         {
-            _grid.LayoutTransform = e.ZoomTransform;
             _refreshAllGlyphs = true;
         }
 
@@ -130,8 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option.Equals(FeatureOnOffOptions.ShowInheritanceMargin) ||
-                e.Option.Equals(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (e.Option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                e.Option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 UpdateMarginVisibility();
             }
@@ -140,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void UpdateMarginVisibility()
         {
             _mainCanvas.Visibility =
-                (_globalOptions.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, _languageName) ?? true) &&
-                !_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
+                (_globalOptions.GetOption(InheritanceMarginOptionsStorage.ShowInheritanceMargin, _languageName) ?? true) &&
+                !_globalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
@@ -181,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void RefreshGlyphsOver(ITextViewLine textViewLine)
         {
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin))
+            if (!_globalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
             {
                 foreach (var mappingTagSpan in _tagAggregator.GetTags(textViewLine.ExtentAsMappingSpan))
                 {
@@ -212,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             get
             {
                 ThrowIfDisposed();
-                return _grid;
+                return _mainCanvas;
             }
         }
 
@@ -221,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             get
             {
                 ThrowIfDisposed();
-                return _grid.ActualWidth;
+                return _mainCanvas.ActualWidth;
             }
         }
 

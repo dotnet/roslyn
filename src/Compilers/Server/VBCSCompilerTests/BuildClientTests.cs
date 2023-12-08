@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
                 compileOnServerFunc ??= delegate { throw new InvalidOperationException(); };
-                return new BuildClient(language.Value, compileFunc, compileOnServerFunc);
+                return new BuildClient(_logger, language.Value, compileFunc, compileOnServerFunc);
             }
 
             private ServerData CreateServer(string pipeName)
@@ -122,6 +122,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 #endif
+
+            [Fact]
+            [WorkItem(70166, "https://github.com/dotnet/roslyn/issues/70166")]
+            public void TestIfMutexIsGlobal()
+            {
+                const string GlobalPrefix = "Global\\";
+
+                var clientMutexName = BuildServerConnection.GetClientMutexName(_pipeName);
+                Assert.True(clientMutexName.StartsWith(GlobalPrefix));
+
+                var serverMutexName = BuildServerConnection.GetServerMutexName(_pipeName);
+                Assert.True(serverMutexName.StartsWith(GlobalPrefix));
+            }
 
             [Fact]
             public async Task ConnectToPipe()

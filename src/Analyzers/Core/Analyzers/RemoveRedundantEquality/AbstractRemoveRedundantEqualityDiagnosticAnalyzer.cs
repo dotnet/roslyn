@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
         private void AnalyzeBinaryOperator(OperationAnalysisContext context)
         {
+            if (ShouldSkipAnalysis(context, notification: null))
+                return;
+
             var operation = (IBinaryOperation)context.Operation;
             if (operation.OperatorMethod is not null)
             {

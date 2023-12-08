@@ -2837,7 +2837,6 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
                         </errors>)
         End Sub
 
-
         <Fact>
         Public Sub VbCore_IsImplicitlyDeclaredSymbols()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(

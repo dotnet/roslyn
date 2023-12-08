@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        IGlobalOperationNotificationService globalOperationNotificationService,
+                        IGlobalOperationNotificationService? globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 : null;
 
                             if (_workItemQueue.TryTakeAnyWork(
-                                preferableProjectId, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                preferableProjectId, Processor.DependencyGraph,
                                 out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
 
@@ -143,10 +143,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
                                                            reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
 
-                                    using (Processor.EnableCaching(project.Id))
-                                    {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
-                                    }
+                                    await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                 }
                                 else
                                 {
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                         finally
                         {
@@ -173,7 +170,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // after that point.
                             if (!processedEverything && !CancellationToken.IsCancellationRequested)
                             {
-                                _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
+                                _workItemQueue.AddOrReplace(workItem.WithAsyncToken(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
                             SolutionCrawlerLogger.LogProcessProject(Processor._logAggregator, projectId.Id, processedEverything);

@@ -6,6 +6,7 @@ Imports System.Collections.Generic
 Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return LexicalSortKey.NotInSource
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeEditorBrowsableNeverAttribute())
         End Sub
 

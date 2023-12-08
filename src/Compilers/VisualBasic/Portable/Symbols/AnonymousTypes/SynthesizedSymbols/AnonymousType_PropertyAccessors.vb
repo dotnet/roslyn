@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -37,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                MyBase.AddSynthesizedAttributes(compilationState, attributes)
+            Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                 ' Dev11 adds DebuggerNonUserCode; there is no reason to do so since:
                 ' - we emit no debug info for the body
@@ -83,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class AnonymousTypePropertySetAccessorSymbol
             Inherits AnonymousTypePropertyAccessorSymbol
 
-            Private _parameters As ImmutableArray(Of ParameterSymbol)
+            Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
             Public Sub New([property] As PropertySymbol, voidTypeSymbol As TypeSymbol)
                 MyBase.New([property], voidTypeSymbol)

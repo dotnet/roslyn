@@ -7,23 +7,19 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
-    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> where TExpressionSyntax : SyntaxNode
+    internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax>
     {
         protected abstract class Fixer<TArgumentSyntax, TArgumentListSyntax, TInvocationSyntax>
             where TArgumentSyntax : SyntaxNode
             where TArgumentListSyntax : SyntaxNode
             where TInvocationSyntax : SyntaxNode
         {
-            private readonly AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> _provider;
-
-            protected Fixer(AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> provider)
-                => _provider = provider;
-
             protected abstract TExpressionSyntax GetExpressionOfArgument(TArgumentSyntax argument);
             protected abstract TArgumentSyntax GenerateNewArgument(TArgumentSyntax oldArgument, ITypeSymbol conversionType);
             protected abstract TArgumentListSyntax GenerateNewArgumentList(TArgumentListSyntax oldArgumentList, ArrayBuilder<TArgumentSyntax> newArguments);
@@ -40,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             /// Return all the available cast pairs, format is (target argument expression, potential conversion type)
             /// </returns>
             public ImmutableArray<(TExpressionSyntax, ITypeSymbol)> GetPotentialConversionTypes(
+                Document document,
                 SemanticModel semanticModel,
                 SyntaxNode root,
                 TArgumentSyntax targetArgument,
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
                 {
                     if (CanArgumentTypesBeConvertedToParameterTypes(
-                            semanticModel, root, argumentList, candidateSymbol.Parameters,
+                            document, semanticModel, root, argumentList, candidateSymbol.Parameters,
                             targetArgument, cancellationToken, out var targetArgumentConversionType)
                         && GetExpressionOfArgument(targetArgument) is TExpressionSyntax argumentExpression)
                     {
@@ -109,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             /// False, otherwise.
             /// </returns>
             public bool CanArgumentTypesBeConvertedToParameterTypes(
+                Document document,
                 SemanticModel semanticModel,
                 SyntaxNode root,
                 TArgumentListSyntax argumentList,
@@ -123,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 if (parameters.Length == 0)
                     return false;
 
-                var syntaxFacts = _provider.SyntaxFacts;
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 var arguments = GetArgumentsOfArgumentList(argumentList);
                 using var _ = ArrayBuilder<TArgumentSyntax>.GetInstance(out var newArguments);
@@ -154,13 +153,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     var parameterType = parameters[parameterIndex].Type;
                     if (parameters[parameterIndex].IsParams
                         && parameterType is IArrayTypeSymbol paramsType
-                        && _provider.ClassifyConversion(semanticModel, argumentExpression, paramsType.ElementType).Exists)
+                        && semanticFacts.ClassifyConversion(semanticModel, argumentExpression, paramsType.ElementType).Exists)
                     {
                         newArguments.Add(GenerateNewArgument(arguments[i], paramsType.ElementType));
                         if (arguments[i].Equals(targetArgument))
                             targetArgumentConversionType = paramsType.ElementType;
                     }
-                    else if (_provider.ClassifyConversion(semanticModel, argumentExpression, parameterType).Exists)
+                    else if (semanticFacts.ClassifyConversion(semanticModel, argumentExpression, parameterType).Exists)
                     {
                         newArguments.Add(GenerateNewArgument(arguments[i], parameterType));
                         if (arguments[i].Equals(targetArgument))

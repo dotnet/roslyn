@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {

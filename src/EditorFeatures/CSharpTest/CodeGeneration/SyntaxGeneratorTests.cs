@@ -23,14 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeGeneration
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp(@"
-class C
-{
-    string M()
-    {
-        return ""a"";
-    }
-}");
+            using var workspace = TestWorkspace.CreateCSharp("""
+                class C
+                {
+                    string M()
+                    {
+                        return "a";
+                    }
+                }
+                """);
 
             var solution = workspace.CurrentSolution;
             var document = solution.Projects.Single().Documents.Single();
@@ -56,14 +57,15 @@ class C
         {
             var g = CSharpSyntaxGenerator.Instance;
 
-            using var workspace = TestWorkspace.CreateCSharp(@"
-class C
-{
-    string M()
-    {
-        return ""a"";
-    }
-}");
+            using var workspace = TestWorkspace.CreateCSharp("""
+                class C
+                {
+                    string M()
+                    {
+                        return "a";
+                    }
+                }
+                """);
 
             var solution = workspace.CurrentSolution;
             var document = solution.Projects.Single().Documents.Single();

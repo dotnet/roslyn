@@ -144,11 +144,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var name = "#op_" + kind.ToString();
                 if (name.EndsWith("Keyword", StringComparison.Ordinal))
                 {
-                    name = name.Substring(0, name.Length - 7);
+                    name = name[..^7];
                 }
                 else if (name.EndsWith("Token", StringComparison.Ordinal))
                 {
-                    name = name.Substring(0, name.Length - 5);
+                    name = name[..^5];
                 }
 
                 builder.Append(name);

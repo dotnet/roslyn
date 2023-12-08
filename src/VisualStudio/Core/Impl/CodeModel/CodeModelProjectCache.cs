@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             ICodeModelInstanceFactory codeModelInstanceFactory,
             ProjectCodeModelFactory projectFactory,
             IServiceProvider serviceProvider,
-            HostLanguageServices languageServices,
+            Microsoft.CodeAnalysis.Host.LanguageServices languageServices,
             VisualStudioWorkspace workspace)
         {
             State = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
@@ -108,8 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var documentId = State.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
-            if (documentId == null || State.Workspace.CurrentSolution.GetDocument(documentId) == null)
+            var solution = State.Workspace.CurrentSolution;
+            var documentId = solution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
+            if (documentId == null || solution.GetDocument(documentId) == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();

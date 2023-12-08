@@ -6,20 +6,15 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {
-        private sealed class CSharpAnalyzer : Analyzer
+        private sealed class CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features) : Analyzer(syntaxFacts, features)
         {
-            public CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features)
-                : base(syntaxFacts, features)
-            {
-            }
-
             public override bool HasUnreachableEndPoint(IOperation operation)
                 => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
 

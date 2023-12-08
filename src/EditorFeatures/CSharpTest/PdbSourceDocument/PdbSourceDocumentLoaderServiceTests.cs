@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,11 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         [Fact]
         public async Task ReturnsSourceFileFromSourceLink()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -43,7 +45,7 @@ public class C
                 using var hash = SHA256.Create();
                 var fileHash = hash.ComputeHash(File.ReadAllBytes(sourceFilePath));
 
-                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithm.Sha256, fileHash.ToImmutableArray(), null, "https://sourcelink");
+                var sourceDocument = new SourceDocument("goo.cs", Text.SourceHashAlgorithms.Default, fileHash.ToImmutableArray(), null, "https://sourcelink");
                 var result = await service.LoadSourceDocumentAsync(path, sourceDocument, Encoding.UTF8, new TelemetryMessage(CancellationToken.None), useExtendedTimeout: false, CancellationToken.None);
 
                 Assert.NotNull(result);
@@ -55,11 +57,12 @@ public class C
         [Fact]
         public async Task NoUrlFoundReturnsNull()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {

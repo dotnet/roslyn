@@ -19,13 +19,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
                    EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_deconstructed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -43,54 +42,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var option = context.GetCSharpAnalyzerOptions().PreferDeconstructedVariableDeclaration;
-            if (!option.Value)
-            {
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
                 return;
-            }
 
             switch (context.Node)
             {
                 case VariableDeclarationSyntax variableDeclaration:
-                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification.Severity);
+                    AnalyzeVariableDeclaration(context, variableDeclaration, option.Notification);
                     return;
                 case ForEachStatementSyntax forEachStatement:
-                    AnalyzeForEachStatement(context, forEachStatement, option.Notification.Severity);
+                    AnalyzeForEachStatement(context, forEachStatement, option.Notification);
                     return;
             }
         }
 
         private void AnalyzeVariableDeclaration(
-            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, ReportDiagnostic severity)
+            SyntaxNodeAnalysisContext context, VariableDeclarationSyntax variableDeclaration, NotificationOption2 notificationOption)
         {
-            if (!TryAnalyzeVariableDeclaration(
-                    context.SemanticModel, variableDeclaration, out _,
-                    out _, context.CancellationToken))
-            {
+            if (!TryAnalyzeVariableDeclaration(context.SemanticModel, variableDeclaration, out _, out _, context.CancellationToken))
                 return;
-            }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 variableDeclaration.Variables[0].Identifier.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }
 
         private void AnalyzeForEachStatement(
-            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, ReportDiagnostic severity)
+            SyntaxNodeAnalysisContext context, ForEachStatementSyntax forEachStatement, NotificationOption2 notificationOption)
         {
-            if (!TryAnalyzeForEachStatement(
-                    context.SemanticModel, forEachStatement, out _,
-                    out _, context.CancellationToken))
-            {
+            if (!TryAnalyzeForEachStatement(context.SemanticModel, forEachStatement, out _, out _, context.CancellationToken))
                 return;
-            }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 forEachStatement.Identifier.GetLocation(),
-                severity,
+                notificationOption,
                 additionalLocations: null,
                 properties: null));
         }
@@ -109,29 +98,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             //
             //      var t = ...;  or
             //      (T1 e1, ..., TN eN) t = ...
-            if (!variableDeclaration.IsParentKind(SyntaxKind.LocalDeclarationStatement))
-            {
+            if (variableDeclaration is not { Parent: LocalDeclarationStatementSyntax localDeclaration, Variables: [{ Initializer.Value: { } initializerValue } declarator] })
                 return false;
-            }
-
-            if (variableDeclaration.Variables.Count != 1)
-            {
-                return false;
-            }
-
-            var declarator = variableDeclaration.Variables[0];
-            if (declarator.Initializer == null)
-            {
-                return false;
-            }
 
             var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
 
-            var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
+            var initializerConversion = semanticModel.GetConversion(initializerValue, cancellationToken);
+
+            var searchScope = localDeclaration.Parent is GlobalStatementSyntax globalStatement
+                ? globalStatement.GetRequiredParent()
+                : localDeclaration.GetRequiredParent();
 
             return TryAnalyze(
-                semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion,
-                variableDeclaration.GetRequiredParent().GetRequiredParent(), out tupleType, out memberAccessExpressions, cancellationToken);
+                semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion, searchScope,
+                out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
         public static bool TryAnalyzeForEachStatement(
@@ -164,14 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             memberAccessExpressions = default;
 
             if (identifier.IsMissing)
-            {
                 return false;
-            }
 
             if (!IsViableTupleTypeSyntax(typeNode))
-            {
                 return false;
-            }
 
             if (conversion.Exists &&
                 !conversion.IsIdentity &&
@@ -187,24 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            if (type == null || !type.IsTupleType)
-            {
+            if (type is not INamedTypeSymbol { IsTupleType: true, TupleElements.Length: >= 2 } tupleTypeOpt)
                 return false;
-            }
 
-            tupleType = (INamedTypeSymbol)type;
-            if (tupleType.TupleElements.Length < 2)
-            {
-                return false;
-            }
-
+            tupleType = tupleTypeOpt;
             // All tuple elements must have been explicitly provided by the user.
             foreach (var element in tupleType.TupleElements)
             {
                 if (element.IsImplicitlyDeclared)
-                {
                     return false;
-                }
             }
 
             using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
@@ -225,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
-            memberAccessExpressions = references.ToImmutable();
+            memberAccessExpressions = references.ToImmutableAndClear();
             return true;
         }
 
@@ -243,9 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             foreach (var element in tupleType.TupleElements)
             {
                 if (reservedNames.Contains(element.Name))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -259,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax? tupleType))
+            if (type is TupleTypeSyntax tupleType)
             {
-                // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
+                // '(int x, int y) t' can be converted to '(int x, int y)'.  So all the elements
                 // need names.
 
                 foreach (var element in tupleType.Elements)
@@ -320,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         private static IEnumerable<ISymbol> GetExistingSymbols(
             SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
         {
-            // Ignore an annonymous type property.  It's ok if they have a name that 
+            // Ignore an anonymous type property.  It's ok if they have a name that 
             // matches the name of the local we're introducing.
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
                                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());

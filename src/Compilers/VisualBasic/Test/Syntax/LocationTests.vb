@@ -266,7 +266,6 @@ End Class
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:="    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
         End Sub
 
-
         <Fact()>
         Public Sub TestEqualSourceLocations()
             Dim sampleProgram = "class

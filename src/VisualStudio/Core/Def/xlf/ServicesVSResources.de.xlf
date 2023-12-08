@@ -82,6 +82,11 @@
         <target state="translated">Immer Standardsymbolserver für die Navigation verwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyze_source_generated_files">
+        <source>Analyze source generated files</source>
+        <target state="translated">Analysieren der von der Quelle generierten Dateien</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Standardwerte des Analysetools</target>
@@ -242,6 +247,11 @@
         <target state="translated">Die Codeanalyse wurde für die Projektmappe vorzeitig beendet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
+        <source>Collapse local functions when collapsing to definitions</source>
+        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
         <source>Collapse metadata signature files to definitions on file open</source>
         <target state="translated">Metadatensignaturdateien beim Öffnen der Datei auf Definitionen reduzieren</target>
@@ -254,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
         <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
-        <target state="translated">Quellenverknüpfung, eingebettete und dekompilierte Quelle auf Definitionen beim Öffnen der Datei reduzieren</target>
+        <target state="translated">Quellverknüpfung, eingebettete und dekompilierte Quelle auf Definitionen beim Öffnen der Datei reduzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -280,11 +290,6 @@
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Kommentare</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">Schnelle Aktionen asynchron berechnen (experimentell, Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -357,6 +362,16 @@
         <target state="translated">Inlinetyphinweise anzeigen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_Outline">
+        <source>Document Outline</source>
+        <target state="translated">Dokumentgliederung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_Outline_Search">
+        <source>Search Document Outline</source>
+        <target state="translated">Dokumentgliederung durchsuchen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Bearbeiten</target>
@@ -392,9 +407,19 @@
         <target state="translated">Aktivieren aller Funktionen in geöffneten Dateien von Quellgeneratoren (experimentell)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_document_outline_experimental_requires_restart">
+        <source>Enable document outline (experimental, requires restart)</source>
+        <target state="translated">Dokumentgliederung aktivieren (experimentell, Neustart erforderlich)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Dateiprotokollierung für Diagnose aktivieren (protokolliert im Ordner "%Temp%\Roslyn")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
+        <source>Enable navigation to Source Link and Embedded sources</source>
+        <target state="translated">Aktivieren der Navigation zu Source Links und eingebetteten Quellen</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
@@ -457,6 +482,11 @@
         <target state="translated">Basisklasse extrahieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Base_Record">
+        <source>Extract Base Record</source>
+        <target state="translated">Base Record extrahieren</target>
+        <note>{Locked="Record"} "Record" is a language construct for C# and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Beenden</target>
@@ -469,17 +499,17 @@
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors">
         <source>Fix analyzer warnings and errors</source>
-        <target state="new">Fix analyzer warnings and errors</target>
+        <target state="translated">Warnungen und Fehler des Analysegeräts beheben</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
         <source>Fix all warnings and errors set in EditorConfig</source>
-        <target state="new">Fix all warnings and errors set in EditorConfig</target>
+        <target state="translated">Beheben Sie alle in EditorConfig festgelegten Warnungen und Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
         <source>Fix analyzer warnings and errors set in EditorConfig</source>
-        <target state="new">Fix analyzer warnings and errors set in EditorConfig</target>
+        <target state="translated">Warnungen und Fehler des Analysegeräts beheben, die in EditorConfig festgelegt wurden</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -727,11 +757,6 @@
         <target state="translated">Namespacedeklarationen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespaces_have_been_updated">
-        <source>Namespaces have been updated.</source>
-        <target state="translated">Namespaces wurden aktualisiert.</target>
-        <note>"Namespaces" is the programming language concept</note>
-      </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
         <target state="new">class</target>
@@ -942,6 +967,11 @@
         <target state="translated">NONE</target>
         <note />
       </trans-unit>
+      <trans-unit id="Not_applicable">
+        <source>Not applicable</source>
+        <target state="translated">Nicht zutreffend</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_if_default">
         <source>Omit if default</source>
         <target state="translated">Bei Standardwert auslassen</target>
@@ -1048,8 +1078,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a stack trace to view and navigate its values.</source>
-        <target state="translated">Fügen Sie eine Stapelüberwachung ein, um deren Werte anzuzeigen und darin zu navigieren.</target>
+        <source>Paste a stack trace to view and navigate it's values.</source>
+        <target state="translated">Fügen Sie eine Stapelüberwachung ein, und navigieren Sie durch ihre Werte.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1069,7 +1099,12 @@
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
-        <target state="new">Prefer UTF-8 string literals</target>
+        <target state="translated">UTF-8-Zeichenfolgenliterale bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_collection_expression">
+        <source>Prefer collection expression</source>
+        <target state="translated">Sammlungsausdruck bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1092,9 +1127,24 @@
         <target state="translated">Namespace- und Ordnerübereinstimmungsstruktur bevorzugen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_primary_constructors">
+        <source>Prefer primary constructors</source>
+        <target state="translated">Primäre Konstruktoren bevorzugen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Bereichsoperator bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct">
+        <source>Prefer read-only struct</source>
+        <target state="translated">Schreibgeschützte Struktur bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_read_only_struct_member">
+        <source>Prefer read-only struct member</source>
+        <target state="translated">Schreibgeschützten Strukturmember bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
@@ -1179,7 +1229,7 @@
       </trans-unit>
       <trans-unit id="Rename">
         <source>Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">umbenennen</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -1188,8 +1238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously experimental</source>
-        <target state="new">Rename asynchronously experimental</target>
+        <source>Rename asynchronously (experimental)</source>
+        <target state="translated">Asynchron umbenennen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
@@ -1250,6 +1300,11 @@
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
         <target state="translated">Codeanalyse in separatem Prozess ausführen (Neustart erforderlich)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
+        <source>Run code analysis on latest .NET (requires restart)</source>
+        <target state="translated">Codeanalyse für die neueste .NET-Version ausführen (Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1322,6 +1377,16 @@
         <target state="translated">Befehl "Nicht verwendete Verweise entfernen" in Projektmappen-Explorer anzeigen (experimentell)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">Benutzeroberfläche als Dashboard oben rechts anzeigen</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">Inline der Benutzeroberfläche anzeigen</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Compilerfehler und -warnungen anzeigen für:</target>
@@ -1384,7 +1449,7 @@
       </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
-        <target state="new">Stack Trace</target>
+        <target state="translated">Stapelüberwachung</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
@@ -1426,6 +1491,16 @@
         <source>Sync Namespaces</source>
         <target state="translated">Namespaces synchronisieren</target>
         <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Sync_namespaces_changes">
+        <source>Sync namespaces changes</source>
+        <target state="translated">Änderungen an Synchronisierungsnamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
+        <source>'System.Void' is not a valid type for a parameter</source>
+        <target state="translated">'System.Void' ist kein gültiger Typ für einen Parameter.</target>
+        <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1606,6 +1681,11 @@
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">Wo sollte die Benutzeroberfläche zum Umbenennen angezeigt werden?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

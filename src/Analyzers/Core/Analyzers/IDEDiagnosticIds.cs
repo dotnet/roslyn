@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseCollectionInitializerDiagnosticId = "IDE0028";
 
-        public const string UseCoalesceExpressionDiagnosticId = "IDE0029";
-        public const string UseCoalesceExpressionForNullableDiagnosticId = "IDE0030";
+        public const string UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId = "IDE0029";
+        public const string UseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticId = "IDE0030";
 
         public const string UseNullPropagationDiagnosticId = "IDE0031";
 
@@ -181,11 +181,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveRedundantNullableDirectiveDiagnosticId = "IDE0240";
         public const string RemoveUnnecessaryNullableDirectiveDiagnosticId = "IDE0241";
 
+        public const string MakeStructReadOnlyDiagnosticId = "IDE0250";
+        public const string MakeStructMemberReadOnlyDiagnosticId = "IDE0251";
+
+        public const string UsePatternMatchingAsAndMemberAccessDiagnosticId = "IDE0260";
+
+        public const string UseCoalesceExpressionForIfNullCheckDiagnosticId = "IDE0270";
+
+        public const string UseNameofInAttributeDiagnosticId = "IDE0280";
+
+        public const string UsePrimaryConstructorDiagnosticId = "IDE0290";
+
+        public const string UseCollectionExpressionForArrayDiagnosticId = "IDE0300";
+        public const string UseCollectionExpressionForEmptyDiagnosticId = "IDE0301";
+        public const string UseCollectionExpressionForStackAllocDiagnosticId = "IDE0302";
+        public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
+        public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
+        public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
         public const string MissingAnalyzerReferenceId = "IDE1003";
-        public const string ErrorReadingRulesetId = "IDE1004";
+        // public const string ErrorReadingRulesetId = "IDE1004";
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
@@ -200,5 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
         public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
         public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
+        public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
+        public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
     }
 }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (document == null)
                 return default;
 
-            var copyPasteService = document.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
+            var copyPasteService = document.Project.Solution.Services.GetService<IStringCopyPasteService>();
             if (copyPasteService == null)
                 return default;
 

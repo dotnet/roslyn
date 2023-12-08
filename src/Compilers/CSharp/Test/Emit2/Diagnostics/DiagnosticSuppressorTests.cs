@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -66,6 +68,92 @@ class C
                 // (7,9): warning CS1522: Empty switch block
                 //         {
                 Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(7, 9));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
+        {
+            const string SourceCode = @"
+                public class MyClass
+                {
+                    void MyPrivateMethod(int i)
+                    {
+                        // warning CS1522: Empty switch block
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var compilation = CreateCompilation(SourceCode);
+            compilation.VerifyDiagnostics(
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
+                // (17,39): error CS0122: 'MyClass.MyPrivateMethod(int)' is inaccessible due to its protection level
+                //                         new MyClass().MyPrivateMethod();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MyPrivateMethod").WithArguments("MyClass.MyPrivateMethod(int)").WithLocation(17, 39));
+
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning()
+        {
+            const string SourceCode = @"
+                // warning CS1522: Empty switch block
+                class C
+                {
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+
+                public abstract class MyAbstractClass
+                {
+                    // error CS0180: Methods cannot be both extern and abstract -- this is a declaration error
+                    public extern abstract void MyFaultyMethod()
+                    {
+                    }
+                }";
+
+            var compilation = CreateCompilation(SourceCode);
+            compilation.VerifyDiagnostics(
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
+                // (16,49): error CS0180: 'MyAbstractClass.MyFaultyMethod()' cannot be both extern and abstract
+                //                     public extern abstract void MyFaultyMethod()
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "MyFaultyMethod").WithArguments("MyAbstractClass.MyFaultyMethod()").WithLocation(16, 49));
+
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
 
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
@@ -587,6 +675,50 @@ class C { }";
             var cancellationToken = suppressor.CancellationTokenSource.Token;
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
             Assert.Throws<OperationCanceledException>(() => compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true, cancellationToken: cancellationToken));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1819603")]
+        public async Task TestSuppressionAcrossCallsIntoCompilationWithAnalyzers(bool withSuppressor)
+        {
+            string source = @"class C1 { }";
+            var compilation = CreateCompilation(new[] { source });
+            compilation.VerifyDiagnostics();
+
+            // First verify analyzer diagnostics without any suppressors
+            var analyzer1 = new SemanticModelAnalyzerWithId("ID0001");
+            var analyzer2 = new SemanticModelAnalyzerWithId("ID0002");
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1),
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1),
+            };
+
+            VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer1, analyzer2 }, expectedDiagnostics);
+
+            // Verify whole compilation analyzer diagnostics including suppressors.
+            var suppressor = new DiagnosticSuppressorForMultipleIds(analyzer1.Descriptor.Id, analyzer2.Descriptor.Id);
+            var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer1, analyzer2, suppressor };
+            expectedDiagnostics = new DiagnosticDescription[] {
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1),
+            };
+
+            VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
+
+            // Now, verify single file analyzer diagnostics with multiple calls using subset of analyzers.
+            var options = new CompilationWithAnalyzersOptions(AnalyzerOptions.Empty, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: true);
+            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzersAndSuppressors.ToImmutableArray(), options);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var analyzers = withSuppressor ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, suppressor) : ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1);
+            var diagnostics1 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, CancellationToken.None);
+            diagnostics1.Verify(
+                Diagnostic(analyzer1.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1));
+            analyzers = withSuppressor ? ImmutableArray.Create<DiagnosticAnalyzer>(analyzer2, suppressor) : ImmutableArray.Create<DiagnosticAnalyzer>(analyzer2);
+            var diagnostics2 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, CancellationToken.None);
+            diagnostics2.Verify(
+                Diagnostic(analyzer2.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1));
         }
     }
 }

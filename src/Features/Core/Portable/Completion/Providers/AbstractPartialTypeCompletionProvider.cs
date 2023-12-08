@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
+        protected abstract ImmutableArray<KeyValuePair<string, string>> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
 
         protected abstract SyntaxNode? GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 

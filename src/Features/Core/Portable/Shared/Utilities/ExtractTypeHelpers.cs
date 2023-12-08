@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -30,14 +30,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
-            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
+            var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var info = options.GetInfo(context, document.Project);
+            var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
+            var newTypeNode = info.Service.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, formattingOptions, cancellationToken).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Services, formattingOptions, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)

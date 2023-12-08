@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 IsInstanceExpressionOrStatement(context) ||
                 IsThisParameterModifierContext(context) ||
-                IsConstructorInitializerContext(context) ||
-                context.IsInstanceContext && context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
+                IsConstructorInitializerContext(context);
         }
 
         private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)
@@ -67,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 if (previousModifier is SyntaxKind.None or
                     SyntaxKind.RefKeyword or
-                    SyntaxKind.InKeyword)
+                    SyntaxKind.InKeyword or
+                    SyntaxKind.ReadOnlyKeyword)
                 {
                     if (parameterIndex == 0 &&
                         context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))

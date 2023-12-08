@@ -72,19 +72,29 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // values.
             try
             {
-                stringId = connection.RunInTransaction(
+                // Pass in `throwOnSqlException: false` so we get the exception bubbled back to us as a result value.
+                var (result, exception) = connection.RunInTransaction(
                     static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
-                    (self: this, connection, value));
+                    (self: this, connection, value),
+                    throwOnSqlException: false);
 
-                Contract.ThrowIfTrue(stringId == null);
-                return stringId;
-            }
-            catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
-            {
-                // We got a constraint violation.  This means someone else beat us to adding this
-                // string to the string-table.  We should always be able to find the string now.
-                stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
-                return stringId;
+                if (exception != null)
+                {
+                    // we can get two types of exceptions.  A 'CONSTRAINT' violation is an expected result and means
+                    // someone else beat us to adding this string to the string-table.  As such, we should always be
+                    // able to find the string now.
+                    if (exception.Result == Result.CONSTRAINT)
+                        return TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
+
+                    // Some other sql exception occurred (like SQLITE_FULL). These are not exceptions we can suitably
+                    // recover from.  In this case, transition the storage instance into being unusable. Future
+                    // reads/writes will get empty results.
+                    this.DisableStorage(exception);
+                    return null;
+                }
+
+                // If we didn't get an exception, we must have gotten a string back.
+                return result;
             }
             catch (Exception ex)
             {
@@ -159,6 +169,30 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This should not be possible.  We only called here if we got a constraint violation.
             // So how could we then not find the string in the table?
             throw new InvalidOperationException();
+        }
+
+        private void LoadExistingStringIds(SqlConnection connection)
+        {
+            try
+            {
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table);
+                var statement = resettableStatement.Statement;
+
+                Result stepResult;
+                while ((stepResult = statement.Step()) == Result.ROW)
+                {
+                    var id = statement.GetInt32At(columnIndex: 0);
+                    var value = statement.GetStringAt(columnIndex: 1);
+                    _stringToIdMap.TryAdd(value, id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If we simply failed to even talk to the DB then we have to bail out.  There's
+                // nothing we can accomplish at this point.
+                StorageDatabaseLogger.LogException(ex);
+                return;
+            }
         }
     }
 }

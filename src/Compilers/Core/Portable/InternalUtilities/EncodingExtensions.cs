@@ -8,9 +8,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
-    internal static class EncodingExtensions
+    internal static partial class EncodingExtensions
     {
         /// <summary>
         /// Get maximum char count needed to decode the entire stream.

@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -18,29 +19,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Default), Shared]
-    internal class UndoManagerServiceFactory : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class UndoManagerServiceFactory(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService) : IWorkspaceServiceFactory
     {
-        private readonly InlineRenameService _inlineRenameService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UndoManagerServiceFactory(InlineRenameService inlineRenameService)
-            => _inlineRenameService = inlineRenameService;
+        private readonly InlineRenameService _inlineRenameService = inlineRenameService;
+        private readonly IGlobalOptionService _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new InlineRenameUndoManager(_inlineRenameService);
+            => new InlineRenameUndoManager(_inlineRenameService, _globalOptionService);
 
-        internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
+        internal class InlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService) : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>(inlineRenameService, globalOptionService), IInlineRenameUndoManager
         {
             internal class BufferUndoState
             {
                 public ITextUndoHistory TextUndoHistory { get; set; }
                 public ITextUndoTransaction StartRenameSessionUndoTransaction { get; set; }
                 public ITextUndoTransaction ConflictResolutionUndoTransaction { get; set; }
-            }
-
-            public InlineRenameUndoManager(InlineRenameService inlineRenameService) : base(inlineRenameService)
-            {
             }
 
             public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, IInlineRenameSession inlineRenameSession)

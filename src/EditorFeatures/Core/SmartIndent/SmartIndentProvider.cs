@@ -4,8 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,20 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [Export(typeof(ISmartIndentProvider))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal sealed class SmartIndentProvider : ISmartIndentProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsService) : ISmartIndentProvider
     {
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SmartIndentProvider(IGlobalOptionService globalOptions, IEditorOptionsFactoryService editorOptionsFactory, IIndentationManagerService indentationManager)
-        {
-            _globalOptions = globalOptions;
-            _editorOptionsFactory = editorOptionsFactory;
-            _indentationManager = indentationManager;
-        }
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
         public ISmartIndent? CreateSmartIndent(ITextView textView)
         {
@@ -38,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
             {
                 return null;
             }
 
-            return new SmartIndent(textView, _globalOptions, _editorOptionsFactory, _indentationManager);
+            return new SmartIndent(textView, _editorOptionsService);
         }
     }
 }

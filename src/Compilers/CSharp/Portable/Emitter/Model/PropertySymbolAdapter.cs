@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         IPropertyDefinition
     {
+        public bool IsEncDeleted
+            => false;
+
         #region IPropertyDefinition Members
 
         IEnumerable<IMethodReference> IPropertyDefinition.GetAccessors(EmitContext context)
@@ -226,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedPropertySymbol);
+                return AdaptedPropertySymbol.MetadataVisibility;
             }
         }
 
@@ -329,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

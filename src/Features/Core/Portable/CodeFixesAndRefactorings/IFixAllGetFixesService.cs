@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
 {
@@ -22,6 +22,20 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         /// <summary>
         /// Computes the fix all occurrences code fix and returns the changed solution.
         /// </summary>
-        Task<Solution> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext);
+        Task<Solution?> GetFixAllChangedSolutionAsync(IFixAllContext fixAllContext);
+
+        /// <summary>
+        /// Previews the changes that would occur after a code fix and returns the updated solution with those changes.
+        /// </summary>
+        Solution? PreviewChanges(
+            Workspace workspace,
+            Solution currentSolution,
+            Solution newSolution,
+            FixAllKind fixAllKind,
+            string previewChangesTitle,
+            string topLevelHeader,
+            string? language,
+            int? correlationId,
+            CancellationToken cancellationToken);
     }
 }

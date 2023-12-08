@@ -19,16 +19,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
     /// Ensure this is ordered before the regular invocation signature help provider.
     /// We must replace the entire list of results, including both Pythia and non-Pythia recommendations.
     /// </summary>
-    [ExportSignatureHelpProvider("PythiaSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    [ExtensionOrder(Before = "InvocationExpressionSignatureHelpProvider")]
-    internal sealed class PythiaSignatureHelpProvider : InvocationExpressionSignatureHelpProviderBase
+    [ExportSignatureHelpProvider(nameof(PythiaSignatureHelpProvider), LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = nameof(InvocationExpressionSignatureHelpProvider))]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation) : InvocationExpressionSignatureHelpProviderBase
     {
-        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
-            => _lazyImplementation = implementation;
+        private readonly Lazy<IPythiaSignatureHelpProviderImplementation> _lazyImplementation = implementation;
 
         internal override async Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,

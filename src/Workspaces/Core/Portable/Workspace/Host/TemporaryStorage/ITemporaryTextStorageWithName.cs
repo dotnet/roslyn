@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Represents a <see cref="ITemporaryStorageWithName"/> which is used to hold data for <see cref="SourceText"/>.
     /// </summary>
-    internal interface ITemporaryTextStorageWithName : ITemporaryTextStorage, ITemporaryStorageWithName
+    internal interface ITemporaryTextStorageWithName : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
         /// <summary>
         /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
-        /// to calling <see cref="SourceText.GetChecksum"/>.
+        /// to calling <see cref="SourceText.GetContentHash"/>.
         /// </summary>
-        ImmutableArray<byte> GetChecksum();
+        ImmutableArray<byte> GetContentHash();
     }
 }

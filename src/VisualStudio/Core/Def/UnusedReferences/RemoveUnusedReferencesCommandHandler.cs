@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var unusedReferences = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await this.ReferenceCleanupService.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
-                var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
+                var unusedReferenceAnalysisService = solution.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
                 return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
             });
 

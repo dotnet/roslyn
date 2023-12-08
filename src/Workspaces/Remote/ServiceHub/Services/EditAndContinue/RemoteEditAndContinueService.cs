@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,7 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -50,6 +48,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
         }
 
+        private sealed class SourceTextProvider : IPdbMatchingSourceTextProvider
+        {
+            private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
+            private readonly RemoteServiceCallbackId _callbackId;
+
+            public SourceTextProvider(RemoteCallback<IRemoteEditAndContinueService.ICallback> callback, RemoteServiceCallbackId callbackId)
+            {
+                _callback = callback;
+                _callbackId = callbackId;
+            }
+
+            public ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.TryGetMatchingSourceTextAsync(_callbackId, filePath, requiredChecksum, checksumAlgorithm, cancellationToken), cancellationToken);
+        }
+
         private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
 
         public RemoteEditAndContinueService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteEditAndContinueService.ICallback> callback)
@@ -58,8 +71,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _callback = callback;
         }
 
-        private IEditAndContinueWorkspaceService GetService()
-            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        private IEditAndContinueService GetService()
+            => GetWorkspace().Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
         private ActiveStatementSpanProvider CreateActiveStatementSpanProvider(RemoteServiceCallbackId callbackId)
             => new((documentId, filePath, cancellationToken) => _callback.InvokeAsync((callback, cancellationToken) => callback.GetSpansAsync(callbackId, documentId, filePath, cancellationToken), cancellationToken));
@@ -72,7 +85,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
-                var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+                var sourceTextProvider = new SourceTextProvider(_callback, callbackId);
+
+                var sessionId = await GetService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
                 return sessionId;
             }, cancellationToken);
         }
@@ -108,10 +123,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
+                    var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }, cancellationToken);
         }
 
@@ -132,14 +154,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-                    var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
-
-                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
+                    return new EmitSolutionUpdateResults.Data()
+                    {
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+                        Diagnostics = GetUnexpectedUpdateError(solution, e),
+                        RudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
+                        SyntaxError = null,
+                    };
                 }
             }, cancellationToken);
+        }
+
+        private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
+            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
         }
 
         /// <summary>
@@ -192,41 +222,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return RunServiceAsync(cancellationToken =>
             {
-                return await GetService().IsActiveStatementInExceptionRegionAsync(sessionId, solution, instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                return await GetService().GetCurrentActiveStatementPositionAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), instructionId, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask OnSourceFileUpdatedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, solution =>
-            {
-                // TODO: Non-C#/VB documents are not currently serialized to remote workspace.
-                // https://github.com/dotnet/roslyn/issues/47341
-                var document = solution.GetDocument(documentId);
-                if (document != null)
-                {
-                    GetService().OnSourceFileUpdated(document);
-                }
-
-                return ValueTaskFactory.CompletedTask;
+                GetService().SetFileLoggingDirectory(logDirectory);
+                return default;
             }, cancellationToken);
         }
     }

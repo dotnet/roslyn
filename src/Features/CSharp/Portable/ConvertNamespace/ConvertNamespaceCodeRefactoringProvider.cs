@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -15,8 +14,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
         }
 
         private static bool CanOfferRefactoring(
-            BaseNamespaceDeclarationSyntax namespaceDecl,
+            [NotNullWhen(true)] BaseNamespaceDeclarationSyntax? namespaceDecl,
             CompilationUnitSyntax root,
             CSharpCodeFixOptionsProvider options,
             [NotNullWhen(true)] out (string title, string equivalenceKey)? info)
@@ -72,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 CanOfferUseBlockScoped(options.NamespaceDeclarations, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
                 CanOfferUseFileScoped(options.NamespaceDeclarations, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
                 null;
+
             return info != null;
         }
 

@@ -11,270 +11,313 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.SplitComment)]
     public class SplitCommentCommandHandlerTests : AbstractSplitCommentCommandHandlerTests
     {
         protected override TestWorkspace CreateWorkspace(string markup)
             => TestWorkspace.CreateCSharp(markup);
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestWithSelection()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //[|Test|] Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //
-        //Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //[|Test|] Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //
+                        //Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestWithAllWhitespaceSelection()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // [|  |] Test Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //
-        // Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // [|  |] Test Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //
+                        // Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestMissingInSlashes()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        /[||]/Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        /[||]/Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestMissingAtEndOfFile()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //Test Comment[||]");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //Test Comment[||]
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestMissingBeforeSlashes()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        [||]//Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        [||]//Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestMissingWithMultiSelection()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //[||]Test[||] Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //[||]Test[||] Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitStartOfComment()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //[||]Test Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //
-        //Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //[||]Test Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //
+                        //Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitStartOfQuadComment()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////[||]Test Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        ////
-        ////Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        ////[||]Test Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        ////
+                        ////Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact]
         public void TestSplitMiddleOfQuadComment()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //[||]//Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //[||]//Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards1()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // goo[||]  //Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // goo[||]  //Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards2()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // goo [||] //Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // goo [||] //Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards3()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // goo  [||]//Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // goo  [||]//Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact]
         public void TestSplitWithCommentAfterwards4()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // [|goo|] //Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // [|goo|] //Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitStartOfCommentWithLeadingSpace1()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // [||]Test Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //
-        // Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // [||]Test Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //
+                        // Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitStartOfCommentWithLeadingSpace2()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //[||] Test Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        //
-        //Test Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //[||] Test Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        //
+                        //Test Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfTheory]
         [InlineData("X[||]Test Comment")]
         [InlineData("X [||]Test Comment")]
         [InlineData("X[||] Test Comment")]
@@ -289,18 +332,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         //    {commentValue}
     }}
 }}",
-@"public class Program
+"""
+public class Program
 {
     public static void Main(string[] args) 
     { 
         //    X
         //    Test Comment
     }
-}");
+}
+""");
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfTheory]
         [InlineData("X[||]Test Comment")]
         [InlineData("X [||]Test Comment")]
         [InlineData("X[||] Test Comment")]
@@ -316,128 +361,150 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         ////    {commentValue}
     }}
 }}",
-@"public class Program
+"""
+public class Program
 {
     public static void Main(string[] args) 
     { 
         ////    X
         ////    Test Comment
     }
-}");
+}
+""");
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitMiddleOfComment()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // Test [||]Comment
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // Test
-        // Comment
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // Test [||]Comment
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // Test
+                        // Comment
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitEndOfComment()
         {
             TestNotHandled(
-@"public class Program
-{
-    public static void Main(string[] args) 
-    { 
-        // Test Comment[||]
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) 
+                    { 
+                        // Test Comment[||]
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitCommentEndOfLine1()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) // Test [||]Comment
-    {
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) // Test
-                                           // Comment
-    {
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) // Test [||]Comment
+                    {
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) // Test
+                                                           // Comment
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestSplitCommentEndOfLine2()
         {
             TestHandled(
-@"public class Program
-{
-    public static void Main(string[] args) // Test[||] Comment
-    {
-    }
-}",
-@"public class Program
-{
-    public static void Main(string[] args) // Test
-                                           // Comment
-    {
-    }
-}");
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) // Test[||] Comment
+                    {
+                    }
+                }
+                """,
+                """
+                public class Program
+                {
+                    public static void Main(string[] args) // Test
+                                                           // Comment
+                    {
+                    }
+                }
+                """);
         }
 
-        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact]
         public void TestUseTabs()
         {
             TestHandled(
-@"public class Program
-{
-	public static void Main(string[] args) 
-	{
-		// X[||]Test Comment
-	}
-}",
-@"public class Program
-{
-	public static void Main(string[] args) 
-	{
-		// X
-		// Test Comment
-	}
-}", useTabs: true);
+                """
+                public class Program
+                {
+                	public static void Main(string[] args) 
+                	{
+                		// X[||]Test Comment
+                	}
+                }
+                """,
+                """
+                public class Program
+                {
+                	public static void Main(string[] args) 
+                	{
+                		// X
+                		// Test Comment
+                	}
+                }
+                """, useTabs: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        [WpfFact]
         public void TestDoesNotHandleDocComments()
         {
             TestNotHandled(
-@"namespace TestNamespace
-{
-    public class Program
-    {
-        /// <summary>Test [||]Comment</summary>
-        public static void Main(string[] args)
-        {
-        }
-    }
-}");
+                """
+                namespace TestNamespace
+                {
+                    public class Program
+                    {
+                        /// <summary>Test [||]Comment</summary>
+                        public static void Main(string[] args)
+                        {
+                        }
+                    }
+                }
+                """);
         }
     }
 }

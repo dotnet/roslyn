@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeDefinitionWindow;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionWindow
@@ -21,35 +19,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
     [Export(typeof(ICodeDefinitionWindowService)), Shared]
     internal sealed class VisualStudioCodeDefinitionWindowService : ICodeDefinitionWindowService
     {
-        private readonly IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IVsService<IVsCodeDefView> _codeDefView;
         private readonly IThreadingContext _threadingContext;
-
-        [DisallowNull]
-        private IVsCodeDefView? _lazyCodeDefView;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCodeDefinitionWindowService(SVsServiceProvider asyncServiceProvider, IThreadingContext threadingContext)
+        public VisualStudioCodeDefinitionWindowService(IVsService<SVsCodeDefView, IVsCodeDefView> codeDefView, IThreadingContext threadingContext)
         {
-            _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
+            _codeDefView = codeDefView;
             _threadingContext = threadingContext;
-        }
-
-        private async Task<IVsCodeDefView> GetVsCodeDefViewAsync()
-        {
-            if (_lazyCodeDefView is not null)
-            {
-                return _lazyCodeDefView;
-            }
-
-            _lazyCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
-
-            return _lazyCodeDefView;
         }
 
         public async Task<bool> IsWindowOpenAsync(CancellationToken cancellationToken)
         {
-            var vsCodeDefView = await GetVsCodeDefViewAsync().ConfigureAwait(true);
+            var vsCodeDefView = await _codeDefView.GetValueAsync(cancellationToken).ConfigureAwait(true);
 
             // Switch to the UI thread before using the IVsCodeDefView service
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -67,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
                 return;
             }
 
-            var vsCodeDefView = await GetVsCodeDefViewAsync().ConfigureAwait(true);
+            var vsCodeDefView = await _codeDefView.GetValueAsync(cancellationToken).ConfigureAwait(true);
 
             // Switch to the UI thread before using the IVsCodeDefView service
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

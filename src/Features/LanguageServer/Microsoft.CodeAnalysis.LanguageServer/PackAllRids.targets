@@ -1,0 +1,30 @@
+<Project>
+  <!-- We are defining our own Pack target, so opt out of the SDK version. -->
+  <PropertyGroup>
+    <ImportNuGetBuildTasksPackTargetsFromSdk>false</ImportNuGetBuildTasksPackTargetsFromSdk>
+  </PropertyGroup>
+
+  <Target Name="Pack">
+    <!--
+        We have to run restore first with the PublishReadyToRun flag set to true to ensure that the correct crossgen packages get restored.
+        See https://github.com/dotnet/sdk/issues/20701
+
+        We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
+        See https://github.com/NuGet/Home/issues/11968
+    -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=true;RestoreUseStaticGraphEvaluation=false" />
+
+    <ItemGroup>
+      <!-- Transform RuntimeIdentifiers property to item -->
+      <RuntimeIdentifierForPack Include="$(RuntimeIdentifiers)" />
+      <RuntimeIdentifierForPack Include="neutral" />
+
+      <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
+      <ProjectToPublish Include="@(RuntimeIdentifierForPack->'$(MSBuildProjectFullPath)')">
+          <AdditionalProperties>PackRuntimeIdentifier=%(RuntimeIdentifierForPack.Identity)</AdditionalProperties>
+      </ProjectToPublish>
+    </ItemGroup>
+
+    <MSBuild Projects="@(ProjectToPublish)" Targets="Pack" BuildInParallel="true" />
+  </Target>
+</Project>

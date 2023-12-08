@@ -32,7 +32,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,76): error CS1002: ; expected
+                //         var added = ImmutableDictionary<string, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 76));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -145,7 +148,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,73): error CS1002: ; expected
+                //         var added = ImmutableDictionary<X[], IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 73));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -270,7 +276,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,74): error CS1002: ; expected
+                //         var added = ImmutableDictionary<int*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 74));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -387,7 +396,22 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,43): error CS1525: Invalid expression term ','
+                //         var added = ImmutableDictionary<X*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 43),
+                // (6,65): error CS1002: ; expected
+                //         var added = ImmutableDictionary<X*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "<").WithLocation(6, 65),
+                // (6,65): error CS1525: Invalid expression term '<'
+                //         var added = ImmutableDictionary<X*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 65),
+                // (6,67): error CS1002: ; expected
+                //         var added = ImmutableDictionary<X*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 67),
+                // (6,67): error CS1513: } expected
+                //         var added = ImmutableDictionary<X*, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 67));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -518,7 +542,25 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,42): error CS1525: Invalid expression term 'int'
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 42),
+                // (6,47): error CS1525: Invalid expression term 'string'
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "string").WithArguments("string").WithLocation(6, 47),
+                // (6,76): error CS1002: ; expected
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "<").WithLocation(6, 76),
+                // (6,76): error CS1525: Invalid expression term '<'
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 76),
+                // (6,78): error CS1002: ; expected
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 78),
+                // (6,78): error CS1513: } expected
+                //         var added = ImmutableDictionary<(int, string), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 78));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -966,7 +1008,19 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,66): error CS1002: ; expected
+                //         var added = ImmutableDictionary<(A), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "<").WithLocation(6, 66),
+                // (6,66): error CS1525: Invalid expression term '<'
+                //         var added = ImmutableDictionary<(A), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 66),
+                // (6,68): error CS1002: ; expected
+                //         var added = ImmutableDictionary<(A), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 68),
+                // (6,68): error CS1513: } expected
+                //         var added = ImmutableDictionary<(A), IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 68));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1093,7 +1147,19 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,66): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A.B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "<").WithLocation(6, 66),
+                // (6,66): error CS1525: Invalid expression term '<'
+                //         var added = ImmutableDictionary<A.B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 66),
+                // (6,68): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A.B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 68),
+                // (6,68): error CS1513: } expected
+                //         var added = ImmutableDictionary<A.B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 68));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1223,7 +1289,19 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,67): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A::B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "<").WithLocation(6, 67),
+                // (6,67): error CS1525: Invalid expression term '<'
+                //         var added = ImmutableDictionary<A::B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(6, 67),
+                // (6,69): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A::B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 69),
+                // (6,69): error CS1513: } expected
+                //         var added = ImmutableDictionary<A::B, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 69));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1353,7 +1431,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,72): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A?, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 72));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1470,7 +1551,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,44): error CS1002: ; expected
+                //         var added = ImmutableDictionary<A?>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 44));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1568,7 +1652,13 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (8,38): error CS1003: Syntax error, ':' expected
+                //         ProjectChange = projectChange;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(8, 38),
+                // (8,38): error CS1525: Invalid expression term ';'
+                //         ProjectChange = projectChange;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(8, 38));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1666,7 +1756,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,74): error CS1002: ; expected
+                //         var added = ImmutableDictionary<T<S>, IImmutableDictionary<X, Y>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 74));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1918,7 +2011,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,77): error CS1002: ; expected
+                //         var added = ImmutableDictionary<T<S>, U<IImmutableDictionary<X, Y>>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 77));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2049,7 +2145,10 @@ class C
         ProjectChange = projectChange;
     }
 }
-");
+",
+                // (6,77): error CS1002: ; expected
+                //         var added = ImmutableDictionary<T<S>, IImmutableDictionary<X, U<Y>>>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 77));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

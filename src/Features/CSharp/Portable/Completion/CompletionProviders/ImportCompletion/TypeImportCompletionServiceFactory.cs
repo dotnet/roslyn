@@ -21,15 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTypeImportCompletionService(languageServices.WorkspaceServices.Workspace);
+            => new CSharpTypeImportCompletionService(languageServices.LanguageServices.SolutionServices);
 
-        private class CSharpTypeImportCompletionService : AbstractTypeImportCompletionService
+        private class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
         {
-            public CSharpTypeImportCompletionService(Workspace workspace)
-                : base(workspace)
-            {
-            }
-
             protected override string GenericTypeSuffix
                 => "<>";
 

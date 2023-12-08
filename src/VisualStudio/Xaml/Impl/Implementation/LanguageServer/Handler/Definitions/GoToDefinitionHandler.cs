@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 {
     [ExportStatelessXamlLspService(typeof(GoToDefinitionHandler)), Shared]
     [Method(Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : IRequestHandler<TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : ILspServiceRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return locations.ToArray();
             }
 
-            var xamlGoToDefinitionService = document.Project.LanguageServices.GetService<IXamlGoToDefinitionService>();
+            var xamlGoToDefinitionService = document.Project.Services.GetService<IXamlGoToDefinitionService>();
             if (xamlGoToDefinitionService == null)
             {
                 return locations.ToArray();
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = context.Solution?.GetDocuments(ProtocolConversions.GetUriFromFilePath(sourceDefinition.FilePath)).FirstOrDefault();
+                var document = context.Solution?.GetDocuments(ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath)).FirstOrDefault();
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(
@@ -159,10 +159,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(context.Solution, symbol, displayTaggedParts: null, cancellationToken);
             if (items.Any())
             {
+                RoslynDebug.AssertNotNull(context.Solution);
                 foreach (var item in items)
                 {
+                    var document = await item.Document.GetRequiredDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
-                        item.Document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
+                        document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }
@@ -170,11 +172,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
+                    var workspace = context.Workspace;
                     var project = context.Document?.GetCodeProject();
-                    if (project != null)
+                    if (workspace != null && project != null)
                     {
-                        var options = globalOptions.GetMetadataAsSourceOptions(project.LanguageServices);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions(project.Services);
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

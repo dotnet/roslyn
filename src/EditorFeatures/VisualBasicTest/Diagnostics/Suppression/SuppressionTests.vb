@@ -41,22 +41,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 End Get
             End Property
 
+            <Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
             Public Class CompilerDiagnosticSuppressionTests
                 Inherits VisualBasicPragmaWarningDisableSuppressionTests
                 Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
                     Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestPragmaWarningDirective() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
         [|Dim x As Integer|]
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -67,7 +67,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -83,17 +83,16 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective1() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
         [|Dim x _
             As Integer|]
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -105,7 +104,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -122,10 +121,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective2() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
@@ -134,7 +132,7 @@ Class C
             Console.WriteLine(i)
         End If
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -148,7 +146,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -167,10 +165,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective3() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
@@ -179,7 +176,7 @@ Class C
             Console.WriteLine(i)
         End If
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -193,7 +190,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -212,17 +209,16 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective4() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
         Dim [|x As Integer|],
             y As Integer
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -234,7 +230,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -251,17 +247,16 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective5() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
         Dim x As Integer,
             [|y As Integer|]
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -273,7 +268,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -290,10 +285,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective6() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
@@ -301,7 +295,7 @@ Class C
                     <condition value=<%= i < [|j.MaxValue|] %>/>
                 </root>
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -314,7 +308,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -332,10 +326,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestMultilineStatementPragmaWarningDirective7() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method(j As Short)
@@ -343,7 +336,7 @@ Class C
                 Where i < [|j.MaxValue|]
                 Select i
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -356,7 +349,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -374,9 +367,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestMultilineStatementPragmaWarningDirective8() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
@@ -384,7 +377,7 @@ Class C
             As Integer|] _
         : Return
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -397,7 +390,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -415,10 +408,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56165")>
                 Public Async Function TestMultilineInterpolatedString() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 <Obsolete>
 Class C
@@ -426,11 +418,11 @@ End Class
 
 Module Module1
     Sub Main
-        Dim s = $"
+        Dim s = $""
 Hi {[|new C()|]}
-"
+""
     End Sub
-End Module]]>
+End Module"
                     Dim expected = $"
 Imports System
 <Obsolete>
@@ -447,7 +439,7 @@ Hi {{new C()}}
     End Sub
 End Module"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -469,10 +461,9 @@ End Module]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestPragmaWarningDirectiveWithExistingTrivia() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 Class C
     Sub Method()
@@ -480,7 +471,7 @@ Class C
         [|Dim x As Integer|]    ' Trivia same line
         ' Trivia next line
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 Class C
@@ -493,7 +484,7 @@ Class C
     End Sub
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -511,10 +502,9 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(970129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")>
                 Public Async Function TestSuppressionAroundSingleToken() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Imports System
 <Obsolete>
 Class C
@@ -524,7 +514,7 @@ Module Module1
     Sub Main
       [|C|]
     End Sub
-End Module]]>
+End Module"
                     Dim expected = $"
 Imports System
 <Obsolete>
@@ -539,7 +529,7 @@ Module Module1
     End Sub
 End Module"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -559,19 +549,18 @@ End Module]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia1() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 Class C
 
 ' Comment
 ' Comment
-''' <summary><see [|cref="abc"|]/></summary>
+''' <summary><see [|cref=""abc""|]/></summary>
     Sub M() ' Comment  
 
     End Sub
-End Class]]>
+End Class"
                     Dim expected = $"
 Class C
 
@@ -586,7 +575,7 @@ Class C
 End Class"
 
                     Dim enableDocCommentProcessing = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
-                    Await TestAsync(source.Value, expected, enableDocCommentProcessing)
+                    Await TestAsync(source, expected, enableDocCommentProcessing)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = $"
@@ -606,8 +595,7 @@ End Class"
                                            New TestParameters(enableDocCommentProcessing))
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia2() As Task
                     Dim source = <![CDATA['''[|<summary></summary>|]]]>
                     Dim expected = $"#Disable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}
@@ -617,8 +605,7 @@ End Class"
                     Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia3() As Task
                     Dim source = <![CDATA[   '''[|<summary></summary>|]   ]]>
                     Dim expected = $"#Disable Warning BC42312 ' {VBResources.WRN_XMLDocWithoutLanguageElement_Title}
@@ -628,15 +615,14 @@ End Class"
                     Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia4() As Task
-                    Dim source = <![CDATA[
+                    Dim source = "
 
-'''<summary><see [|cref="abc"|]/></summary>
+'''<summary><see [|cref=""abc""|]/></summary>
 Class C : End Class
 
-]]>
+"
                     Dim expected = $"
 
 #Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
@@ -646,16 +632,15 @@ Class C : End Class
 
 "
 
-                    Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+                    Await TestAsync(source, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia5() As Task
-                    Dim source = <![CDATA[class C1 : End Class
-'''<summary><see [|cref="abc"|]/></summary>
+                    Dim source = "class C1 : End Class
+'''<summary><see [|cref=""abc""|]/></summary>
 Class C2 : End Class
-Class C3 : End Class]]>
+Class C3 : End Class"
                     Dim expected = $"class C1 : End Class
 #Disable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 '''<summary><see cref=""abc""/></summary>
@@ -663,11 +648,10 @@ Class C2 : End Class
 #Enable Warning BC42309 ' {VBResources.WRN_XMLDocCrefAttributeNotFound1_Title}
 Class C3 : End Class"
 
-                    Await TestAsync(source.Value, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+                    Await TestAsync(source, expected, VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
                 End Function
 
-                <WorkItem(1066576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")>
                 Public Async Function TestPragmaWarningDirectiveAroundTrivia6() As Task
                     Dim source = <![CDATA[class C1 : End Class
 Class C2 : End Class [|'''|]
@@ -732,9 +716,11 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-                Public Async Function TestInfoDiagnosticSuppressed() As Task
+                <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
+                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbCrLf)>
+                Public Async Function TestInfoDiagnosticSuppressed(endOfLine As String) As Task
 
                     Dim source = <![CDATA[
 Imports System
@@ -753,7 +739,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value, expected.Value)
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -805,8 +791,8 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestDiagnosticWithBadIdSuppressed() As Task
 
                     ' Diagnostics with bad/invalid ID are not reported.
@@ -849,9 +835,11 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-                Public Async Function TestWarningDiagnosticWithNameMatchingKeywordSuppressed() As Task
+                <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
+                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbCrLf)>
+                Public Async Function TestWarningDiagnosticWithNameMatchingKeywordSuppressed(endOfLine As String) As Task
                     Dim source = <![CDATA[
 Imports System
 
@@ -869,7 +857,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value, expected.Value)
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -913,8 +901,10 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-                Public Async Function TestErrorDiagnosticCanBeSuppressed() As Task
+                <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbCrLf)>
+                Public Async Function TestErrorDiagnosticCanBeSuppressed(endOfLine As String) As Task
                     Dim source = <![CDATA[
 Imports System
 
@@ -932,7 +922,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value, expected.Value)
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -968,8 +958,8 @@ End Class]]>
                     Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 Public Async Function TestCompilerDiagnosticsCannotBeSuppressed() As Task
 
                     Dim source = <![CDATA[
@@ -1003,6 +993,7 @@ End Class]]>
                 End Function
             End Class
 
+            <Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
             Public Class UserInfoDiagnosticSuppressionTests
                 Inherits VisualBasicGlobalSuppressMessageSuppressionTests
                 Private Class UserDiagnosticAnalyzer
@@ -1059,7 +1050,7 @@ End Class]]>
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnSimpleType() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1096,7 +1087,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnNamespace() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1138,7 +1129,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnTypeInsideNamespace() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1184,7 +1175,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnNestedType() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1230,7 +1221,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1276,7 +1267,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnOverloadedMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1330,7 +1321,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnGenericMethod() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1384,7 +1375,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnProperty() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1434,7 +1425,7 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnField() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1468,7 +1459,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnEvent() As Task
                     Dim source = <![CDATA[
 Imports System
@@ -1550,7 +1541,7 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument() As Task
                     Dim source =
                     <Workspace>
@@ -1590,7 +1581,7 @@ Imports System.Diagnostics.CodeAnalysis
                     Await TestAsync(source.ToString(), expected)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument2() As Task
                     ' Own custom file named GlobalSuppressions.cs
                     Dim source =
@@ -1628,7 +1619,7 @@ Imports System.Diagnostics.CodeAnalysis
                     Await TestAsync(source.ToString(), expected)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionWithExistingGlobalSuppressionsDocument3() As Task
                     ' Own custom file named GlobalSuppressions.vb + existing GlobalSuppressions2.vb with global suppressions
                     Dim source =
@@ -1675,7 +1666,7 @@ Imports System.Diagnostics.CodeAnalysis
                     Await TestAsync(source.ToString(), expected)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument() As Task
                     Dim source =
                     <Workspace>
@@ -1718,6 +1709,7 @@ Imports System.Diagnostics.CodeAnalysis
                 End Get
             End Property
 
+            <Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
             Public Class UserInfoDiagnosticSuppressionTests
                 Inherits VisualBasicLocalSuppressMessageSuppressionTests
                 Private Class UserDiagnosticAnalyzer
@@ -1774,9 +1766,9 @@ Imports System.Diagnostics.CodeAnalysis
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnSimpleType() As Task
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 ' Some Trivia
@@ -1785,7 +1777,7 @@ Imports System
         Dim x
     End Sub
 End Class
-]]>
+"
                     Dim expected = $"
 Imports System
 
@@ -1798,7 +1790,7 @@ Class C
 End Class
 "
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1806,20 +1798,20 @@ End Class
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnSimpleType2() As Task
                     ' Type already has attributes.
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 ' Some Trivia
-<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
 [|Class C|]
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
                     Dim expected = $"
 Imports System
 
@@ -1833,7 +1825,7 @@ Class C
 End Class
 "
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1841,10 +1833,10 @@ End Class
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnSimpleType3() As Task
                     ' Type has structured trivia.
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 ' Some Trivia
@@ -1856,7 +1848,7 @@ Imports System
         Dim x
     End Sub
 End Class
-]]>
+"
                     Dim expected = $"
 Imports System
 
@@ -1872,7 +1864,7 @@ Class C
 End Class
 "
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1880,23 +1872,23 @@ End Class
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnSimpleType4() As Task
                     ' Type has structured trivia and attributes.
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 ' Some Trivia
 ''' <summary>
 ''' My custom type
 ''' </summary>
-<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
 [|Class C|]
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
                     Dim expected = $"
 Imports System
 
@@ -1913,7 +1905,7 @@ Class C
 End Class
 "
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1921,9 +1913,9 @@ End Class
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnTypeInsideNamespace() As Task
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 Namespace N
@@ -1933,7 +1925,7 @@ Namespace N
             Dim x
         End Sub
     End Class
-End Namespace]]>
+End Namespace"
                     Dim expected = $"
 Imports System
 
@@ -1947,7 +1939,7 @@ Namespace N
     End Class
 End Namespace"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1955,9 +1947,9 @@ End Namespace"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnNestedType() As Task
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 Class Generic(Of T)
@@ -1967,7 +1959,7 @@ Class Generic(Of T)
             Dim x
         End Sub
     End Class
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 
@@ -1981,7 +1973,7 @@ Class Generic(Of T)
     End Class
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
@@ -1989,9 +1981,9 @@ End Class"
                     Await TestMissingAsync(fixedSource)
                 End Function
 
-                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                <Fact>
                 Public Async Function TestSuppressionOnMethod() As Task
-                    Dim source = <![CDATA[
+                    Dim source = $"
 Imports System
 
 Class Generic(Of T)
@@ -2001,7 +1993,7 @@ Class Generic(Of T)
             Dim x
         End Sub|]
     End Class
-End Class]]>
+End Class"
                     Dim expected = $"
 Imports System
 
@@ -2015,7 +2007,7 @@ Class Generic(Of T)
     End Class
 End Class"
 
-                    Await TestAsync(source.Value, expected)
+                    Await TestAsync(source, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
                     Dim fixedSource = expected.Replace("Sub Method()", "[|Sub Method()|]")

@@ -31,6 +31,22 @@ internal sealed class GlobalAliases : IEquatable<GlobalAliases>
         return aliasAndSymbolNames.IsEmpty ? Empty : new GlobalAliases(aliasAndSymbolNames);
     }
 
+    public static GlobalAliases Create(ImmutableArray<GlobalAliases> aliasesArray)
+    {
+        if (aliasesArray.Length == 0)
+            return Empty;
+
+        if (aliasesArray.Length == 1)
+            return aliasesArray[0];
+
+        var total = ArrayBuilder<(string aliasName, string symbolName)>.GetInstance(aliasesArray.Sum(a => a.AliasAndSymbolNames.Length));
+
+        foreach (var array in aliasesArray)
+            total.AddRange(array.AliasAndSymbolNames);
+
+        return Create(total.ToImmutableAndFree());
+    }
+
     public static GlobalAliases Concat(GlobalAliases ga1, GlobalAliases ga2)
     {
         if (ga1.AliasAndSymbolNames.Length == 0)

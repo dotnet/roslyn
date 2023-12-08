@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableContextAttribute = 0x10,
         NullablePublicOnlyAttribute = 0x20,
         NativeIntegerAttribute = 0x40,
-        LifetimeAnnotationAttribute = 0x80,
+        ScopedRefAttribute = 0x80,
+        RefSafetyRulesAttribute = 0x100,
+        RequiresLocationAttribute = 0x200,
     }
 }

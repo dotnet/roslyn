@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,20 +16,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
+    internal abstract partial class AbstractMoveToNamespaceCodeAction(
+        IMoveToNamespaceService moveToNamespaceService,
+        MoveToNamespaceAnalysisResult analysisResult,
+        CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
     {
-        private readonly IMoveToNamespaceService _moveToNamespaceService;
-        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions;
+        private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
+        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
+        private readonly CodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
 
-        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
-        {
-            _moveToNamespaceService = moveToNamespaceService;
-            _moveToNamespaceAnalysisResult = analysisResult;
-            _cleanupOptions = cleanupOptions;
-        }
+        /// <summary>
+        /// This code action does notify clients about the rename it performs.  However, this is an optional part of
+        /// this work, that happens after the move has happened.  As such, this does not require non document changes
+        /// and can run in all our hosts.
+        /// </summary>
+        public sealed override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
 
-        public override object GetOptions(CancellationToken cancellationToken)
+        public sealed override object GetOptions(CancellationToken cancellationToken)
         {
             return _moveToNamespaceService.GetChangeNamespaceOptions(
                 _moveToNamespaceAnalysisResult.Document,
@@ -36,7 +40,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 _moveToNamespaceAnalysisResult.Namespaces);
         }
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
             // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
             if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
@@ -65,12 +70,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
 
-            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
 
-            // It's possible we're not in a host context providing this service, in which case
-            // just provide a code action that won't notify of the symbol rename.
-            // Without the symbol rename operation, code generators (like WPF) may not
-            // know to regenerate code correctly.
+            // It's possible we're not in a host context providing this service, in which case just provide a code
+            // action that won't notify of the symbol rename. Without the symbol rename operation, code generators (like
+            // WPF) may not know to regenerate code correctly.
             if (symbolRenameCodeActionOperationFactory != null)
             {
                 foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)

@@ -11,23 +11,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable)]
-    [Shared]
-    internal class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
+    internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
             directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public EnableNullableCodeRefactoringProvider()
         {
         }
@@ -38,11 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (!textSpan.IsEmpty)
                 return;
 
-            if (document.Project is not
-                {
-                    ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
-                    CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
-                })
+            if (!ShouldOfferRefactoring(document.Project))
             {
                 return;
             }
@@ -52,17 +44,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
                 token = root.FindToken(textSpan.Start - 1, findInsideTrivia: true);
 
-            if (!token.IsKind(SyntaxKind.EnableKeyword, SyntaxKind.RestoreKeyword, SyntaxKind.DisableKeyword, SyntaxKind.NullableKeyword, SyntaxKind.HashToken)
-                || !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+            if (token.Kind() is not (SyntaxKind.EnableKeyword or SyntaxKind.RestoreKeyword or SyntaxKind.DisableKeyword or SyntaxKind.NullableKeyword or SyntaxKind.HashToken) ||
+                token.Parent is not NullableDirectiveTriviaSyntax nullableDirectiveTrivia)
             {
                 return;
             }
 
-            context.RegisterRefactoring(
-                new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, cancellationToken)));
+            context.RegisterRefactoring(new CustomCodeAction(
+                (purpose, progress, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, progress, cancellationToken)));
         }
 
-        private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static bool ShouldOfferRefactoring(Project project)
+            => project is
+            {
+                ParseOptions: CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 },
+                CompilationOptions.NullableContextOptions: NullableContextOptions.Disable,
+            };
+
+        private static async Task<Solution> EnableNullableReferenceTypesAsync(
+            Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             foreach (var document in project.Documents)
@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
         {
             // A leading nullable directive is a '#nullable' directive which precedes any conditional directives ('#if')
             // or code (non-trivia).
-            var firstRelevantDirective = root.GetFirstDirective(static directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia, SyntaxKind.IfDirectiveTrivia));
-            if (firstRelevantDirective.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirective)
+            var firstRelevantDirective = root.GetFirstDirective(static directive => directive.Kind() is SyntaxKind.NullableDirectiveTrivia or SyntaxKind.IfDirectiveTrivia);
+            if (firstRelevantDirective is NullableDirectiveTriviaSyntax nullableDirective
                 && nullableDirective.TargetToken.IsKind(SyntaxKind.None))
             {
                 var firstSemanticToken = root.GetFirstToken();
@@ -252,22 +252,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             Apply,
         }
 
-        private sealed class CustomCodeAction : CodeAction.SolutionChangeAction
+        private sealed class CustomCodeAction(
+            Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution)
+            : CodeAction.SolutionChangeAction(
+                CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
+                (progress, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, progress, cancellationToken),
+                nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
         {
-            private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
-
-            public CustomCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
-                : base(
-                    CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
-                    cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),
-                    nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_project))
-            {
-                _createChangedSolution = createChangedSolution;
-            }
+            private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
             {
-                var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, cancellationToken).ConfigureAwait(false);
+                var changedSolution = await _createChangedSolution(CodeActionPurpose.Preview, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
                 if (changedSolution is null)
                     return Array.Empty<CodeActionOperation>();
 

@@ -1767,7 +1767,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_UnsupportedCompilerFeature = 37319
         ERR_DoNotUseCompilerFeatureRequired = 37320
 
-        ERR_NextAvailable = 37321
+        ERR_RequiredMemberMustBeSet = 37321
+        ERR_CannotInheritFromTypeWithRequiredMembers = 37322
+        ERR_RequiredMembersInvalid = 37323
+        ERR_NewConstraintCannotHaveRequiredMembers = 37324
+        ERR_DoNotUseRequiredMember = 37325
+
+        ERR_UnsupportedRefReturningCallInWithStatement = 37326
+        ERR_SymbolDefinedInAssembly = 37327
+
+        ERR_InvalidExperimentalDiagID = 37328
+
+        ERR_NextAvailable = 37329
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1997,8 +2008,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
+        WRN_AnalyzerReferencesNewerCompiler = 42506
+        WRN_DuplicateAnalyzerReference = 42507
+
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
+
+        ' NOTE: On adding a new ERRID, you will need to update ErrorFacts.IsBuildOnlyDiagnostic to handle it.
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

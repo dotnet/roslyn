@@ -64,14 +64,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                Debug.Assert(node.IsKind(SyntaxKind.IsExpression) || node.IsKind(SyntaxKind.IsPatternExpression));
+                Debug.Assert(node.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
 
                 // Negate the result if requested.
                 var updatedNode = negate
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
                     : node;
 
                 var isNode = updatedNode.DescendantNodesAndSelf().First(
-                    n => n.IsKind(SyntaxKind.IsExpression) || n.IsKind(SyntaxKind.IsPatternExpression));
+                    n => n.Kind() is SyntaxKind.IsExpression or SyntaxKind.IsPatternExpression);
                 var left = isNode switch
                 {
                     BinaryExpressionSyntax binary => binary.Left,

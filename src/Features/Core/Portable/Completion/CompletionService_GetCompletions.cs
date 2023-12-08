@@ -11,8 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionOptions = CompletionOptions.Default;
             var passThroughOptions = options ?? document.Project.Solution.Options;
 
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
+            return GetCompletionsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken);
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="trigger">The triggering action.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <param name="cancellationToken"></param>
-        internal virtual Task<CompletionList> GetCompletionsAsync(
+        internal virtual async Task<CompletionList> GetCompletionsAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
@@ -65,7 +66,106 @@ namespace Microsoft.CodeAnalysis.Completion
              ImmutableHashSet<string>? roles = null,
              CancellationToken cancellationToken = default)
         {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
+
+            var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
+
+            // Phase 1: Completion Providers decide if they are triggered based on textual analysis
+            // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider
+            // Phase 3: Triggered Providers are asked for items
+            // Phase 4: If any items were provided, all augmenting providers are asked for items
+            // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
+
+            var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
+
+            var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+
+            // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
+            // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
+            var sharedContext = new SharedSyntaxContextsWithSpeculativeModel(document, caretPosition);
+
+            // Now, ask all the triggered providers, in parallel, to populate a completion context.
+            // Note: we keep any context with items *or* with a suggested item.  
+            var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, completionListSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+
+            // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
+            if (!triggeredContexts.Any(static cc => cc.Items.Count > 0))
+                return CompletionList.Empty;
+
+            // See if there were completion contexts provided that were exclusive. If so, then
+            // that's all we'll return.
+            var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+            if (!exclusiveContexts.IsEmpty)
+                return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
+
+            // Great!  We had some items.  Now we want to see if any of the other providers 
+            // would like to augment the completion list.  For example, we might trigger
+            // enum-completion on space.  If enum completion results in any items, then 
+            // we'll want to augment the list with all the regular symbol completion items.
+            var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
+
+            var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, completionListSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
+
+            GC.KeepAlive(semanticModel);
+
+            // Providers are ordered, but we processed them in our own order.  Ensure that the
+            // groups are properly ordered based on the original providers.
+            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
+            var allContexts = triggeredContexts.Concat(augmentingContexts)
+                .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+
+            return MergeAndPruneCompletionLists(allContexts, options, isExclusive: false);
+
+            ImmutableArray<CompletionProvider> GetTriggeredProviders(
+                Document document, ConcatImmutableArray<CompletionProvider> providers, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
+            {
+                switch (trigger.Kind)
+                {
+                    case CompletionTriggerKind.Insertion:
+                    case CompletionTriggerKind.Deletion:
+
+                        if (ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options, passThroughOptions, roles))
+                        {
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.Services, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
+
+                            Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
+                            return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
+                        }
+
+                        return ImmutableArray<CompletionProvider>.Empty;
+
+                    default:
+                        return providers.ToImmutableArray();
+                }
+            }
+
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
+                Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
+            {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+                var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
+                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                {
+                    foreach (var provider in triggeredProviders)
+                    {
+                        var isSyntacticTrigger = await extensionManager.PerformFunctionAsync(
+                            provider,
+                            () => provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken),
+                            defaultValue: false).ConfigureAwait(false);
+                        if (!isSyntacticTrigger)
+                            additionalAugmentingProviders.Add(provider);
+                    }
+                }
+
+                return additionalAugmentingProviders.ToImmutableAndFree();
+            }
         }
 
         /// <summary>
@@ -81,115 +181,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
-            Document document,
-            int caretPosition,
-            CompletionOptions options,
-            OptionSet passThroughOptions,
-            CompletionTrigger trigger,
-            ImmutableHashSet<string>? roles,
-            CancellationToken cancellationToken)
-        {
-            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
-
-            var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
-
-            // Phase 1: Completion Providers decide if they are triggered based on textual analysis
-            // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider
-            // Phase 3: Triggered Providers are asked for items
-            // Phase 4: If any items were provided, all augmenting providers are asked for items
-            // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
-
-            var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
-
-            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-            triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
-
-            // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
-            // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
-            var sharedContext = new SharedSyntaxContextsWithSpeculativeModel(document, caretPosition);
-
-            // Now, ask all the triggered providers, in parallel, to populate a completion context.
-            // Note: we keep any context with items *or* with a suggested item.  
-            var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, sharedContext, cancellationToken).ConfigureAwait(false);
-
-            // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
-            if (!triggeredContexts.Any(static cc => cc.Items.Count > 0))
-                return CompletionList.Empty;
-
-            // See if there were completion contexts provided that were exclusive. If so, then
-            // that's all we'll return.
-            var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
-            if (!exclusiveContexts.IsEmpty)
-                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true);
-
-            // Great!  We had some items.  Now we want to see if any of the other providers 
-            // would like to augment the completion list.  For example, we might trigger
-            // enum-completion on space.  If enum completion results in any items, then 
-            // we'll want to augment the list with all the regular symbol completion items.
-            var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
-
-            var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, sharedContext, cancellationToken).ConfigureAwait(false);
-
-            GC.KeepAlive(semanticModel);
-
-            // Providers are ordered, but we processed them in our own order.  Ensure that the
-            // groups are properly ordered based on the original providers.
-            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
-            var allContexts = triggeredContexts.Concat(augmentingContexts)
-                .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
-
-            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false);
-
-            ImmutableArray<CompletionProvider> GetTriggeredProviders(
-                Document document, ConcatImmutableArray<CompletionProvider> providers, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
-            {
-                switch (trigger.Kind)
-                {
-                    case CompletionTriggerKind.Insertion:
-                    case CompletionTriggerKind.Deletion:
-
-                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions, roles))
-                        {
-                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
-
-                            Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
-                            return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
-                        }
-
-                        return ImmutableArray<CompletionProvider>.Empty;
-
-                    default:
-                        return providers.ToImmutableArray();
-                }
-            }
-
-            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
-                Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
-            {
-                var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
-                if (trigger.Kind == CompletionTriggerKind.Insertion)
-                {
-                    foreach (var provider in triggeredProviders)
-                    {
-                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
-                        {
-                            additionalAugmentingProviders.Add(provider);
-                        }
-                    }
-                }
-
-                return additionalAugmentingProviders.ToImmutableAndFree();
-            }
+            return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -236,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
-            CompletionOptions options, TextSpan defaultItemSpan,
+            CompletionOptions options, TextSpan completionListSpan,
             ImmutableArray<CompletionProvider> providers,
             SharedSyntaxContextsWithSpeculativeModel sharedContext,
             CancellationToken cancellationToken)
@@ -246,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 completionContextTasks.Add(GetContextAsync(
                     provider, document, caretPosition, trigger,
-                    options, defaultItemSpan, sharedContext, cancellationToken));
+                    options, completionListSpan, sharedContext, cancellationToken));
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
@@ -255,14 +247,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionList MergeAndPruneCompletionLists(
             ImmutableArray<CompletionContext> completionContexts,
-            TextSpan defaultSpan,
             in CompletionOptions options,
             bool isExclusive)
         {
-            // See if any contexts changed the completion list span.  If so, the first context that
-            // changed it 'wins' and picks the span that will be used for all items in the completion
-            // list.  If no contexts changed it, then just use the default span provided by the service.
-            var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
+            Debug.Assert(!completionContexts.IsDefaultOrEmpty);
+
             using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
             CompletionItem? suggestionModeItem = null;
 
@@ -284,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionList.Create(
-                finalCompletionListSpan,
-                displayNameToItemsMap.SortToSegmentedList(),
+                completionContexts[0].CompletionListSpan,   // All contexts have the same completion list span.
+                displayNameToItemsMap.ToSegmentedList(options),
                 GetRules(options),
                 suggestionModeItem,
                 isExclusive);
@@ -297,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
         {
             return item.Span == existingItem.Span
-                && item.SortText == existingItem.SortText;
+                && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
         }
 
         /// <summary>
@@ -333,12 +322,20 @@ namespace Microsoft.CodeAnalysis.Completion
             SharedSyntaxContextsWithSpeculativeModel? sharedContext,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+
             var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
-            await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
+
+            // Wrap with extension manager call.  This will ensure this provider is not disabled.  If not, it will ask
+            // it for completions.  If that throws, then the provider will be moved to the disabled state.
+            await extensionManager.PerformActionAsync(
+                provider,
+                () => provider.ProvideCompletionsAsync(context)).ConfigureAwait(false);
+
             return context;
         }
 
-        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
+        private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
         {
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize array allocations. Set the size of pool to a small
@@ -346,19 +343,19 @@ namespace Microsoft.CodeAnalysis.Completion
             private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool = new(factory: () => new Dictionary<string, object>(), size: 5);
             private static readonly ObjectPool<List<CompletionItem>> s_sortListPool = new(factory: () => new List<CompletionItem>(), size: 5);
 
-            private readonly Dictionary<string, object> _displayNameToItemsMap;
-            private readonly CompletionService _service;
+            private readonly Dictionary<string, object> _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            private readonly CompletionService _service = service;
 
             public int Count { get; private set; }
 
-            public DisplayNameToItemsMap(CompletionService service)
+            public SegmentedList<CompletionItem> ToSegmentedList(in CompletionOptions options)
             {
-                _service = service;
-                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
-            }
+                if (!options.PerformSort)
+                {
+                    return new(this);
+                }
 
-            public SegmentedList<CompletionItem> SortToSegmentedList()
-            {
+                // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
                 var list = s_sortListPool.Allocate();
                 try
                 {

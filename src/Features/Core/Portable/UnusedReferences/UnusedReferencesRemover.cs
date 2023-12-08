@@ -264,17 +264,15 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<Solution> UpdateReferencesAsync(
+        public static async Task UpdateReferencesAsync(
             Solution solution,
             string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
+            var referenceCleanupService = solution.Services.GetRequiredService<IReferenceCleanupService>();
 
             await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
-
-            return solution.Workspace.CurrentSolution;
         }
 
         internal static async Task ApplyReferenceUpdatesAsync(

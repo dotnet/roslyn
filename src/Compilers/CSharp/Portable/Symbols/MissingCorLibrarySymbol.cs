@@ -29,10 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks></remarks>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
+        private TypeConversions _lazyTypeConversions;
+
         private MissingCorLibrarySymbol()
             : base(new AssemblyIdentity("<Missing Core Assembly>"))
         {
             this.SetCorLibrary(this);
+        }
+
+        internal override TypeConversions TypeConversions
+        {
+            get
+            {
+                Debug.Assert(this == CorLibrary);
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
+            }
         }
 
         /// <summary>
@@ -63,21 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazySpecialTypes[(int)type];
-        }
-
-        internal override bool RuntimeSupportsNumericIntPtr
-        {
-            get
-            {
-                // For now we assume that it is not supported by default
-                Debug.Assert((object)CorLibrary == this);
-                return false;
-            }
-            set
-            {
-                Debug.Assert((object)CorLibrary == this);
-                throw ExceptionUtilities.Unreachable;
-            }
         }
     }
 }

@@ -8,7 +8,7 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -501,14 +501,14 @@ End Class
                 Dim result = Await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements)
 
                 Assert.True(result.HasChanges)
-                Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
-                Assert.NotNull(syntaxMap)
+                Dim syntaxMaps = result.SemanticEdits(0).SyntaxMaps
+                Assert.True(syntaxMaps.HasMap)
 
                 Dim newStatementSpan = result.ActiveStatements(0).Span
                 Dim newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan)
                 Dim newStatementSyntax = newSyntaxRoot.FindNode(newStatementTextSpan)
 
-                Dim oldStatementSyntaxMapped = syntaxMap(newStatementSyntax)
+                Dim oldStatementSyntaxMapped = syntaxMaps.MatchingNodes(newStatementSyntax)
                 Assert.Same(oldStatementSyntax, oldStatementSyntaxMapped)
             End Using
         End Function
@@ -592,7 +592,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
@@ -626,7 +626,7 @@ End Class
             End Using
         End Function
 
-        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10683")>
         Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
             Dim source1 = "
 Class C

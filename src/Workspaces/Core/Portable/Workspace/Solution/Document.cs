@@ -172,10 +172,9 @@ namespace Microsoft.CodeAnalysis
             // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
+
             // check to see if we already have the tree before actually going async
             if (TryGetSyntaxTree(out var tree))
             {
@@ -184,15 +183,11 @@ namespace Microsoft.CodeAnalysis
                 // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
                 Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
 
-                // _syntaxTreeResultTask is a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-                // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-                return _syntaxTreeResultTask!;
+                return _syntaxTreeResultTask.AsNullable();
             }
 
             // do it async for real.
-            // GetSyntaxTreeAsync returns a Task<SyntaxTree> so the ! operator here isn't suppressing a possible null ref, but rather allowing the
-            // conversion from Task<SyntaxTree> to Task<SyntaxTree?> since Task itself isn't properly variant.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask()!;
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask().AsNullable();
         }
 
         internal SyntaxTree? GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -285,7 +280,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
@@ -314,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -410,15 +405,15 @@ namespace Microsoft.CodeAnalysis
                         return tree.GetChanges(oldTree);
                     }
 
-                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -430,8 +425,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
         {
-            var documentIdsWithPath = this.Project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-            var filteredDocumentIds = this.Project.Solution.FilterDocumentIdsByLanguage(documentIdsWithPath, this.Project.Language);
+            var filteredDocumentIds = this.Project.Solution.GetRelatedDocumentIds(this.Id);
             return filteredDocumentIds.Remove(this.Id);
         }
 
@@ -445,13 +439,12 @@ namespace Microsoft.CodeAnalysis
         internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
-            var workspace = solution.Workspace;
 
             // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (workspace.PartialSemanticsEnabled &&
+            if (solution.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
@@ -490,11 +483,11 @@ namespace Microsoft.CodeAnalysis
 
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
-            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async cancellationToken =>
+            var newAsyncLazy = AsyncLazy.Create(async cancellationToken =>
             {
                 var options = await GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return new DocumentOptionSet(options, solutionOptions, Project.Language);
-            }, cacheResult: true);
+            });
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }

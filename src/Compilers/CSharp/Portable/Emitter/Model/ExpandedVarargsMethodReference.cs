@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get { return _underlyingMethod.GenericParameterCount; }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get { return _underlyingMethod.IsGeneric; }
-        }
-
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return _underlyingMethod.GetResolvedMethod(context);
@@ -230,13 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

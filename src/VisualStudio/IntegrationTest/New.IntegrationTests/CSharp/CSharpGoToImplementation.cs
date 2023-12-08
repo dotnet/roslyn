@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -69,8 +70,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                 identifierWithCaret = "$$Implementation";
             }
 
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileImplementation.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret}", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
@@ -174,8 +174,7 @@ class Implementation : IDisposable
                 identifierWithCaret = "$$Implementation";
             }
 
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileImplementation.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileImplementation.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret} : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
@@ -223,8 +222,7 @@ class C
             await TestServices.Editor.PlaceCaretAsync("Dispose", charsOffset: -1, HangMitigatingCancellationToken);
 
             // This one won't automatically navigate to the implementation
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileUsage.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileUsage.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
             Assert.Equal("'Dispose' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 

@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis
         bool IsComImport { get; }
 
         /// <summary>
+        /// Indicates the type is declared in source and is only visible in the file it is declared in.
+        /// </summary>
+        bool IsFileLocal { get; }
+
+        /// <summary>
         /// Returns collection of names of members declared within this type.
         /// </summary>
         IEnumerable<string> MemberNames { get; }

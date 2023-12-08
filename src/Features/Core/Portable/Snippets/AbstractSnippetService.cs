@@ -18,17 +18,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    internal abstract class AbstractSnippetService : ISnippetService
+    internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
     {
-        private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
+        private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
         private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
         private readonly object _snippetProvidersLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
-
-        public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
-        {
-            _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
-        }
 
         /// <summary>
         /// This should never be called prior to GetSnippetsAsync because it gets populated
@@ -66,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Snippets
                     foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
                     {
                         var providerData = provider.Value;
-                        Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.SnippetIdentifier, out var _));
-                        _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
+                        Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.Identifier, out var _));
+                        _identifierToProviderMap.Add(providerData.Identifier, providerData);
                         arrayBuilder.Add(providerData);
                     }
 

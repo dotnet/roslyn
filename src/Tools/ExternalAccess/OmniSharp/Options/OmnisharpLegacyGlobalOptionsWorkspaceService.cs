@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
 using System.Threading.Tasks;
 using System.Threading;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
 {
@@ -26,9 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OmnisharpLegacyGlobalOptionsWorkspaceService()
+        public OmnisharpLegacyGlobalOptionsWorkspaceService(IOmniSharpLineFormattingOptionsProvider lineFormattingOptionsProvider)
         {
-            _provider = new OmniSharpCleanCodeGenerationOptionsProvider();
+            _provider = new OmniSharpCleanCodeGenerationOptionsProvider(lineFormattingOptionsProvider);
         }
 
         public bool RazorUseTabs
@@ -76,9 +75,33 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
 
         internal sealed class OmniSharpCleanCodeGenerationOptionsProvider : AbstractCleanCodeGenerationOptionsProvider
         {
-            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            private readonly IOmniSharpLineFormattingOptionsProvider _lineFormattingOptionsProvider;
+
+            public OmniSharpCleanCodeGenerationOptionsProvider(IOmniSharpLineFormattingOptionsProvider lineFormattingOptionsProvider)
             {
-                return new ValueTask<CleanCodeGenerationOptions>(CleanCodeGenerationOptions.GetDefault(languageServices));
+                _lineFormattingOptionsProvider = lineFormattingOptionsProvider;
+            }
+
+            public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+            {
+                var lineFormattingOptions = _lineFormattingOptionsProvider.GetLineFormattingOptions();
+                var codeGenerationOptions = CleanCodeGenerationOptions.GetDefault(languageServices) with
+                {
+                    CleanupOptions = CodeCleanupOptions.GetDefault(languageServices) with
+                    {
+                        FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices) with
+                        {
+                            LineFormatting = new()
+                            {
+                                IndentationSize = lineFormattingOptions.IndentationSize,
+                                TabSize = lineFormattingOptions.TabSize,
+                                UseTabs = lineFormattingOptions.UseTabs,
+                                NewLine = lineFormattingOptions.NewLine,
+                            }
+                        }
+                    }
+                };
+                return new ValueTask<CleanCodeGenerationOptions>(codeGenerationOptions);
             }
         }
     }

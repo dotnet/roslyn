@@ -795,6 +795,9 @@ Additional information: {1}</value>
   <data name="Collapse_regions_when_collapsing_to_definitions" xml:space="preserve">
     <value>Collapse #regions when collapsing to definitions</value>
   </data>
+  <data name="Collapse_local_functions_when_collapsing_to_definitions" xml:space="preserve">
+    <value>Collapse local functions when collapsing to definitions</value>
+  </data>
   <data name="Prefer_null_propagation" xml:space="preserve">
     <value>Prefer null propagation</value>
   </data>
@@ -1806,10 +1809,6 @@ Additional information: {1}</value>
     <value>Updating namespaces...</value>
     <comment>"namespaces" is the programming language concept</comment>
   </data>
-  <data name="Namespaces_have_been_updated" xml:space="preserve">
-    <value>Namespaces have been updated.</value>
-    <comment>"Namespaces" is the programming language concept</comment>
-  </data>
   <data name="No_namespaces_needed_updating" xml:space="preserve">
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
@@ -1817,8 +1816,8 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
-  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
-    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  <data name="Run_code_analysis_on_latest_dotnet_requires_restart" xml:space="preserve">
+    <value>Run code analysis on latest .NET (requires restart)</value>
   </data>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
@@ -1885,7 +1884,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a stack trace to view and navigate its values.</value>
+    <value>Paste a stack trace to view and navigate it's values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -1965,11 +1964,14 @@ Additional information: {1}</value>
   <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
     <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
+  <data name="Document_Outline_Search" xml:space="preserve">
+    <value>Search Document Outline</value>
+  </data>
   <data name="Rename" xml:space="preserve">
     <value>Rename</value>
   </data>
   <data name="Rename_asynchronously_experimental" xml:space="preserve">
-    <value>Rename asynchronously experimental</value>
+    <value>Rename asynchronously (experimental)</value>
   </data>
   <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
     <value>Fix analyzer warnings and errors</value>
@@ -1982,5 +1984,55 @@ Additional information: {1}</value>
   </data>
   <data name="Stack_Trace" xml:space="preserve">
     <value>Stack Trace</value>
+  </data>
+  <data name="Document_Outline" xml:space="preserve">
+    <value>Document Outline</value>
+  </data>
+  <data name="Enable_navigation_to_sourcelink_and_embedded_sources" xml:space="preserve">
+    <value>Enable navigation to Source Link and Embedded sources</value>
+  </data>
+  <data name="Extract_Base_Record" xml:space="preserve">
+    <value>Extract Base Record</value>
+    <comment>{Locked="Record"} "Record" is a language construct for C# and should not be localized</comment>
+  </data>
+  <data name="Show_UI_as_dashboard_in_top_right" xml:space="preserve">
+    <value>Show UI as a dashboard in top right</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Show_UI_inline" xml:space="preserve">
+    <value>Show UI Inline</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
+    <value>Where should the rename UI be shown?</value>
+    <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Prefer_read_only_struct" xml:space="preserve">
+    <value>Prefer read-only struct</value>
+  </data>
+  <data name="Analyze_source_generated_files" xml:space="preserve">
+    <value>Analyze source generated files</value>
+  </data>
+  <data name="Prefer_read_only_struct_member" xml:space="preserve">
+    <value>Prefer read-only struct member</value>
+  </data>
+  <data name="Sync_namespaces_changes" xml:space="preserve">
+    <value>Sync namespaces changes</value>
+  </data>
+  <data name="Enable_document_outline_experimental_requires_restart" xml:space="preserve">
+    <value>Enable document outline (experimental, requires restart)</value>
+  </data>
+  <data name="Prefer_primary_constructors" xml:space="preserve">
+    <value>Prefer primary constructors</value>
+  </data>
+  <data name="Prefer_collection_expression" xml:space="preserve">
+    <value>Prefer collection expression</value>
+  </data>
+  <data name="SystemVoid_is_not_a_valid_type_for_a_parameter" xml:space="preserve">
+    <value>'System.Void' is not a valid type for a parameter</value>
+    <comment>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</comment>
+  </data>
+  <data name="Not_applicable" xml:space="preserve">
+    <value>Not applicable</value>
   </data>
 </root>

@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override bool ShouldMoveCloseBraceToNewLine
             => false;
 
+        protected override SyntaxToken FirstToken(BaseParameterListSyntax listSyntax)
+            => listSyntax.GetOpenToken();
+
+        protected override SyntaxToken LastToken(BaseParameterListSyntax listSyntax)
+            => listSyntax.GetCloseToken();
+
         protected override SeparatedSyntaxList<ParameterSyntax> GetListItems(BaseParameterListSyntax listSyntax)
             => listSyntax.Parameters;
 
@@ -64,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             if (!headerSpan.IntersectsWith(position))
                 return false;
 
-            if (containsSyntaxError && ContainsOverlappingSyntaxErrror(declaration, headerSpan))
+            if (containsSyntaxError && ContainsOverlappingSyntaxError(declaration, headerSpan))
                 return false;
 
             return true;

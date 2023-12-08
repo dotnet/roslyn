@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ''' <summary>
         ''' Ref field in ref struct.
         ''' </summary>
-        <Fact>
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
         Public Sub RefField_01()
             Dim sourceA =
 "public ref struct S<T>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     public ref T F;
     public S(ref T t) { F = ref t; }
 }"
-            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview))
+            Dim compA = CreateCSharpCompilation(GetUniqueName(), sourceA, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70))
             compA.VerifyDiagnostics()
             Dim refA = compA.EmitToImageReference()
 
@@ -42,12 +42,42 @@ End Module"
 BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
         Dim s = New S(Of Integer)()
                     ~~~~~~~~~~~~~
+BC30656: Field 'F' is of an unsupported type.
+        Console.WriteLine(s.F)
+                          ~~~
 </expected>)
 
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             Dim field = compB.GetMember(Of FieldSymbol)("S.F")
-            VerifyFieldSymbol(field, "S(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
-            Assert.Null(field.GetUseSiteErrorInfo())
+            VerifyFieldSymbol(field, "S(Of T).F As T modreq(?)")
+            Assert.NotNull(field.GetUseSiteErrorInfo())
+            Assert.True(field.HasUnsupportedMetadata)
+        End Sub
+
+        <Fact, WorkItem(65392, "https://github.com/dotnet/roslyn/issues/65392")>
+        Public Sub CanUsePassThroughRefStructInstances()
+            Dim source =
+"Imports System
+Module Program
+    Sub Main()
+        Dim s = ""123"".AsSpan()
+        Dim s2 As ReadOnlySpan(Of Char) = ""123"".AsSpan()
+        Dim s3 = MemoryExtensions.AsSpan(""123"")
+    End Sub
+End Module"
+
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.Net60)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+
+            comp = CreateCompilation(source, targetFramework:=TargetFramework.Net70)
+            comp.AssertTheseDiagnostics(<expected>
+BC30668: 'ReadOnlySpan(Of Char)' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'.
+        Dim s2 As ReadOnlySpan(Of Char) = "123".AsSpan()
+                  ~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         ''' <summary>
@@ -59,7 +89,7 @@ BC30668: 'S(Of Integer)' is obsolete: 'Types with embedded references are not su
 ".class public A<T>
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
-  .field public !0& modopt(object) modopt(int8) F
+  .field public !T & modopt(object) modopt(int8) F
 }"
             Dim refA = CompileIL(sourceA)
 
@@ -73,18 +103,22 @@ Module Program
 End Module"
 
             Dim comp = CreateCompilation(sourceB, references:={refA})
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
-            comp.AssertTheseDiagnostics(<expected></expected>)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30656: Field 'F' is of an unsupported type.
+        Console.WriteLine(a.F)
+                          ~~~
+</expected>)
 
-            ' https://github.com/dotnet/roslyn/issues/62121: RefKind should be RefKind.Ref, or a use-site diagnostic should be generated, or both.
             Dim field = comp.GetMember(Of FieldSymbol)("A.F")
-            VerifyFieldSymbol(field, "A(Of T).F As T", Microsoft.CodeAnalysis.RefKind.None, {})
-            Assert.Null(field.GetUseSiteErrorInfo())
+            VerifyFieldSymbol(field, "A(Of T).F As T modopt(System.SByte) modopt(System.Object) modreq(?)")
+            Assert.NotNull(field.GetUseSiteErrorInfo())
+            Assert.True(field.HasUnsupportedMetadata)
         End Sub
 
-        Private Shared Sub VerifyFieldSymbol(field As FieldSymbol, expectedDisplayString As String, expectedRefKind As RefKind, expectedRefCustomModifiers As String())
-            Assert.Equal(expectedRefKind, field.RefKind)
-            Assert.Equal(expectedRefCustomModifiers, field.RefCustomModifiers.SelectAsArray(Function(m) m.Modifier.ToTestDisplayString()))
+        Private Shared Sub VerifyFieldSymbol(field As FieldSymbol, expectedDisplayString As String)
+            Assert.Equal(CodeAnalysis.RefKind.None, DirectCast(field, IFieldSymbol).RefKind)
+            Assert.Empty(DirectCast(field, IFieldSymbol).RefCustomModifiers)
             Assert.Equal(expectedDisplayString, field.ToTestDisplayString())
         End Sub
 
@@ -110,7 +144,7 @@ End Module"
     static object F2() => new R<object>().F2;
     static int F3() => new R<object>().F3;
 }"
-            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, parseOptions:=New CSharp.CSharpParseOptions(languageVersion:=CSharp.LanguageVersion.Preview), referencedAssemblies:={MscorlibRef, refA})
+            Dim compB = CreateCSharpCompilation(GetUniqueName(), sourceB, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, {refA}))
             compB.VerifyDiagnostics()
             Dim refB = compB.EmitToImageReference()
 
@@ -134,21 +168,19 @@ End Module"
             Dim expectedMembers =
                 {
                 "R(Of System.Object).F1 As System.Object",
-                "R(Of System.Object).F1 As System.Object",
-                "R(Of System.Object).F2 As System.Object",
-                "R(Of System.Object).F2 As System.Object",
-                "R(Of System.Object).F3 As System.Int32",
-                "R(Of System.Object).F3 As System.SByte"
+                "R(Of System.Object).F1 As System.Object modreq(?)",
+                "R(Of System.Object).F2 As System.Object modopt(System.Int32) modreq(?)",
+                "R(Of System.Object).F2 As System.Object modopt(System.Object) modreq(?)",
+                "R(Of System.Object).F3 As System.Int32 modreq(?)",
+                "R(Of System.Object).F3 As System.SByte modreq(?)"
                 }
             AssertEx.Equal(expectedMembers, fieldMembers.Select(Function(f) f.ToTestDisplayString()))
 
-            ' https://github.com/dotnet/roslyn/issues/62121: Not differentiating fields that differ by RefKind or RefCustomModifiers.
-            ' See MemberRefMetadataDecoder.FindFieldBySignature().
             Dim expectedReferences =
                 {
-                "R(Of System.Object).F1 As System.Object",
-                "R(Of System.Object).F2 As System.Object",
-                "R(Of System.Object).F3 As System.SByte"
+                "R(Of System.Object).F1 As System.Object modreq(?)",
+                "R(Of System.Object).F2 As System.Object modopt(System.Object) modreq(?)",
+                "R(Of System.Object).F3 As System.SByte modreq(?)"
                 }
             AssertEx.Equal(expectedReferences, fieldReferences.Select(Function(f) f.ToTestDisplayString()))
         End Sub

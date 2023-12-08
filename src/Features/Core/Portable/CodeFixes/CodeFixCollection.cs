@@ -13,33 +13,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// Represents a collection of <see cref="CodeFix"/>es supplied by a given fix provider
     /// (such as <see cref="CodeFixProvider"/> or <see cref="IConfigurationFixProvider"/>).
     /// </summary>
-    internal class CodeFixCollection
+    internal class CodeFixCollection(
+        object provider,
+        TextSpan span,
+        ImmutableArray<CodeFix> fixes,
+        FixAllState fixAllState,
+        ImmutableArray<FixAllScope> supportedScopes,
+        Diagnostic firstDiagnostic)
     {
-        public object Provider { get; }
-        public TextSpan TextSpan { get; }
-        public ImmutableArray<CodeFix> Fixes { get; }
+        public object Provider { get; } = provider;
+        public TextSpan TextSpan { get; } = span;
+        public ImmutableArray<CodeFix> Fixes { get; } = fixes.NullToEmpty();
 
         /// <summary>
         /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
         /// </summary>
-        public FixAllState FixAllState { get; }
-        public ImmutableArray<FixAllScope> SupportedScopes { get; }
-        public Diagnostic FirstDiagnostic { get; }
-
-        public CodeFixCollection(
-            object provider,
-            TextSpan span,
-            ImmutableArray<CodeFix> fixes,
-            FixAllState fixAllState,
-            ImmutableArray<FixAllScope> supportedScopes,
-            Diagnostic firstDiagnostic)
-        {
-            Provider = provider;
-            TextSpan = span;
-            Fixes = fixes.NullToEmpty();
-            FixAllState = fixAllState;
-            SupportedScopes = supportedScopes.NullToEmpty();
-            FirstDiagnostic = firstDiagnostic;
-        }
+        public FixAllState FixAllState { get; } = fixAllState;
+        public ImmutableArray<FixAllScope> SupportedScopes { get; } = supportedScopes.NullToEmpty();
+        public Diagnostic FirstDiagnostic { get; } = firstDiagnostic;
     }
 }

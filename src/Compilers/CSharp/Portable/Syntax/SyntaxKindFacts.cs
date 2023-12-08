@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.AssemblyKeyword:
                 case SyntaxKind.ModuleKeyword:
+                case SyntaxKind.EventKeyword:
+                case SyntaxKind.FieldKeyword:
+                case SyntaxKind.MethodKeyword:
+                case SyntaxKind.ParamKeyword:
+                case SyntaxKind.PropertyKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.TypeKeyword:
+                case SyntaxKind.TypeVarKeyword:
                     return true;
                 default:
                     return false;
@@ -1138,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ScopedKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1193,6 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword:
                 case SyntaxKind.RequiredKeyword:
                 case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.FileKeyword:
                     return true;
                 default:
                     return false;
@@ -1316,6 +1325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.RequiredKeyword;
                 case "scoped":
                     return SyntaxKind.ScopedKeyword;
+                case "file":
+                    return SyntaxKind.FileKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1759,6 +1770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "required";
                 case SyntaxKind.ScopedKeyword:
                     return "scoped";
+                case SyntaxKind.FileKeyword:
+                    return "file";
                 default:
                     return string.Empty;
             }

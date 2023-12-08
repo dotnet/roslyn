@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var diagnostics = new DiagnosticBag();
-                var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation));
+                var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation, associatedFileIdentifier: null));
                 var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
                 var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(diagnostics.DependenciesBag is object);
 
                 var corLibrary = compilation.SourceAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
+                var conversions = corLibrary.TypeConversions;
                 foreach (var @using in UsingNamespacesOrTypes)
                 {
                     diagnostics.Clear();

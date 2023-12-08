@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                             c => RefactorAsync(document, upperIfOrElseIfSpan, lowerIfOrElseIfSpan, c),
                             direction,
                             syntaxFacts.GetText(syntaxKinds.IfKeyword)),
-                        new TextSpan(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
+                        TextSpan.FromBounds(upperIfOrElseIfSpan.Start, lowerIfOrElseIfSpan.End));
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             //     AnotherStatement();
             // }
 
-            while (statements.Count > 0 && statements[0].Parent is var parent &&
+            while (statements is [{ Parent: var parent }, ..] &&
                    blockFacts.IsScopeBlock(parent) &&
                    blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
             {

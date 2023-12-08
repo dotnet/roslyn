@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }

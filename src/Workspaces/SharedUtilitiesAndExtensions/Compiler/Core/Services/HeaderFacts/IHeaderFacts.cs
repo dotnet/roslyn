@@ -4,7 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal interface IHeaderFacts
     {

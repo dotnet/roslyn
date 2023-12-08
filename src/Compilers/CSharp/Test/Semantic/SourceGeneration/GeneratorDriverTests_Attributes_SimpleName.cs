@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -36,7 +38,7 @@ public class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -68,7 +70,7 @@ class C {{ }}
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -94,7 +96,7 @@ class C {{ }}
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -119,7 +121,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -144,7 +146,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -172,7 +174,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -204,7 +206,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -236,7 +238,7 @@ class C { }
 class D { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -270,7 +272,7 @@ class C
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -303,7 +305,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -329,7 +331,7 @@ namespace N
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -355,7 +357,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -381,7 +383,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -414,7 +416,7 @@ using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -442,7 +444,7 @@ using AAttribute = XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -470,7 +472,7 @@ using AAttribute : X;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -497,7 +499,7 @@ using AAttribute : XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -528,7 +530,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -561,7 +563,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -593,7 +595,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -625,7 +627,7 @@ namespace N
 }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -653,7 +655,7 @@ using BAttribute = AAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -681,7 +683,7 @@ using B = AAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -709,7 +711,7 @@ using B = A;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -738,7 +740,7 @@ using A = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -765,7 +767,7 @@ using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -792,7 +794,7 @@ global using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -823,7 +825,7 @@ using {alias};
 class C {{ }}
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -855,7 +857,7 @@ global using {alias};
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -884,7 +886,7 @@ using B = AAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -912,7 +914,7 @@ global using BAttribute = AAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -940,7 +942,7 @@ global using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -969,7 +971,7 @@ global using AAttribute = XAttribute;
 ";
 
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -999,7 +1001,7 @@ global using AAttribute = XAttribute;
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -1023,8 +1025,8 @@ class C { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"));
+        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1039,7 +1041,7 @@ class C { }
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         Assert.Single(compilation.SyntaxTrees);
 
@@ -1063,8 +1065,8 @@ class C { }
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.False(runResult.TrackedSteps.ContainsKey("individualFileGlobalAliases_ForAttribute"));
+        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1085,7 +1087,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1106,14 +1108,13 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Removed, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
 
         // the per-file global aliases get changed (because the last file is removed).
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         // however, the collected global aliases stays the same.
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
@@ -1137,7 +1138,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1161,16 +1162,15 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            o => Assert.Equal(IncrementalStepRunReason.Removed, o.Reason));
+        Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
     }
 
@@ -1187,7 +1187,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1211,17 +1211,16 @@ class C { }
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1241,7 +1240,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1266,7 +1265,6 @@ class Dummy {}
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1293,7 +1291,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1312,8 +1310,14 @@ class C { }
             compilation.SyntaxTrees.First()));
         runResult = driver.GetRunResult().Results[0];
 
+        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
+            step =>
+            {
+                Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                Assert.Equal(IncrementalStepRunReason.Removed, step.Outputs.Single().Reason);
+            });
+
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.Removed, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1328,6 +1332,58 @@ class C { }
     }
 
     [Fact]
+    public void TestRemoveGlobalAttributeFile2()
+    {
+        var source0 = "";
+
+        var source1 = @"
+global using AAttribute = XAttribute;";
+
+        var source2 = @"
+global using BAttribute = AAttribute;";
+
+        var source3 = @"
+[B]
+class C { }
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(new[] { source0, source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("XAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+
+        driver = driver.RunGenerators(compilation.RemoveSyntaxTrees(
+            compilation.SyntaxTrees.First()));
+        runResult = driver.GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+
+        Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+
+        Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
+            o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
+            o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
+            o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason));
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+    }
+
+    [Fact]
     public void TestAddGlobalAttributeFile1()
     {
         var source2 = @"
@@ -1338,7 +1394,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1359,7 +1415,6 @@ global using AAttribute = XAttribute;"))));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1367,9 +1422,9 @@ global using AAttribute = XAttribute;"))));
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1383,7 +1438,7 @@ global using AAttribute = XAttribute;"))));
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1403,16 +1458,15 @@ global using BAttribute = XAttribute;"))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -1432,7 +1486,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1454,17 +1508,14 @@ class D { }"))));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
     }
@@ -1483,7 +1534,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1506,17 +1557,15 @@ class D { }"))));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
-        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 
         Assert.Collection(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs,
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
             o => Assert.Equal(IncrementalStepRunReason.Unchanged, o.Reason),
-            o => Assert.Equal(IncrementalStepRunReason.Modified, o.Reason));
+            o => Assert.Equal(IncrementalStepRunReason.New, o.Reason));
         Assert.Collection(runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
@@ -1543,7 +1592,7 @@ global using BAttribute = AAttribute;";
 class C { }
 ";
         var parseOptions = TestOptions.RegularPreview;
-        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+        Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
@@ -1567,8 +1616,7 @@ class D { }"))));
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
             s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Cached, s.Outputs.Single().Reason));
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
 

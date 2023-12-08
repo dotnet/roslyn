@@ -10,8 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -76,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     pszEventHandlerName,
                     itemidInsertionPoint,
                     useHandlesClause: false,
-                    additionalFormattingRule: targetDocument.Project.LanguageServices.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
+                    additionalFormattingRule: targetDocument.Project.Services.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
                     GlobalOptions,
                     cancellationToken: c.UserCancellationToken));
 

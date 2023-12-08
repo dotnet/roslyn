@@ -205,7 +205,6 @@ class C { }
                 init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
             });
 
-
             // ISyntaxReceiver + ISyntaxContextReceiver
             init = new GeneratorInitializationContext(CancellationToken.None);
             init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
@@ -390,9 +389,7 @@ class C
             Assert.NotNull(results.Results[0].Exception);
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(CallbackGenerator), "Test Exception");
         }
 
         [Fact]
@@ -434,9 +431,7 @@ class C
             Assert.NotNull(results.Results[0].Exception);
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(CallbackGenerator), "Test Exception");
         }
 
         [Fact]
@@ -532,9 +527,7 @@ class C
             Assert.Equal(1, testReceiver.Tag);
             Assert.Equal(21, testReceiver.VisitedNodes.Count);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(CallbackGenerator), "Test Exception");
         }
 
         [Fact]
@@ -571,9 +564,7 @@ class C
 
             Assert.Null(receiver);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(CallbackGenerator), "test exception", initialization: true);
         }
 
         [Fact]
@@ -645,9 +636,7 @@ class C
 
             Assert.Null(receiver);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(CallbackGenerator), "test exception", initialization: true);
         }
 
         [Fact]
@@ -862,7 +851,6 @@ class C
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
@@ -902,7 +890,6 @@ class classD
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
-
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -1465,7 +1452,6 @@ class E
                     output => Assert.Equal(("fieldC", IncrementalStepRunReason.Cached), output)));
             Assert.Empty(syntaxFieldsCalledFor);
 
-
             // swap a tree for a tree with the same contents, but a new reference
             var newLastTree = CSharpSyntaxTree.ParseText(lastTree.ToString(), parseOptions);
 
@@ -1626,7 +1612,6 @@ class C
             List<string> syntaxCalledFor = new List<string>();
             List<string> noCompareCalledFor = new List<string>();
             List<string> compareCalledFor = new List<string>();
-
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
@@ -1879,9 +1864,7 @@ class C
             Assert.NotNull(results.Results[0].Exception);
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(PipelineCallbackGenerator), "Test Exception");
         }
 
         [Fact]
@@ -1922,9 +1905,7 @@ class C
             Assert.NotNull(results.Results[0].Exception);
             Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(PipelineCallbackGenerator), "Test Exception");
         }
 
         [Fact]
@@ -1973,9 +1954,7 @@ class C
             Assert.Single(results.Results[1].GeneratedSources);
             Assert.Null(results.Results[1].Exception);
 
-            outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
-                );
+            GeneratorDriverTests.VerifyGeneratorExceptionDiagnostic<Exception>(outputDiagnostics.Single(), nameof(PipelineCallbackGenerator), "Test Exception");
         }
 
         [Fact]

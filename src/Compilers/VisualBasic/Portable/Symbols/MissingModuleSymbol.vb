@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function LookupTopLevelMetadataType(ByRef emittedName As MetadataTypeName) As NamedTypeSymbol
-            Return New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
+            Return Nothing
         End Function
 
         Friend Overrides Function GetReferencedAssemblies() As ImmutableArray(Of AssemblyIdentity)
@@ -171,6 +171,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return Nothing
         End Function
+
+        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return Nothing
+            End Get
+        End Property
+
     End Class
 
     Friend Class MissingModuleSymbolWithName

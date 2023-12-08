@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _refactorNotifyServices = refactorNotifyServices;
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _displayText = displayText;
-                _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
+                _renameSymbolResultGetter = AsyncLazy.Create(c => RenameSymbolWorkerAsync(c));
             }
 
             /// <summary>

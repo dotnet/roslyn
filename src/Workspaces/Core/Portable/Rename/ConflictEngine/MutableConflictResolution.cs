@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,60 +18,43 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// <summary>
     /// The result of the conflict engine. Can be made immutable by calling <see cref="ToConflictResolution()"/>.
     /// </summary>
-    internal sealed class MutableConflictResolution
+    internal sealed class MutableConflictResolution(
+        Solution oldSolution,
+        RenamedSpansTracker renamedSpansTracker,
+        string replacementText,
+        bool replacementTextValid)
     {
-        public readonly string ErrorMessage;
-
-        // Used to map spans from oldSolution to the newSolution
-        private readonly RenamedSpansTracker _renamedSpansTracker;
 
         // List of All the Locations that were renamed and conflict-complexified
-        public readonly List<RelatedLocation> RelatedLocations;
+        public readonly List<RelatedLocation> RelatedLocations = new List<RelatedLocation>();
 
         /// <summary>
         /// The base workspace snapshot
         /// </summary>
-        public readonly Solution OldSolution;
+        public readonly Solution OldSolution = oldSolution;
 
         /// <summary>
         /// Whether the text that was resolved with was even valid. This may be false if the
         /// identifier was not valid in some language that was involved in the rename.
         /// </summary>
-        public readonly bool ReplacementTextValid;
+        public readonly bool ReplacementTextValid = replacementTextValid;
 
         /// <summary>
         /// The original text that is the rename replacement.
         /// </summary>
-        public readonly string ReplacementText;
+        public readonly string ReplacementText = replacementText;
 
         /// <summary>
         /// The solution snapshot as it is being updated with specific rename steps.
         /// </summary>
-        public Solution CurrentSolution { get; private set; }
+        public Solution CurrentSolution { get; private set; } = oldSolution;
 
         private (DocumentId documentId, string newName) _renamedDocument;
-
-        public MutableConflictResolution(string errorMessage)
-            => ErrorMessage = errorMessage;
-
-        public MutableConflictResolution(
-            Solution oldSolution,
-            RenamedSpansTracker renamedSpansTracker,
-            string replacementText,
-            bool replacementTextValid)
-        {
-            OldSolution = oldSolution;
-            CurrentSolution = oldSolution;
-            _renamedSpansTracker = renamedSpansTracker;
-            ReplacementText = replacementText;
-            ReplacementTextValid = replacementTextValid;
-            RelatedLocations = new List<RelatedLocation>();
-        }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
         {
             RelatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
-            _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
+            renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
 
         internal void UpdateCurrentSolution(Solution solution)
@@ -87,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             foreach (var documentId in documentWithRenameAnnotations)
             {
-                if (_renamedSpansTracker.IsDocumentChanged(documentId))
+                if (renamedSpansTracker.IsDocumentChanged(documentId))
                 {
-                    var document = CurrentSolution.GetDocument(documentId);
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var document = CurrentSolution.GetRequiredDocument(documentId);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // For the computeReplacementToken and computeReplacementNode functions, use 
                     // the "updated" node to maintain any annotation removals from descendants.
@@ -120,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (File.Exists(document.FilePath))
                 {
-                    var directory = Directory.GetParent(document.FilePath).FullName;
+                    var directory = Directory.GetParent(document.FilePath)?.FullName;
+                    Contract.ThrowIfNull(directory);
                     var newDocumentFilePath = Path.Combine(directory, newName);
 
                     var versionNumber = 1;
@@ -145,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         public int GetAdjustedTokenStartingPosition(int startingPosition, DocumentId documentId)
-            => _renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
+            => renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
 
         internal void AddRelatedLocation(RelatedLocation location)
             => RelatedLocations.Add(location);
@@ -161,16 +143,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         public ConflictResolution ToConflictResolution()
         {
-            if (ErrorMessage != null)
-                return new ConflictResolution(ErrorMessage);
-
-            var documentIds = _renamedSpansTracker.DocumentIds.Concat(
+            var documentIds = renamedSpansTracker.DocumentIds.Concat(
                 this.RelatedLocations.Select(l => l.DocumentId)).Distinct().ToImmutableArray();
 
             var relatedLocations = this.RelatedLocations.ToImmutableArray();
 
-            var documentToModifiedSpansMap = _renamedSpansTracker.GetDocumentToModifiedSpansMap();
-            var documentToComplexifiedSpansMap = _renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
+            var documentToModifiedSpansMap = renamedSpansTracker.GetDocumentToModifiedSpansMap();
+            var documentToComplexifiedSpansMap = renamedSpansTracker.GetDocumentToComplexifiedSpansMap();
             var documentToRelatedLocationsMap = this.RelatedLocations.GroupBy(loc => loc.DocumentId).ToImmutableDictionary(
                 g => g.Key, g => g.ToImmutableArray());
 

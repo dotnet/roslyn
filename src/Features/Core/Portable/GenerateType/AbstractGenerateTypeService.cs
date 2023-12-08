@@ -16,8 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -115,8 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
             {
-                var workspace = document.Project.Solution.Workspace;
-                if (workspace == null || workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+                if (document.Project.Solution.CanApplyChange(ApplyChangesKind.AddDocument))
                 {
                     generateNewTypeInDialog = true;
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));
@@ -199,8 +197,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
-            using var namesDisposer = ArrayBuilder<string>.GetInstance(arity, out var names);
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
+            using var _1 = ArrayBuilder<string>.GetInstance(arity, out var names);
+            using var _2 = ArrayBuilder<bool>.GetInstance(arity, out var isFixed);
             for (var i = 0; i < arity; i++)
             {
                 var argument = i < arguments.Count ? arguments[i] : null;
@@ -289,17 +287,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return true;
                 }
-            }
-
-            return false;
-        }
-
-        protected static bool GeneratedTypesMustBePublic(Project project)
-        {
-            var projectInfoService = project.Solution.Workspace.Services.GetService<IProjectInfoService>();
-            if (projectInfoService != null)
-            {
-                return projectInfoService.GeneratedTypesMustBePublic(project);
             }
 
             return false;

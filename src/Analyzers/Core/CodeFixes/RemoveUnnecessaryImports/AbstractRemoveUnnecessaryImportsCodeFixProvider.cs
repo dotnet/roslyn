@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
+            => ImmutableArray.Create(RemoveUnnecessaryImportsConstants.DiagnosticFixableId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

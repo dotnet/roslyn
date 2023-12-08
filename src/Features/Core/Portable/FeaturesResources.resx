@@ -168,9 +168,6 @@
   <data name="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface" xml:space="preserve">
     <value>Could not extract interface: The type does not contain any member that can be extracted to an interface.</value>
   </data>
-  <data name="can_t_not_construct_final_tree" xml:space="preserve">
-    <value>can't not construct final tree</value>
-  </data>
   <data name="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket" xml:space="preserve">
     <value>Parameters' type or return type cannot be an anonymous type : [{0}]</value>
   </data>
@@ -372,14 +369,17 @@
   <data name="Changing_visibility_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing visibility of {0} requires restarting the application.</value>
   </data>
-  <data name="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
-    <value>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</value>
+  <data name="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</value>
   </data>
-  <data name="Ceasing_to_capture_variable_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Ceasing to capture variable '{0}' requires restarting the application.</value>
+  <data name="Changing_attribute_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
   </data>
-  <data name="Deleting_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Deleting captured variable '{0}' requires restarting the application.</value>
+  <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing attribute '{0}' requires restarting the application.</value>
+  </data>
+  <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
+    <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
   <data name="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</value>
@@ -390,32 +390,17 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
-  <data name="Changing_the_type_of_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Changing the type of {0} requires restarting the application.</value>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
-  </data>
-  <data name="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</value>
-  </data>
-  <data name="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</value>
-  </data>
-  <data name="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
-  </data>
-  <data name="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application" xml:space="preserve">
-    <value>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into a {1} requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface requires restarting the application.</value>
-  </data>
-  <data name="Adding_0_into_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a generic type requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface method requires restarting the application.</value>
@@ -496,9 +481,6 @@
   <data name="Adding_a_user_defined_0_requires_restarting_the_application" xml:space="preserve">
     <value>Adding a user defined {0} requires restarting the application.</value>
   </data>
-  <data name="Adding_a_generic_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding a generic {0} requires restarting the application.</value>
-  </data>
   <data name="Adding_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} around an active statement requires restarting the application.</value>
   </data>
@@ -524,17 +506,8 @@
   <data name="Modifying_a_generic_method_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying a generic method requires restarting the application.</value>
   </data>
-  <data name="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying whitespace or comments in a generic {0} requires restarting the application.</value>
-  </data>
   <data name="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying a method inside the context of a generic type requires restarting the application.</value>
-  </data>
-  <data name="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</value>
-  </data>
-  <data name="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application" xml:space="preserve">
-    <value>Modifying the initializer of {0} in a generic type requires restarting the application.</value>
   </data>
   <data name="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application" xml:space="preserve">
     <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</value>
@@ -625,12 +598,6 @@ Do you want to continue?</value>
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
   </data>
-  <data name="Simplify_Names" xml:space="preserve">
-    <value>Simplify Names</value>
-  </data>
-  <data name="Simplify_Member_Access" xml:space="preserve">
-    <value>Simplify Member Access</value>
-  </data>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
@@ -680,7 +647,7 @@ Do you want to continue?</value>
     <value>&lt;Pending&gt;</value>
   </data>
   <data name="Awaited_task_returns_0" xml:space="preserve">
-    <value>Awaited task returns '{0}'</value>
+    <value>Awaited task returns {0}</value>
   </data>
   <data name="Awaited_task_returns_no_value" xml:space="preserve">
     <value>Awaited task returns no value</value>
@@ -834,9 +801,6 @@ Do you want to continue?</value>
   <data name="Unable_to_load_Analyzer_assembly_0_colon_1" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
-  <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous</value>
-  </data>
   <data name="from_0" xml:space="preserve">
     <value>from {0}</value>
   </data>
@@ -934,12 +898,6 @@ This version used in: {2}</value>
   <data name="Rename_type_to_0" xml:space="preserve">
     <value>Rename type to {0}</value>
   </data>
-  <data name="Remove_tag" xml:space="preserve">
-    <value>Remove tag</value>
-  </data>
-  <data name="Add_missing_param_nodes" xml:space="preserve">
-    <value>Add missing param nodes</value>
-  </data>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
@@ -992,18 +950,6 @@ This version used in: {2}</value>
   <data name="Add_tuple_element_name_0" xml:space="preserve">
     <value>Add tuple element name '{0}'</value>
   </data>
-  <data name="Take_0" xml:space="preserve">
-    <value>Take '{0}'</value>
-  </data>
-  <data name="Take_both" xml:space="preserve">
-    <value>Take both</value>
-  </data>
-  <data name="Take_bottom" xml:space="preserve">
-    <value>Take bottom</value>
-  </data>
-  <data name="Take_top" xml:space="preserve">
-    <value>Take top</value>
-  </data>
   <data name="Remove_unused_variable" xml:space="preserve">
     <value>Remove unused variable</value>
   </data>
@@ -1027,18 +973,6 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
-  </data>
-  <data name="Add_parameter_to_0" xml:space="preserve">
-    <value>Add parameter to '{0}'</value>
-  </data>
-  <data name="Add_parameter_to_0_and_overrides_implementations" xml:space="preserve">
-    <value>Add parameter to '{0}' (and overrides/implementations)</value>
-  </data>
-  <data name="Add_to_0" xml:space="preserve">
-    <value>Add to '{0}'</value>
-  </data>
-  <data name="Related_method_signatures_found_in_metadata_will_not_be_updated" xml:space="preserve">
-    <value>Related method signatures found in metadata will not be updated.</value>
   </data>
   <data name="Generate_constructor" xml:space="preserve">
     <value>Generate constructor...</value>
@@ -1147,15 +1081,6 @@ This version used in: {2}</value>
   </data>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document</value>
-  </data>
-  <data name="Add_member_name" xml:space="preserve">
-    <value>Add member name</value>
-  </data>
-  <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use block body for lambda expressions</value>
-  </data>
-  <data name="Use_expression_body_for_lambda_expressions" xml:space="preserve">
-    <value>Use expression body for lambda expressions</value>
   </data>
   <data name="Convert_to_linq_call_form" xml:space="preserve">
     <value>Convert to LINQ (call form)</value>
@@ -2714,9 +2639,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Inline_0" xml:space="preserve">
     <value>Inline '{0}'</value>
   </data>
-  <data name="Remove_async_modifier" xml:space="preserve">
-    <value>Remove 'async' modifier</value>
-  </data>
   <data name="Extract_base_class" xml:space="preserve">
     <value>Extract base class...</value>
   </data>
@@ -2728,6 +2650,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="The_assembly_0_references_compiler_version_1_newer_than_2" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
@@ -2772,6 +2697,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>
   </data>
+  <data name="symbol_kind_and_name_of_member_kind_and_name" xml:space="preserve">
+    <value>{0} '{1}' of {2} '{3}'</value>
+    <comment>e.g. "parameter 'T param' of method 'M'"</comment>
+  </data>
   <data name="code" xml:space="preserve">
     <value>code</value>
   </data>
@@ -2792,15 +2721,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="and_update_call_sites_directly" xml:space="preserve">
     <value>and update call sites directly</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' as read only requires restarting the application,</value>
-  </data>
-  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application" xml:space="preserve">
-    <value>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</value>
-  </data>
-  <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
-    <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
   </data>
   <data name="Convert_to_record_struct" xml:space="preserve">
     <value>Convert to record struct</value>
@@ -2869,8 +2789,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
   </data>
-  <data name="Write_to_the_console" xml:space="preserve">
-    <value>Write to the console</value>
+  <data name="console_writeline" xml:space="preserve">
+    <value>Console.WriteLine</value>
   </data>
   <data name="embedded" xml:space="preserve">
     <value>embedded</value>
@@ -3045,6 +2965,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Wrap_long_initializer" xml:space="preserve">
     <value>Wrap long initializer</value>
   </data>
+  <data name="Unwrap_collection" xml:space="preserve">
+    <value>Unwrap collection</value>
+  </data>
+  <data name="Wrap_collection" xml:space="preserve">
+    <value>Wrap collection</value>
+  </data>
+  <data name="Wrap_long_collection" xml:space="preserve">
+    <value>Wrap long collection</value>
+  </data>
   <data name="Indent_all_elements" xml:space="preserve">
     <value>Indent all elements</value>
   </data>
@@ -3129,14 +3058,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
     <value>Apply using directive placement preferences</value>
   </data>
-  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
-    <value>Remove unnecessary Imports or usings</value>
+  <data name="Remove_unnecessary_imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary imports or usings</value>
   </data>
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
   </data>
-  <data name="Insert_an_if_statement" xml:space="preserve">
-    <value>Insert an 'if' statement</value>
+  <data name="if_statement" xml:space="preserve">
+    <value>if statement</value>
   </data>
   <data name="Directives_from_0" xml:space="preserve">
     <value>Directives from '{0}'</value>
@@ -3153,8 +3082,150 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
   </data>
+  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
+    <value>Pull selected members up to {0}</value>
+  </data>
+  <data name="Pull_selected_members_up" xml:space="preserve">
+    <value>Pull selected members up</value>
+  </data>
   <data name="Required" xml:space="preserve">
     <value>required</value>
     <comment>Used in the object initializer completion.</comment>
+  </data>
+  <data name="foreach_loop" xml:space="preserve">
+    <value>foreach loop</value>
+  </data>
+  <data name="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Deleting {0} requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Updating_0_within_generic_type_or_method_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating {0} within generic type or method requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Updating_async_or_iterator_requires_restarting_the_application_because_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating async or iterator requires restarting the application because is not supported by the runtime.</value>
+  </data>
+  <data name="Extract_base_record" xml:space="preserve">
+    <value>Extract base record...</value>
+    <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
+  </data>
+  <data name="Enum_members" xml:space="preserve">
+    <value>Enum members</value>
+  </data>
+  <data name="struct_" xml:space="preserve">
+    <value>struct</value>
+  </data>
+  <data name="class_with_explicit_or_sequential_layout" xml:space="preserve">
+    <value>class with explicit or sequential layout</value>
+  </data>
+  <data name="Inline_temporary_variable" xml:space="preserve">
+    <value>Inline temporary variable</value>
+  </data>
+  <data name="while_loop" xml:space="preserve">
+    <value>while loop</value>
+  </data>
+  <data name="else_statement" xml:space="preserve">
+    <value>else statement</value>
+  </data>
+  <data name="Code_snippet_for_0" xml:space="preserve">
+    <value>Code snippet for '{0}'</value>
+  </data>
+  <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
+    <value>Please resolve errors in your code before renaming this element.</value>
+  </data>
+  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
+    <value>Renaming anonymous type members is not yet supported.</value>
+  </data>
+  <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
+    <value>You cannot rename elements from previous submissions.</value>
+  </data>
+  <data name="You_cannot_rename_elements_that_are_defined_in_metadata" xml:space="preserve">
+    <value>You cannot rename elements that are defined in metadata.</value>
+  </data>
+  <data name="You_cannot_rename_operators" xml:space="preserve">
+    <value>You cannot rename operators.</value>
+  </data>
+  <data name="You_cannot_rename_this_element" xml:space="preserve">
+    <value>You cannot rename this element.</value>
+  </data>
+  <data name="You_must_rename_an_identifier" xml:space="preserve">
+    <value>You must rename an identifier.</value>
+  </data>
+  <data name="get_only_property" xml:space="preserve">
+    <value>get-only property</value>
+  </data>
+  <data name="This_0_has_1_references" xml:space="preserve">
+    <value>This {0} has {1} reference(s).</value>
+  </data>
+  <data name="_0_reference_unquoted" xml:space="preserve">
+    <value>{0} reference</value>
+  </data>
+  <data name="CSharp_VisualBasic_References" xml:space="preserve">
+    <value>C# and Visual Basic References</value>
+  </data>
+  <data name="_0_references_unquoted" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="Find_All_References_not_invoked_on_applicable_symbol" xml:space="preserve">
+    <value>'Find All References' not invoked on applicable symbol</value>
+  </data>
+  <data name="Deconstruct_locals_for_0" xml:space="preserve">
+    <value>Deconstruct locals for '{0}'</value>
+  </data>
+  <data name="Run_All_Tests" xml:space="preserve">
+    <value>Run All Tests</value>
+  </data>
+  <data name="Run_Test" xml:space="preserve">
+    <value>Run Test</value>
+  </data>
+  <data name="Debug_All_Tests" xml:space="preserve">
+    <value>Debug All Tests</value>
+  </data>
+  <data name="Debug_Test" xml:space="preserve">
+    <value>Debug Test</value>
+  </data>
+  <data name="Chosen_version_0" xml:space="preserve">
+    <value>Chosen version: '{0}'</value>
+  </data>
+  <data name="Could_not_find_by_name_0" xml:space="preserve">
+    <value>Could not find by name: '{0}'</value>
+  </data>
+  <data name="Decompilation_log" xml:space="preserve">
+    <value>Decompilation log</value>
+  </data>
+  <data name="Found_0_assemblies_for_1" xml:space="preserve">
+    <value>Found '{0}' assemblies for '{1}':</value>
+  </data>
+  <data name="Found_exact_match_0" xml:space="preserve">
+    <value>Found exact match: '{0}'</value>
+  </data>
+  <data name="Found_higher_version_match_0" xml:space="preserve">
+    <value>Found higher version match: '{0}'</value>
+  </data>
+  <data name="Found_single_assembly_0" xml:space="preserve">
+    <value>Found single assembly: '{0}'</value>
+  </data>
+  <data name="Load_from_0" xml:space="preserve">
+    <value>Load from: '{0}'</value>
+  </data>
+  <data name="Module_not_found" xml:space="preserve">
+    <value>Module not found!</value>
+  </data>
+  <data name="Resolve_0" xml:space="preserve">
+    <value>Resolve: '{0}'</value>
+  </data>
+  <data name="Resolve_module_0_of_1" xml:space="preserve">
+    <value>Resolve module: '{0}' of '{1}'</value>
+  </data>
+  <data name="WARN_Version_mismatch_Expected_0_Got_1" xml:space="preserve">
+    <value>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</value>
+  </data>
+  <data name="_0_items_in_cache" xml:space="preserve">
+    <value>'{0}' items in cache</value>
+  </data>
+  <data name="Convert_number" xml:space="preserve">
+    <value>Convert number</value>
+  </data>
+  <data name="Fix_All_0" xml:space="preserve">
+    <value>Fix All: {0}</value>
   </data>
 </root>

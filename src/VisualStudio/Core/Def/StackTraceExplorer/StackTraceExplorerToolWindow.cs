@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
             {
-                Root?.ViewModel.DoPasteAsync(default).Start();
+                Root?.ViewModel.DoPasteAsync(default).FileAndForget("StackTraceExplorerPaste");
             }));
 
             Content = dockPanel;
@@ -125,6 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
             var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
+            var themingService = roslynPackage.ComponentModel.GetService<IWpfThemeService>();
 
             Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
             {
@@ -133,30 +135,27 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             };
 
             var contentRoot = (DockPanel)Content;
+            themingService?.ApplyThemeToElement(contentRoot);
             contentRoot.Children.Add(Root);
 
-            var contextMenu = new ThemedContextMenu();
-            contextMenu.Items.Add(new MenuItem()
+            contentRoot.MouseRightButtonUp += (s, e) =>
             {
-                Header = ServicesVSResources.Paste,
-                Command = new DelegateCommand(_ => Root.ViewModel.DoPasteSynchronously(default)),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.Paste
-                }
-            });
+                var uiShell = roslynPackage.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
+                var relativePoint = e.GetPosition(contentRoot);
+                var screenPosition = contentRoot.PointToScreen(relativePoint);
 
-            contextMenu.Items.Add(new MenuItem()
-            {
-                Header = ServicesVSResources.Clear,
-                Command = new DelegateCommand(_ => Root.OnClear()),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.ClearCollection
-                }
-            });
+                var points = new[] {
+                    new POINTS()
+                    {
+                        x = (short)screenPosition.X,
+                        y = (short)screenPosition.Y
+                    }
+                };
 
-            contentRoot.ContextMenu = contextMenu;
+                var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
+                var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
+                Debug.Assert(result == S_OK);
+            };
 
             _initialized = true;
         }
@@ -179,11 +178,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 {
                     case VSStd97CmdID.Paste:
                         Root?.ViewModel.DoPasteSynchronously(default);
-                        break;
+                        return S_OK;
                 }
             }
 
-            return VSConstants.S_OK;
+            // Return OLECMDERR_E_UNKNOWNGROUP if we don't handle the command
+            // see https://docs.microsoft.com/en-us/windows/win32/api/docobj/nf-docobj-iolecommandtarget-exec#return-value
+            return -2147221244;
         }
     }
 }

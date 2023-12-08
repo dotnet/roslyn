@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg));
 
-            static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg) =>
-                arg.removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
+            static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg)
+                => arg.removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
                 a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 

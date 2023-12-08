@@ -26,11 +26,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }
 
-    internal class DefaultNavigateToSearchHost : INavigateToSearcherHost
+    internal interface IWorkspaceNavigateToSearcherHostService : IWorkspaceService
     {
-        private readonly Solution _solution;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly CancellationToken _disposalToken;
+        ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
+    }
+
+    internal class DefaultNavigateToSearchHost(
+        Solution solution,
+        IAsynchronousOperationListener asyncListener,
+        CancellationToken disposalToken) : INavigateToSearcherHost
+    {
+        private readonly Solution _solution = solution;
+        private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
+        private readonly CancellationToken _disposalToken = disposalToken;
 
         /// <summary>
         /// Single task used to both hydrate the remote host with the initial workspace solution,
@@ -41,22 +49,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static readonly object s_gate = new();
         private static Task? s_remoteHostHydrateTask = null;
 
-        public DefaultNavigateToSearchHost(
-            Solution solution,
-            IAsynchronousOperationListener asyncListener,
-            CancellationToken disposalToken)
-        {
-            _solution = solution;
-            _asyncListener = asyncListener;
-            _disposalToken = disposalToken;
-        }
-
         public INavigateToSearchService? GetNavigateToSearchService(Project project)
             => project.GetLanguageService<INavigateToSearchService>();
 
         public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var workspaceService = _solution.Workspace.Services.GetService<IWorkspaceNavigateToSearcherHostService>();
+            if (workspaceService != null)
+                return await workspaceService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+            var service = _solution.Services.GetRequiredService<IWorkspaceStatusService>();
 
             // We consider ourselves fully loaded when both the project system has completed loaded
             // us, and we've totally hydrated the oop side.  Until that happens, we'll attempt to
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         s_remoteHostHydrateTask = Task.Run(async () =>
                         {
-                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Workspace, _disposalToken).ConfigureAwait(false);
+                            var client = await RemoteHostClient.TryGetClientAsync(_solution.Services, _disposalToken).ConfigureAwait(false);
                             if (client != null)
                             {
                                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -49,6 +50,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Whether the runtime supports updating the Param table, and hence related edits (eg parameter renames)
         /// </summary>
         UpdateParameters = 1 << 6,
+
+        /// <summary>
+        /// Adding a static or instance method, property or event to an existing type (without backing fields), such that the method and/or the type are generic.
+        /// </summary>
+        GenericAddMethodToExistingType = 1 << 7,
+
+        /// <summary>
+        /// Updating an existing static or instance method, property or event (without backing fields) that is generic and/or contained in a generic type. 
+        /// </summary>
+        GenericUpdateMethod = 1 << 8,
+
+        /// <summary>
+        /// Adding a static or instance field to an existing generic type.
+        /// </summary>
+        GenericAddFieldToExistingType = 1 << 9,
     }
 
     internal static class EditAndContinueCapabilitiesParser
@@ -61,13 +77,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 caps |= capability switch
                 {
-                    "Baseline" => EditAndContinueCapabilities.Baseline,
-                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
-                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
-                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
-                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
-                    "UpdateParameters" => EditAndContinueCapabilities.UpdateParameters,
+                    nameof(EditAndContinueCapabilities.Baseline) => EditAndContinueCapabilities.Baseline,
+                    nameof(EditAndContinueCapabilities.AddMethodToExistingType) => EditAndContinueCapabilities.AddMethodToExistingType,
+                    nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType) => EditAndContinueCapabilities.AddStaticFieldToExistingType,
+                    nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType) => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
+                    nameof(EditAndContinueCapabilities.NewTypeDefinition) => EditAndContinueCapabilities.NewTypeDefinition,
+                    nameof(EditAndContinueCapabilities.ChangeCustomAttributes) => EditAndContinueCapabilities.ChangeCustomAttributes,
+                    nameof(EditAndContinueCapabilities.UpdateParameters) => EditAndContinueCapabilities.UpdateParameters,
+                    nameof(EditAndContinueCapabilities.GenericAddMethodToExistingType) => EditAndContinueCapabilities.GenericAddMethodToExistingType,
+                    nameof(EditAndContinueCapabilities.GenericUpdateMethod) => EditAndContinueCapabilities.GenericUpdateMethod,
+                    nameof(EditAndContinueCapabilities.GenericAddFieldToExistingType) => EditAndContinueCapabilities.GenericAddFieldToExistingType,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
                     "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
@@ -77,6 +96,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return caps;
+        }
+
+        public static ImmutableArray<string> ToStringArray(this EditAndContinueCapabilities capabilities)
+        {
+            using var _ = ArrayBuilder<string>.GetInstance(out var builder);
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
+                builder.Add(nameof(EditAndContinueCapabilities.Baseline));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddMethodToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddMethodToExistingType));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddStaticFieldToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddStaticFieldToExistingType));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.AddInstanceFieldToExistingType))
+                builder.Add(nameof(EditAndContinueCapabilities.AddInstanceFieldToExistingType));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
+                builder.Add(nameof(EditAndContinueCapabilities.NewTypeDefinition));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
+                builder.Add(nameof(EditAndContinueCapabilities.ChangeCustomAttributes));
+
+            if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
+                builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
+
+            return builder.ToImmutable();
         }
     }
 }

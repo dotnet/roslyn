@@ -5,9 +5,9 @@
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseNullPropagation
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
@@ -22,21 +22,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             InvocationExpressionSyntax,
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MemberAccessExpressionSyntax,
             MultiLineIfBlockSyntax,
             ExpressionStatementSyntax)
 
         Protected Overrides ReadOnly Property IfStatementSyntaxKind As SyntaxKind = SyntaxKind.MultiLineIfBlock
 
+        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
+
         Protected Overrides Function ShouldAnalyze(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
-        End Function
-
-        Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
-            Return VisualBasicSyntaxFacts.Instance
-        End Function
-
-        Protected Overrides Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean
-            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
         End Function
 
         Protected Overrides Function TryAnalyzePatternCondition(syntaxFacts As ISyntaxFacts, conditionNode As ExpressionSyntax, ByRef conditionPartToCheck As ExpressionSyntax, ByRef isEquals As Boolean) As Boolean

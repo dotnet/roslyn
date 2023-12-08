@@ -4,6 +4,7 @@
 
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 
@@ -53,16 +54,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Private Protected Overloads Async Function TestElementUpdate(
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
-                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional options As OptionsCollection = Nothing,
                 Optional editorConfig As String = "") As Task
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code, editorConfig))
                 Dim workspace = state.Workspace
-                If options IsNot Nothing Then
-                    For Each kvp In options
-                        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                            .WithChangedOption(kvp.Key, kvp.Value)))
-                    Next
-                End If
+                options?.SetGlobalOptions(workspace.GlobalOptions)
 
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
@@ -776,7 +772,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Private Protected Overrides Async Function TestAddProperty(
                 code As XElement, expectedCode As XElement, data As PropertyData,
-                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional options As OptionsCollection = Nothing,
                 Optional editorConfig As String = "") As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)

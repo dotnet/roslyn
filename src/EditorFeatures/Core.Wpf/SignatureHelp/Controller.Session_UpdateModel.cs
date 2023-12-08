@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal partial class Session
         {
-            internal struct SignatureHelpSelection
+            internal readonly struct SignatureHelpSelection
             {
                 private readonly SignatureHelpItem _selectedItem;
                 private readonly bool _userSelected;

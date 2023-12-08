@@ -14,7 +14,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,12 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         private readonly string _visualBasicExtension = ".vb";
 
         // reserved names that cannot be a folder name or filename
-        private readonly string[] _reservedKeywords = new string[]
-                                                {
+        private readonly string[] _reservedKeywords =
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+                                                [
                                                     "con", "prn", "aux", "nul",
                                                     "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
                                                     "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "clock$"
-                                                };
+                                                ];
+#pragma warning restore format
 
         // Below code details with the Access List and the manipulation
         public List<string> AccessList { get; }
@@ -283,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 }
 
                 // Remove the '\' at the beginning if present
-                trimmedFileName = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal) ? trimmedFileName.Substring(1) : trimmedFileName;
+                trimmedFileName = trimmedFileName.StartsWith(@"\", StringComparison.Ordinal) ? trimmedFileName[1..] : trimmedFileName;
 
                 // Construct the full path of the file to be created
                 this.FullFilePath = implicitFilePath + @"\" + trimmedFileName;
@@ -323,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 if (this.FullFilePath.StartsWith(projectRootPath, StringComparison.Ordinal))
                 {
                     // The new file will be within the root of the project
-                    var folderPath = this.FullFilePath.Substring(projectRootPath.Length);
+                    var folderPath = this.FullFilePath[projectRootPath.Length..];
                     var containers = folderPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
                     // Folder name was mentioned
@@ -362,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         return false;
                     }
 
-                    _fileName = this.FullFilePath.Substring(lastIndexOfSeparator + 1);
+                    _fileName = this.FullFilePath[(lastIndexOfSeparator + 1)..];
                 }
 
                 // Check for reserved words in the folder or filename
@@ -397,7 +399,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                 return false;
             }
 
-            implicitPath = implicitPathContainer.Substring(0, indexOfLastSeparator);
+            implicitPath = implicitPathContainer[..indexOfLastSeparator];
             return true;
         }
 
@@ -703,7 +705,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             // Remove the undesired extension
             if (currentFileName.EndsWith(undesiredFileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                currentFileName = currentFileName.Substring(0, currentFileName.Length - undesiredFileExtension.Length);
+                currentFileName = currentFileName[..^undesiredFileExtension.Length];
             }
 
             // Append the desired extension

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case FunctionPointerType:
                         // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
 
                     case PredefinedType:
                         return true;
@@ -151,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case RefType:
                         return ((RefTypeSyntax)parent).Type == node;
+
+                    case ScopedType:
+                        return ((ScopedTypeSyntax)parent).Type == node;
 
                     case Parameter:
                     case FunctionPointerParameter:
@@ -219,6 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case IncompleteMember:
                         return ((IncompleteMemberSyntax)parent).Type == node;
+
+                    case TypePattern:
+                        return ((TypePatternSyntax)parent).Type == node;
                 }
             }
 
@@ -234,14 +241,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != null)
             {
-                node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
+                node = SyntaxFactory.GetStandaloneExpression(node);
                 var parent = node.Parent;
                 if (parent != null)
                 {
                     switch (parent.Kind())
                     {
                         case UsingDirective:
-                            return ((UsingDirectiveSyntax)parent).Name == node;
+                            return ((UsingDirectiveSyntax)parent).NamespaceOrType == node;
 
                         case QualifiedName:
                             // left of QN is namespace or type.  Note: when you have "a.b.c()", then
@@ -445,8 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDeclarationExpressionType(SyntaxNode node, [NotNullWhen(true)] out DeclarationExpressionSyntax? parent)
         {
-            parent = node.Parent as DeclarationExpressionSyntax;
-            return node == parent?.Type;
+            parent = node.ModifyingScopedOrRefTypeOrSelf().Parent as DeclarationExpressionSyntax;
+            return node == parent?.Type.SkipScoped(out _).SkipRef();
         }
 
         /// <summary>
@@ -508,6 +515,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (declaration.Body ?? (SyntaxNode?)declaration.ExpressionBody) != null;
         }
 
+        internal static bool IsExpressionBodied(this BaseMethodDeclarationSyntax declaration)
+        {
+            return declaration.Body == null && declaration.ExpressionBody != null;
+        }
+
+        internal static bool IsVarArg(this BaseMethodDeclarationSyntax declaration)
+        {
+            return IsVarArg(declaration.ParameterList);
+        }
+
+        internal static bool IsVarArg(this ParameterListSyntax parameterList)
+        {
+            return parameterList.Parameters.Any(static p => p.IsArgList);
+        }
+
         internal static bool IsTopLevelStatement([NotNullWhen(true)] GlobalStatementSyntax? syntax)
         {
             return syntax?.Parent?.IsKind(SyntaxKind.CompilationUnit) == true;
@@ -537,29 +559,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                             });
         }
 
-        internal static bool IsNestedFunction(SyntaxNode child)
-        {
-            switch (child.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        private static bool IsNestedFunction(SyntaxNode child)
+            => IsNestedFunction(child.Kind());
 
+        private static bool IsNestedFunction(SyntaxKind kind)
+            => kind is SyntaxKind.LocalFunctionStatement
+                or SyntaxKind.AnonymousMethodExpression
+                or SyntaxKind.SimpleLambdaExpression
+                or SyntaxKind.ParenthesizedLambdaExpression;
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/66970", Constraint = "Use Green nodes for walking to avoid heavy allocations.")]
         internal static bool HasYieldOperations(SyntaxNode? node)
         {
-            // Do not descend into functions and expressions
-            return node is object &&
-                   node.DescendantNodesAndSelf(child =>
-                   {
-                       Debug.Assert(ReferenceEquals(node, child) || child is not (MemberDeclarationSyntax or TypeDeclarationSyntax));
-                       return !IsNestedFunction(child) && !(node is ExpressionSyntax);
-                   }).Any(n => n is YieldStatementSyntax);
+            if (node is null)
+                return false;
+
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            stack.Push(node.Green);
+
+            while (stack.Count > 0)
+            {
+                var current = stack.Pop();
+                Debug.Assert(node.Green == current || current is not Syntax.InternalSyntax.MemberDeclarationSyntax and not Syntax.InternalSyntax.TypeDeclarationSyntax);
+
+                if (current is null)
+                    continue;
+
+                // Do not descend into functions and expressions
+                if (IsNestedFunction((SyntaxKind)current.RawKind) ||
+                    current is Syntax.InternalSyntax.ExpressionSyntax)
+                {
+                    continue;
+                }
+
+                if (current is Syntax.InternalSyntax.YieldStatementSyntax)
+                {
+                    stack.Free();
+                    return true;
+                }
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (!child.IsToken)
+                        stack.Push(child);
+                }
+            }
+
+            stack.Free();
+            return false;
         }
 
         internal static bool HasReturnWithExpression(SyntaxNode? node)

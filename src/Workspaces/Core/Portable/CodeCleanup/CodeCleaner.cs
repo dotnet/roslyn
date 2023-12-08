@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// </summary>
         public static async Task<Document> CleanupAsync(Document document, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return await CleanupAsync(document, new TextSpan(0, text.Length), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -86,17 +86,16 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// Clean up the provided span in the node.
         /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
-        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
             => CleanupAsync(root, ImmutableArray.Create(span), options, services, providers, cancellationToken);
 
         /// <summary>
         /// Clean up the provided spans in the node.
         /// This will only cleanup stuff that doesn't require semantic information.
         /// </summary>
-        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
         {
-            var languageServices = services.GetLanguageServices(root.Language);
-            var cleanupService = languageServices.GetRequiredService<ICodeCleanerService>();
+            var cleanupService = services.GetRequiredLanguageService<ICodeCleanerService>(root.Language);
             return cleanupService.CleanupAsync(root, spans, options, services, providers, cancellationToken);
         }
     }

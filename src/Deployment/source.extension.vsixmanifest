@@ -39,6 +39,15 @@
                  d:VsixSubPath="Vsixes" 
                  Location="|ExpressionEvaluatorPackage;VSIXContainerProjectOutputGroup|" 
                  Id="21BAC26D-2935-4D0D-A282-AD647E2592B5" />
+
+    <Dependency  d:ProjectName="VisualStudioServiceHubSetupX64" 
+                 DisplayName="Roslyn ServiceHub Services x64" 
+                 Version="[|%CurrentProject%;GetVsixVersion|,)"
+                 d:Source="Project" 
+                 d:InstallSource="Embed" 
+                 d:VsixSubPath="Vsixes" 
+                 Location="|VisualStudioServiceHubSetupX64;VSIXContainerProjectOutputGroup|" 
+                 Id="77E1B4B1-51C4-4B24-9CA2-3CFAC4943DFF" />
   </Dependencies>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />

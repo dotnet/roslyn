@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
@@ -18,37 +18,46 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             string displayTextSuffix,
             int position,
             string snippetIdentifier,
-            Glyph glyph)
+            Glyph glyph,
+            ImmutableArray<SymbolDisplayPart> description,
+            string inlineDescription,
+            ImmutableArray<string> additionalFilterTexts)
         {
-            var props = ImmutableDictionary<string, string>.Empty
-                .Add("Position", position.ToString())
-                .Add(SnippetIdentifierKey, snippetIdentifier);
+            var props = ImmutableArray.Create(
+                new KeyValuePair<string, string>("Position", position.ToString()),
+                new KeyValuePair<string, string>(SnippetIdentifierKey, snippetIdentifier));
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 glyph: glyph,
+                description: description,
+                // Adding a space after the identifier string that way it will always be sorted after a keyword.
+                sortText: snippetIdentifier + " ",
+                filterText: snippetIdentifier,
                 properties: props,
                 isComplexTextEdit: true,
-                rules: CompletionItemRules.Default);
+                inlineDescription: inlineDescription,
+                rules: CompletionItemRules.Default)
+                .WithAdditionalFilterTexts(additionalFilterTexts);
         }
 
         public static string GetSnippetIdentifier(CompletionItem item)
         {
-            Contract.ThrowIfFalse(item.Properties.TryGetValue(SnippetIdentifierKey, out var text));
+            Contract.ThrowIfFalse(item.TryGetProperty(SnippetIdentifierKey, out var text));
             return text;
         }
 
         public static int GetInvocationPosition(CompletionItem item)
         {
-            Contract.ThrowIfFalse(item.Properties.TryGetValue("Position", out var text));
+            Contract.ThrowIfFalse(item.TryGetProperty("Position", out var text));
             Contract.ThrowIfFalse(int.TryParse(text, out var num));
             return num;
         }
 
         public static bool IsSnippet(CompletionItem item)
         {
-            return item.Properties.TryGetValue(SnippetIdentifierKey, out var _);
+            return item.TryGetProperty(SnippetIdentifierKey, out var _);
         }
     }
 }

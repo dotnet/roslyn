@@ -16,15 +16,16 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
     Public Class CrossLanguageCodeDefinitionWindowTests
 
         Private Class FakeNavigableItem
             Implements INavigableItem
 
-            Private ReadOnly _document As Document
+            Private ReadOnly _document As INavigableItem.NavigableDocument
 
             Public Sub New(document As Document)
-                _document = document
+                _document = INavigableItem.NavigableDocument.FromDocument(document)
             End Sub
 
             Public ReadOnly Property ChildItems As ImmutableArray(Of INavigableItem) Implements INavigableItem.ChildItems
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 End Get
             End Property
 
-            Public ReadOnly Property Document As Document Implements INavigableItem.Document
+            Public ReadOnly Property Document As INavigableItem.NavigableDocument Implements INavigableItem.Document
                 Get
                     Return _document
                 End Get
@@ -76,25 +77,21 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Property
         End Class
 
-        <ExportLanguageService(GetType(IGoToDefinitionService), NoCompilationConstants.LanguageName), [Shared]>
-        Private Class FakeGoToDefinitionService
-            Implements IGoToDefinitionService
+        <ExportLanguageService(GetType(INavigableItemsService), NoCompilationConstants.LanguageName), [Shared]>
+        Private Class FakeNavigableItemsService
+            Implements INavigableItemsService
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
-            Public Function FindDefinitionsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of INavigableItem)) Implements IGoToDefinitionService.FindDefinitionsAsync
-                Return Task.FromResult(SpecializedCollections.SingletonEnumerable(Of INavigableItem)(New FakeNavigableItem(document)))
-            End Function
-
-            Public Function TryGoToDefinition(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean Implements IGoToDefinitionService.TryGoToDefinition
-                Throw New NotImplementedException()
+            Public Function GetNavigableItemsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements INavigableItemsService.GetNavigableItemsAsync
+                Return Task.FromResult(ImmutableArray.Create(Of INavigableItem)(New FakeNavigableItem(document)))
             End Function
         End Class
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function DocumentWithNoSemanticModel() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -104,13 +101,14 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeGoToDefinitionService)))
+                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeNavigableItemsService)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                    workspace,
                     document,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
@@ -124,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function VisualBasicReferencingCSharp() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>

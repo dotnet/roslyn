@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.Remote
     #region FindReferences
 
     [DataContract]
-    internal sealed class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
+    internal sealed class SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId) : IEquatable<SerializableSymbolAndProjectId>
     {
         [DataMember(Order = 0)]
-        public readonly string SymbolKeyData;
+        public readonly string SymbolKeyData = symbolKeyData;
 
         [DataMember(Order = 1)]
-        public readonly ProjectId ProjectId;
-
-        public SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId)
-        {
-            SymbolKeyData = symbolKeyData;
-            ProjectId = projectId;
-        }
+        public readonly ProjectId ProjectId = projectId;
 
         public override bool Equals(object? obj)
             => Equals(obj as SerializableSymbolAndProjectId);
@@ -53,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public override int GetHashCode()
             => Hash.Combine(this.SymbolKeyData, this.ProjectId.GetHashCode());
 
-        [return: NotNullIfNotNull("alias")]
+        [return: NotNullIfNotNull(nameof(alias))]
         public static SerializableSymbolAndProjectId? Dehydrate(
             IAliasSymbol? alias, Document document, CancellationToken cancellationToken)
         {
@@ -102,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<ISymbol?> TryRehydrateAsync(
+        public async ValueTask<ISymbol?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     throw new InvalidOperationException(
-                        $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
+                        $"We should always be able to resolve a symbol back on the host side:\r\n'{project.Name}-{project.Language}'\r\n'{SymbolKeyData}'\r\n'{failureReason}'");
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
@@ -132,46 +126,35 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     [DataContract]
-    internal readonly struct SerializableReferenceLocation
+    internal readonly struct SerializableReferenceLocation(
+        DocumentId document,
+        SerializableSymbolAndProjectId? alias,
+        TextSpan location,
+        bool isImplicit,
+        SymbolUsageInfo symbolUsageInfo,
+        ImmutableDictionary<string, string> additionalProperties,
+        CandidateReason candidateReason)
     {
         [DataMember(Order = 0)]
-        public readonly DocumentId Document;
+        public readonly DocumentId Document = document;
 
         [DataMember(Order = 1)]
-        public readonly SerializableSymbolAndProjectId? Alias;
+        public readonly SerializableSymbolAndProjectId? Alias = alias;
 
         [DataMember(Order = 2)]
-        public readonly TextSpan Location;
+        public readonly TextSpan Location = location;
 
         [DataMember(Order = 3)]
-        public readonly bool IsImplicit;
+        public readonly bool IsImplicit = isImplicit;
 
         [DataMember(Order = 4)]
-        public readonly SymbolUsageInfo SymbolUsageInfo;
+        public readonly SymbolUsageInfo SymbolUsageInfo = symbolUsageInfo;
 
         [DataMember(Order = 5)]
-        public readonly ImmutableDictionary<string, string> AdditionalProperties;
+        public readonly ImmutableDictionary<string, string> AdditionalProperties = additionalProperties;
 
         [DataMember(Order = 6)]
-        public readonly CandidateReason CandidateReason;
-
-        public SerializableReferenceLocation(
-            DocumentId document,
-            SerializableSymbolAndProjectId? alias,
-            TextSpan location,
-            bool isImplicit,
-            SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> additionalProperties,
-            CandidateReason candidateReason)
-        {
-            Document = document;
-            Alias = alias;
-            Location = location;
-            IsImplicit = isImplicit;
-            SymbolUsageInfo = symbolUsageInfo;
-            AdditionalProperties = additionalProperties;
-            CandidateReason = candidateReason;
-        }
+        public readonly CandidateReason CandidateReason = candidateReason;
 
         public static SerializableReferenceLocation Dehydrate(
             ReferenceLocation referenceLocation, CancellationToken cancellationToken)
@@ -186,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 referenceLocation.CandidateReason);
         }
 
-        public async Task<ReferenceLocation> RehydrateAsync(
+        public async ValueTask<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
@@ -215,17 +198,12 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     [DataContract]
-    internal class SerializableSymbolGroup : IEquatable<SerializableSymbolGroup>
+    internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
     {
         [DataMember(Order = 0)]
-        public readonly HashSet<SerializableSymbolAndProjectId> Symbols;
+        public readonly HashSet<SerializableSymbolAndProjectId> Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
 
         private int _hashCode;
-
-        public SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols)
-        {
-            Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
-        }
 
         public override bool Equals(object? obj)
             => obj is SerializableSymbolGroup group && Equals(group);

@@ -44,7 +44,7 @@ JSON,
 Kolorowanie ciągów JSON; 
 Zgłaszanie nieprawidłowych ciągów JSON;
 Wykrywanie i oferowanie funkcji edytowania dla ciągów JSON;
-Zwijanie #regionów przy otwieraniu pliku;
+Zwijanie #regions przy otwieraniu pliku;
 Zwijanie importów przy otwieraniu pliku;
 Zwijanie implementacji metadanych przy otwieraniu pliku;
 Używanie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>

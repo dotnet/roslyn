@@ -44,6 +44,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
@@ -61,6 +62,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />

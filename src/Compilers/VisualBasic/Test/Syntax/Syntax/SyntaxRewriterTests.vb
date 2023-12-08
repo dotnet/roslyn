@@ -703,7 +703,6 @@ End Class
             Assert.Equal(tree.Options, newTree.Options)
         End Sub
 
-
         Private Class RemoveRegionRewriter
             Inherits VisualBasicSyntaxRewriter
 
@@ -805,7 +804,6 @@ End Class
                 End If
             End Function
         End Class
-
 
         ''' <summary>
         ''' This Rewriter exposes delegates for the methods that would normally be overridden.

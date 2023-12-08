@@ -4,7 +4,7 @@
 
     <!-- These resources provide the default colors for the dashboard if we're not hosted
          in a specific host that will override them, like Visual Studio. Each resource here
-         corresponds to an entry in DashboardColors.cs, where it can be overwritten by a host. -->
+         corresponds to an entry in InlineRenameColors.cs, where it can be overwritten by a host. -->
     
     <Color x:Key="SystemCaptionTextColor">Black</Color>
     <SolidColorBrush x:Key="SystemCaptionTextBrush"  Color="Black"/>
@@ -13,5 +13,8 @@
     <SolidColorBrush x:Key="AccentBarBrush">Blue</SolidColorBrush>
     <SolidColorBrush x:Key="ButtonBorderBrush">White</SolidColorBrush>
     <SolidColorBrush x:Key="GrayTextBrush">Gray</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxTextBrushKey">Black</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxBackgroundBrushKey">White</SolidColorBrush>
+    <SolidColorBrush x:Key="TextBoxBorderBrushKey">Black</SolidColorBrush>
     <Style TargetType="Button" x:Key="ButtonStyle" BasedOn="{StaticResource {x:Type Button}}"/>
 </ResourceDictionary>

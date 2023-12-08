@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -35,12 +35,14 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
         protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
+            Document document,
+            TextSpan textSpan,
+            InlineParameterHintsOptions options,
+            SymbolDescriptionOptions displayOptions,
+            bool displayAllOverride,
+            CancellationToken cancellationToken)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/57283
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
-            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
-
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
             if (!enabledForParameters)
                 return ImmutableArray<InlineHint>.Empty;
@@ -100,10 +102,18 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     {
                         var inlineHintText = GetReplacementText(parameter.Name);
                         var textSpan = new TextSpan(position, 0);
+
+                        TextChange? replacementTextChange = null;
+                        if (!parameter.IsParams)
+                        {
+                            replacementTextChange = new TextChange(textSpan, inlineHintText);
+                        }
+
                         result.Add(new InlineHint(
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
-                            new TextChange(textSpan, inlineHintText),
+                            replacementTextChange,
+                            ranking: InlineHintsConstants.ParameterRanking,
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

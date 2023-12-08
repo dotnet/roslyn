@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.SplitComment)>
     Public Class SplitCommentCommandHandlerTests
         Inherits AbstractSplitCommentCommandHandlerTests
 
@@ -14,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
             Return TestWorkspace.CreateVisualBasic(markup)
         End Function
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfComment()
             TestHandled(
 "Module Program
@@ -33,8 +34,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfDoubleComment1()
             TestHandled(
 "Module Program
@@ -52,8 +53,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfDoubleComment2()
             TestHandled(
 "Module Program
@@ -71,8 +72,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfDoubleComment3()
             TestHandled(
 "Module Program
@@ -90,8 +91,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfCommentWithLeadingSpace1()
             TestHandled(
 "Module Program
@@ -109,8 +110,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitStartOfCommentWithLeadingSpace2()
             TestHandled(
 "Module Program
@@ -128,8 +129,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitMiddleOfComment()
             TestHandled(
 "Module Program
@@ -147,8 +148,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitEndOfComment()
             TestNotHandled(
 "Module Program
@@ -159,8 +160,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestNotAtEndOfFile()
             TestNotHandled(
 "Module Program
@@ -168,8 +169,8 @@ End Module
         ' Test Comment[||]")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitCommentOutOfMethod()
             TestHandled(
 "Module Program
@@ -189,8 +190,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitCommentOutOfModule()
             TestHandled(
 "Module Program
@@ -210,8 +211,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitCommentOutOfClass()
             TestHandled(
 "Class Program
@@ -231,8 +232,8 @@ End Class
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitCommentOutOfNamespace()
             TestHandled(
 "Namespace TestNamespace
@@ -256,8 +257,8 @@ End Namespace
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact>
         Public Sub TestSplitCommentWithLineContinuation()
             TestNotHandled(
 "Module Program
@@ -269,8 +270,8 @@ End Module
 ")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfTheory>
         <InlineData("X[||]Test Comment")>
         <InlineData("X [||]Test Comment")>
         <InlineData("X[||] Test Comment")>
@@ -290,8 +291,8 @@ end class",
 end class")
         End Sub
 
-        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfTheory>
         <InlineData("X[||]Test Comment")>
         <InlineData("X [||]Test Comment")>
         <InlineData("X[||] Test Comment")>
@@ -311,8 +312,8 @@ end class",
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact>
         Public Sub TestSplitWithCommentAfterwards1()
             TestNotHandled(
 "public class Program
@@ -322,8 +323,8 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact>
         Public Sub TestSplitWithCommentAfterwards2()
             TestNotHandled(
 "public class Program
@@ -335,8 +336,8 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact>
         Public Sub TestSplitWithCommentAfterwards3()
             TestNotHandled(
 "public class Program
@@ -347,8 +348,8 @@ end class")
 end class")
         End Sub
 
-        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact>
         Public Sub TestSplitWithCommentAfterwards4()
             TestNotHandled(
 "public class Program

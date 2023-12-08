@@ -71,6 +71,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [DataMember(Order = 8)]
         public IdeAnalyzerOptions IdeOptions;
 
+        /// <summary>
+        /// Indicates diagnostic computation for an explicit user-invoked request,
+        /// such as a user-invoked Ctrl + Dot operation to bring up the light bulb.
+        /// </summary>
+        [DataMember(Order = 9)]
+        public bool IsExplicit;
+
         public DiagnosticArguments(
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -80,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisKind? documentAnalysisKind,
             ProjectId projectId,
             string[] analyzerIds,
-            IdeAnalyzerOptions ideOptions)
+            IdeAnalyzerOptions ideOptions,
+            bool isExplicit)
         {
             Debug.Assert(documentId != null || documentSpan == null);
             Debug.Assert(documentId != null || documentAnalysisKind == null);
@@ -97,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ProjectId = projectId;
             AnalyzerIds = analyzerIds;
             IdeOptions = ideOptions;
+            IsExplicit = isExplicit;
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -19,40 +20,31 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private class AddConstructorParametersCodeAction : CodeAction
+        private sealed class AddConstructorParametersCodeAction(
+            Document document,
+            CodeGenerationContextInfo info,
+            ConstructorCandidate constructorCandidate,
+            ISymbol containingType,
+            ImmutableArray<IParameterSymbol> missingParameters,
+            bool useSubMenuName) : CodeAction
         {
-            private readonly Document _document;
-            private readonly CodeGenerationContextInfo _info;
-            private readonly ConstructorCandidate _constructorCandidate;
-            private readonly ISymbol _containingType;
-            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
+            private readonly Document _document = document;
+            private readonly CodeGenerationContextInfo _info = info;
+            private readonly ConstructorCandidate _constructorCandidate = constructorCandidate;
+            private readonly ISymbol _containingType = containingType;
+            private readonly ImmutableArray<IParameterSymbol> _missingParameters = missingParameters;
 
             /// <summary>
             /// If there is more than one constructor, the suggested actions will be split into two sub menus,
             /// one for regular parameters and one for optional. This boolean is used by the Title property
             /// to determine if the code action should be given the complete title or the sub menu title
             /// </summary>
-            private readonly bool _useSubMenuName;
+            private readonly bool _useSubMenuName = useSubMenuName;
 
-            public AddConstructorParametersCodeAction(
-                Document document,
-                CodeGenerationContextInfo info,
-                ConstructorCandidate constructorCandidate,
-                ISymbol containingType,
-                ImmutableArray<IParameterSymbol> missingParameters,
-                bool useSubMenuName)
+            protected override Task<Solution?> GetChangedSolutionAsync(
+                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
-                _document = document;
-                _info = info;
-                _constructorCandidate = constructorCandidate;
-                _containingType = containingType;
-                _missingParameters = missingParameters;
-                _useSubMenuName = useSubMenuName;
-            }
-
-            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                var services = _document.Project.Solution.Workspace.Services;
+                var services = _document.Project.Solution.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
@@ -98,7 +90,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                     if (_useSubMenuName)
                     {
-                        return string.Format(FeaturesResources.Add_to_0, signature);
+                        return string.Format(CodeFixesResources.Add_to_0, signature);
                     }
                     else
                     {

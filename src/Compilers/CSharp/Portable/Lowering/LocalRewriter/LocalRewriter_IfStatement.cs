@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the containing method is edited while methods invoked in the condition are being executed.
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                rewrittenCondition = _instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+                rewrittenCondition = Instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
             }
 
             var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // add sequence point before the whole statement
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentIfStatement(node, result);
+                result = Instrumenter.InstrumentIfStatement(node, result);
             }
 
             return result;

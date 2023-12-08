@@ -32,23 +32,18 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     [Export(typeof(ICommandHandler))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.ToggleLineComment)]
-    internal class ToggleLineCommentCommandHandler :
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class ToggleLineCommentCommandHandler(
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService) :
         // Value tuple to represent that there is no distinct command to be passed in.
-        AbstractCommentSelectionBase<ValueTuple>,
+        AbstractCommentSelectionBase<ValueTuple>(undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService),
         ICommandHandler<ToggleLineCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ToggleLineCommentCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
-            : base(undoHistoryRegistry, editorOperationsFactoryService, globalOptions)
-        {
-        }
 
         public CommandState GetCommandState(ToggleLineCommentCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
@@ -62,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_line_comment;
 
-        internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
+        internal override CommentSelectionResult CollectEdits(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CommentSelection
                 m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
             }), cancellationToken))
             {
-                var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                var commentInfo = service.GetInfo();
                 if (commentInfo.SupportsSingleLineComment)
                 {
                     return ToggleLineComment(commentInfo, selectedSpans);

@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -23,12 +19,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 {
@@ -40,7 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(ConvertNamespaceCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal sealed class ConvertNamespaceCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class ConvertNamespaceCommandHandler(
+        ITextUndoHistoryRegistry textUndoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        EditorOptionsService editorOptionsService,
+        IGlobalOptionService globalOptions,
+        IIndentationManagerService indentationManager) : IChainedCommandHandler<TypeCharCommandArgs>
     {
         /// <summary>
         /// Option setting 'use file scoped'.  That way we can call into the helpers
@@ -50,27 +51,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_fileScopedNamespacePreferenceOption =
             new(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Suggestion);
 
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertNamespaceCommandHandler(
-            ITextUndoHistoryRegistry textUndoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IGlobalOptionService globalOptions,
-            IIndentationManagerService indentationManager)
-        {
-            _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFactory = editorOptionsFactory;
-            _globalOptions = globalOptions;
-            _indentationManager = indentationManager;
-        }
+        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager = indentationManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
@@ -117,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
                 return default;
 
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
+            if (!_globalOptions.GetOption(CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon))
                 return default;
 
             var subjectBuffer = args.SubjectBuffer;
@@ -156,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_fileScopedNamespacePreferenceOption, (CompilationUnitSyntax)parsedDocument.Root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return default;
 
-            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsFactory, _indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
+            var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
             return ConvertNamespaceTransform.ConvertNamespaceDeclaration(parsedDocument, namespaceDecl, formattingOptions, cancellationToken);
         }
     }

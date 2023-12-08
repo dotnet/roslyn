@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
                    EnforceOnBuildValues.MakeLocalFunctionStatic,
                    CSharpCodeStyleOptions.PreferStaticLocalFunction,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Local_function_can_be_made_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
-            if (!option.Value)
+            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
             {
                 return;
             }
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     localFunction.Identifier.GetLocation(),
-                    option.Notification.Severity,
+                    option.Notification,
                     additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
                     properties: null));
             }

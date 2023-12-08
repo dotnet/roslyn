@@ -5,10 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     <Export, [Shared]>

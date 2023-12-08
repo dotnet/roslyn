@@ -6,14 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -33,7 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly Shell.IAsyncServiceProvider _serviceProvider;
+        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
+        private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,19 +44,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            SVsServiceProvider serviceProvider)
+            IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
+            IVsService<SVsSolution, IVsSolution2> solution2)
         {
             _threadingContext = threadingContext;
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
+            _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
+            _solution2 = solution2;
         }
 
-        public Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
+        public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
             => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
 
-        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
+        public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
@@ -65,80 +69,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
             // Since we're on the UI thread here anyways, use that as an opportunity to grab the
             // IVsSolution object and solution file path.
-            //
-            // ConfigureAwait(true) as we have to come back to the UI thread to do the cast to IVsSolution2.
-            var solution = (IVsSolution2?)await _serviceProvider.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            var solution = await _solution2.GetValueOrNullAsync(cancellationToken);
             var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
                 ? filePath
                 : null;
 
-            // Following can be off the UI thread.
-            await TaskScheduler.Default;
+            var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
+
+            // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
+            // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
+            // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
+            // rules to apply.
+            if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
+            {
+                await TaskScheduler.Default;
+            }
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             cancellationToken = CancellationToken.None;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
-            var id = ProjectId.CreateNewId(projectSystemName);
-            var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
+            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
+            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-            // We will use the project system name as the default display name of the project
-            var project = new VisualStudioProject(
-                _visualStudioWorkspaceImpl,
-                _dynamicFileInfoProviders,
-                _hostDiagnosticUpdateSource,
-                id,
-                displayName: projectSystemName,
-                language,
-                assemblyName: assemblyName,
-                compilationOptions: creationInfo.CompilationOptions,
-                filePath: creationInfo.FilePath,
-                parseOptions: creationInfo.ParseOptions);
+            var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _hostDiagnosticUpdateSource, vsixAnalyzerProvider);
+            var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
 
-            var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
-                                                             : VersionStamp.Create();
-
-            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceAsync(w =>
-            {
-                _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
-
-                var projectInfo = ProjectInfo.Create(
-                        id,
-                        versionStamp,
-                        name: projectSystemName,
-                        assemblyName: assemblyName,
-                        language: language,
-                        filePath: creationInfo.FilePath,
-                        compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions)
-                    .WithTelemetryId(creationInfo.ProjectGuid);
-
-                // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
-                if (w.CurrentSolution.ProjectIds.Count == 0)
-                {
-                    var solutionSessionId = GetSolutionSessionId();
-
-                    w.OnSolutionAdded(
-                        SolutionInfo.Create(
-                            SolutionId.CreateNewId(solutionFilePath),
-                            VersionStamp.Create(),
-                            solutionFilePath,
-                            projects: new[] { projectInfo },
-                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
-                        .WithTelemetryId(solutionSessionId));
-                }
-                else
-                {
-                    w.OnProjectAdded(projectInfo);
-                }
-            }).ConfigureAwait(false);
+            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
             // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
             // This is not cancellable as we have already mutated the solution.
-            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None).ConfigureAwait(false);
+            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None);
 
             return project;
+
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
             static Guid GetSolutionSessionId()
             {

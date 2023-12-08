@@ -163,61 +163,61 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// simplest way to log a start and end pair with a simple context message which should be very cheap to create
         /// </summary>
         public static IDisposable LogBlock(FunctionId functionId, string? message, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(message ?? "", logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(message ?? "", logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message that will only be created when it is needed.
         /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
         /// </summary>
         public static IDisposable LogBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(messageGetter, logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
         public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg, logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg, logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
         public static IDisposable LogBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
         public static IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
         public static IDisposable LogBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3, logLevel), GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3, logLevel), GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
 
         /// <summary>
         /// log a start and end pair with a context message.
         /// </summary>
         public static IDisposable LogBlock(FunctionId functionId, LogMessage logMessage, CancellationToken token)
-            => TryGetActiveLogger(functionId, out _) ?
-                CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token) :
-                EmptyLogBlock.Instance;
+            => TryGetActiveLogger(functionId, out _)
+                ? CreateLogBlock(functionId, logMessage, GetNextUniqueBlockId(), token)
+                : EmptyLogBlock.Instance;
     }
 }

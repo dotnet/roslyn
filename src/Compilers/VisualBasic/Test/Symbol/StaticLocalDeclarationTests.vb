@@ -351,7 +351,6 @@ End Structure
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_BadStaticLocalInStruct, "Static"))
         End Sub
 
-
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Error_StaticLocalDeclaration_Negative_WithModifiers()

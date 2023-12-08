@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // helpful, but shouldn't interfere with anything else the uesr is doing.
             var priority = IsSubsequentSection(diagnostic)
                 ? CodeActionPriority.Low
-                : CodeActionPriority.Medium;
+                : CodeActionPriority.Default;
 
             RegisterCodeFix(context, CSharpCodeFixesResources.Remove_unreachable_code, nameof(CSharpCodeFixesResources.Remove_unreachable_code), priority);
 
@@ -81,9 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // Local function
             static void RemoveStatement(SyntaxEditor editor, SyntaxNode statement)
             {
-                if (!statement.IsParentKind(SyntaxKind.Block)
-                    && !statement.IsParentKind(SyntaxKind.SwitchSection)
-                    && !statement.IsParentKind(SyntaxKind.GlobalStatement))
+                if (statement.Parent?.Kind()
+                        is not SyntaxKind.Block
+                        and not SyntaxKind.SwitchSection
+                        and not SyntaxKind.GlobalStatement)
                 {
                     editor.ReplaceNode(statement, SyntaxFactory.Block());
                 }

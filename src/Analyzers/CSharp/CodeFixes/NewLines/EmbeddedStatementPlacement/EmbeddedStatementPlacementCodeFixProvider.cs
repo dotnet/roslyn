@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
         public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider codeActionOptionsProvider, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
 

@@ -8,13 +8,13 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static bool IsInvalidToken(SyntaxToken token)
         {
             // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
+            return token.Kind() is SyntaxKind.None or SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken;
         }
 
         private class CSharpIndentationFormattingRule : AbstractFormattingRule

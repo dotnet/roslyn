@@ -4,9 +4,9 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -140,20 +140,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsStringToken(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken)
-                || token.IsKind(SyntaxKind.Utf8StringLiteralToken)
-                || token.IsKind(SyntaxKind.CharacterLiteralToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
-                || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringEndToken)
-                || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
-                || token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken)
-                || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
-                || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken);
+            return token.Kind()
+                is SyntaxKind.StringLiteralToken
+                or SyntaxKind.Utf8StringLiteralToken
+                or SyntaxKind.CharacterLiteralToken
+                or SyntaxKind.InterpolatedStringStartToken
+                or SyntaxKind.InterpolatedVerbatimStringStartToken
+                or SyntaxKind.InterpolatedStringTextToken
+                or SyntaxKind.InterpolatedStringEndToken
+                or SyntaxKind.InterpolatedRawStringEndToken
+                or SyntaxKind.InterpolatedSingleLineRawStringStartToken
+                or SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                or SyntaxKind.SingleLineRawStringLiteralToken
+                or SyntaxKind.Utf8SingleLineRawStringLiteralToken
+                or SyntaxKind.MultiLineRawStringLiteralToken
+                or SyntaxKind.Utf8MultiLineRawStringLiteralToken;
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -197,11 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl) && delegateDecl.Identifier == token)
+            else if (token.Parent is DelegateDeclarationSyntax delegateDecl && delegateDecl.Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.Parent.IsKind(SyntaxKind.TypeParameter, out TypeParameterSyntax? typeParameter) && typeParameter.Identifier == token)
+            else if (token.Parent is TypeParameterSyntax typeParameter && typeParameter.Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -246,28 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is SingleVariableDesignationSyntax singleVariableDesignation && singleVariableDesignation.Identifier == token)
             {
-                var parent = singleVariableDesignation.Parent;
-
-                // Handle nested Tuple deconstruction
-                while (parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
-                {
-                    parent = parent.Parent;
-                }
-
-                // Checking for DeclarationExpression covers the following cases:
-                // - Out parameters used within a field initializer or within a method. `int.TryParse("1", out var x)`
-                // - Tuple deconstruction. `var (x, _) = (1, 2);`
-                //
-                // Checking for DeclarationPattern covers the following cases:
-                // - Is patterns. `if (foo is Action action)`
-                // - Switch patterns. `case int x when x > 0:`
-                if (parent.IsKind(SyntaxKind.DeclarationExpression) ||
-                    parent.IsKind(SyntaxKind.DeclarationPattern))
-                {
-                    return ClassificationTypeNames.LocalName;
-                }
-
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeNames.LocalName;
             }
             else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
             {
@@ -466,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.Parent.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax? statement) &&
+            if (token.Parent is LabeledStatementSyntax statement &&
                 statement.Identifier == token)
             {
                 return false;
@@ -518,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);

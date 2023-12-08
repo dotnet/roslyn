@@ -6,37 +6,46 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
-    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
+    internal abstract partial class AbstractInProcLanguageClient(
+        AbstractLspServiceProvider lspServiceProvider,
+        IGlobalOptionService globalOptions,
+        ILspServiceLoggerFactory lspLoggerFactory,
+        IThreadingContext threadingContext,
+        ExportProvider exportProvider,
+        AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly ILspLoggerFactory _lspLoggerFactory;
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
+        private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
+        private readonly ExportProvider _exportProvider = exportProvider;
 
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractLspServiceProvider _lspServiceProvider;
+        protected readonly AbstractLspServiceProvider LspServiceProvider = lspServiceProvider;
 
-        protected readonly IGlobalOptionService GlobalOptions;
+        protected readonly IGlobalOptionService GlobalOptions = globalOptions;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private LanguageServerTarget? _languageServer;
+        private AbstractLanguageServer<RequestContext>? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -98,22 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractInProcLanguageClient(
-            AbstractLspServiceProvider lspServiceProvider,
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            AbstractLanguageClientMiddleLayer? middleLayer = null)
-        {
-            _lspServiceProvider = lspServiceProvider;
-            GlobalOptions = globalOptions;
-            _listenerProvider = listenerProvider;
-            _lspLoggerFactory = lspLoggerFactory;
-            _threadingContext = threadingContext;
-            _middleLayer = middleLayer;
-        }
-
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
             // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
@@ -150,17 +143,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (_languageServer is not null)
             {
-                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
-
-                await _languageServer.DisposeAsync().ConfigureAwait(false);
+                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (LanguageServerTarget)await CreateAsync(
+            _languageServer = await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,
+                ServerKind,
                 _lspLoggerFactory,
                 cancellationToken).ConfigureAwait(false);
 
@@ -177,7 +169,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// </summary>
         public async Task OnLoadedAsync()
         {
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            try
+            {
+                await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+            }
+            catch (AggregateException e)
+            {
+                // The VS LSP client allows an unexpected OperationCanceledException to propagate out of the StartAsync
+                // callback. Avoid allowing it to propagate further.
+                e.Handle(ex => ex is OperationCanceledException);
+            }
         }
 
         /// <summary>
@@ -190,11 +191,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<ILanguageServerTarget> CreateAsync(
+        internal async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspLoggerFactory lspLoggerFactory,
+            WellKnownLspServerKinds serverKind,
+            ILspServiceLoggerFactory lspLoggerFactory,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -209,28 +211,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            var server = languageClient.Create(
+            var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
+            var server = Create(
                 jsonRpc,
                 languageClient,
-                logger);
+                serverKind,
+                logger,
+                hostServices);
 
             jsonRpc.StartListening();
             return server;
         }
 
-        public ILanguageServerTarget Create(
+        public virtual AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            WellKnownLspServerKinds serverKind,
+            ILspServiceLogger logger,
+            HostServices hostServices)
         {
-            return new LanguageServerTarget(
-                _lspServiceProvider,
+            var server = new RoslynLanguageServer(
+                LspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                _listenerProvider,
                 logger,
+                hostServices,
                 SupportedLanguages,
-                ServerKind);
+                serverKind);
+
+            return server;
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);

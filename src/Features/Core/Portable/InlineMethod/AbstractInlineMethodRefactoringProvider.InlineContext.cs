@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,32 +18,25 @@ namespace Microsoft.CodeAnalysis.InlineMethod
 {
     internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodDeclarationSyntax, TStatementSyntax, TExpressionSyntax, TInvocationSyntax>
     {
-        private readonly struct InlineMethodContext
+        private readonly struct InlineMethodContext(
+            ImmutableArray<TStatementSyntax> statementsToInsertBeforeInvocationOfCallee,
+            TExpressionSyntax inlineExpression,
+            bool containsAwaitExpression)
         {
             /// <summary>
             /// Statements that should be inserted to before the invocation location of callee.
             /// </summary>
-            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeInvocationOfCallee { get; }
+            public ImmutableArray<TStatementSyntax> StatementsToInsertBeforeInvocationOfCallee { get; } = statementsToInsertBeforeInvocationOfCallee;
 
             /// <summary>
             /// Inline content for the callee method.
             /// </summary>
-            public TExpressionSyntax InlineExpression { get; }
+            public TExpressionSyntax InlineExpression { get; } = inlineExpression;
 
             /// <summary>
             /// Indicate if <see cref="InlineExpression"/> has AwaitExpression in it.
             /// </summary>
-            public bool ContainsAwaitExpression { get; }
-
-            public InlineMethodContext(
-                ImmutableArray<TStatementSyntax> statementsToInsertBeforeInvocationOfCallee,
-                TExpressionSyntax inlineExpression,
-                bool containsAwaitExpression)
-            {
-                StatementsToInsertBeforeInvocationOfCallee = statementsToInsertBeforeInvocationOfCallee;
-                InlineExpression = inlineExpression;
-                ContainsAwaitExpression = containsAwaitExpression;
-            }
+            public bool ContainsAwaitExpression { get; } = containsAwaitExpression;
         }
 
         private async Task<InlineMethodContext> GetInlineMethodContextAsync(
@@ -374,7 +367,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                     .GenerateUniqueLocalName(
                         callerSemanticModel,
                         calleeInvocationNode,
-                        containerOpt: null,
+                        container: null,
                         symbol.Name,
                         usedNames,
                         cancellationToken).Text;

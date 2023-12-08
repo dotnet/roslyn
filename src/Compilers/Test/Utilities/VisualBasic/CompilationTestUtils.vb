@@ -19,7 +19,7 @@ Imports Xunit
 Friend Module CompilationUtils
 
     Private Function ParseSources(source As IEnumerable(Of String), parseOptions As VisualBasicParseOptions) As IEnumerable(Of SyntaxTree)
-        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions))
+        Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), parseOptions))
     End Function
 
     Public Function CreateCompilation(
@@ -31,6 +31,19 @@ Friend Module CompilationUtils
             Optional assemblyName As String = Nothing) As VisualBasicCompilation
         references = TargetFrameworkUtil.GetReferences(targetFramework, references)
         Return CreateEmptyCompilation(source, references, options, parseOptions, assemblyName)
+    End Function
+
+    Public Function CreateCompilationWithIdentity(
+            identity As AssemblyIdentity,
+            source As BasicTestSource,
+            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+            Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime) As VisualBasicCompilation
+
+        Dim c = CreateCompilation(source, references, assemblyName:=identity.Name)
+        Assert.NotNull(c.Assembly) ' force creation Of SourceAssemblySymbol
+        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
+
+        Return c
     End Function
 
     Public Function CreateEmptyCompilation(
@@ -408,8 +421,9 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, Optional fileName As String = Nothing, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
+        Dim trees = If(fileName Is Nothing, compilation.SyntaxTrees, compilation.SyntaxTrees.Where(Function(t) t.FilePath = fileName))
+        Dim tree = trees.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)
@@ -439,7 +453,6 @@ Friend Module CompilationUtils
         Else
             Assert.StartsWith(bindText, node.ToString)
         End If
-
 
         Return DirectCast(node, TNode)
     End Function
@@ -589,7 +602,6 @@ Friend Module CompilationUtils
         Return summary
     End Function
 
-
     Public Function GetSemanticInfoSummary(compilation As Compilation, node As SyntaxNode) As SemanticInfoSummary
         Dim tree = node.SyntaxTree
         Dim semanticModel = DirectCast(compilation.GetSemanticModel(tree), VBSemanticModel)
@@ -621,7 +633,7 @@ Friend Module CompilationUtils
     ''' &lt;/file&gt;
     ''' </param>
     Public Function CreateParseTree(programElement As XElement) As SyntaxTree
-        Return VisualBasicSyntaxTree.ParseText(FilterString(programElement.Value), path:=If(programElement.@name, ""), encoding:=Encoding.UTF8)
+        Return VisualBasicSyntaxTree.ParseText(SourceText.From(FilterString(programElement.Value), Encoding.UTF8, SourceHashAlgorithms.Default), path:=If(programElement.@name, ""))
     End Function
 
     ''' <summary>
@@ -948,7 +960,7 @@ Friend Module CompilationUtils
             actualLine = actualReader.ReadLine()
         End While
 
-        Assert.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
+        AssertEx.Equal(expectedPooledBuilder.ToStringAndFree(), actualPooledBuilder.ToStringAndFree())
     End Sub
 
     ' There are certain cases where multiple distinct errors are
