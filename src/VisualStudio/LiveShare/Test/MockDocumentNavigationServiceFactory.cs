@@ -13,40 +13,30 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests;
+
+using Workspace = CodeAnalysis.Workspace;
+
+[ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class MockDocumentNavigationServiceFactory() : IWorkspaceServiceFactory
 {
-    using Workspace = CodeAnalysis.Workspace;
-
-    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal class MockDocumentNavigationServiceFactory : IWorkspaceServiceFactory
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockDocumentNavigationServiceFactory()
-        {
-        }
+        return new MockDocumentNavigationService();
+    }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new MockDocumentNavigationService();
-        }
+    private class MockDocumentNavigationService : IDocumentNavigationService
+    {
+        public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken) => SpecializedTasks.True;
 
-        private class MockDocumentNavigationService : IDocumentNavigationService
-        {
-            public Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken) => SpecializedTasks.True;
+        public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
 
-            public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken) => SpecializedTasks.True;
+        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+            => NavigableLocation.TestAccessor.Create(true);
 
-            public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
-
-            public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
-                => NavigableLocation.TestAccessor.Create(true);
-
-            public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
-                => NavigableLocation.TestAccessor.Create(true);
-
-            public Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
-                => NavigableLocation.TestAccessor.Create(true);
-        }
+        public Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+            => NavigableLocation.TestAccessor.Create(true);
     }
 }
