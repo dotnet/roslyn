@@ -8,10 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace CSharpSyntaxGenerator
 {
-    internal class SignatureWriter
+    internal sealed class SignatureWriter
     {
         private readonly TextWriter _writer;
         private readonly Tree _tree;
@@ -32,99 +33,70 @@ namespace CSharpSyntaxGenerator
 
         private void WriteFile()
         {
-            _writer.WriteLine("using System;");
-            _writer.WriteLine("using System.Collections;");
-            _writer.WriteLine("using System.Collections.Generic;");
-            _writer.WriteLine("using System.Linq;");
-            _writer.WriteLine("using System.Threading;");
-            _writer.WriteLine();
-            _writer.WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            _writer.WriteLine("{");
+            using var builder = IndentingStringBuilder.Create();
 
-            this.WriteTypes();
-
-            _writer.WriteLine("}");
-        }
-
-        private void WriteTypes()
-        {
-            var nodes = _tree.Types.Where(n => n is not PredefinedNode).ToList();
-            for (int i = 0, n = nodes.Count; i < n; i++)
+            builder.WriteLine("using System;");
+            builder.WriteLine("using System.Collections;");
+            builder.WriteLine("using System.Collections.Generic;");
+            builder.WriteLine("using System.Linq;");
+            builder.WriteLine("using System.Threading;");
+            builder.WriteLine();
+            builder.WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
+            using (builder.EnterBlock())
             {
-                var node = nodes[i];
-                _writer.WriteLine();
-                this.WriteType(node);
+                builder.WriteBlankLineSeparated(
+                    _tree.Types.Where(n => n is not PredefinedNode),
+                    static (builder, node, @this) => @this.WriteType(builder, node),
+                    this);
             }
+
+            _writer.Write(builder.ToString());
         }
 
-        private void WriteType(TreeType node)
+        private void WriteType(IndentingStringBuilder builder, TreeType treeType)
         {
-            if (node is AbstractNode)
+            if (treeType is AbstractNode abstractNode)
             {
-                AbstractNode nd = (AbstractNode)node;
-                _writer.WriteLine("  public abstract partial class {0} : {1}", node.Name, node.Base);
-                _writer.WriteLine("  {");
-                for (int i = 0, n = nd.Fields.Count; i < n; i++)
+                builder.WriteLine($"public abstract partial class {treeType.Name} : {treeType.Base}");
+                using (builder.EnterBlock())
                 {
-                    var field = nd.Fields[i];
-                    if (IsNodeOrNodeList(field.Type))
+                    foreach (var field in abstractNode.Fields)
+                        builder.WriteLine($$"""public abstract {{field.Type}} {{field.Name}} { get; }""");
+                }
+            }
+            else if (treeType is Node node)
+            {
+                builder.WriteLine($"public partial class {treeType.Name} : {treeType.Base}");
+                using (builder.EnterBlock())
+                {
+                    if (node.Kinds.Count > 1)
                     {
-                        _writer.WriteLine("    public abstract {0}{1} {2} {{ get; }}", "", field.Type, field.Name);
+                        foreach (var kind in node.Kinds)
+                            builder.WriteLine($"// {kind.Name}");
                     }
-                }
-                _writer.WriteLine("  }");
-            }
-            else if (node is Node)
-            {
-                Node nd = (Node)node;
-                _writer.WriteLine("  public partial class {0} : {1}", node.Name, node.Base);
-                _writer.WriteLine("  {");
 
-                WriteKinds(nd.Kinds);
+                    foreach (var field in node.Fields.Where(n => IsNodeOrNodeList(n.Type)))
+                        builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
 
-                var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
-
-                for (int i = 0, n = nodeFields.Count; i < n; i++)
-                {
-                    var field = nodeFields[i];
-                    _writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
-                }
-
-                for (int i = 0, n = valueFields.Count; i < n; i++)
-                {
-                    var field = valueFields[i];
-                    _writer.WriteLine("    public {0}{1}{2} {3} {{ get; }}", "", "", field.Type, field.Name);
-                }
-
-                _writer.WriteLine("  }");
-            }
-        }
-
-        private void WriteKinds(List<Kind> kinds)
-        {
-            if (kinds.Count > 1)
-            {
-                foreach (var kind in kinds)
-                {
-                    _writer.WriteLine("    // {0}", kind.Name);
+                    foreach (var field in node.Fields.Where(n => !IsNodeOrNodeList(n.Type)))
+                        builder.WriteLine($$"""public {{field.Type}} {{field.Name}} { get; }""");
                 }
             }
         }
 
-        private bool IsSeparatedNodeList(string typeName)
+        private static bool IsSeparatedNodeList(string typeName)
         {
             return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
         }
 
-        private bool IsNodeList(string typeName)
+        private static bool IsNodeList(string typeName)
         {
             return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
         public bool IsNodeOrNodeList(string typeName)
         {
-            return IsNode(typeName) || IsNodeList(typeName) || IsSeparatedNodeList(typeName);
+            return IsNode(typeName) || SignatureWriter.IsNodeList(typeName) || SignatureWriter.IsSeparatedNodeList(typeName);
         }
 
         private bool IsNode(string typeName)

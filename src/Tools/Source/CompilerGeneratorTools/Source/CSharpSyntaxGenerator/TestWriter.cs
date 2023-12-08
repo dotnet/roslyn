@@ -174,9 +174,12 @@ namespace CSharpSyntaxGenerator
             foreach (var field in valueFields)
                 arguments.Add($"new {field.Type}()");
 
-            builder.WriteBlankLineSeparated
+            builder.WriteSeparated(
+                arguments, ", ",
+                static (builder, argument) => builder.Write(argument));
 
             builder.WriteLine(");");
+            arguments.Free();
         }
 
         private void WriteFactoryPropertyTests(IndentingStringBuilder builder, bool isGreen)
