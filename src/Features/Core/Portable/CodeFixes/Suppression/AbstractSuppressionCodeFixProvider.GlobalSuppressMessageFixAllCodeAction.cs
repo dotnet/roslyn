@@ -13,11 +13,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
@@ -45,24 +44,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, CodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
-                    ct => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, fallbackOptions, ct),
+                    (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, fallbackOptions, ct),
                     equivalenceKey: title);
             }
 
             internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CodeActionOptionsProvider fallbackOptions)
             {
                 return new GlobalSuppressionSolutionChangeAction(title,
-                    ct => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, fallbackOptions, ct),
+                    (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, fallbackOptions, ct),
                     equivalenceKey: title);
             }
 
-            private class GlobalSuppressionSolutionChangeAction : SolutionChangeAction
+            private sealed class GlobalSuppressionSolutionChangeAction(
+                string title,
+                Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
+                string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
             {
-                public GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                    : base(title, createChangedSolution, equivalenceKey)
-                {
-                }
-
                 protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
                 {
                     // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.

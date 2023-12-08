@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
             /// to actually produce the latest set of tags.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
+            private readonly AsyncBatchingWorkQueue<bool, VoidResult> _eventChangeQueue;
 
             #endregion
 
@@ -161,7 +161,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
                 // asked for initial tags or not
-                _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
+                //
+                // PERF: Use AsyncBatchingWorkQueue<bool, VoidResult> instead of AsyncBatchingWorkQueue<bool> because
+                // the latter has an async state machine that rethrows a very common cancellation exception.
+                _eventChangeQueue = new AsyncBatchingWorkQueue<bool, VoidResult>(
                     dataSource.EventChangeDelay.ComputeTimeDelay(),
                     ProcessEventChangeAsync,
                     EqualityComparer<bool>.Default,

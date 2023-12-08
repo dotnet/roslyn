@@ -12,39 +12,30 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class UnitTestingIdleProcessor
+    internal abstract class UnitTestingIdleProcessor(
+        IAsynchronousOperationListener listener,
+        TimeSpan backOffTimeSpan,
+        CancellationToken cancellationToken)
     {
         private static readonly TimeSpan s_minimumDelay = TimeSpan.FromMilliseconds(50);
 
         private readonly object _gate = new();
 
-        protected readonly IAsynchronousOperationListener Listener;
-        protected readonly CancellationToken CancellationToken;
-        protected readonly TimeSpan BackOffTimeSpan;
+        protected readonly IAsynchronousOperationListener Listener = listener;
+        protected readonly CancellationToken CancellationToken = cancellationToken;
+        protected readonly TimeSpan BackOffTimeSpan = backOffTimeSpan;
 
         // points to processor task
         private Task? _processorTask;
 
         // there is one thread that writes to it and one thread reads from it
-        private SharedStopwatch _timeSinceLastAccess;
+        private SharedStopwatch _timeSinceLastAccess = SharedStopwatch.StartNew();
 
         /// <summary>
         /// Whether or not this processor is paused.  As long as it is paused, it will not start executing new work,
         /// even if <see cref="BackOffTimeSpan"/> has been met.
         /// </summary>
         private bool _isPaused_doNotAccessDirectly;
-
-        public UnitTestingIdleProcessor(
-            IAsynchronousOperationListener listener,
-            TimeSpan backOffTimeSpan,
-            CancellationToken cancellationToken)
-        {
-            Listener = listener;
-            CancellationToken = cancellationToken;
-
-            BackOffTimeSpan = backOffTimeSpan;
-            _timeSinceLastAccess = SharedStopwatch.StartNew();
-        }
 
         protected abstract Task WaitAsync(CancellationToken cancellationToken);
         protected abstract Task ExecuteAsync();

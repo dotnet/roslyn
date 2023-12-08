@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
 
+        /// <summary>
+        /// Report additional information related to InternalsVisibleToAttributes for all assemblies the compiler sees in this compilation.
+        /// </summary>
+        public bool ReportInternalsVisibleToAttributes { get; internal set; }
+
         /// <value>
         /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
         /// </value>

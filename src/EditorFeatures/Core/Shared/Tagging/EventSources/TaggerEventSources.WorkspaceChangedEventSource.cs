@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 // That will ensure that even if we get a flurry of workspace events that we
                 // only process a tag change once.
                 _asyncDelay = new AsyncBatchingWorkQueue(
-                    TimeSpan.FromMilliseconds(250),
+                    DelayTimeSpan.Short,
                     processBatchAsync: cancellationToken =>
                     {
                         RaiseChanged();

@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Next
         End Sub
 
-        Private Function GetKind(arg As ExpressionSyntax) As HintKind
+        Private Shared Function GetKind(arg As ExpressionSyntax) As HintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse
                TypeOf arg Is InterpolatedStringExpressionSyntax Then
                 Return HintKind.Literal

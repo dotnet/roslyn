@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (parts.IsDefault)
             {
-                throw new ArgumentException("parts");
+                throw new ArgumentException(nameof(parts));
             }
 
             if (parts.Length == 0)
@@ -38,20 +38,46 @@ namespace Microsoft.CodeAnalysis
             }
 
             var pool = PooledStringBuilder.GetInstance();
-            try
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
             {
-                var actualBuilder = pool.Builder;
-                foreach (var part in parts)
-                {
-                    actualBuilder.Append(part.ToString());
-                }
+                actualBuilder.Append(part.ToString());
+            }
 
-                return actualBuilder.ToString();
-            }
-            finally
+            return pool.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Converts an ArrayBuilder of <see cref="SymbolDisplayPart"/>s to a string.
+        /// </summary>
+        /// <param name="parts">The array of parts.</param>
+        /// <returns>The concatenation of the parts into a single string.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/pull/67203", AllowImplicitBoxing = false)]
+        internal static string ToDisplayString(this ArrayBuilder<SymbolDisplayPart> parts)
+        {
+            if (parts is null)
             {
-                pool.Free();
+                throw new ArgumentException(nameof(parts));
             }
+
+            if (parts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            if (parts.Count == 1)
+            {
+                return parts[0].ToString();
+            }
+
+            var pool = PooledStringBuilder.GetInstance();
+            var actualBuilder = pool.Builder;
+            foreach (var part in parts)
+            {
+                actualBuilder.Append(part.ToString());
+            }
+
+            return pool.ToStringAndFree();
         }
 
         /// <summary>

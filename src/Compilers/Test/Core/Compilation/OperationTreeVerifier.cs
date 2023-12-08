@@ -279,12 +279,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private uint GetLabelId(ILabelSymbol symbol)
         {
-            if (_labelIdMap.ContainsKey(symbol))
+            if (_labelIdMap.TryGetValue(symbol, out var id))
             {
-                return _labelIdMap[symbol];
+                return id;
             }
 
-            var id = _currentLabelId++;
+            id = _currentLabelId++;
             _labelIdMap[symbol] = id;
             return id;
         }
@@ -958,6 +958,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
+        public override void VisitInlineArrayAccess(IInlineArrayAccessOperation operation)
+        {
+            LogString(nameof(IInlineArrayAccessOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Instance, "Instance");
+            Visit(operation.Argument, "Argument");
+        }
+
         internal override void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation)
         {
             LogString(nameof(IPointerIndirectionReferenceOperation));
@@ -1614,6 +1623,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.Null(operation.Type);
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
+        }
+
+        public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
+        {
+            LogString(nameof(ICollectionExpressionOperation));
+            LogString($" ({operation.Elements.Length} elements");
+            LogSymbol(operation.ConstructMethod, $", {nameof(operation.ConstructMethod)}");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Elements, nameof(operation.Elements), logElementCount: true);
+        }
+
+        public override void VisitSpread(ISpreadOperation operation)
+        {
+            LogString(nameof(ISpreadOperation));
+            LogSymbol(operation.ElementType, $" ({nameof(operation.ElementType)}");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Operand, nameof(operation.Operand));
+            Indent();
+            LogConversion(operation.ElementConversion, nameof(operation.ElementConversion));
+            LogNewLine();
+            Indent();
+            LogString($"({((SpreadOperation)operation).ElementConversionConvertible})");
+            Unindent();
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)

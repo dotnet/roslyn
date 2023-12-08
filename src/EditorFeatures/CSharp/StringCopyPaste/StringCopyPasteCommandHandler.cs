@@ -49,40 +49,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.StringCopyPaste)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
-    internal partial class StringCopyPasteCommandHandler :
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class StringCopyPasteCommandHandler(
+        IThreadingContext threadingContext,
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        IEditorOperationsFactoryService editorOperationsFactoryService,
+        IGlobalOptionService globalOptions,
+        ITextBufferFactoryService2 textBufferFactoryService,
+        EditorOptionsService editorOptionsService,
+        IIndentationManagerService indentationManager) :
         IChainedCommandHandler<CutCommandArgs>,
         IChainedCommandHandler<CopyCommandArgs>,
         IChainedCommandHandler<PasteCommandArgs>
     {
         private const string CopyId = "RoslynStringCopyPasteId";
 
-        private readonly IThreadingContext _threadingContext;
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
-        private readonly IIndentationManagerService _indentationManager;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StringCopyPasteCommandHandler(
-            IThreadingContext threadingContext,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions,
-            ITextBufferFactoryService2 textBufferFactoryService,
-            EditorOptionsService editorOptionsService,
-            IIndentationManagerService indentationManager)
-        {
-            _threadingContext = threadingContext;
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
-            _textBufferFactoryService = textBufferFactoryService;
-            _editorOptionsService = editorOptionsService;
-            _indentationManager = indentationManager;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager = indentationManager;
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService = textBufferFactoryService;
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
 

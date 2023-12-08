@@ -21,6 +21,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
     public async Task TestMiscDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
         var source =
@@ -30,13 +31,13 @@ public class UriTests : AbstractLanguageServerProtocolTests
     {
     }
 }";
+        var filePath = "C:\\\ud86d\udeac\ue25b.txt";
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file with a file URI.
-        var filePath = @"C:\Users\user\someFile.txt";
-        var looseFileUri = new Uri(filePath, UriKind.Absolute);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(filePath);
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -62,7 +63,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file that hasn't been saved with a name.
-        var looseFileUri = new Uri(@"untitled:untitledFile", UriKind.Absolute);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -90,7 +91,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var workspaceDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-        var expectedDocumentUri = new Uri(documentFilePath, UriKind.Absolute);
+        var expectedDocumentUri = ProtocolConversions.CreateAbsoluteUri(documentFilePath);
 
         await testLspServer.OpenDocumentAsync(expectedDocumentUri).ConfigureAwait(false);
 
@@ -100,5 +101,40 @@ public class UriTests : AbstractLanguageServerProtocolTests
         AssertEx.NotNull(document);
         Assert.Equal(expectedDocumentUri, document.GetURI());
         Assert.Equal(documentFilePath, document.FilePath);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDocument_WithFileAndGitScheme(bool mutatingLspWorkspace)
+    {
+        // Start with an empty workspace.
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "Initial Disk Contents", mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        var fileDocumentUri = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetURI();
+        var fileDocumentText = "FileText";
+        await testLspServer.OpenDocumentAsync(fileDocumentUri, fileDocumentText);
+
+        // Add a git version of this document. Instead of "file://FILEPATH" the uri is "git://FILEPATH"
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        var gitDocumentUri = new Uri(fileDocumentUri.ToString().Replace("file", "git"));
+#pragma warning restore
+
+        var gitDocumentText = "GitText";
+        await testLspServer.OpenDocumentAsync(gitDocumentUri, gitDocumentText);
+
+        // Verify file is added to the workspace and the text matches the file document
+        var (workspace, _, fileDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileDocumentUri }, CancellationToken.None);
+        AssertEx.NotNull(fileDocument);
+        var fileTextResult = await fileDocument.GetTextAsync();
+        Assert.Equal(fileDocumentUri, fileDocument.GetURI());
+        Assert.Equal(fileDocumentText, fileTextResult.ToString());
+
+        // Verify file is added to the workspace and the text matches the git document
+        var (gitWorkspace, _, gitDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = gitDocumentUri }, CancellationToken.None);
+        AssertEx.NotNull(gitDocument);
+        var gitText = await gitDocument.GetTextAsync();
+        Assert.Equal(gitDocumentUri, gitDocument.GetURI());
+        Assert.Equal(gitDocumentText, gitText.ToString());
     }
 }

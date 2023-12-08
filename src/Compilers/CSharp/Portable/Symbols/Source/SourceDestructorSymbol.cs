@@ -20,21 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DestructorDeclarationSyntax syntax,
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Identifier.GetLocation(), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
+            base(containingType, syntax.GetReference(), GetSymbolLocation(syntax, out Location location), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                 MakeModifiersAndFlags(containingType, syntax, isNullableAnalysisEnabled, location, diagnostics, out bool modifierErrors))
         {
-            const MethodKind methodKind = MethodKind.Destructor;
-            Location location = this.GetFirstLocation();
-
-            bool modifierErrors;
-            var declarationModifiers = MakeModifiers(syntax.Modifiers, location, diagnostics, out modifierErrors);
+            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
             bool hasBlockBody = syntax.Body != null;
-            bool isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
-            bool hasAnyBody = hasBlockBody || isExpressionBodied;
-
-            this.MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, hasAnyBody: hasAnyBody, isExpressionBodied: isExpressionBodied, isExtensionMethod: false,
-                isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
+            bool isExpressionBodied = IsExpressionBodied;
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
@@ -67,6 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+        }
+
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(NamedTypeSymbol containingType, DestructorDeclarationSyntax syntax, bool isNullableAnalysisEnabled, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+        {
+            DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax.Modifiers, location, diagnostics, out modifierErrors);
+            Flags flags = MakeFlags(
+                                    MethodKind.Destructor, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
+                                    isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false,
+                                    isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false);
+
+            return (declarationModifiers, flags);
+        }
+
+        private static Location GetSymbolLocation(DestructorDeclarationSyntax syntax, out Location location)
+        {
+            location = syntax.Identifier.GetLocation();
+            return location;
         }
 
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
@@ -117,13 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
+        private static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxTokenList modifiers, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: ContainingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
-
-            this.CheckUnsafeModifier(mods, diagnostics);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 

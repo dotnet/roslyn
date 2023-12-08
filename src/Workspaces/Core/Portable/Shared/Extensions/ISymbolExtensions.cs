@@ -14,7 +14,6 @@ using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -318,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var container = node as XContainer;
             if (container == null)
             {
-                return new XNode[] { Copy(node, copyAttributeAnnotations: false) };
+                return [Copy(node, copyAttributeAnnotations: false)];
             }
 
             var oldNodes = container.Nodes();
@@ -334,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 container.ReplaceNodes(rewritten);
             }
 
-            return new XNode[] { container };
+            return [container];
         }
 
         private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)

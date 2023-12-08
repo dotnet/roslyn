@@ -2299,8 +2299,7 @@ class Program
                 }
                 """;
             await VerifyCS.VerifyRefactoringAsync(code,
-                new[]
-                {
+                [
                     // /0/Test0.cs(7,12): error CS0103: The name 'x' does not exist in the current context
                     DiagnosticResult.CompilerError("CS0103").WithSpan(7, 12, 7, 13).WithArguments("x"),
                     // /0/Test0.cs(7,13): error CS1002: ; expected
@@ -2309,7 +2308,7 @@ class Program
                     DiagnosticResult.CompilerError("CS1026").WithSpan(7, 13, 7, 13),
                     // /0/Test0.cs(7,13): error CS1026: ) expected
                     DiagnosticResult.CompilerError("CS1026").WithSpan(7, 13, 7, 13),
-                }, code);
+                ], code);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41824")]
@@ -2947,7 +2946,7 @@ class C
                 """;
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();
@@ -2961,7 +2960,7 @@ class C
                 """;
             await new VerifyCS.Test
             {
-                LanguageVersion = LanguageVersion.Preview,
+                LanguageVersion = LanguageVersion.CSharp12,
                 TestCode = code,
                 FixedCode = code,
             }.RunAsync();

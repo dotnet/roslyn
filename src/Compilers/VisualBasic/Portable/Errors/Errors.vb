@@ -1774,8 +1774,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_DoNotUseRequiredMember = 37325
 
         ERR_UnsupportedRefReturningCallInWithStatement = 37326
+        ERR_SymbolDefinedInAssembly = 37327
 
-        ERR_NextAvailable = 37327
+        ERR_InvalidExperimentalDiagID = 37328
+
+        ERR_NextAvailable = 37329
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

@@ -15,6 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         Implements Cci.IEventDefinition
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Iterator Function IEventDefinitionAccessors(context As EmitContext) As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.GetAccessors
             CheckDefinitionInvariant()
 
@@ -95,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IEventDefinitionVisibility As Cci.TypeMemberVisibility Implements Cci.IEventDefinition.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedEventSymbol)
+                Return AdaptedEventSymbol.MetadataVisibility
             End Get
 
         End Property
@@ -121,7 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedEventSymbol.MetadataName
             End Get
         End Property
-
     End Class
 
     Partial Friend Class EventSymbol

@@ -254,5 +254,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCoalesceExpression
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
+        public async Task TestNotWithTargetTyping1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(int? x)
+                    {
+                        object z = [||]x.HasValue ? x.Value : "";
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
+        public async Task TestWithNonTargetTyping1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    void M(int? x)
+                    {
+                        object z = [||]x.HasValue ? x.Value : 0;
+                    }
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    void M(int? x)
+                    {
+                        object z = x ?? 0;
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
+        public async Task TestNotWithTargetTyping2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    public int? Index { get; set; }
+
+                    public string InterpolatedText => $"{([||]Index.HasValue ? Index.Value : "???")}: rest of the text";
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69087")]
+        public async Task TestWithNonTargetTyping2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+
+                class C
+                {
+                    public int? Index { get; set; }
+
+                    public string InterpolatedText => $"{([||]Index.HasValue ? Index.Value : 0)}: rest of the text";
+                }
+                """,
+                """
+                using System;
+
+                class C
+                {
+                    public int? Index { get; set; }
+
+                    public string InterpolatedText => $"{(Index ?? 0)}: rest of the text";
+                }
+                """);
+        }
     }
 }

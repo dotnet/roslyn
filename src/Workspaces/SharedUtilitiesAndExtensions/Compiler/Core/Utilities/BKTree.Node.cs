@@ -8,28 +8,21 @@ namespace Roslyn.Utilities
 {
     internal readonly partial struct BKTree
     {
-        private readonly struct Node
+        private readonly struct Node(TextSpan wordSpan, int edgeCount, int firstEdgeIndex)
         {
             /// <summary>
             /// The string this node corresponds to.  Specifically, this span is the range of
             /// <see cref="_concatenatedLowerCaseWords"/> for that string.
             /// </summary>
-            public readonly TextSpan WordSpan;
+            public readonly TextSpan WordSpan = wordSpan;
 
             ///<summary>How many child edges this node has.</summary>
-            public readonly int EdgeCount;
+            public readonly int EdgeCount = edgeCount;
 
             ///<summary>Where the first edge can be found in <see cref="_edges"/>.  The edges 
             ///are in the range _edges[FirstEdgeIndex, FirstEdgeIndex + EdgeCount)
             ///</summary>
-            public readonly int FirstEdgeIndex;
-
-            public Node(TextSpan wordSpan, int edgeCount, int firstEdgeIndex)
-            {
-                WordSpan = wordSpan;
-                EdgeCount = edgeCount;
-                FirstEdgeIndex = firstEdgeIndex;
-            }
+            public readonly int FirstEdgeIndex = firstEdgeIndex;
 
             internal void WriteTo(ObjectWriter writer)
             {

@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // If the LHS is a readonly ref and the result is used later we cannot stack
                 // schedule since we may be converting a writeable value on the RHS to a readonly
                 // one on the LHS.
-                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                if (localSymbol.RefKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn &&
                     (_context == ExprContext.Address || _context == ExprContext.Value))
                 {
                     ShouldNotSchedule(localSymbol);
@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundCall visitArgumentsAndUpdateCall(BoundCall node, BoundExpression receiver)
             {
                 var rewrittenArguments = VisitArguments(node.Arguments, node.Method.Parameters, node.ArgumentRefKindsOpt);
-                return node.Update(receiver, node.Method, rewrittenArguments);
+                return node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, rewrittenArguments);
             }
         }
 
@@ -2267,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
                 TypeSymbol? type = this.VisitType(node.Type);
-                return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+                return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
             }
         }
 #nullable disable

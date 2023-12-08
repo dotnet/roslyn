@@ -17,18 +17,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestInFunctionPointerDeclaration()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    unsafe void N() {
-        delegate* $$");
+                """
+                class Test {
+                    unsafe void N() {
+                        delegate* $$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
         {
             await VerifyKeywordAsync(
-@"class Test {
-    unsafe void N() {
-        delegate*$$");
+                """
+                class Test {
+                    unsafe void N() {
+                        delegate*$$
+                """);
         }
     }
 }

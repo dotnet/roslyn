@@ -9,18 +9,11 @@ namespace Roslyn.Utilities
 {
     internal struct WordSimilarityChecker : IDisposable
     {
-        private readonly struct CacheResult
+        private readonly struct CacheResult(string candidate, bool areSimilar, double similarityWeight)
         {
-            public readonly string CandidateText;
-            public readonly bool AreSimilar;
-            public readonly double SimilarityWeight;
-
-            public CacheResult(string candidate, bool areSimilar, double similarityWeight)
-            {
-                CandidateText = candidate;
-                AreSimilar = areSimilar;
-                SimilarityWeight = similarityWeight;
-            }
+            public readonly string CandidateText = candidate;
+            public readonly bool AreSimilar = areSimilar;
+            public readonly double SimilarityWeight = similarityWeight;
         }
 
         // Cache the result of the last call to AreSimilar.  We'll often be called with the same
@@ -39,6 +32,8 @@ namespace Roslyn.Utilities
         /// </summary>
         private readonly bool _substringsAreSimilar;
 
+        public readonly bool IsDefault => _source is null;
+
         public WordSimilarityChecker(string text, bool substringsAreSimilar)
         {
             _source = text ?? throw new ArgumentNullException(nameof(text));
@@ -48,7 +43,12 @@ namespace Roslyn.Utilities
         }
 
         public readonly void Dispose()
-            => _editDistance.Dispose();
+        {
+            if (this.IsDefault)
+                return;
+
+            _editDistance.Dispose();
+        }
 
         public static bool AreSimilar(string originalText, string candidateText)
             => AreSimilar(originalText, candidateText, substringsAreSimilar: false);
@@ -163,5 +163,8 @@ namespace Roslyn.Utilities
 
             return 0;
         }
+
+        public readonly bool LastCacheResultIs(bool areSimilar, string candidateText)
+            => _lastAreSimilarResult.AreSimilar == areSimilar && _lastAreSimilarResult.CandidateText == candidateText;
     }
 }

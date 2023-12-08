@@ -93,7 +93,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 AddParts(extraExportedTypes)
 
             If includeFormatCommandHandler Then
-                composition = composition.AddParts(GetType(FormatCommandHandler))
+                ' FormatCommandHandler would generally be included in the catalog, but is excluded from tests by adding
+                ' it to the list of excluded part types. Here we validate the input state and restore the default
+                ' behavior of the catalog by removing FormatCommandHandler from the excluded parts list.
+                Assert.Contains(GetType(FormatCommandHandler).Assembly, composition.Assemblies)
+                Assert.Contains(GetType(FormatCommandHandler), composition.ExcludedPartTypes)
+                composition = composition.RemoveExcludedPartTypes(GetType(FormatCommandHandler))
             End If
 
             Return composition

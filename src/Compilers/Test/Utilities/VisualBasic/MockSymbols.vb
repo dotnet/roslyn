@@ -384,6 +384,11 @@ Friend Class MockNamedTypeSymbol
             Return False
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -747,6 +752,13 @@ Friend Class MockModuleSymbol
     Public Overrides Function GetMetadata() As ModuleMetadata
         Return Nothing
     End Function
+
+    Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
 End Class
 
 Friend Class MockAssemblySymbol
@@ -804,6 +816,18 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides Function GetNoPiaResolutionAssemblies() As ImmutableArray(Of AssemblySymbol)
         Return CType(Nothing, ImmutableArray(Of AssemblySymbol))
     End Function
@@ -821,6 +845,10 @@ Friend Class MockAssemblySymbol
     End Sub
 
     Friend Overrides Function GetInternalsVisibleToPublicKeys(simpleName As String) As IEnumerable(Of ImmutableArray(Of Byte))
+        Throw New NotImplementedException()
+    End Function
+
+    Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
         Throw New NotImplementedException()
     End Function
 
@@ -857,4 +885,16 @@ Friend Class MockAssemblySymbol
     Public Overrides Function GetMetadata() As AssemblyMetadata
         Return Nothing
     End Function
+
+    Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+        Get
+            Return Nothing
+        End Get
+    End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
+
 End Class

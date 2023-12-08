@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                         new RelatedLocation(originalLocation,
                                         documentId,
                                         complexifiedLocationSpanForThisDocument.Contains(originalLocation) ? RelatedLocationType.ResolvedReferenceConflict : RelatedLocationType.NoConflict,
-                                        isReference: true));
+                                        IsReference: true));
                                 }
                                 else
                                 {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             new RelatedLocation(originalLocation,
                                             documentId,
                                             RelatedLocationType.ResolvedNonReferenceConflict,
-                                            isReference: false));
+                                            IsReference: false));
                                     }
                                 }
                             }
@@ -424,8 +424,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                     originalLocation,
                                     documentId,
                                     complexifiedTarget != null ? RelatedLocationType.PossiblyResolvableConflict : RelatedLocationType.UnresolvableConflict,
-                                    isReference: conflictAnnotation.IsRenameLocation,
-                                    complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default));
+                                    IsReference: conflictAnnotation.IsRenameLocation,
+                                    ComplexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default));
                             }
                         }
                     }

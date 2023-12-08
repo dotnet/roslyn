@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
         {
-            LazyInitialization.EnsureInitialized(ref _unrootedSymbolToProjectId, s_createTable);
+            InterlockedOperations.Initialize(ref _unrootedSymbolToProjectId, s_createTable);
 
             // Walk up the symbol so we can get to the containing namespace/assembly that will be used to map
             // back to a project.

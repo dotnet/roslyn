@@ -9,19 +9,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
@@ -83,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // check empty since this could be called to clear up existing diagnostics
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostics = a.Diagnostics;
-                Assert.Empty(diagnostics);
+                Assert.All(a, e => Assert.Empty(e.Diagnostics));
             };
 
             // now call each analyze method. none of them should run.
@@ -207,23 +203,26 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var syntaxDiagnostic = false;
             var semanticDiagnostic = false;
             var compilationDiagnostic = false;
-            service.DiagnosticsUpdated += (s, a) =>
+            service.DiagnosticsUpdated += (s, aCollection) =>
             {
-                var diagnostics = a.Diagnostics;
-                var diagnostic = Assert.Single(diagnostics);
-                Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+                foreach (var a in aCollection)
+                {
+                    var diagnostics = a.Diagnostics;
+                    var diagnostic = Assert.Single(diagnostics);
+                    Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
 
-                if (diagnostic.Id == DisabledByDefaultAnalyzer.s_syntaxRule.Id)
-                {
-                    syntaxDiagnostic = true;
-                }
-                else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_semanticRule.Id)
-                {
-                    semanticDiagnostic = true;
-                }
-                else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_compilationRule.Id)
-                {
-                    compilationDiagnostic = true;
+                    if (diagnostic.Id == DisabledByDefaultAnalyzer.s_syntaxRule.Id)
+                    {
+                        syntaxDiagnostic = true;
+                    }
+                    else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_semanticRule.Id)
+                    {
+                        semanticDiagnostic = true;
+                    }
+                    else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_compilationRule.Id)
+                    {
+                        compilationDiagnostic = true;
+                    }
                 }
             };
 
@@ -260,10 +259,13 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var semantic = false;
 
             // listen to events
-            service.DiagnosticsUpdated += (s, a) =>
+            service.DiagnosticsUpdated += (s, aCollection) =>
             {
-                var diagnostics = a.Diagnostics;
-                (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
+                foreach (var a in aCollection)
+                {
+                    var diagnostics = a.Diagnostics;
+                    (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
+                }
             };
 
             // now call each analyze method. none of them should run.
@@ -303,22 +305,25 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var analyzer = service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
-            service.DiagnosticsUpdated += (s, a) =>
+            service.DiagnosticsUpdated += (s, aCollection) =>
             {
-                if (workspace.IsDocumentOpen(a.DocumentId))
+                foreach (var a in aCollection)
                 {
-                    var diagnostics = a.Diagnostics;
-                    // check the diagnostics are reported
-                    Assert.Equal(document.Id, a.DocumentId);
-                    Assert.Equal(1, diagnostics.Length);
-                    Assert.Equal(OpenFileOnlyAnalyzer.s_syntaxRule.Id, diagnostics[0].Id);
-                }
+                    if (workspace.IsDocumentOpen(a.DocumentId))
+                    {
+                        var diagnostics = a.Diagnostics;
+                        // check the diagnostics are reported
+                        Assert.Equal(document.Id, a.DocumentId);
+                        Assert.Equal(1, diagnostics.Length);
+                        Assert.Equal(OpenFileOnlyAnalyzer.s_syntaxRule.Id, diagnostics[0].Id);
+                    }
 
-                if (a.DocumentId == document.Id && !workspace.IsDocumentOpen(a.DocumentId))
-                {
-                    // check the diagnostics reported are cleared
-                    var diagnostics = a.Diagnostics;
-                    Assert.Equal(0, diagnostics.Length);
+                    if (a.DocumentId == document.Id && !workspace.IsDocumentOpen(a.DocumentId))
+                    {
+                        // check the diagnostics reported are cleared
+                        var diagnostics = a.Diagnostics;
+                        Assert.Equal(0, diagnostics.Length);
+                    }
                 }
             };
 
@@ -342,7 +347,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         [Fact]
         public async Task TestSynchronizeWithBuild()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
@@ -374,19 +379,22 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var syntax = false;
 
             // listen to events
-            service.DiagnosticsUpdated += (s, a) =>
+            service.DiagnosticsUpdated += (s, aCollection) =>
             {
-                var diagnostics = a.Diagnostics;
-                switch (diagnostics.Length)
+                foreach (var a in aCollection)
                 {
-                    case 0:
-                        return;
-                    case 1:
-                        syntax |= diagnostics[0].Id == NoNameAnalyzer.s_syntaxRule.Id;
-                        return;
-                    default:
-                        AssertEx.Fail("shouldn't reach here");
-                        return;
+                    var diagnostics = a.Diagnostics;
+                    switch (diagnostics.Length)
+                    {
+                        case 0:
+                            continue;
+                        case 1:
+                            syntax |= diagnostics[0].Id == NoNameAnalyzer.s_syntaxRule.Id;
+                            continue;
+                        default:
+                            AssertEx.Fail("shouldn't reach here");
+                            continue;
+                    }
                 }
             };
 
@@ -493,18 +501,21 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var called = false;
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                var diagnostics = e.Diagnostics;
-                if (diagnostics.Length == 0)
+                foreach (var e in eCollection)
                 {
-                    return;
+                    var diagnostics = e.Diagnostics;
+                    if (diagnostics.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                    Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
+
+                    called = true;
                 }
-
-                var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
-
-                called = true;
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -599,18 +610,21 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             var called = false;
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                var diagnostics = e.Diagnostics;
-                if (diagnostics.Length == 0)
+                foreach (var e in eCollection)
                 {
-                    return;
+                    var diagnostics = e.Diagnostics;
+                    if (diagnostics.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                    Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
+
+                    called = true;
                 }
-
-                var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
-
-                called = true;
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
@@ -657,9 +671,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var diagnostics = new ConcurrentSet<DiagnosticData>();
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                diagnostics.AddRange(e.Diagnostics);
+                foreach (var e in eCollection)
+                    diagnostics.AddRange(e.Diagnostics);
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -668,7 +683,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             switch (analysisScope)
             {
                 case BackgroundAnalysisScope.None:
-                case BackgroundAnalysisScope.ActiveFile:
+                case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
                     await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
@@ -686,7 +701,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None, _) => 0,
+                (BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, _) => 0,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
@@ -704,7 +719,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
                     var text = await additionalDoc.GetTextAsync();
-                    if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
+                    if (analysisScope is BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
@@ -763,15 +778,18 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 
             DiagnosticData diagnostic = null;
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                var diagnostics = e.Diagnostics;
-                if (diagnostics.Length == 0)
+                foreach (var e in eCollection)
                 {
-                    return;
-                }
+                    var diagnostics = e.Diagnostics;
+                    if (diagnostics.Length == 0)
+                    {
+                        continue;
+                    }
 
-                diagnostic = Assert.Single(diagnostics);
+                    diagnostic = Assert.Single(diagnostics);
+                }
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -779,7 +797,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             switch (analysisScope)
             {
                 case BackgroundAnalysisScope.None:
-                case BackgroundAnalysisScope.ActiveFile:
+                case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
@@ -863,11 +881,11 @@ class A
             if (isSourceGenerated)
             {
                 files = Array.Empty<string>();
-                sourceGeneratedFiles = new[] { code };
+                sourceGeneratedFiles = [code];
             }
             else
             {
-                files = new[] { code };
+                files = [code];
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 
@@ -897,12 +915,15 @@ class A
 
             var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
             var text = await document.GetTextAsync();
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                diagnostics.AddRange(
-                    e.Diagnostics
-                     .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
-                     .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
+                foreach (var e in eCollection)
+                {
+                    diagnostics.AddRange(
+                        e.Diagnostics
+                         .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
+                         .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
+                }
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -910,7 +931,7 @@ class A
             switch (analysisScope)
             {
                 case BackgroundAnalysisScope.None:
-                case BackgroundAnalysisScope.ActiveFile:
+                case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
                     if (isSourceGenerated)
                         workspace.OpenSourceGeneratedDocument(document.Id);
                     else
@@ -994,16 +1015,19 @@ class A
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 
             DiagnosticData diagnostic = null;
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                var diagnostics = e.Diagnostics;
-                if (diagnostics.IsEmpty)
+                foreach (var e in eCollection)
                 {
-                    return;
-                }
+                    var diagnostics = e.Diagnostics;
+                    if (diagnostics.IsEmpty)
+                    {
+                        continue;
+                    }
 
-                Assert.Null(diagnostic);
-                diagnostic = Assert.Single(diagnostics);
+                    Assert.Null(diagnostic);
+                    diagnostic = Assert.Single(diagnostics);
+                }
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -1086,7 +1110,7 @@ class A
 
         [Theory, WorkItem(67257, "https://github.com/dotnet/roslyn/issues/67257")]
         [CombinatorialData]
-        public async Task TestFilterSpanOnContextAsync(bool testSyntaxTreeAction)
+        public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
         {
             var source = @"
 class B
@@ -1096,36 +1120,61 @@ class B
         int x = 1;
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(source);
+            var additionalText = @"This is an additional file!";
 
-            var analyzer = new FilterSpanTestAnalyzer(testSyntaxTreeAction);
+            using var workspace = TestWorkspace.CreateCSharp(source);
+            var project = workspace.CurrentSolution.Projects.Single();
+            project = project.AddAdditionalDocument("additional.txt", additionalText).Project;
+
+            var analyzer = new FilterSpanTestAnalyzer(kind);
             var analyzerId = analyzer.GetAnalyzerId();
             var analyzerIdsToRequestDiagnostics = new[] { analyzerId };
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            project = project.AddAnalyzerReference(analyzerReference);
 
-            var project = workspace.CurrentSolution.Projects.Single();
+            workspace.TryApplyChanges(project.Solution);
+
+            project = workspace.CurrentSolution.Projects.Single();
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
             var document = project.Documents.Single();
+            var additionalDocument = project.AdditionalDocuments.Single();
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var localDeclaration = root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax>().First();
-
+            var filterSpan = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                ? new TextSpan(0, 1)
+                : localDeclaration.Span;
             // Invoke "GetDiagnosticsAsync" for a sub-span and then
-            // for the entire document span and verify FilterSpan on the callback context.
+            // for the entire document span and verify FilterSpan/FilterTree on the callback context.
             Assert.Null(analyzer.CallbackFilterSpan);
-            await VerifyCallbackSpanAsync(filterSpan: localDeclaration.Span);
+            Assert.Null(analyzer.CallbackFilterTree);
+            await VerifyCallbackSpanAsync(filterSpan);
             await VerifyCallbackSpanAsync(filterSpan: null);
 
             async Task VerifyCallbackSpanAsync(TextSpan? filterSpan)
             {
-                var analysisKind = testSyntaxTreeAction ? AnalysisKind.Syntax : AnalysisKind.Semantic;
+                var analysisKind = kind is FilterSpanTestAnalyzer.AnalysisKind.SyntaxTree or FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile
+                    ? AnalysisKind.Syntax
+                    : AnalysisKind.Semantic;
+                var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
                 _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                    document, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
+                    documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
                     analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                     isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                     CancellationToken.None);
                 Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+                if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
+                {
+                    var expectedText = additionalDocument.GetTextSynchronously(CancellationToken.None).ToString();
+                    var actualText = analyzer.CallbackFilterFile.GetText().ToString();
+                    Assert.Equal(expectedText, actualText);
+                    Assert.Null(analyzer.CallbackFilterTree);
+                }
+                else
+                {
+                    Assert.Equal(root.SyntaxTree, analyzer.CallbackFilterTree);
+                    Assert.Null(analyzer.CallbackFilterFile);
+                }
             }
         }
 
@@ -1186,11 +1235,11 @@ class A
             Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
         }
 
-        [Theory]
+        [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909806")]
         [CombinatorialData]
-        internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis)
+        internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
         {
-            using var workspace = TestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService);
+            using var workspace = TestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
             var globalOptions = workspace.GetService<IGlobalOptionService>();
 
             var generator = new DiagnosticProducingGenerator(c => Location.Create(c.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
@@ -1199,32 +1248,37 @@ class A
             var project = workspace.CurrentSolution.Projects.Single();
             var document = project.Documents.Single();
 
-            if (fullSolutionAnalysis)
+            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp,
+                fullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles);
+
+            // If we aren't testing FSA or analyzing document diagnostics, then open the file.
+            if (!fullSolutionAnalysis || !analyzeProject)
             {
-                globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
-            }
-            else
-            {
-                // If we aren't testing FSA, then open the file.
                 workspace.OpenDocument(document.Id);
             }
 
             var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
             var gotDiagnostics = false;
-            service.DiagnosticsUpdated += (s, e) =>
+            service.DiagnosticsUpdated += (s, eCollection) =>
             {
-                var diagnostics = e.Diagnostics;
-                if (diagnostics.Length == 0)
-                    return;
+                foreach (var e in eCollection)
+                {
+                    var diagnostics = e.Diagnostics;
+                    if (diagnostics.Length == 0)
+                        continue;
 
-                var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                if (liveId.Analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
-                    gotDiagnostics = true;
+                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
+                    if (liveId.Analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
+                        gotDiagnostics = true;
+                }
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+            if (analyzeProject)
+                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
+            else
+                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1329,7 +1383,7 @@ class A
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+            public bool IsHighPriority => false;
 
             public bool OpenFileOnly(SimplifierOptions options)
                 => true;

@@ -262,8 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // in tests `ActiveTextview` could be null so don't depend on it
                 return ActiveTextView == null ||
-                    _referenceSpanToLinkedRenameSpanMap.Keys
-                    .Select(s => s.ToSpan())
+                    _referenceSpanToLinkedRenameSpanMap.Values
+                    .Select(renameTrackingSpan => renameTrackingSpan.TrackingSpan.GetSpan(_subjectBuffer.CurrentSnapshot))
                     .All(s =>
                         s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
                         ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
@@ -453,9 +453,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                         // Show merge conflicts comments as unresolvable conflicts, and do not
                         // show any other rename-related spans that overlap a merge conflict comment.
-                        var mergeConflictComments = mergeResult.MergeConflictCommentSpans.ContainsKey(document.Id)
-                            ? mergeResult.MergeConflictCommentSpans[document.Id]
-                            : SpecializedCollections.EmptyEnumerable<TextSpan>();
+                        mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
+                        mergeConflictComments ??= SpecializedCollections.EmptyEnumerable<TextSpan>();
 
                         foreach (var conflict in mergeConflictComments)
                         {
@@ -737,8 +736,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 private SnapshotPoint GetNewEndpoint(TextSpan span)
                 {
                     var snapshot = _openTextBufferManager._subjectBuffer.CurrentSnapshot;
-                    var endPoint = _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.ContainsKey(span)
-                        ? _openTextBufferManager._referenceSpanToLinkedRenameSpanMap[span].TrackingSpan.GetEndPoint(snapshot)
+                    var endPoint = _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.TryGetValue(span, out var renameTrackingSpan)
+                        ? renameTrackingSpan.TrackingSpan.GetEndPoint(snapshot)
                         : _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.First(kvp => kvp.Key.OverlapsWith(span)).Value.TrackingSpan.GetEndPoint(snapshot);
                     return _openTextBufferManager.ActiveTextView.BufferGraph.MapUpToBuffer(endPoint, PointTrackingMode.Positive, PositionAffinity.Successor, _openTextBufferManager.ActiveTextView.TextBuffer).Value;
                 }

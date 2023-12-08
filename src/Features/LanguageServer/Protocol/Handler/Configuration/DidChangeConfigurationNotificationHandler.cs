@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         /// Example:Full name of <see cref="ImplementTypeOptionsStorage.InsertionBehavior"/> would be:
         /// implement_type.dotnet_insertion_behavior
         /// </remarks>
-        private static string GenerateFullNameForOption(IOption2 option)
+        internal static string GenerateFullNameForOption(IOption2 option)
         {
             var optionGroupName = GenerateOptionGroupName(option);
             // All options send to the client should have group name and config name.

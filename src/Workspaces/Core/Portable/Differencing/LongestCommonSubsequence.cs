@@ -190,18 +190,11 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         // VArray struct enables array indexing in range [-d...d].
-        protected readonly struct VArray
+        protected readonly struct VArray(int[] buffer, int start, int length)
         {
-            private readonly int[] _buffer;
-            private readonly int _start;
-            private readonly int _length;
-
-            public VArray(int[] buffer, int start, int length)
-            {
-                _buffer = buffer;
-                _start = start;
-                _length = length;
-            }
+            private readonly int[] _buffer = buffer;
+            private readonly int _start = start;
+            private readonly int _length = length;
 
             public void InitializeFrom(VArray other)
             {

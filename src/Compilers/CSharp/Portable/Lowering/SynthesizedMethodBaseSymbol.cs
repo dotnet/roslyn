@@ -36,26 +36,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               string name,
                                               DeclarationModifiers declarationModifiers,
                                               bool isIterator)
-            : base(containingType, syntaxReference, location, isIterator)
+            : base(containingType, syntaxReference, location, isIterator,
+                   (declarationModifiers, MakeFlags(
+                                                    methodKind: MethodKind.Ordinary,
+                                                    refKind: baseMethod.RefKind,
+                                                    declarationModifiers,
+                                                    returnsVoid: baseMethod.ReturnsVoid,
+                                                    returnsVoidIsSet: true,
+                                                    isExtensionMethod: false,
+                                                    isNullableAnalysisEnabled: false,
+                                                    isVarArg: baseMethod.IsVararg,
+                                                    isExpressionBodied: false,
+                                                    isExplicitInterfaceImplementation: false)))
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
 
             this.BaseMethod = baseMethod;
             _name = name;
-
-            this.MakeFlags(
-                methodKind: MethodKind.Ordinary,
-                refKind: baseMethod.RefKind,
-                declarationModifiers: declarationModifiers,
-                returnsVoid: baseMethod.ReturnsVoid,
-                // Consider synthesized methods to always have bodies.
-                hasAnyBody: true,
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: false,
-                isVarArg: baseMethod.IsVararg,
-                isMetadataVirtualIgnoringModifiers: false,
-                isExpressionBodied: false);
         }
 
         protected void AssignTypeMapAndTypeParameters(TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParameters)

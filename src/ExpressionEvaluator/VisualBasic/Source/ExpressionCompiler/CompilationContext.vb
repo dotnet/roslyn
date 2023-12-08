@@ -1288,10 +1288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     variableKind = DisplayClassVariableKind.Parameter
                 End If
 
-                If displayClassVariablesBuilder.ContainsKey(variableName) Then
+                Dim displayClassVariable As DisplayClassVariable = Nothing
+                If displayClassVariablesBuilder.TryGetValue(variableName, displayClassVariable) Then
                     ' Only expecting duplicates for async state machine
                     ' fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder(variableName).DisplayClassFields.Count() = 1)
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() = 1)
 
                     If Not instance.Fields.Any() Then
                         ' Prefer parameters over locals.

@@ -8,12 +8,7 @@
     <PackageDescription>
       A framework for building Language Server Protocol implementations in C#.
     </PackageDescription>
-    <PackageLicenseExpression></PackageLicenseExpression>
-    <PackageLicenseFile>License.txt</PackageLicenseFile>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="License.txt" PackagePath="" Pack="true" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>

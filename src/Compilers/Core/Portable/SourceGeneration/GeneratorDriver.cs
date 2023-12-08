@@ -218,14 +218,14 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
 
                     Exception? ex = null;
                     try
                     {
                         generator.Initialize(pipelineContext);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
                     {
                         ex = e;
                     }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis
                             IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, new GeneratorRunStateTable.Builder(false), cancellationToken);
                             postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
                         }
-                        catch (UserFunctionException e)
+                        catch (UserFunctionException e) when (handleGeneratorException(compilation, MessageProvider, sourceGenerator, e, isInit: true))
                         {
                             ex = e.InnerException;
                         }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (state.ParseOptionsChanged && generatorState.PostInitTrees.Length > 0)
                 {
-                    // the generator is initalized, but we need to reparse the post-init trees as the parse options have changed
+                    // the generator is initialized, but we need to reparse the post-init trees as the parse options have changed
                     var reparsedInitSources = ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken);
                     generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes);
                 }
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis
 
                     stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
                 }
-                catch (UserFunctionException ufe)
+                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
                     stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
                 }
@@ -309,6 +309,18 @@ namespace Microsoft.CodeAnalysis
 
             state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed, parseOptionsChanged: false);
             return state;
+
+            static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)
+            {
+                if (!compilation.CatchAnalyzerExceptions)
+                {
+                    Debug.Assert(false);
+                    Environment.FailFast(CreateGeneratorExceptionDiagnostic(messageProvider, sourceGenerator, e, isInit).ToString());
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
@@ -341,25 +353,12 @@ namespace Microsoft.CodeAnalysis
 
         private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, TimeSpan? runTime = null, bool isInit = false)
         {
-            var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
+            if (CodeAnalysisEventSource.Log.IsEnabled())
+            {
+                CodeAnalysisEventSource.Log.GeneratorException(generator.GetGeneratorType().Name, e.ToString());
+            }
 
-            // ISSUE: Diagnostics don't currently allow descriptions with arguments, so we have to manually create the diagnostic description
-            // ISSUE: Exceptions also don't support IFormattable, so will always be in the current UI Culture.
-            // ISSUE: See https://github.com/dotnet/roslyn/issues/46939
-
-            var description = string.Format(provider.GetDescription(errorCode).ToString(CultureInfo.CurrentUICulture), e);
-
-            var descriptor = new DiagnosticDescriptor(
-                provider.GetIdForErrorCode(errorCode),
-                provider.GetTitle(errorCode),
-                provider.GetMessageFormat(errorCode),
-                description: description,
-                category: "Compiler",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true,
-                customTags: WellKnownDiagnosticTags.AnalyzerException);
-
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message);
+            var diagnostic = CreateGeneratorExceptionDiagnostic(provider, generator, e, isInit);
             var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
 
             if (filtered is not null)
@@ -368,6 +367,26 @@ namespace Microsoft.CodeAnalysis
                 return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero);
             }
             return generatorState;
+        }
+
+        private static Diagnostic CreateGeneratorExceptionDiagnostic(CommonMessageProvider provider, ISourceGenerator generator, Exception e, bool isInit)
+        {
+            var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
+
+            // ISSUE: We should not call `e.CreateDiagnosticDescription()`, and instead pass formattable parts like `StackTrace`.
+            // ISSUE: Exceptions also don't support IFormattable, so will always be in the current UI Culture.
+            // ISSUE: See https://github.com/dotnet/roslyn/issues/46939
+
+            var descriptor = new DiagnosticDescriptor(
+                provider.GetIdForErrorCode(errorCode),
+                provider.GetTitle(errorCode),
+                provider.GetMessageFormat(errorCode),
+                category: "Compiler",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                customTags: WellKnownDiagnosticTags.AnalyzerException);
+
+            return Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message, e.CreateDiagnosticDescription());
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)

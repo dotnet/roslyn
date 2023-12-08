@@ -26,95 +26,97 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInDocument()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInDocument:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInDocument:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-class Class3 { }
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                        class Class3 { }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class2
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class3 { }
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class2
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class3 { }
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
@@ -123,93 +125,95 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInProject()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInProject:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInProject:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class2
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-        </Document>
-        <Document>
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class3
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class2
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class3
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
@@ -218,97 +222,99 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInSolution()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInSolution:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInSolution:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class2
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-        </Document>
-        <Document>
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class3
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class2
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class3
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-class Class2
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        class Class2
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
@@ -317,27 +323,28 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingMember()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInContainingMember:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInContainingMember:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-class Class3 { }
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                        class Class3 { }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestMissingInRegularAndScriptAsync(input);
                 }
@@ -346,93 +353,95 @@ class Class3 { }
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingType()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInContainingType:partial class Class1|}
-{
-    int Method1()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInContainingType:partial class Class1|}
+                        {
+                            int Method1()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-    int Method2()
-    {
-        int x = 0;
-    }
-}
-        </Document>
-        <Document>
-partial class Class1
-{
-    int Method3()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                            int Method2()
+                            {
+                                int x = 0;
+                            }
+                        }
+                                </Document>
+                                <Document>
+                        partial class Class1
+                        {
+                            int Method3()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class4
-{
-    int Method4()
-    {
-        int x = 0;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class4
+                        {
+                            int Method4()
+                            {
+                                int x = 0;
+                            }
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-partial class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method1()
-    {
-        int x = 0;
-    }
-}
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        partial class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method1()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-    int Method2()
-    {
-        int x = 0;
-    }
-}
-        </Document>
-        <Document>
-#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
-partial class Class1
-#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
-{
-    int Method3()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                            int Method2()
+                            {
+                                int x = 0;
+                            }
+                        }
+                                </Document>
+                                <Document>
+                        #pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+                        partial class Class1
+                        #pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+                        {
+                            int Method3()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class4
-{
-    int Method4()
-    {
-        int x = 0;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class4
+                        {
+                            int Method4()
+                            {
+                                int x = 0;
+                            }
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
@@ -451,46 +460,47 @@ class Class4
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInDocument()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInDocument:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInDocument:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
@@ -506,48 +516,51 @@ using System.Diagnostics.CodeAnalysis;
 "
     .Replace("<", "&lt;").Replace(">", "&gt;");
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                                <Document FilePath="GlobalSuppressions.cs">
+                        """ + addedGlobalSuppressions +
+        """
         </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
-        @"</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+            </Project>
+            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                <Document>
+        class Class1
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+        class Class2
+        {
+        }
+                </Document>
+            </Project>
+        </Workspace>
+        """;
 
                     await TestInRegularAndScriptAsync(input, expected, index: 1);
                 }
@@ -556,46 +569,47 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInProject()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInProject:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInProject:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
@@ -612,48 +626,51 @@ using System.Diagnostics.CodeAnalysis;
 "
     .Replace("<", "&lt;").Replace(">", "&gt;");
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                                <Document FilePath="GlobalSuppressions.cs">
+                        """ + addedGlobalSuppressions +
+        """
         </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
-        @"</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+            </Project>
+            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                <Document>
+        class Class1
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+        class Class2
+        {
+        }
+                </Document>
+            </Project>
+        </Workspace>
+        """;
 
                     await TestInRegularAndScriptAsync(input, expected, index: 1);
                 }
@@ -662,46 +679,47 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInSolution()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInSolution:class Class1|}
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInSolution:class Class1|}
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                                <Document>
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     var addedGlobalSuppressionsProject1 =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
@@ -732,50 +750,55 @@ using System.Diagnostics.CodeAnalysis;
 
 ".Replace("<", "&lt;").Replace(">", "&gt;");
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                        class Class1
+                        {
+                            int Method()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        class Class3
+                        {
+                        }
+                                </Document>
+                                <Document FilePath="GlobalSuppressions.cs">
+                        """ + addedGlobalSuppressionsProject1 +
+        """
         </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressionsProject1 +
-        @"</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+            </Project>
+            <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                <Document>
+        class Class1
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
 
-class Class2
-{
-}
+        class Class2
+        {
+        }
+                </Document>
+                <Document FilePath="GlobalSuppressions.cs">
+        """ + addedGlobalSuppressionsProject2 +
+        """
         </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressionsProject2 +
-        @"</Document>
-    </Project>
-</Workspace>";
+            </Project>
+        </Workspace>
+        """;
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
@@ -784,26 +807,27 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingMember()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInContainingMember:class Class1|}
-{
-    int Method1()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInContainingMember:class Class1|}
+                        {
+                            int Method1()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class2
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     await TestMissingInRegularAndScriptAsync(input);
                 }
@@ -812,39 +836,40 @@ class Class2
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
                 public async Task TestFixAllInContainingType()
                 {
-                    var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var input = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-{|FixAllInContainingType:partial class Class1|}
-{
-    int Method1()
-    {
-        int x = 0;
-    }
-}
+                        {|FixAllInContainingType:partial class Class1|}
+                        {
+                            int Method1()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-partial class Class1
-{
-    int Method2()
-    {
-        int x = 0;
-    }
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        partial class Class1
+                        {
+                            int Method2()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class3
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                        class Class3
+                        {
+                        }
+                                </Document>
+                            </Project>
+                        </Workspace>
+                        """;
 
                     var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
@@ -860,41 +885,44 @@ using System.Diagnostics.CodeAnalysis;
 "
     .Replace("<", "&lt;").Replace(">", "&gt;");
 
-                    var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                    var expected = """
+                        <Workspace>
+                            <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                                <Document>
+                        using System;
 
-partial class Class1
-{
-    int Method1()
-    {
-        int x = 0;
-    }
-}
+                        partial class Class1
+                        {
+                            int Method1()
+                            {
+                                int x = 0;
+                            }
+                        }
 
-class Class2
-{
-}
+                        class Class2
+                        {
+                        }
+                                </Document>
+                                <Document>
+                        partial class Class1
+                        {
+                            int Method2()
+                            {
+                                int x = 0;
+                            }
+                        }
+
+                        class Class3
+                        {
+                        }
+                                </Document>
+                                <Document FilePath="GlobalSuppressions.cs">
+                        """ + addedGlobalSuppressions +
+        """
         </Document>
-        <Document>
-partial class Class1
-{
-    int Method2()
-    {
-        int x = 0;
-    }
-}
-
-class Class3
-{
-}
-        </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
-        @"</Document>
-    </Project>
-</Workspace>";
+            </Project>
+        </Workspace>
+        """;
 
                     await TestInRegularAndScriptAsync(input, expected, index: 1);
                 }
@@ -908,46 +936,47 @@ class Class3
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             public async Task TestFixAllInProject()
             {
-                var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>{|FixAllInProject:|}
-using System;
+                var input = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>{|FixAllInProject:|}
+                    using System;
 
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                    class Class1
+                    {
+                        int Method()
+                        {
+                            int x = 0;
+                        }
+                    }
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}
+                    class Class2
+                    {
+                    }
+                            </Document>
+                            <Document>
+                    class Class3
+                    {
+                    }
+                            </Document>
+                        </Project>
+                        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                            <Document>
+                    class Class1
+                    {
+                        int Method()
+                        {
+                            int x = 0;
+                        }
+                    }
 
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                    class Class2
+                    {
+                    }
+                            </Document>
+                        </Project>
+                    </Workspace>
+                    """;
 
                 var addedGlobalSuppressions =
 $@"// This file is used by Code Analysis to maintain SuppressMessage
@@ -961,48 +990,51 @@ using System.Diagnostics.CodeAnalysis;
 "
     .Replace("<", "&lt;").Replace(">", "&gt;");
 
-                var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+                var expected = """
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                            <Document>
+                    using System;
 
-class Class1
-{
-    int Method()
+                    class Class1
+                    {
+                        int Method()
+                        {
+                            int x = 0;
+                        }
+                    }
+
+                    class Class2
+                    {
+                    }
+                            </Document>
+                            <Document>
+                    class Class3
+                    {
+                    }
+                            </Document>
+                            <Document FilePath="GlobalSuppressions.cs">
+                    """ + addedGlobalSuppressions +
+    """
+    </Document>
+        </Project>
+        <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+            <Document>
+    class Class1
     {
-        int x = 0;
+        int Method()
+        {
+            int x = 0;
+        }
     }
-}
 
-class Class2
-{
-}
-        </Document>
-        <Document>
-class Class3
-{
-}
-        </Document>
-        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
-    @"</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class Class1
-{
-    int Method()
+    class Class2
     {
-        int x = 0;
     }
-}
-
-class Class2
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+            </Document>
+        </Project>
+    </Workspace>
+    """;
 
                 await TestInRegularAndScriptAsync(input, expected);
             }

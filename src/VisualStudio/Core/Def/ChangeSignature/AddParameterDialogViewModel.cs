@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             TypeIsEmptyImage = Visibility.Visible;
             TypeBindsImage = Visibility.Collapsed;
-            TypeDoesNotParseImage = Visibility.Collapsed;
+            TypeDoesNotParseOrInvalidTypeImage = Visibility.Collapsed;
             TypeDoesNotBindImage = Visibility.Collapsed;
             TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
 
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string TypeBindsDynamicStatus { get; set; }
         public Visibility TypeBindsImage { get; set; }
         public Visibility TypeDoesNotBindImage { get; set; }
-        public Visibility TypeDoesNotParseImage { get; set; }
+        public Visibility TypeDoesNotParseOrInvalidTypeImage { get; set; }
         public Visibility TypeIsEmptyImage { get; set; }
 
         private string _verbatimTypeName = string.Empty;
@@ -120,11 +120,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
+        private bool _isVoidParameterType;
+
         internal bool CanSubmit([NotNullWhen(false)] out string? message)
         {
             if (string.IsNullOrEmpty(VerbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
                 message = ServicesVSResources.A_type_and_name_must_be_provided;
+                return false;
+            }
+
+            if (_isVoidParameterType)
+            {
+                message = ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter;
                 return false;
             }
 
@@ -175,11 +183,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void SetCurrentTypeTextAndUpdateBindingStatus(string typeName)
         {
             VerbatimTypeName = typeName;
+            _isVoidParameterType = false;
 
             if (string.IsNullOrWhiteSpace(typeName))
             {
                 TypeIsEmptyImage = Visibility.Visible;
-                TypeDoesNotParseImage = Visibility.Collapsed;
+                TypeDoesNotParseOrInvalidTypeImage = Visibility.Collapsed;
                 TypeDoesNotBindImage = Visibility.Collapsed;
                 TypeBindsImage = Visibility.Collapsed;
                 TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
@@ -193,10 +202,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
                 TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
-                var typeParses = IsParameterTypeSyntacticallyValid(typeName);
-                if (!typeParses || TypeSymbol == null)
+                if (TypeSymbol is { SpecialType: SpecialType.System_Void })
                 {
-                    TypeDoesNotParseImage = Visibility.Visible;
+                    _isVoidParameterType = true;
+                    TypeDoesNotParseOrInvalidTypeImage = Visibility.Visible;
+                    TypeDoesNotBindImage = Visibility.Collapsed;
+                    TypeBindsImage = Visibility.Collapsed;
+                    TypeBindsDynamicStatus = ServicesVSResources.SystemVoid_is_not_a_valid_type_for_a_parameter;
+                }
+                else if (!IsParameterTypeSyntacticallyValid(typeName) || TypeSymbol == null)
+                {
+                    TypeDoesNotParseOrInvalidTypeImage = Visibility.Visible;
                     TypeDoesNotBindImage = Visibility.Collapsed;
                     TypeBindsImage = Visibility.Collapsed;
                     TypeBindsDynamicStatus = ServicesVSResources.Type_name_has_a_syntax_error;
@@ -204,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 else
                 {
                     var parameterTypeBinds = DoesTypeFullyBind(TypeSymbol);
-                    TypeDoesNotParseImage = Visibility.Collapsed;
+                    TypeDoesNotParseOrInvalidTypeImage = Visibility.Collapsed;
 
                     TypeBindsImage = parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
                     TypeDoesNotBindImage = !parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
@@ -217,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(TypeBindsDynamicStatus));
             NotifyPropertyChanged(nameof(TypeBindsImage));
             NotifyPropertyChanged(nameof(TypeDoesNotBindImage));
-            NotifyPropertyChanged(nameof(TypeDoesNotParseImage));
+            NotifyPropertyChanged(nameof(TypeDoesNotParseOrInvalidTypeImage));
             NotifyPropertyChanged(nameof(TypeIsEmptyImage));
         }
 
@@ -227,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return languageService.IsTypeNameValid(typeName);
         }
 
-        private bool DoesTypeFullyBind(ITypeSymbol? type)
+        private static bool DoesTypeFullyBind(ITypeSymbol? type)
         {
             if (type == null || type.IsErrorType())
             {

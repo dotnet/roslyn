@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Public Shared Function IsMovementBetweenStatements(oldPoint As SnapshotPoint, newPoint As SnapshotPoint, cancellationToken As CancellationToken) As Boolean
             ' If they are the same line, then definitely no
-            If oldPoint.GetContainingLine().LineNumber = newPoint.GetContainingLine().LineNumber Then
+            If oldPoint.GetContainingLineNumber() = newPoint.GetContainingLineNumber() Then
                 Return False
             End If
 

@@ -16,12 +16,11 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
-using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -250,7 +249,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return true;
         }
 
-        private async Task ApplySuppressionFixAsync(IEnumerable<DiagnosticData>? diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private async Task ApplySuppressionFixAsync(
+            IEnumerable<DiagnosticData>? diagnosticsToFix,
+            Func<Project, bool> shouldFixInProject,
+            bool filterStaleDiagnostics,
+            bool isAddSuppression,
+            bool isSuppressionInSource,
+            bool onlyCompilerDiagnostics,
+            bool showPreviewChangesDialog)
         {
             try
             {
@@ -277,6 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 var cancellationToken = context.UserCancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
+
                 var documentDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(
                     diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -305,6 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // So we need to group diagnostics by the containing project language and apply fixes separately.
                 var languageServices = projectDiagnosticsToFixMap.Select(p => p.Key.Services).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Services)).ToHashSet();
 
+                var progress = context.GetCodeAnalysisProgress();
                 foreach (var languageService in languageServices)
                 {
                     // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
@@ -332,6 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 equivalenceKey,
                                 title,
                                 waitDialogMessage,
+                                progress,
                                 cancellationToken);
                             if (newSolution == null)
                             {
@@ -357,6 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  equivalenceKey,
                                  title,
                                  waitDialogMessage,
+                                 progress,
                                  cancellationToken);
                             if (newSolution == null)
                             {
@@ -373,14 +383,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (showPreviewChangesDialog)
                     {
-                        newSolution = FixAllGetFixesService.PreviewChanges(
+                        var fixAllService = newSolution.Services.GetRequiredService<IFixAllGetFixesService>();
+                        newSolution = fixAllService.PreviewChanges(
+                            _workspace,
                             _workspace.CurrentSolution,
                             newSolution,
-                            fixAllPreviewChangesTitle: title,
-                            fixAllTopLevelHeader: title,
                             fixAllKind: FixAllKind.CodeFix,
-                            languageOpt: languageServices?.Count == 1 ? languageServices.Single().Language : null,
-                            workspace: _workspace);
+                            previewChangesTitle: title,
+                            topLevelHeader: title,
+                            language: languageServices?.Count == 1 ? languageServices.Single().Language : null,
+                            correlationId: null,
+                            cancellationToken);
                         if (newSolution == null)
                         {
                             return;
@@ -394,10 +407,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         _workspace,
                         originalSolution,
                         fromDocument: null,
-                        operations: operations,
-                        title: title,
-                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        operations,
+                        title,
+                        scope.GetCodeAnalysisProgress(),
+                        cancellationToken).ConfigureAwait(false);
 
                     // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
                     _ = Task.Run(() =>
@@ -547,7 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
                     var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                        diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                        diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                     latestDocumentDiagnosticsMap.Clear();
@@ -637,7 +650,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
                     var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                        diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                        diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                         .ConfigureAwait(false));
 
                     latestDiagnosticsToFix.Clear();

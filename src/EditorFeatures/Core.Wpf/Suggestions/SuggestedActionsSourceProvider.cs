@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             => priority switch
             {
                 DefaultOrderings.Highest => CodeActionRequestPriority.High,
-                DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Default => CodeActionRequestPriority.Default,
                 DefaultOrderings.Low => CodeActionRequestPriority.Low,
                 DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
                 _ => null,

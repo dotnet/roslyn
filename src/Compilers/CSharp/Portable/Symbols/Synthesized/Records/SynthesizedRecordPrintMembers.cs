@@ -23,43 +23,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordPrintMembers(
             SourceMemberContainerTypeSymbol containingType,
             IEnumerable<Symbol> userDefinedMembers,
-            int memberOffset,
-            BindingDiagnosticBag diagnostics)
+            int memberOffset)
             : base(
                   containingType,
                   WellKnownMemberNames.PrintMembersMethodName,
-                  isReadOnly: IsReadOnly(containingType, userDefinedMembers),
-                  hasBody: true,
                   memberOffset: memberOffset,
-                  diagnostics)
+                  MakeDeclarationModifiers(containingType, userDefinedMembers))
         {
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
+        private static DeclarationModifiers MakeDeclarationModifiers(SourceMemberContainerTypeSymbol containingType, IEnumerable<Symbol> userDefinedMembers)
         {
-            var result = (ContainingType.IsRecordStruct || (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && ContainingType.IsSealed)) ?
+            var result = (containingType.IsRecordStruct || (containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && containingType.IsSealed)) ?
                 DeclarationModifiers.Private :
                 DeclarationModifiers.Protected;
 
-            if (ContainingType.IsRecord && !ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+            if (containingType.IsRecord && !containingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
             {
                 result |= DeclarationModifiers.Override;
             }
             else
             {
-                result |= ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
+                result |= containingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual;
             }
 
-            Debug.Assert((result & ~allowedModifiers) == 0);
 #if DEBUG
             Debug.Assert(modifiersAreValid(result));
 #endif
+            if (IsReadOnly(containingType, userDefinedMembers))
+            {
+                result |= DeclarationModifiers.ReadOnly;
+            }
+
             return result;
 
 #if DEBUG
             bool modifiersAreValid(DeclarationModifiers modifiers)
             {
-                if (ContainingType.IsRecordStruct)
+                if (containingType.IsRecordStruct)
                 {
                     return modifiers == DeclarationModifiers.Private;
                 }
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -94,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                         new SourceSimpleParameterSymbol(owner: this,
                             TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), annotation),
-                            ordinal: 0, RefKind.None, ScopedKind.None, "builder", Locations)),
-                    DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
+                            ordinal: 0, RefKind.None, ScopedKind.None, "builder", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 1;

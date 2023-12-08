@@ -63,7 +63,7 @@ End Namespace
 Class Class1
     Inherits TextBox
 
-End Class", testHost, priority:=CodeActionPriority.Medium)
+End Class", testHost, priority:=CodeActionPriority.Default)
         End Function
 
         <Theory, CombinatorialData>
@@ -503,7 +503,6 @@ Class Goo
 End Class",
                 "Imports System
 Imports System.Collections.Generic
-
 Class Goo
     Sub Test()
         Dim x As New List(Of Integer)
@@ -524,7 +523,6 @@ Namespace NS
 End Namespace",
                 "Imports System
 Imports System.Collections.Generic
-
 Namespace NS
     Class Goo
         Sub Test()
@@ -580,7 +578,6 @@ Class Test
 End Class",
                 "Imports System.Collections.Generic
 Imports System.Linq
-
 Class Test
     Private Sub Method(args As IList(Of Integer))
         args.Where()
@@ -795,7 +792,6 @@ Class Program
 End Class",
                 "Imports System.Collections.Generic
 Imports System.Linq
-
 Class Program
     Public Sub Linq1()
         Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
@@ -888,7 +884,6 @@ End Module
                 <Text>Imports B
 Imports A
 Imports System.Diagnostics
-
 Module Program
     Sub Main()
         Debug
@@ -975,7 +970,6 @@ Class C
 End Class",
                 "Imports System.Diagnostics
 Imports N
-
 Namespace N
     Public Class Log
     End Class
@@ -1027,7 +1021,6 @@ End Namespace",
                 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
-
 Namespace NS1
     Class Program
         Sub main()
@@ -1078,7 +1071,6 @@ End Namespace",
                 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
-
 Namespace NS1
     Class Program
         Sub main()
@@ -1139,7 +1131,6 @@ End Namespace",
 Imports System.Runtime.CompilerServices
 Imports NS2
 Imports NS3
-
 Namespace NS1
     Class Program
         Sub main()
@@ -1177,6 +1168,7 @@ End Namespace", testHost)
 Interface IMyInterface
 End Interface"
             Dim expectedText As String = "Imports System.ComponentModel
+
 ''' <summary>
 ''' This is just like <see cref=""INotifyPropertyChanged""/>, but this one is mine.
 ''' </summary>
@@ -1197,6 +1189,7 @@ End Interface"
 Interface IMyInterface
 End Interface"
             Dim expectedText As String = "Imports System.ComponentModel
+
 ''' <summary>
 ''' This is just like <see cref=""INotifyPropertyChanged.PropertyChanged""/>, but this one is mine.
 ''' </summary>
@@ -1384,7 +1377,6 @@ End Namespace",
                 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
-
 Namespace NS1
     Class C
         Sub Goo(ByVal m As String)
@@ -1426,7 +1418,6 @@ End Namespace",
                 "Option Strict On
 Imports System.Runtime.CompilerServices
 Imports NS2
-
 Namespace NS1
     Class C
         Sub Bar()
@@ -1691,6 +1682,7 @@ End Module",
 Imports System
 Imports System.Collections.Generic
 Imports System.IO
+
 #If Debug Then
 Imports System.Linq
 #End If
@@ -1860,7 +1852,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1902,7 +1893,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1944,7 +1934,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -1986,7 +1975,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2028,7 +2016,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2077,7 +2064,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2133,7 +2119,6 @@ End Namespace",
 Imports System.Collections
 Imports System.Runtime.CompilerServices
 Imports Ext2
-
 Class X
     Implements IEnumerable
     Public Function GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
@@ -2181,7 +2166,6 @@ End Namespace",
                 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
-
 Module Program
     Sub Main(args As String())
         Dim i = 0.All()
@@ -2220,7 +2204,6 @@ End Namespace",
                 "Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports X
-
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?
@@ -2268,7 +2251,6 @@ End Namespace",
                 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
-
 Module Program
     Sub Main(args As String())
         Dim a = 0
@@ -2324,7 +2306,6 @@ End Namespace",
                 "Imports System.Runtime.CompilerServices
 Imports X
 Imports Y
-
 Module Program
     Sub Main(args As String())
         Dim a = New Integer?

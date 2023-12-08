@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // looking up file-local types. If there is no document name, use an invalid FilePathChecksumOpt.
             FileIdentifier fileIdentifier = methodDebugInfo.ContainingDocumentName is { } documentName
                 ? FileIdentifier.Create(documentName)
-                : new FileIdentifier { EncoderFallbackErrorMessage = null, FilePathChecksumOpt = ImmutableArray<byte>.Empty, DisplayFilePath = string.Empty };
+                : FileIdentifier.Create(filePathChecksumOpt: ImmutableArray<byte>.Empty, displayFilePath: string.Empty);
 
             NamespaceBinder = CreateBinderChain(
                 Compilation,
@@ -395,7 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var itemsAdded = PooledHashSet<string>.GetInstance();
 
                     // Method parameters
-                    int parameterIndex = m.IsStatic ? 0 : 1;
                     foreach (var parameter in m.Parameters)
                     {
                         var parameterName = parameter.Name;
@@ -426,10 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 }
                             }
 
-                            AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, parameterIndex);
+                            AppendParameterAndMethod(localBuilder, methodBuilder, parameter, container, m.IsStatic);
                         }
-
-                        parameterIndex++;
                     }
 
                     // In case of iterator or async state machine, the 'm' method has no parameters
@@ -541,14 +538,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ArrayBuilder<MethodSymbol> methodBuilder,
             ParameterSymbol parameter,
             EENamedTypeSymbol container,
-            int parameterIndex)
+            bool isStaticMethod)
         {
             // Note: The native EE doesn't do this, but if we don't escape keyword identifiers,
             // the ResultProvider needs to be able to disambiguate cases like "this" and "@this",
             // which it can't do correctly without semantic information.
             var name = SyntaxHelpers.EscapeKeywordIdentifiers(parameter.Name);
             var methodName = GetNextMethodName(methodBuilder);
-            var method = GetParameterMethod(container, methodName, name, parameterIndex);
+            var method = GetParameterMethod(container, methodName, name, parameterIndex: parameter.Ordinal + (isStaticMethod ? 0 : 1));
             localBuilder.Add(new CSharpLocalAndMethod(name, name, method, DkmClrCompilationResultFlags.None));
             methodBuilder.Add(method);
         }
@@ -1714,11 +1711,11 @@ REPARSE:
                         continue;
                 }
 
-                if (displayClassVariablesBuilder.ContainsKey(variableName))
+                if (displayClassVariablesBuilder.TryGetValue(variableName, out var displayClassVariable))
                 {
                     // Only expecting duplicates for async state machine
                     // fields (that should be at the top-level).
-                    Debug.Assert(displayClassVariablesBuilder[variableName].DisplayClassFields.Count() == 1);
+                    Debug.Assert(displayClassVariable.DisplayClassFields.Count() == 1);
 
                     if (!instance.Fields.Any())
                     {

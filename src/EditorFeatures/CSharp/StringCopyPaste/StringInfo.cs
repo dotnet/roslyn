@@ -14,35 +14,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
 using static StringCopyPasteHelpers;
 
-internal readonly struct StringInfo
+internal readonly struct StringInfo(
+    int delimiterQuoteCount,
+    int delimiterDollarCount,
+    TextSpan startDelimiterSpan,
+    TextSpan endDelimiterSpan,
+    TextSpan endDelimiterSpanWithoutSuffix,
+    ImmutableArray<TextSpan> contentSpans)
 {
     /// <summary>
     /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no errors
     /// in it, this quote count should be the same for the start and end delimiter.This will be <c>1</c> for
     /// non-raw-strings, and will be 3-or-more for raw-strings
     /// </summary>
-    public readonly int DelimiterQuoteCount;
+    public readonly int DelimiterQuoteCount = delimiterQuoteCount;
 
     /// <summary>
     /// Number of dollar signs (<c>$</c>) in the starting delimiter of the string being pasted into. This will be
     /// <c>1</c> for non-raw-strings, and will be 1-or-more for raw-interpolated-strings.
     /// </summary>
-    public readonly int DelimiterDollarCount;
+    public readonly int DelimiterDollarCount = delimiterDollarCount;
 
     /// <summary>
     /// The span of the starting delimiter quotes (including characters like <c>$</c> or <c>@</c>)
     /// </summary>
-    public readonly TextSpan StartDelimiterSpan;
+    public readonly TextSpan StartDelimiterSpan = startDelimiterSpan;
 
     /// <summary>
     /// The span of the ending delimiter quotes (including a suffix like <c>u8</c>)
     /// </summary>
-    public readonly TextSpan EndDelimiterSpan;
+    public readonly TextSpan EndDelimiterSpan = endDelimiterSpan;
 
     /// <summary>
     /// The span of the ending delimiter quotes (not including a suffix like <c>u8</c>)
     /// </summary>
-    public readonly TextSpan EndDelimiterSpanWithoutSuffix;
+    public readonly TextSpan EndDelimiterSpanWithoutSuffix = endDelimiterSpanWithoutSuffix;
 
     /// <summary>
     /// Spans of text-content within the string.  These represent the spans where text can go within a string
@@ -52,23 +58,7 @@ internal readonly struct StringInfo
     /// interpolation-holes. For raw strings, this will include the whitespace and newlines after the starting quotes
     /// and before the ending quotes.
     /// </summary>
-    public readonly ImmutableArray<TextSpan> ContentSpans;
-
-    public StringInfo(
-        int delimiterQuoteCount,
-        int delimiterDollarCount,
-        TextSpan startDelimiterSpan,
-        TextSpan endDelimiterSpan,
-        TextSpan endDelimiterSpanWithoutSuffix,
-        ImmutableArray<TextSpan> contentSpans)
-    {
-        DelimiterQuoteCount = delimiterQuoteCount;
-        DelimiterDollarCount = delimiterDollarCount;
-        StartDelimiterSpan = startDelimiterSpan;
-        EndDelimiterSpan = endDelimiterSpan;
-        EndDelimiterSpanWithoutSuffix = endDelimiterSpanWithoutSuffix;
-        ContentSpans = contentSpans;
-    }
+    public readonly ImmutableArray<TextSpan> ContentSpans = contentSpans;
 
     public static StringInfo GetStringInfo(SourceText text, ExpressionSyntax stringExpression)
         => stringExpression switch

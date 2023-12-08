@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
+        private static void AppendAliasNames(IEnumerable<BaseNamespaceDeclarationSyntax> namespaces, ImmutableHashSet<string>.Builder builder, CancellationToken cancellationToken)
         {
             foreach (var @namespace in namespaces)
             {
@@ -234,10 +234,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
+            foreach (var syntaxRef in syntaxRefs)
+            {
+                var node = syntaxRef.GetSyntax(cancellationToken);
+                if (node is BaseTypeDeclarationSyntax { Modifiers: { } modifiers } &&
+                    modifiers.Any(SyntaxKind.PartialKeyword))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
@@ -283,8 +293,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
                 ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                FunctionPointerUnmanagedCallingConventionSyntax syntax => GetCallingConventionSymbols(semanticModel, syntax),
                 _ => GetSymbolInfo(semanticModel, node, token, cancellationToken),
             };
+
+            static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
+            {
+                var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
+                if (type is null)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                return ImmutableArray.Create<ISymbol>(type);
+            }
         }
 
         /// <summary>

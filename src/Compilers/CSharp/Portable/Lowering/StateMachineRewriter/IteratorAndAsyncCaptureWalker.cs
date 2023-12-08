@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Debug.Assert(!allVariables.Any((s, method) => s.Symbol is ParameterSymbol { ContainingSymbol: var container } && container != method && container is not SynthesizedPrimaryConstructor, method));
+
             var variablesToHoist = new OrderedSet<Symbol>();
             if (compilation.Options.OptimizationLevel != OptimizationLevel.Release)
             {
@@ -101,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var v in allVariables)
                 {
                     var symbol = v.Symbol;
-                    if ((object)symbol != null && HoistInDebugBuild(symbol))
+                    if ((object)symbol != null && HoistInDebugBuild(symbol) &&
+                        !(symbol is ParameterSymbol { ContainingSymbol: var container } && container != method)) // Not interested in force hoisting parameters that do not belong to our method 
                     {
                         variablesToHoist.Add(symbol);
                     }

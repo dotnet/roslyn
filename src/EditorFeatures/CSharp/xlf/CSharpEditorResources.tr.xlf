@@ -12,24 +12,9 @@
         <target state="translated">Eksik using yönergeleri ekleniyor...</target>
         <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Chosen_version_0">
-        <source>Chosen version: '{0}'</source>
-        <target state="translated">Seçilen sürüm: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
         <target state="translated">Tüm deyimin bulunduğu yer ;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_by_name_0">
-        <source>Could not find by name: '{0}'</source>
-        <target state="translated">'{0}' adıyla bulunamadı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompilation_log">
-        <source>Decompilation log</source>
-        <target state="translated">Kaynak koda dönüştürme günlüğü</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -42,26 +27,6 @@
         <target state="translated">Yapıştırma işleminden sonra sabit değerli dize düzeltiliyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Found_0_assemblies_for_1">
-        <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">'{1}' için '{0}' bütünleştirilmiş kod bulundu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_exact_match_0">
-        <source>Found exact match: '{0}'</source>
-        <target state="translated">Tam eşleşme bulundu: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_higher_version_match_0">
-        <source>Found higher version match: '{0}'</source>
-        <target state="translated">Daha yüksek bir sürüm eşleşmesi bulundu: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Found_single_assembly_0">
-        <source>Found single assembly: '{0}'</source>
-        <target state="translated">Tek bütünleştirilmiş kod bulundu: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Olay Aboneliği Oluştur</target>
@@ -72,16 +37,6 @@
         <target state="translated">Ham dizeyi büyüt</target>
         <note />
       </trans-unit>
-      <trans-unit id="Load_from_0">
-        <source>Load from: '{0}'</source>
-        <target state="translated">Şuradan yükle: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Module_not_found">
-        <source>Module not found!</source>
-        <target state="translated">Modül bulunamadı!</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
         <target state="translated">namespace dışında</target>
@@ -90,16 +45,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Eklemek için TAB tuşuna basın)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_0">
-        <source>Resolve: '{0}'</source>
-        <target state="translated">Çözümle: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_module_0_of_1">
-        <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="translated">'{1}' modül içinden '{0}' modülü çözümle</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
@@ -115,16 +60,6 @@
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">Dizeyi böl</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
-        <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="translated">UYARI: Sürüm uyumsuzluğu. Beklenen: '{0}', Alınan: '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_items_in_cache">
-        <source>'{0}' items in cache</source>
-        <target state="translated">Önbellekteki '{0}' öğe</target>
         <note />
       </trans-unit>
     </body>

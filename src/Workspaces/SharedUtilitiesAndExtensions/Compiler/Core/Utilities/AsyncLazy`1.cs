@@ -130,16 +130,11 @@ namespace Roslyn.Utilities
             return new WaitThatValidatesInvariants(this);
         }
 
-        private readonly struct WaitThatValidatesInvariants : IDisposable
+        private readonly struct WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy) : IDisposable
         {
-            private readonly AsyncLazy<T> _asyncLazy;
-
-            public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-                => _asyncLazy = asyncLazy;
-
             public void Dispose()
             {
-                _asyncLazy.AssertInvariants_NoLock();
+                asyncLazy.AssertInvariants_NoLock();
                 s_gate.Release();
             }
         }
@@ -294,7 +289,12 @@ namespace Roslyn.Utilities
                 // processing a value somebody never wanted
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return result;
+                // Because we called CompleteWithTask with an actual result, _cachedResult must be set. However, it's possible that result is a different result than
+                // what is in our local variable here; it's possible that an asynchronous computation was running and cancelled, but eventually completed (ignoring cancellation)
+                // and then set the cached value. Because that could be a different instance than what we have locally, we can't use the local result if the other value
+                // got cached first. Always returning the cached value ensures we always return a single value from AsyncLazy once we got one.
+                Contract.ThrowIfNull(_cachedResult, $"We called {nameof(CompleteWithTask)} with a result, there should be a cached result.");
+                return _cachedResult.Result;
             }
         }
 
@@ -367,16 +367,10 @@ namespace Roslyn.Utilities
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);
         }
 
-        private readonly struct AsynchronousComputationToStart
+        private readonly struct AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
         {
-            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction;
-            public readonly CancellationTokenSource CancellationTokenSource;
-
-            public AsynchronousComputationToStart(Func<CancellationToken, Task<T>> asynchronousComputeFunction, CancellationTokenSource cancellationTokenSource)
-            {
-                AsynchronousComputeFunction = asynchronousComputeFunction;
-                CancellationTokenSource = cancellationTokenSource;
-            }
+            public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction = asynchronousComputeFunction;
+            public readonly CancellationTokenSource CancellationTokenSource = cancellationTokenSource;
         }
 
         private void StartAsynchronousComputation(AsynchronousComputationToStart computationToStart, Request? requestToCompleteSynchronously, CancellationToken callerCancellationToken)

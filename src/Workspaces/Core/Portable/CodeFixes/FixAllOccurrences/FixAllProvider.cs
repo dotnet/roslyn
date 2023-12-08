@@ -95,20 +95,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => this.GetFixAsync((FixAllContext)fixAllContext);
         #endregion
 
-        private class CallbackDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
+        private class CallbackDocumentBasedFixAllProvider(
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+            ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
         {
-            private readonly Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> _fixAllAsync;
-
-            public CallbackDocumentBasedFixAllProvider(
-                Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
-                ImmutableArray<FixAllScope> supportedFixAllScopes)
-                : base(supportedFixAllScopes)
-            {
-                _fixAllAsync = fixAllAsync;
-            }
-
             protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
-                => _fixAllAsync(context, document, diagnostics);
+                => fixAllAsync(context, document, diagnostics);
         }
     }
 }

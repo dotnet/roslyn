@@ -3541,6 +3541,118 @@ static void Main(string[] args)
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    });
+                """, """
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    }                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc[]
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """, """
+                F(                    stackalloc []
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc []
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """, """
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2_Implicit()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc[]
+                {1,
+                    2, 3
+                });
+                """, """
+                var x = (stackalloc []
+                {1,
+                    2, 3
+                });
+                """);
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task CollectionInitializer()
         {
@@ -3930,6 +4042,26 @@ public       void       Method      (       )           {
         Main(args: null);
     }
 }";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        public async Task RefReadonlyParameters()
+        {
+            var code = """
+                class C
+                {
+                    int   this  [   ref     readonly    int      x   ,   ref    readonly   int   y   ]   {   get ;   set ;  }
+                    void    M  (   ref    readonly     int   x    ,   ref    readonly   int   y   )  {   }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    int this[ref readonly int x, ref readonly int y] { get; set; }
+                    void M(ref readonly int x, ref readonly int y) { }
+                }
+                """;
             await AssertFormatAsync(expected, code);
         }
 

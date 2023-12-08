@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,13 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService
@@ -83,25 +79,22 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly IStructuralTypeDisplayService _structuralTypeDisplayService;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
-            private readonly Func<ISymbol, string> _getNavigationHint;
+            private readonly Func<ISymbol, string?> _getNavigationHint;
 
-            protected readonly SolutionServices Services;
+            protected readonly LanguageServices LanguageServices;
             protected readonly SymbolDescriptionOptions Options;
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
                 SemanticModel semanticModel,
                 int position,
-                SolutionServices services,
-                IStructuralTypeDisplayService structuralTypeDisplayService,
+                LanguageServices languageServices,
                 SymbolDescriptionOptions options,
                 CancellationToken cancellationToken)
             {
-                _structuralTypeDisplayService = structuralTypeDisplayService;
-                Services = services;
+                LanguageServices = languageServices;
                 Options = options;
                 CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
@@ -116,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
             protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
-            protected abstract string GetNavigationHint(ISymbol symbol);
+            protected abstract string? GetNavigationHint(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -151,48 +144,31 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 return null;
             }
 
-            protected Compilation GetCompilation()
+            protected Compilation Compilation
                 => _semanticModel.Compilation;
 
             private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
             {
                 var firstSymbol = symbols[0];
+
+                // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
+                // LSIF (which does this for every symbol in an entire solution).
+                var firstSymbolDocumentationComment = firstSymbol.GetAppropriateDocumentationComment(Compilation, CancellationToken);
+
                 await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
                 AddOverloadCountPart(symbols);
                 FixAllStructuralTypes(firstSymbol);
-                AddExceptions(firstSymbol);
+                AddExceptions(firstSymbolDocumentationComment);
                 AddCaptures(firstSymbol);
 
-                AddDocumentationContent(firstSymbol);
+                AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment);
             }
 
-            private void AddDocumentationContent(ISymbol symbol)
+            private void AddDocumentationContent(ISymbol symbol, DocumentationComment documentationComment)
             {
-                var formatter = Services.GetRequiredLanguageService<IDocumentationCommentFormattingService>(_semanticModel.Language);
-
-                if (symbol is IParameterSymbol or ITypeParameterSymbol)
-                {
-                    // Can just defer to the standard helper here.  We only want to get the summary portion for just the
-                    // param/type-param and we have no need for remarks/returns/value.
-                    _documentationMap.Add(
-                        SymbolDescriptionGroups.Documentation,
-                        symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
-                    return;
-                }
-
-                if (symbol is IAliasSymbol alias)
-                    symbol = alias.Target;
-
-                var original = symbol.OriginalDefinition;
+                var formatter = LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
                 var format = ISymbolExtensions2.CrefFormat;
-                var compilation = _semanticModel.Compilation;
-
-                // Grab the doc comment once as computing it for each portion we're concatenating can be expensive for
-                // lsif (which does this for every symbol in an entire solution).
-                var documentationComment = original is IMethodSymbol method
-                    ? ISymbolExtensions2.GetMethodDocumentation(method, compilation, CancellationToken)
-                    : original.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken);
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.Documentation,
@@ -202,54 +178,40 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     SymbolDescriptionGroups.RemarksDocumentation,
                     formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, CancellationToken));
 
-                AddReturnsDocumentationParts(symbol, formatter);
-                AddValueDocumentationParts(symbol, formatter);
+                AddDocumentationPartsWithPrefix(documentationComment.ReturnsText, SymbolDescriptionGroups.ReturnsDocumentation, FeaturesResources.Returns_colon);
+                AddDocumentationPartsWithPrefix(documentationComment.ValueText, SymbolDescriptionGroups.ValueDocumentation, FeaturesResources.Value_colon);
 
                 return;
 
-                void AddReturnsDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
+                void AddDocumentationPartsWithPrefix(string? rawXmlText, SymbolDescriptionGroups group, string prefix)
                 {
-                    var parts = formatter.Format(documentationComment.ReturnsText, symbol, _semanticModel, _position, format, CancellationToken);
+                    if (string.IsNullOrEmpty(rawXmlText))
+                        return;
+
+                    var parts = formatter.Format(rawXmlText, symbol, _semanticModel, _position, format, CancellationToken);
                     if (!parts.IsDefaultOrEmpty)
                     {
                         using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
 
-                        builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
+                        builder.Add(new TaggedText(TextTags.Text, prefix));
                         builder.AddRange(LineBreak().ToTaggedText());
                         builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
                         builder.AddRange(parts);
                         builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                        _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutable());
-                    }
-                }
-
-                void AddValueDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
-                {
-                    var parts = formatter.Format(documentationComment.ValueText, symbol, _semanticModel, _position, format, CancellationToken);
-                    if (!parts.IsDefaultOrEmpty)
-                    {
-                        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
-                        builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
-                        builder.AddRange(LineBreak().ToTaggedText());
-                        builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                        builder.AddRange(parts);
-                        builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
-
-                        _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutable());
+                        _documentationMap.Add(group, builder.ToImmutable());
                     }
                 }
             }
 
-            private void AddExceptions(ISymbol symbol)
+            private void AddExceptions(DocumentationComment documentationComment)
             {
-                var exceptionTypes = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true).ExceptionTypes;
-                if (exceptionTypes.Any())
+                if (documentationComment.ExceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Exceptions_colon);
-                    foreach (var exceptionString in exceptionTypes)
+                    foreach (var exceptionString in documentationComment.ExceptionTypes)
                     {
                         parts.AddRange(LineBreak());
                         parts.AddRange(Space(count: 2));
@@ -509,7 +471,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
                     AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
 
-                if (symbol.IsEnumType() && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
+                if (symbol.IsEnumType() && symbol.EnumUnderlyingType!.SpecialType != SpecialType.System_Int32)
                 {
                     AddEnumUnderlyingTypeSeparator();
                     var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
@@ -837,13 +799,13 @@ namespace Microsoft.CodeAnalysis.LanguageService
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
             }
 
-            protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
+            protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat? format = null)
             {
                 format ??= MinimallyQualifiedFormat;
                 return ToMinimalDisplayParts(symbol, _semanticModel, _position, format);
             }
 
-            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
             {
                 yield return new SymbolDisplayPart(kind, symbol, text);
             }

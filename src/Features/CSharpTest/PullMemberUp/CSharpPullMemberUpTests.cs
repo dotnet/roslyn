@@ -963,6 +963,7 @@ public class Derived : Base
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">using System;
+
 public class Base
 {
     public Uri Endpoint { get; set; }

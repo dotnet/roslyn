@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, methods.SelectAsArray(m => m.Parameters), argumentOpt);
             }
 
-            private IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
+            private static IMethodSymbol Instantiate(IMethodSymbol method, IList<ITypeSymbol> invocationTypes)
             {
                 // No need to instantiate if this isn't a generic method.
                 if (method.TypeArguments.Length == 0)
@@ -655,14 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.ConstructedFrom.Construct(typeArguments);
             }
 
-            private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
+            private static Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
             {
                 var result = new Dictionary<ITypeParameterSymbol, ITypeSymbol>();
                 DetermineTypeParameterMapping(inferredType, returnType, result);
                 return result;
             }
 
-            private void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
+            private static void DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType, Dictionary<ITypeParameterSymbol, ITypeSymbol> result)
             {
                 if (inferredType == null || returnType == null)
                 {

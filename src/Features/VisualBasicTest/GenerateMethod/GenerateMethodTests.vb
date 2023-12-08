@@ -2468,6 +2468,7 @@ End Class
 
         <Fact>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935731")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14467")>
         Public Async Function TestGenerateMethodForAwaitWithoutParenthesis() As Task
             Await TestInRegularAndScriptAsync(
 <text>Module Module1
@@ -2484,7 +2485,7 @@ Module Module1
         Dim x = Await Goo
     End Sub
 
-    Private Function Goo() As Task(Of Object)
+    Private Async Function Goo() As Task(Of Object)
         Throw New NotImplementedException()
     End Function
 End Module
@@ -3869,6 +3870,7 @@ End Module")
 
         <Fact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/643")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14467")>
         Public Async Function TestGenerateMethodConfigureAwaitFalse() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -3883,13 +3885,12 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module Program
     Async Sub Main(args As String())
         Dim x As Boolean = Await Goo().ConfigureAwait(False)
     End Sub
 
-    Private Function Goo() As Task(Of Boolean)
+    Private Async Function Goo() As Task(Of Boolean)
         Throw New NotImplementedException()
     End Function
 End Module")
@@ -3911,7 +3912,6 @@ End Module",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module Program
     Async Sub Main(args As String())
         Dim x As Boolean = Await Goo().ConfigureAwait(False)
@@ -3928,6 +3928,7 @@ index:=1)
 
         <Fact>
         <WorkItem("https://github.com/dotnet/roslyn/issues/643")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/14467")>
         Public Async Function TestGenerateMethodWithMethodChaining() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System 
@@ -3940,13 +3941,12 @@ End Module",
 "Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
-
 Module M 
     Async Sub T() 
         Dim x As Boolean = Await F().ConfigureAwait(False)
     End Sub
 
-    Private Function F() As Task(Of Boolean)
+    Private Async Function F() As Task(Of Boolean)
         Throw New NotImplementedException()
     End Function
 End Module")

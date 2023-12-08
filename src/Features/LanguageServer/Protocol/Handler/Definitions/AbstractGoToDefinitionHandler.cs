@@ -46,17 +46,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var findDefinitionService = document.GetRequiredLanguageService<IFindDefinitionService>();
+            var service = document.GetLanguageService<INavigableItemsService>();
+            if (service is null)
+                return null;
 
-            var definitions = await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (definitions.Any())
+            var definitions = await service.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (definitions.Length > 0)
             {
                 foreach (var definition in definitions)
                 {
                     if (!ShouldInclude(definition, typeOnly))
-                    {
                         continue;
-                    }
 
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
                         await definition.Document.GetRequiredDocumentAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false),
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {
-                            Uri = new Uri(declarationFile.FilePath),
+                            Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
                             Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                         });
                     }

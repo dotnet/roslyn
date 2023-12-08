@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                         }));
 
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
-                    Assert.Equal(expectedSourceOriginal, actualText);
+                    AssertEx.EqualOrDiff(expectedSourceOriginal, actualText);
 
                     if (expectedSourceReference == null)
                     {

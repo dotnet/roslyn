@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -88,9 +88,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions2.IndentStyle indentStyle)
             {
                 var newLine = Options.FormattingOptions.NewLine;
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
-                newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+                var newSourceText = OriginalSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End, OriginalSourceText.Length), newLine));
 
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // Store the root so we don't just end up creating this code action again.
                 _seenDocumentRoots.Add(formattedRoot);
 
-                return new WrapItemsAction(title, parentTitle, _ => Task.FromResult(formattedDocument));
+                return new WrapItemsAction(title, parentTitle, (_, _) => Task.FromResult(formattedDocument));
             }
 
             private async Task<Document> FormatDocumentAsync(SyntaxNode rewrittenRoot, TextSpan spanToFormat)
@@ -274,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     // Ask subclass to produce whole nested list of wrapping code actions
                     var wrappingGroups = await ComputeWrappingGroupsAsync().ConfigureAwait(false);
 
-                    var result = ArrayBuilder<CodeAction>.GetInstance();
+                    using var result = TemporaryArray<CodeAction>.Empty;
                     foreach (var group in wrappingGroups)
                     {
                         // if a group is empty just ignore it.
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
                     // Finally, sort the topmost list we're building and return that.  This ensures that
                     // both the top level items and the nested items are ordered appropriate.
-                    return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndFree());
+                    return WrapItemsAction.SortActionsByMostRecentlyUsed(result.ToImmutableAndClear());
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, CancellationToken, ErrorSeverity.Diagnostic))
                 {

@@ -72,8 +72,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             TypeParameterList                ' tied to parent
             TypeParameter                    ' tied to parent
 
-            ParameterList                    ' tied to parent
-            Parameter                        ' tied to parent
             FieldOrParameterName             ' tied to grand-grandparent (type or method declaration)
 
             AttributeList                    ' tied to parent
@@ -197,6 +195,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             OrderingLambda                      ' tied to parent (OrderByClause)
             JoinConditionLambda                 ' tied to parent (JoinClause)
 
+            ParameterList                       ' tied to parent
+            Parameter                           ' tied to parent
+
             LocalVariableName                   ' tied to parent 
 
             BodyEnd                             ' tied to parent
@@ -313,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return ClassifyStatementSyntax(kind, nodeOpt, isLeaf)
             End If
 
-            Return ClassifyTopSytnax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
+            Return ClassifyTopSyntax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
         End Function
 
         Friend Shared Function ClassifyStatementSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
@@ -345,8 +346,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.SubLambdaHeader,
                      SyntaxKind.FunctionLambdaHeader
-                    ' Header is a leaf so that we don't descent into lambda parameters.
-                    isLeaf = True
                     Return Label.LambdaBodyBegin
 
                 Case SyntaxKind.EndSubStatement,
@@ -625,9 +624,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FunctionLambdaHeader,
                      SyntaxKind.SubLambdaHeader
-                    ' TODO: Parameters are not mapped?
-                    isLeaf = True
-                    Return Label.Ignored
+                    Return Label.LambdaBodyBegin
+
+                Case SyntaxKind.ParameterList
+                    Return Label.ParameterList
+
+                Case SyntaxKind.Parameter
+                    Return Label.Parameter
 
                 Case SyntaxKind.QueryExpression
                     Return Label.QueryExpression
@@ -720,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
+        Private Shared Function ClassifyTopSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
             Select Case kind
                 Case SyntaxKind.CompilationUnit
                     isLeaf = False

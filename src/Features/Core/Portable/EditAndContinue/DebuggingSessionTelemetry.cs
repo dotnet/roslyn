@@ -10,35 +10,22 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class DebuggingSessionTelemetry
+    internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
     {
-        internal readonly struct Data
+        internal readonly struct Data(DebuggingSessionTelemetry telemetry)
         {
-            public readonly Guid SolutionSessionId;
-            public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData;
-            public readonly int EmptyEditSessionCount;
-            public readonly int EmptyHotReloadEditSessionCount;
-
-            public Data(DebuggingSessionTelemetry telemetry)
-            {
-                SolutionSessionId = telemetry._solutionSessionId;
-                EditSessionData = telemetry._editSessionData.ToImmutableArray();
-                EmptyEditSessionCount = telemetry._emptyEditSessionCount;
-                EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
-            }
+            public readonly Guid SolutionSessionId = telemetry._solutionSessionId;
+            public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData = telemetry._editSessionData.ToImmutableArray();
+            public readonly int EmptyEditSessionCount = telemetry._emptyEditSessionCount;
+            public readonly int EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
         }
 
         private readonly object _guard = new();
 
-        private readonly Guid _solutionSessionId;
+        private readonly Guid _solutionSessionId = solutionSessionId;
         private readonly List<EditSessionTelemetry.Data> _editSessionData = new();
         private int _emptyEditSessionCount;
         private int _emptyHotReloadEditSessionCount;
-
-        public DebuggingSessionTelemetry(Guid solutionSessionId)
-        {
-            _solutionSessionId = solutionSessionId;
-        }
 
         public Data GetDataAndClear()
         {
@@ -128,6 +115,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // Ids of all projects whose binaries were successfully updated during the session.
                     map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(ProjectIdToPii) : "";
+
+                    // Total milliseconds it took to emit the delta in this edit session.
+                    map["EmitDifferenceMilliseconds"] = (long)editSessionData.EmitDifferenceTime.TotalMilliseconds;
+
+                    // Total milliseconds it took to analyze all documents that contributed to the changes that were
+                    // attempted to be applied (whether or not the applications was successful) in this edit session.
+                    // Includes analysis that had been performed asynchronously before "apply changes" was triggered
+                    // (if we reused analysis results that were calculated by EnC analyzer for rude edit reporting).
+                    map["TotalAnalysisMilliseconds"] = (long)editSessionData.AnalysisTime.TotalMilliseconds;
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)

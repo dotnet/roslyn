@@ -16,14 +16,9 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal sealed class DefaultConverter : AbstractConverter
+    internal sealed class DefaultConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : AbstractConverter(forEachInfo)
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
-
-        public DefaultConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-            : base(forEachInfo)
-        {
-        }
 
         public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {

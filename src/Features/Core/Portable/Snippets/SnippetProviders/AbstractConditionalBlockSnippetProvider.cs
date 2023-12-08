@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     {
         protected abstract SyntaxNode GetCondition(SyntaxNode node);
 
-        protected override bool IsValidAccessingType(ITypeSymbol type)
+        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
             => type.SpecialType == SpecialType.System_Boolean;
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 return ImmutableArray<SnippetPlaceholder>.Empty;
 
             var condition = GetCondition(node);
-            var placeholder = new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart));
+            var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
 
             return ImmutableArray.Create(placeholder);
         }

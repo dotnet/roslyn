@@ -12,11 +12,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,7 +20,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -78,6 +73,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                         loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
         }
 
+        private static async Task<SolutionAsset> GetRequiredAssetAsync(SolutionAssetStorage.Scope scope, Checksum checksum)
+        {
+            var data = await scope.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            Contract.ThrowIfNull(data);
+            return new(checksum, data);
+        }
+
         [Fact]
         public async Task CreateSolutionSnapshotId_Empty()
         {
@@ -88,17 +90,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            var projectsSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySynchronizationObjectInServiceAsync(projectsSyncObject).ConfigureAwait(false);
-
-            Assert.Equal(0, solutionObject.Projects.Count);
+            Assert.Equal(0, solutionObject.Projects.Length);
         }
 
         [Fact]
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = scope.SolutionChecksum;
-            var solutionSyncObject = await scope.GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionSyncObject = await GetRequiredAssetAsync(scope, checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(solutionSyncObject).ConfigureAwait(false);
 
@@ -131,11 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
 
-            var projectSyncObject = await scope.GetAssetAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
-            await validator.VerifySynchronizationObjectInServiceAsync(projectSyncObject).ConfigureAwait(false);
-
-            Assert.Equal(1, solutionObject.Projects.Count);
-            await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 0, 0, 0, 0, 0).ConfigureAwait(false);
+            Assert.Equal(1, solutionObject.Projects.Length);
         }
 
         [Fact]
@@ -161,15 +156,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
-
-            Assert.Equal(1, solutionObject.Projects.Count);
-            await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 1, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -199,18 +190,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var validator = new SerializationValidator(workspace.Services);
 
             using var scope = await validator.AssetStorage.StoreAssetsAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = await scope.GetAssetAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = await GetRequiredAssetAsync(scope, scope.SolutionChecksum).ConfigureAwait(false);
             var solutionObject = await validator.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
-            Assert.Equal(2, solutionObject.Projects.Count);
-
-            var projects = validator.ToProjectObjects(solutionObject.Projects);
-            await validator.VerifySnapshotInServiceAsync(projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1).ConfigureAwait(false);
-            await validator.VerifySnapshotInServiceAsync(projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0).ConfigureAwait(false);
+            Assert.Equal(2, solutionObject.Projects.Length);
         }
 
         [Fact]
@@ -515,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            using var workspace = CreateWorkspace(new[] { typeof(NoCompilationLanguageService) });
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
             var validator = new SerializationValidator(workspace.Services);
@@ -549,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.NotNull(checksum);
+            Assert.True(checksum != Checksum.Null);
         }
 
         [Fact]
@@ -705,8 +691,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath) =>
-                throw new FileNotFoundException(fullPath);
+            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference

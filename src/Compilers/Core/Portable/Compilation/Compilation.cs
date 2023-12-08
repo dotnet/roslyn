@@ -875,6 +875,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference);
 
+        [return: NotNullIfNotNull(nameof(symbol))]
+        internal abstract TSymbol? GetSymbolInternal<TSymbol>(ISymbol? symbol) where TSymbol : class, ISymbolInternal;
+
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
@@ -3217,10 +3220,10 @@ namespace Microsoft.CodeAnalysis
                 var signKind = IsRealSigned
                     ? (SignUsingBuilder ? EmitStreamSignKind.SignedWithBuilder : EmitStreamSignKind.SignedWithFile)
                     : EmitStreamSignKind.None;
-                emitPeStream = new EmitStream(peStreamProvider, signKind, Options.StrongNameProvider);
+                emitPeStream = new EmitStream(peStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 emitMetadataStream = metadataPEStreamProvider == null
                     ? null
-                    : new EmitStream(metadataPEStreamProvider, signKind, Options.StrongNameProvider);
+                    : new EmitStream(metadataPEStreamProvider, signKind, StrongNameKeys, Options.StrongNameProvider);
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
                 if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Pdb && pdbStreamProvider != null)
@@ -3245,8 +3248,8 @@ namespace Microsoft.CodeAnalysis
                         moduleBeingBuilt,
                         metadataDiagnostics,
                         MessageProvider,
-                        emitPeStream.GetCreateStreamFunc(metadataDiagnostics),
-                        emitMetadataStream?.GetCreateStreamFunc(metadataDiagnostics),
+                        emitPeStream.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
+                        emitMetadataStream?.GetCreateStreamFunc(MessageProvider, metadataDiagnostics),
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
@@ -3298,8 +3301,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return
-                    emitPeStream.Complete(StrongNameKeys, MessageProvider, diagnostics) &&
-                    (emitMetadataStream?.Complete(StrongNameKeys, MessageProvider, diagnostics) ?? true);
+                    emitPeStream.Complete(MessageProvider, diagnostics) &&
+                    (emitMetadataStream?.Complete(MessageProvider, diagnostics) ?? true);
             }
             finally
             {
@@ -3462,6 +3465,16 @@ namespace Microsoft.CodeAnalysis
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
+
+        #endregion
+
+        #region Features
+
+        /// <summary>
+        /// False when the "debug-analyzers" feature flag is set.
+        /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+        /// </summary>
+        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
         #endregion
 

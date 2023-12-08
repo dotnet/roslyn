@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -71,8 +69,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             else
             {
                 Assert.NotNull(clientProvider);
-                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
-                clientProvider!.ExcludedRemoteParts = new[] { typeof(EditAndContinueService) };
+                clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueWorkspaceService)];
+                clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
@@ -109,7 +107,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
             var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
             var emitDiagnosticsClearedCount = 0;
-            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => emitDiagnosticsUpdated.Add(args);
+            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, ImmutableArray<DiagnosticsUpdatedArgs> args) => emitDiagnosticsUpdated.AddRange(args);
             diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => emitDiagnosticsClearedCount++;
 
             var span1 = new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));

@@ -6,15 +6,9 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal class CodeGenerationPointerTypeSymbol : CodeGenerationTypeSymbol, IPointerTypeSymbol
+    internal class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None), IPointerTypeSymbol
     {
-        public ITypeSymbol PointedAtType { get; }
-
-        public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
-        {
-            this.PointedAtType = pointedAtType;
-        }
+        public ITypeSymbol PointedAtType { get; } = pointedAtType;
 
         protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {

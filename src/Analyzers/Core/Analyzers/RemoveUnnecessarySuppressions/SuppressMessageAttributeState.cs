@@ -13,21 +13,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class SuppressMessageAttributeState
+    internal partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
     {
         internal const string SuppressMessageScope = "Scope";
         internal const string SuppressMessageTarget = "Target";
 
         private static readonly ImmutableDictionary<string, TargetScope> s_targetScopesMap = CreateTargetScopesMap();
 
-        private readonly Compilation _compilation;
-        private readonly INamedTypeSymbol _suppressMessageAttributeType;
-
-        public SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
-        {
-            _compilation = compilation;
-            _suppressMessageAttributeType = suppressMessageAttributeType;
-        }
+        private readonly Compilation _compilation = compilation;
+        private readonly INamedTypeSymbol _suppressMessageAttributeType = suppressMessageAttributeType;
 
         private static ImmutableDictionary<string, TargetScope> CreateTargetScopesMap()
         {
