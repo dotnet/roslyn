@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable IDE0055 // Collection expression formatting
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
@@ -49,12 +51,11 @@ class C
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { edits },
-                new[]
-                {
+                [
                     DocumentResults(
                         active,
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int a)")) })
-                });
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", DeletedSymbolDisplay(FeaturesResources.method, "C.Goo(int)"))])
+                ]);
         }
 
         [Fact]
@@ -81,14 +82,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            EditAndContinueValidation.VerifySemantics(
-                new[] { edits },
-                new[]
-                {
-                    DocumentResults(
-                        active,
-                        diagnostics: new[] {Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "static void Boo(int a)", FeaturesResources.method) })
-                });
+            edits.VerifySemanticDiagnostics(
+                active,
+                diagnostics: [Diagnostic(RudeEditKind.ChangingNameOrSignatureOfActiveMember, "static void Boo(int a)", GetResource("method"))]);
         }
 
         [Fact]
@@ -281,7 +277,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "static void Swap<T>(T lhs, T rhs)", GetResource("method"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
@@ -494,6 +490,124 @@ class C
             edits.VerifySemantics(
                 active,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void Method_Partial_Update_Attribute_Definition()
+        {
+            var attribute = """
+                public class A : System.Attribute { public A(int x) {} }
+                """;
+
+            var src1 = attribute +
+                """
+                partial class C { [A(1)]partial void F(); }
+                partial class C { partial void F() <AS:0>{</AS:0> } }
+                """;
+
+            var src2 = attribute +
+                """
+                partial class C { [A(2)]partial void F(); }
+                partial class C { partial void F() <AS:0>{</AS:0> } }
+                """;
+
+            var active = GetActiveStatements(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            EditAndContinueValidation.VerifySemantics(
+                GetTopEdits(src1, src2),
+                active,
+                [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")],
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
+        public void Method_Partial_Update_Attribute_DefinitionAndImplementation()
+        {
+            var attribute = """
+                public class A : System.Attribute { public A(int x) {} }
+                public class B : System.Attribute { public B(int x) {} }
+                """;
+
+            var srcA1 = attribute +
+                """
+                partial class C { [A(1)]partial void F(); }
+                """;
+
+            var srcB1 =
+                """
+                partial class C { [B(1)]partial void F() { var <N:0.0>x = 1</N:0.0>; <AS:0>}</AS:0> }
+                """;
+
+            var srcA2 = attribute +
+                """
+                partial class C { [A(2)]partial void F(); }
+                """;
+
+            var srcB2 =
+                """
+                partial class C { [B(2)]partial void F() { var <N:0.0>x = 1</N:0.0>; <AS:0>}</AS:0> }
+                """;
+
+            var syntaxMapB = GetSyntaxMap(srcB1, srcB2)[0];
+
+            EditAndContinueValidation.VerifySemantics(
+                [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+                [
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2),
+                        semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C", syntaxMap: syntaxMapB)]),
+                ],
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
+        public void Method_Partial_SignatureChangeInsertDelete1()
+        {
+            var srcA1 = "partial class C { void F(byte x) <AS:0>{</AS:0> } }";
+            var srcB1 = "partial class C { void F(char x) {} }";
+            var srcA2 = "partial class C { <AS:0>void F(char x)</AS:0> {} }";
+            var srcB2 = "partial class C { void F(byte x) {} }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2),
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "char x", GetResource("method"))]),
+
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2),
+                        diagnostics: [])
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+        }
+
+        [Fact]
+        public void Method_Partial_SignatureChangeInsertDelete2()
+        {
+            var srcA1 = "partial class C { void F(byte x) { } }";
+            var srcB1 = "partial class C { void F(char x) <AS:0>{</AS:0>} }";
+            var srcA2 = "partial class C { void F(char x) {} }";
+            var srcB2 = "partial class C { <AS:0>void F(byte x)</AS:0> {} }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                [
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2),
+                        diagnostics: []),
+
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2),
+                        diagnostics: [Diagnostic(RudeEditKind.DeleteActiveStatement, "byte x", GetResource("method"))])
+                ],
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
         }
 
         #endregion
@@ -749,6 +863,7 @@ class C
             edits.VerifySemantics(
                 new[]
                 {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.this[]")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item")),
                     SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.set_Item"), deletedSymbolContainerProvider: c => c.GetMember("C")),
                 },
@@ -821,7 +936,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -925,7 +1040,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -1027,7 +1142,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "set", GetResource("indexer setter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,
@@ -1127,7 +1242,7 @@ class C<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifySemanticDiagnostics(active,
-                diagnostics: new[] { Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter")) },
+                diagnostics: [Diagnostic(RudeEditKind.UpdatingGenericNotSupportedByRuntime, "get", GetResource("indexer getter"))],
                 capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(active,

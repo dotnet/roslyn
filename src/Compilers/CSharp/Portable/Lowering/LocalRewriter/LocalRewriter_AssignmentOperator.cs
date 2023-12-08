@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess indexerAccess,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -270,8 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
             BoundExpression? rewrittenReceiver,
@@ -312,7 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,

@@ -8768,5 +8768,39 @@ class Program
             await TestAsync(source,
                 MainDescription($"int*"));
         }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start()
+        {
+            var source =
+"int[] x = $$[1, 2]";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Middle()
+        {
+            var source =
+"int[] x = [1 $$, 2]";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_End()
+        {
+            var source =
+"int[] x = [1, 2]$$";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start_Typeless()
+        {
+            var source =
+"var x = $$[1, 2]";
+            await TestAsync(source);
+        }
     }
 }

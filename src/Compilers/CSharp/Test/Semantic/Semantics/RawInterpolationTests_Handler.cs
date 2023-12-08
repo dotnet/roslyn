@@ -3217,13 +3217,14 @@ class Attr : Attribute
 
         var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
         comp.VerifyDiagnostics(
-            // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
-            // [Attr($"{1}{2}")]
-            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr").WithArguments("c", "CustomHandler").WithLocation(4, 2));
-        VerifyInterpolatedStringExpression(comp);
+            // 0.cs(4,7): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            // [Attr($"{1}" + $"{2}")]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, expression).WithLocation(4, 7));
 
         var attr = comp.SourceAssembly.SourceModule.GlobalNamespace.GetTypeMember("Attr");
-        Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+        // Note that for usage in attributes, we don't use the custom handler. This is because it's an error scenario regardless, and we want to avoid
+        // potential binding cycles.
+        Assert.Equal("Attr..ctor(System.String s)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
     }
 
     [Theory]
@@ -4776,20 +4777,21 @@ literal:Literal");
     [InlineData(@"$""""""{1,2:f}"""""" + $""""""Literal""""""")]
     public void PassAsRefWithoutKeyword_02(string expression)
     {
-        var code = @"
-M(" + expression + @");
-M(ref " + expression + @");
+        var code = $$"""
+            M({{expression}});
+            M(ref {{expression}});
 
-void M(ref CustomHandler c) => System.Console.WriteLine(c);";
+            void M(ref CustomHandler c) => System.Console.WriteLine(c);
+            """;
 
         var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.Net50);
         comp.VerifyDiagnostics(
-            // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
+            // (1,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
             // M($"{1,2:f}Literal");
-            Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(2, 3),
-            // (3,7): error CS1510: A ref or out value must be an assignable variable
+            Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("1", "ref").WithLocation(1, 3),
+            // (2,7): error CS1510: A ref or out value must be an assignable variable
             // M(ref $"{1,2:f}Literal");
-            Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(3, 7));
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, expression).WithLocation(2, 7));
     }
 
     [Theory]

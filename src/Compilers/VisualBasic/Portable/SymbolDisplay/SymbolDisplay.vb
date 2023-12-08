@@ -24,7 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The return value is not expected to be syntactically valid Visual Basic.
         ''' </remarks>
         Public Function ToDisplayString(symbol As ISymbol, Optional format As SymbolDisplayFormat = Nothing) As String
-            Return ToDisplayParts(symbol, format:=format).ToDisplayString()
+            format = If(format, SymbolDisplayFormat.VisualBasicErrorMessageFormat)
+            Return ToDisplayString(symbol, semanticModel:=Nothing, position:=-1, format, minimal:=False)
         End Function
 
         ''' <summary>
@@ -44,7 +45,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                semanticModel As SemanticModel,
                                                position As Integer,
                                                Optional format As SymbolDisplayFormat = Nothing) As String
-            Return ToMinimalDisplayParts(symbol, semanticModel, position, format).ToDisplayString()
+            format = If(format, SymbolDisplayFormat.MinimallyQualifiedFormat)
+            Return ToDisplayString(symbol, semanticModel, position, format, minimal:=True)
+        End Function
+
+        Private Function ToDisplayString(symbol As ISymbol,
+                                         semanticModel As SemanticModel,
+                                         position As Integer,
+                                         format As SymbolDisplayFormat,
+                                         minimal As Boolean) As String
+            Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+
+            PopulateDisplayParts(builder, symbol, semanticModel, position, format, minimal)
+
+            Dim result = builder.ToDisplayString()
+            builder.Free()
+
+            Return result
         End Function
 
         ''' <summary>
@@ -88,6 +105,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        positionOpt As Integer,
                                        format As SymbolDisplayFormat,
                                        minimal As Boolean) As ImmutableArray(Of SymbolDisplayPart)
+            Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
+
+            PopulateDisplayParts(builder, symbol, semanticModelOpt, positionOpt, format, minimal)
+
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Private Sub PopulateDisplayParts(builder As ArrayBuilder(Of SymbolDisplayPart),
+                                         symbol As ISymbol,
+                                         semanticModelOpt As SemanticModel,
+                                         positionOpt As Integer,
+                                         format As SymbolDisplayFormat,
+                                         minimal As Boolean)
             If symbol Is Nothing Then
                 Throw New ArgumentNullException(NameOf(symbol))
             End If
@@ -103,11 +133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(positionOpt < 0)
             End If
 
-            Dim builder = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
-            Dim visitor = New SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt)
+            Dim visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt)
             symbol.Accept(visitor)
-            Return builder.ToImmutableAndFree()
-        End Function
+            visitor.Free()
+        End Sub
 
         ''' <summary>
         ''' Returns a string representation of an object of primitive type.

@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 "Features",
                 "Language",
                 "LanguageVersion",
+                "InterceptorsPreviewNamespaces",
                 "PreprocessorSymbolNames",
                 "PreprocessorSymbols",
                 "SpecifiedLanguageVersion");

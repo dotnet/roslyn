@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
-        WRN_Experimental = 8305,
+        WRN_WindowsExperimental = 8305,
         ERR_TupleInferredNamesNotAvailable = 8306,
         ERR_TypelessTupleInAs = 8307,
 
@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_LowerCaseTypeName = 8981,
         ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
         ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
-        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+        // ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
         ERR_ScopedMismatchInParameterOfTarget = 8986,
@@ -2269,6 +2269,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_FeatureNotAvailableInVersion12 = 9202,
         ERR_CollectionExpressionEscape = 9203,
+        WRN_Experimental = 9204,
+        ERR_ExpectedInterpolatedString = 9205,
+
+        ERR_InterceptorGlobalNamespace = 9206,
+        ERR_InterceptableMethodMustBeOrdinary = 9207,
+
+        WRN_CollectionExpressionRefStructMayAllocate = 9208,
+        WRN_CollectionExpressionRefStructSpreadMayAllocate = 9209,
+        ERR_CollectionExpressionImmutableArray = 9210,
+
+        ERR_InvalidExperimentalDiagID = 9211,
+        ERR_SpreadMissingMember = 9212,
 
         #endregion
 

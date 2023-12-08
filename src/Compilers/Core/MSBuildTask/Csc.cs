@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             AddReferencesToCommandLine(commandLine, References);
+            AddInterceptorsPreviewNamespaces(commandLine, InterceptorsPreviewNamespaces);
 
             base.AddResponseFileCommands(commandLine);
 
@@ -278,6 +279,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #endregion
 
         internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
+
+        /// <param name="interceptorsNamespaces">
+        /// The value of the &lt;InterceptorsPreviewNamespaces&gt; property.
+        /// </param>
+        internal static void AddInterceptorsPreviewNamespaces(CommandLineBuilderExtension commandLine, string? interceptorsNamespaces)
+        {
+            if (string.IsNullOrEmpty(interceptorsNamespaces))
+            {
+                return;
+            }
+
+            commandLine.AppendSwitchIfNotNull("/features:", $"InterceptorsPreviewNamespaces={interceptorsNamespaces}");
+        }
+
+        public string? InterceptorsPreviewNamespaces
+        {
+            set { _store[nameof(InterceptorsPreviewNamespaces)] = value; }
+            get { return (string?)_store[nameof(InterceptorsPreviewNamespaces)]; }
+        }
 
         /// <summary>
         /// The C# compiler (starting with Whidbey) supports assembly aliasing for references.
@@ -325,7 +345,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (string.IsNullOrEmpty(aliasString))
                 {
                     // If there was no "Alias" attribute, just add this as a global reference.
-                    commandLine.AppendSwitchIfNotNull(switchName, reference.ItemSpec);
+                    appendGlobalReference(reference.ItemSpec);
                 }
                 else
                 {
@@ -353,7 +373,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // error out on those.  The ones we're checking for here are the ones
                         // that could seriously screw up the command-line parsing or could
                         // allow parameter injection.
-                        if (trimmedAlias.IndexOfAny(new char[] { ',', ' ', ';', '"' }) != -1)
+                        if (trimmedAlias.AsSpan().IndexOfAny([' ', ';', '"', '=']) != -1)
                         {
                             throw Utilities.GetLocalizedArgumentException(
                                 ErrorString.Csc_AssemblyAliasContainsIllegalCharacters,
@@ -365,7 +385,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // give it an alias on the command-line.
                         if (string.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
                         {
-                            commandLine.AppendSwitchIfNotNull(switchName, reference.ItemSpec);
+                            appendGlobalReference(reference.ItemSpec);
                         }
                         else
                         {
@@ -374,6 +394,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             //      /reference:Goo=System.Xml.dll
                             commandLine.AppendSwitchAliased(switchName, trimmedAlias, reference.ItemSpec);
                         }
+                    }
+                }
+
+                void appendGlobalReference(string? itemSpec)
+                {
+                    if (itemSpec is null)
+                    {
+                        return;
+                    }
+
+                    var index = itemSpec.AsSpan().IndexOfAny(['"', '=']);
+                    if (index >= 0 && itemSpec[index] == '=')
+                    {
+                        // The presence of a = in the name before the first quote will cause the
+                        // compiler to treat this as an alias reference instead of a global
+                        // reference. Force quote the reference to ensure it's treated as global reference.
+                        commandLine.AppendSwitchForceQuoted(switchName, reference.ItemSpec);
+                    }
+                    else
+                    {
+                        commandLine.AppendSwitchIfNotNull(switchName, reference.ItemSpec);
                     }
                 }
             }

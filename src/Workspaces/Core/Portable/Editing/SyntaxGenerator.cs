@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return name;
         }
 
-        private static readonly char[] s_dotSeparator = new char[] { '.' };
+        private static readonly char[] s_dotSeparator = ['.'];
 
         /// <summary>
         /// Creates a name that denotes a type or namespace.

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
+using Roslyn.Test.Utilities.TestGenerators;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -164,6 +165,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
+                });
+            }
+        }
+
+        // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
+        // the compiler can handle. 
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        public void OverflowOnFluentCall_ExtensionMethods()
+        {
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime) switch
+            {
+                (8, ExecutionConfiguration.Debug, false) => 750,
+                (8, ExecutionConfiguration.Release, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true) => 450,
+                (4, ExecutionConfiguration.Release, true) => 1_600,
+                (8, ExecutionConfiguration.Debug, true) => 1_100,
+                (8, ExecutionConfiguration.Release, true) => 3_300,
+                _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
+            };
+
+            // Un-comment the call below to figure out the new limits.
+            //testLimits();
+
+            try
+            {
+                tryCompileDeepFluentCalls(numberFluentCalls);
+            }
+            catch (Exception e)
+            {
+                testLimits(e);
+            }
+
+            void testLimits(Exception innerException = null)
+            {
+                for (int i = 0; i < int.MaxValue; i += 10)
+                {
+                    try
+                    {
+                        tryCompileDeepFluentCalls(i);
+                    }
+                    catch (Exception e)
+                    {
+                        if (innerException != null)
+                        {
+                            e = new AggregateException(e, innerException);
+                        }
+
+                        throw new Exception($"Depth: {i}, Bytes: {IntPtr.Size}, Config: {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}", e);
+                    }
+                }
+            }
+
+            void tryCompileDeepFluentCalls(int depth)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("""
+                    static class E
+                    {
+                        public static C M(this C c, string x) { return c; }
+                    }
+                    class C
+                    {
+                        static C GetC() => new C();
+                        void M2()
+                        {
+                            GetC()
+                    """);
+                for (int i = 0; i < depth; i++)
+                {
+                    builder.AppendLine(""".M("test")""");
+                }
+                builder.AppendLine("""; } }""");
+
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
+                    var compilation = CreateCompilation(source, options: options);
+                    compilation.VerifyEmitDiagnostics();
                 });
             }
         }
@@ -501,7 +581,7 @@ $@"        if (F({i}))
                     """, $"C{i}.cs"));
             }
 
-            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreview"), expectedOutput: makeExpectedOutput());
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: makeExpectedOutput());
             verifier.VerifyDiagnostics();
 
             string makeExpectedOutput()
@@ -513,6 +593,133 @@ $@"        if (F({i}))
                 }
                 return builder.ToString();
             }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69093")]
+        public void NestedLambdas(bool localFunctions)
+        {
+            const int overloads1Number = 20;
+            const int overloads2Number = 10;
+
+            /*
+                interface I0 { }
+                // ...
+                interface I9 { }
+            */
+            var builder1 = new StringBuilder();
+            var interfacesNumber = Math.Max(overloads1Number, overloads2Number);
+            for (int i = 0; i < interfacesNumber; i++)
+            {
+                builder1.AppendLine($$"""interface I{{i}} { }""");
+            }
+
+            /*
+                void M1(System.Action<I0> a) { }
+                // ...
+                void M1(System.Action<I9> a) { }
+            */
+            var builder2 = new StringBuilder();
+            for (int i = 0; i < overloads1Number; i++)
+            {
+                builder2.AppendLine($$"""void M1(System.Action<I{{i}}> a) { }""");
+            }
+
+            /*
+                void M2(I0 x, System.Func<string, I0> f) { }
+                // ...
+                void M2(I9 x, System.Func<string, I9> f) { }
+            */
+            for (int i = 0; i < overloads2Number; i++)
+            {
+                builder2.AppendLine($$"""void M2(I{{i}} x, System.Func<string, I{{i}}> f) { }""");
+            }
+
+            // Local functions should be similarly fast as lambdas.
+            var inner = localFunctions ? """
+                M2(x, L0);
+                static I0 L0(string arg) {
+                    arg = arg + "0";
+                    return default;
+                }
+                """ : """
+                M2(x, static I0 (string arg) => {
+                    arg = arg + "0";
+                    return default;
+                });
+                """;
+
+            var source = $$"""
+                {{builder1}}
+                class C
+                {
+                    {{builder2}}
+                    void Main()
+                    {
+                        M1(x =>
+                        {
+                            {{inner}}
+                        });
+                    }
+                }
+                """;
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                var data = new LambdaBindingData();
+                comp.TestOnlyCompilationData = data;
+                comp.VerifyDiagnostics();
+                Assert.Equal(localFunctions ? 20 : 40, data.LambdaBindingCount);
+            }, timeout: TimeSpan.FromSeconds(5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/70791")]
+        public void ForAttributeWithMetadataName_DeepRecursion()
+        {
+            var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 20_000));
+            var source = $$"""
+                class Ex
+                {
+                    void M()
+                    {
+                        var v ={{deeplyRecursive}};
+                    }
+                }
+
+                [N1.X]
+                class C1 { }
+                [N2.X]
+                class C2 { }
+
+                namespace N1
+                {
+                    class XAttribute : System.Attribute { }
+                }
+
+                namespace N2
+                {
+                    class XAttribute : System.Attribute { }
+                }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.ForAttributeWithMetadataName(
+                    "N1.XAttribute",
+                    (node, _) => node is ClassDeclarationSyntax,
+                    (context, _) => (ClassDeclarationSyntax)context.TargetNode);
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
         }
     }
 }

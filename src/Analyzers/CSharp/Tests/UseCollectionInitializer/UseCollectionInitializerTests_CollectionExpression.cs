@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -70,6 +69,272 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     }
 
     [Fact]
+    public async Task TestNotWithConstructorArguments1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 });
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithConstructorArguments2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = [|new|] List<int>(new[] { 1, 2, 3 });
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var c = new List<int>(new[] { 1, 2, 3 })
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>();
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>() { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>()
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField4()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = new List<int>(new[] { 1, 2, 3 });
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int> { 1, 2, 3 };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [1, 2, 3];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInField7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [|new|] List<int>
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c =
+                [
+                    1,
+                    2,
+                    3
+                ];
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInArgument1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X([|new|] List<int>());
+                }
+
+                void X(List<int> list) { }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    X([]);
+                }
+            
+                void X(List<int> list) { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInArgument2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    X(new List<int>());
+                }
+
+                void X(IEnumerable<int> list) { }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestOnVariableDeclarator()
     {
         await TestInRegularAndScriptAsync(
@@ -98,7 +363,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestOnVariableDeclarator_If1()
     {
         await TestInRegularAndScriptAsync(
@@ -162,7 +427,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70172"), WorkItem("https://github.com/dotnet/roslyn/issues/69277")]
     public async Task TestOnVariableDeclarator_If3()
     {
         await TestInRegularAndScriptAsync(
@@ -665,6 +930,39 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70388")]
+    public async Task TestOnVariableDeclarator_AwaitForeach1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<int> x)
+                {
+                    List<int> c = [|new|] List<int>();
+                    [|c.Add(|]1);
+                    await foreach (var v in x)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<int> x)
+                {
+                    List<int> c = [1];
+                    await foreach (var v in x)
+                        c.Add(v);
+                }
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestOnVariableDeclarator_AddRange1()
     {
@@ -1091,10 +1389,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> c = new List<int>(1)
-                    {
-                        1
-                    };
+                    List<int> c = [1];
                 }
             }
             """);
@@ -1837,9 +2132,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16241")]
     public async Task TestNestedCollectionInitializer()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
-                    using System.Collections.Generic;
+            using System.Collections.Generic;
             using System.Linq;
 
             class Program
@@ -1847,7 +2142,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 static void Main(string[] args)
                 {
                     string[] myStringArray = new string[] { "Test", "123", "ABC" };
-                    List<string> myStringList = myStringArray?.ToList() ?? new List<string>();
+                    List<string> myStringList = myStringArray?.ToList() ?? [|new|] List<string>();
+                    myStringList.Add("Done");
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string[] myStringArray = new string[] { "Test", "123", "ABC" };
+                    List<string> myStringList = myStringArray?.ToList() ?? [];
                     myStringList.Add("Done");
                 }
             }
@@ -3915,5 +4224,852 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCapacity1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>(0);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = new List<int>(1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>(1);
+                    [|c.Add(|]0);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [0];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = [|new|] List<int>(0);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<int> c = new List<int>(0)
+                    {
+                        1
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [0, .. x];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + 1);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [0, .. x];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>(2 + x.Length);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [0, .. x, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity8()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>(2 + x.Length + y.Length);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity9()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Length + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity10()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Count + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity11()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity12()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0, 1 };
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [0, 1, .. x, .. y];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity13()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length);
+                    [|c.Add(|]1);
+                    [|foreach (var v in |]x)
+                        c.Add(v);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x)
+                {
+                    List<int> c = [1, .. x];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity14()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Count() + 1);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [0, .. x, .. y, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity15()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Count());
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Count())
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                    c.AddRange(y);
+                    c.Add(1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity16()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 - x.Length);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 - x.Length)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity17()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity18()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>(1 + x.Length + y.Length);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = new List<int>(1 + x.Length + y.Length)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity19()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = [|new|] List<int>(x);
+                    [|c.Add(|]0);
+                    c.AddRange(y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, int[] y)
+                {
+                    List<int> c = new List<int>(x)
+                    {
+                        0
+                    };
+                    c.AddRange(y);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity20()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + y.Count() + 2) { 0 };
+                    [|c.Add(|]1);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]y);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [0, 1, .. x, .. y];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity21()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = [|new|] List<int>(1 + y.Count());
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] x, IEnumerable<int> y)
+                {
+                    List<int> c = new List<int>(1 + y.Count())
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity22()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + x.Length + 2);
+                    [|c.Add(|]0);
+                    [|c.AddRange(|]x);
+                    [|c.AddRange(|]x);
+                    [|c.Add(|]1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [0, .. x, .. x, 1];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity23()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + 2);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = new List<int>(x.Length + 2)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestCapacity24()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = [|new|] List<int>(x.Length + x.Length + x.Length + 2);
+                    [|c.Add(|]0);
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(int[] x, IList<int> y)
+                {
+                    List<int> c = new List<int>(x.Length + x.Length + x.Length + 2)
+                    {
+                        0
+                    };
+                    c.AddRange(x);
+                    c.AddRange(x);
+                    c.Add(1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestInLambda()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Func<List<int>> f = () => [|new|] List<int>();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Func<List<int>> f = () => [];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInLambda1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    var e = () => new List<int>();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71012")]
+    public async Task TestNotInExpressionTree()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                void M()
+                {
+                    Expression<Func<List<int>>> e = () => new List<int>();
+                }
+            }
+            """);
     }
 }

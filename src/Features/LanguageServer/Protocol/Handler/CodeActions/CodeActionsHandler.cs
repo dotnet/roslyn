@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IGlobalOptionService _globalOptions;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
+        internal const string RunFixAllCodeActionCommandName = "roslyn.client.fixAllCodeAction";
+        internal const string RunNestedCodeActionCommandName = "roslyn.client.nestedCodeAction";
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

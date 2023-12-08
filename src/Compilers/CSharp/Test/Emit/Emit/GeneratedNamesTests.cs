@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -49,6 +52,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         public void TryParseSynthesizedDelegateName_Failure(string name)
         {
             Assert.False(GeneratedNames.TryParseSynthesizedDelegateName(name, out _, out _, out _, out _));
+        }
+
+        [Theory]
+        [InlineData("DisplayClass10_20", 10, 0, 20, 0)]
+        [InlineData("1#2_3#4", 1, 2, 3, 4)]
+        [InlineData("123_4#5", 123, 0, 4, 5)]
+        [InlineData("1#2_345", 1, 2, 345, 0)]
+        [InlineData("1#0_2#0", 1, 0, 2, 0)]
+        [InlineData("0_1", 0, 0, 1, 0)]
+        [InlineData("L1|6_0", 6, 0, 0, 0)]
+        [InlineData("L1|1", 1, 0, 0, 0, false)]
+        [InlineData("L1|1", 0, 0, 1, 0, true)]
+        [InlineData("L1|1#2", 1, 2, 0, 0, false)]
+        [InlineData("L1|1#2", 0, 0, 1, 2, true)]
+        public void TryParseDebugIds(string metadataName, int methodIdOrdinal, int methodIdGeneration, int entityIdOrdinal, int entityIdGeneration, bool isMethodIdOptional = false)
+        {
+            Assert.True(CommonGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional, out var actualMethodId, out var actualEntityId));
+            Assert.Equal(new DebugId(methodIdOrdinal, methodIdGeneration), actualMethodId);
+            Assert.Equal(new DebugId(entityIdOrdinal, entityIdGeneration), actualEntityId);
+        }
+
+        [Theory]
+        [InlineData("L1|0_99999999999999999999999")]
+        [InlineData("L1|99999999999999999999999_0")]
+        [InlineData("L1|6_")]
+        [InlineData("L1|_6")]
+        [InlineData("1#2#3#4")]
+        [InlineData("1#2#3_4")]
+        [InlineData("1_2_3")]
+        [InlineData("_2_3")]
+        [InlineData("##")]
+        [InlineData("#")]
+        [InlineData("#1")]
+        [InlineData("1#")]
+        [InlineData("1#_2")]
+        [InlineData("1_#2")]
+        [InlineData("_")]
+        [InlineData("__")]
+        [InlineData("")]
+        public void TryParseDebugIds_Errors(string metadataName)
+        {
+            Assert.False(CommonGeneratedNames.TryParseDebugIds(metadataName.AsSpan(), GeneratedNameConstants.IdSeparator, isMethodIdOptional: false, out _, out _));
         }
     }
 }

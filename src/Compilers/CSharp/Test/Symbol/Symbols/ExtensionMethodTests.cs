@@ -4107,5 +4107,44 @@ public static class C
             reduced = extensionMethod.ReduceExtensionMethod(systemVoidType, compilation);
             Assert.Null(reduced);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = new A().M(1)) { }
+                }
+
+                public static class AExt
+                {
+                    public static void M(this A s, ref int i) {}
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,37): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                //     public A(int x, A a = new A().M(1)) { }
+                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "ref").WithLocation(8, 37));
+        }
     }
 }

@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// </summary>
         public static readonly PerLanguageOption2<bool> RefactoringVerification = new("FeatureOnOffOptions_RefactoringVerification", defaultValue: false);
 
-        public static readonly Option2<bool> NavigateAsynchronously = new("dotnet_navigate_asynchronously", defaultValue: true);
-
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new("dotnet_offer_remove_unused_references", defaultValue: true);
 
         public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new("dotnet_offer_remove_unused_references_feature_flag", defaultValue: false);

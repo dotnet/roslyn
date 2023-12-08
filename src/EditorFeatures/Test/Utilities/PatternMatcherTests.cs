@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> spans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var spans);
 
             var match = PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true, allowFuzzyMatching: false)
                 .GetFirstMatch(candidate);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IEnumerable<PatternMatch> TryMatchMultiWordPattern(string candidate, string pattern)
         {
-            MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
+            MarkupTestFile.GetSpans(candidate, out candidate, out var expectedSpans);
 
             using var matches = TemporaryArray<PatternMatch>.Empty;
             PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());

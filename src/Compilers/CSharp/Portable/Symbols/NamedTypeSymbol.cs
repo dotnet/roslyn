@@ -162,10 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no GuidAttribute with string argument.
         /// </summary>
-        internal virtual bool GetGuidString(out string guidString)
-        {
-            return GetGuidStringDefaultImplementation(out guidString);
-        }
+        internal abstract bool GetGuidString(out string guidString);
 
 #nullable enable
         /// <summary>
@@ -1155,6 +1152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
         /// </summary>
@@ -1704,11 +1703,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         INamedTypeSymbolInternal INamedTypeSymbolInternal.EnumUnderlyingType
-        {
-            get
-            {
-                return this.EnumUnderlyingType;
-            }
-        }
+            => EnumUnderlyingType;
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers()
+            => GetMembers().CastArray<ISymbolInternal>();
+
+        ImmutableArray<ISymbolInternal> INamedTypeSymbolInternal.GetMembers(string name)
+            => GetMembers(name).CastArray<ISymbolInternal>();
+
     }
 }

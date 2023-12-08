@@ -44,8 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             var root = (CompilationUnitSyntax)context.Node;
             var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
 
-            if (!CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
+            if (ShouldSkipAnalysis(context, option.Notification)
+                || !CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
+            {
                 return;
+            }
 
             var severity = option.Notification.Severity;
 
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                 this.Descriptor,
                 GetUseProgramMainDiagnosticLocation(
                     root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
-                severity,
+                option.Notification,
                 ImmutableArray<Location>.Empty,
                 ImmutableDictionary<string, string?>.Empty));
         }

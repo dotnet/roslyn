@@ -5,47 +5,51 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal sealed partial class SearchGraphQuery(
+    string searchPattern,
+    NavigateToSearchScope searchScope,
+    IAsynchronousOperationListener asyncListener) : IGraphQuery
 {
-    internal sealed partial class SearchGraphQuery : IGraphQuery
+    public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
-        private readonly string _searchPattern;
-        private readonly NavigateToSearchScope _searchScope;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+        var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
 
-        public SearchGraphQuery(
-            string searchPattern,
-            NavigateToSearchScope searchScope,
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener)
-        {
-            _threadingContext = threadingContext;
-            _asyncListener = asyncListener;
-            _searchPattern = searchPattern;
-            _searchScope = searchScope;
-        }
+        // We have a specialized host for progression vs normal nav-to.  Progression itself will tell the client if
+        // the project is fully loaded or not.  But after that point, the client will be considered fully loaded and
+        // results should reflect that.  So we create a host here that will always give complete results once the
+        // solution is loaded and not give cached/incomplete results at that point.
+        var statusService = solution.Services.GetRequiredService<IWorkspaceStatusService>();
+        var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+        var host = new SearchGraphQueryNavigateToSearchHost(isFullyLoaded);
 
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
-        {
-            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-            var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
-            var searcher = NavigateToSearcher.Create(
-                solution,
-                _asyncListener,
-                callback,
-                _searchPattern,
-                NavigateToUtilities.GetKindsProvided(solution),
-                _threadingContext.DisposalToken);
+        var searcher = NavigateToSearcher.Create(
+            solution,
+            asyncListener,
+            callback,
+            searchPattern,
+            NavigateToUtilities.GetKindsProvided(solution),
+            host);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, _searchScope, cancellationToken).ConfigureAwait(false);
+        await searcher.SearchAsync(searchCurrentDocument: false, searchScope, cancellationToken).ConfigureAwait(false);
 
-            return graphBuilder;
-        }
+        return graphBuilder;
+    }
+
+    private sealed class SearchGraphQueryNavigateToSearchHost(bool isFullyLoaded) : INavigateToSearcherHost
+    {
+        public INavigateToSearchService? GetNavigateToSearchService(Project project)
+            => project.GetLanguageService<INavigateToSearchService>();
+
+        public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            => new(isFullyLoaded);
     }
 }
