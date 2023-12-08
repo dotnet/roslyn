@@ -24,7 +24,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     private readonly IMethodHandler _handler;
 
     private readonly ILspLogger _logger;
-    private readonly AbstractLspRequestScope? _requestTelemetryScope;
+    private readonly AbstractRequestScope? _requestTelemetryScope;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.

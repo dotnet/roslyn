@@ -5,20 +5,21 @@
 using System;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger telemetryLogger)
- : AbstractLspRequestScope(name)
+    : AbstractRequestScope(name)
 {
     private readonly RequestTelemetryLogger _telemetryLogger = telemetryLogger;
     private RequestTelemetryLogger.Result _result = RequestTelemetryLogger.Result.Succeeded;
+    private readonly SharedStopwatch _stopwatch = SharedStopwatch.StartNew();
+    private TimeSpan _queuedDuration;
 
-    public override void Dispose()
+    public override void RecordExecutionStart()
     {
-        base.Dispose();
-
-        _telemetryLogger.UpdateTelemetryData(Name, QueuedDuration, RequestDuration, _result);
+        _queuedDuration = _stopwatch.Elapsed;
     }
 
     public override void RecordCancellation()
@@ -34,5 +35,12 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
     public override void RecordWarning(string message)
     {
         _result = RequestTelemetryLogger.Result.Failed;
+    }
+
+    public override void Dispose()
+    {
+        var requestDuration = _stopwatch.Elapsed;
+
+        _telemetryLogger.UpdateTelemetryData(Name, _queuedDuration, requestDuration, _result);
     }
 }

@@ -7,18 +7,18 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal sealed class LspTelemetryService : AbstractTelemetryService, ILspService
+internal sealed class TelemetryService : AbstractTelemetryService, ILspService
 {
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
-    public LspTelemetryService(ILspServices lspServices)
+    public TelemetryService(ILspServices lspServices)
     {
         var requestTelemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
 
         _requestTelemetryLogger = requestTelemetryLogger;
     }
 
-    public override AbstractLspRequestScope CreateRequestScope(string lspMethodName)
+    public override AbstractRequestScope CreateRequestScope(string lspMethodName)
     {
         return new RequestTelemetryScope(lspMethodName, _requestTelemetryLogger);
     }

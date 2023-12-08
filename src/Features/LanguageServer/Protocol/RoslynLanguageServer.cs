@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
-            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new LspTelemetryService(lspServices));
+            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
             AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
