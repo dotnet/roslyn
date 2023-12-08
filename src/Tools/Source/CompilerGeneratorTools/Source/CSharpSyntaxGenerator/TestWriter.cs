@@ -199,22 +199,15 @@ namespace CSharpSyntaxGenerator
             WriteLine(");");
         }
 
-        private void WriteFactoryPropertyTests(bool isGreen)
+        private void WriteFactoryPropertyTests(IndentingStringBuilder builder, bool isGreen)
         {
-            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
-            bool first = true;
-            foreach (var node in nodes)
-            {
-                if (!first)
-                {
-                    WriteLine();
-                }
-                first = false;
-                WriteFactoryPropertyTest((Node)node, isGreen);
-            }
+            builder.WriteBlankLineSeparated(
+                Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode),
+                static (builder, node, tuple) => tuple.@this.WriteFactoryPropertyTest(builder, (Node)node, tuple.isGreen),
+                (@this: this, isGreen));
         }
 
-        private void WriteFactoryPropertyTest(Node node, bool isGreen)
+        private void WriteFactoryPropertyTest(IndentingStringBuilder builder, Node node, bool isGreen)
         {
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
@@ -352,26 +345,23 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteIdentityRewriterTest(Node node)
+        private void WriteIdentityRewriterTest(IndentingStringBuilder builder, Node node)
         {
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
 
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine("[Fact]");
-            WriteLine($"public void Test{strippedName}IdentityRewriter()");
-            OpenBlock();
-
-            WriteLine($"var oldNode = Generate{strippedName}();");
-            WriteLine("var rewriter = new IdentityRewriter();");
-            WriteLine("var newNode = rewriter.Visit(oldNode);");
-
-            WriteLine();
-
-            WriteLine("Assert.Same(oldNode, newNode);");
-
-            CloseBlock();
+            builder.WriteLine("[Fact]");
+            builder.WriteLine($"public void Test{strippedName}IdentityRewriter()");
+            using (builder.EnterBlock())
+            {
+                builder.WriteLine($"var oldNode = Generate{strippedName}();");
+                builder.WriteLine("var rewriter = new IdentityRewriter();");
+                builder.WriteLine("var newNode = rewriter.Visit(oldNode);");
+                builder.WriteLine();
+                builder.WriteLine("Assert.Same(oldNode, newNode);");
+            }
         }
 
         //guess a reasonable kind if there are no constraints
