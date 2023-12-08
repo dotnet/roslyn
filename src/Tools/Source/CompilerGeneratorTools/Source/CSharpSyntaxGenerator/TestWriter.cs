@@ -317,39 +317,32 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteTokenDeleteRewriterTest(Node node)
+        private void WriteTokenDeleteRewriterTest(IndentingStringBuilder builder, Node node)
         {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
-
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine("[Fact]");
-            WriteLine($"public void Test{strippedName}TokenDeleteRewriter()");
-            OpenBlock();
+            builder.WriteLine("[Fact]");
+            builder.WriteLine($"public void Test{strippedName}TokenDeleteRewriter()");
+            using (builder.EnterBlock())
+            {
+                builder.WriteLine($"var oldNode = Generate{strippedName}();");
+                builder.WriteLine("var rewriter = new TokenDeleteRewriter();");
+                builder.WriteLine("var newNode = rewriter.Visit(oldNode);");
+                builder.WriteLine();
+                builder.WriteLine("if(!oldNode.IsMissing)");
+                using (builder.EnterBlock())
+                {
+                    builder.WriteLine("Assert.NotEqual(oldNode, newNode);");
+                }
 
-            WriteLine($"var oldNode = Generate{strippedName}();");
-            WriteLine("var rewriter = new TokenDeleteRewriter();");
-            WriteLine("var newNode = rewriter.Visit(oldNode);");
-
-            WriteLine();
-            WriteLine("if(!oldNode.IsMissing)");
-            OpenBlock();
-            WriteLine("Assert.NotEqual(oldNode, newNode);");
-            CloseBlock();
-
-            WriteLine();
-            WriteLine("Assert.NotNull(newNode);");
-            WriteLine("Assert.True(newNode.IsMissing, \"No tokens => missing\");");
-
-            CloseBlock();
+                builder.WriteLine();
+                builder.WriteLine("Assert.NotNull(newNode);");
+                builder.WriteLine("Assert.True(newNode.IsMissing, \"No tokens => missing\");");
+            }
         }
 
         private void WriteIdentityRewriterTest(IndentingStringBuilder builder, Node node)
         {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
-
             var strippedName = StripPost(node.Name, "Syntax");
 
             builder.WriteLine("[Fact]");
