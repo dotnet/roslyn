@@ -335,6 +335,9 @@ internal struct IndentingStringBuilder : IDisposable
         => this;
 #pragma warning restore IDE0060 // Remove unused parameter
 
+    public override readonly string ToString()
+        => this.Builder.ToString();
+
     /// <summary>
     /// Provides a handler used by the language compiler to append interpolated strings into <see cref="IndentedTextWriter"/> instances.
     /// </summary>
