@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -22,9 +23,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     private readonly TRequest _request;
     private readonly IMethodHandler _handler;
 
-    // TODO: Remove when Razor/WebTools have moved to AbstractLspRequestScope
-    private readonly ILspLogger? _logger;
-    private readonly AbstractLspRequestScope? _requestScope;
+    private readonly ILspLogger _logger;
+    private readonly AbstractLspRequestScope? _requestTelemetryScope;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -54,6 +54,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
         _handler = handler;
+        _logger = logger;
         _request = request;
         LspServices = lspServices;
         MethodHandler = methodHandler;
@@ -61,10 +62,9 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         MutatesServerState = mutatesSolutionState;
         MethodName = methodName;
 
-        if (logger is AbstractLspLogger lspLogger)
-            _requestScope = lspLogger.TrackLspRequest(methodName, LspServices);
-        else
-            _logger = logger;
+        var telemetryService = lspServices.GetRequiredServices<AbstractTelemetryService>().FirstOrDefault();
+
+        _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName, LspServices);
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(
@@ -94,7 +94,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        _requestScope?.RecordExecutionStart();
+        _requestTelemetryScope?.RecordExecutionStart();
 
         var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
         var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
@@ -110,7 +110,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(TRequestContext? context, CancellationToken cancellationToken)
     {
-        _logger?.LogStartContext($"{MethodName}");
+        _logger.LogStartContext($"{MethodName}");
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -124,8 +124,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
                 // the requests this could happen for.  However, this assumption may not hold in the future.
                 // If that turns out to be the case, we could defer to the individual handler to decide
                 // what to do.
-                _requestScope?.RecordWarning($"Could not get request context for {MethodName}");
-                _logger?.LogWarning($"Could not get request context for {MethodName}");
+                _requestTelemetryScope?.RecordWarning($"Could not get request context for {MethodName}");
+                _logger.LogWarning($"Could not get request context for {MethodName}");
 
                 _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
             }
@@ -163,8 +163,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         catch (OperationCanceledException ex)
         {
             // Record logs + metrics on cancellation.
-            _requestScope?.RecordCancellation();
-            _logger?.LogInformation($"{MethodName} - Canceled");
+            _requestTelemetryScope?.RecordCancellation();
+            _logger.LogInformation($"{MethodName} - Canceled");
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
@@ -172,15 +172,15 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         {
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
-            _requestScope?.RecordException(ex);
-            _logger?.LogException(ex);
+            _requestTelemetryScope?.RecordException(ex);
+            _logger.LogException(ex);
 
             _completionSource.TrySetException(ex);
         }
         finally
         {
-            _requestScope?.Dispose();
-            _logger?.LogEndContext($"{MethodName}");
+            _requestTelemetryScope?.Dispose();
+            _logger.LogEndContext($"{MethodName}");
         }
 
         // Return the result of this completion source to the caller

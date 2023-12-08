@@ -8,12 +8,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 public abstract class AbstractLspLogger : ILspLogger
 {
+    public abstract void LogDebug(string message, params object[] @params);
     public abstract void LogStartContext(string message, params object[] @params);
     public abstract void LogEndContext(string message, params object[] @params);
     public abstract void LogInformation(string message, params object[] @params);
     public abstract void LogWarning(string message, params object[] @params);
     public abstract void LogError(string message, params object[] @params);
     public abstract void LogException(Exception exception, string? message = null, params object[] @params);
-
-    public abstract AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices);
 }

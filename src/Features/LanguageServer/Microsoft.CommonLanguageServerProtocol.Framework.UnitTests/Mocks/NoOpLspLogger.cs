@@ -10,6 +10,10 @@ public sealed class NoOpLspLogger : AbstractLspLogger, ILspLogger
 {
     public static NoOpLspLogger Instance = new();
 
+    public override void LogDebug(string message, params object[] @params)
+    {
+    }
+
     public override void LogError(string message, params object[] @params)
     {
     }
@@ -32,10 +36,5 @@ public sealed class NoOpLspLogger : AbstractLspLogger, ILspLogger
 
     public override void LogWarning(string message, params object[] @params)
     {
-    }
-
-    public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
-    {
-        throw new NotImplementedException();
     }
 }

@@ -20,6 +20,8 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspServiceLogger
         _hostLogger = hostLogger;
     }
 
+    public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
+
     public override void LogEndContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][End]{message}", @params);
 
     public override void LogError(string message, params object[] @params) => _hostLogger.LogError(message, @params);
@@ -27,18 +29,11 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspServiceLogger
     public override void LogException(Exception exception, string? message = null, params object[] @params) => _hostLogger.LogError(exception, message, @params);
 
     /// <summary>
-    /// TODO - This should call LogInformation, however we need to introduce a LogDebug call in clasp first.
+    /// TODO - Switch this to call LogInformation once appropriate callers have been changed to LogDebug.
     /// </summary>
     public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
     public override void LogStartContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][Start]{message}", @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
-
-    public override AbstractLspRequestScope TrackLspRequest(string lspMethodName, ILspServices lspServices)
-    {
-        var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-
-        return new RequestTelemetryScope(lspMethodName, telemetryLogger);
-    }
 }

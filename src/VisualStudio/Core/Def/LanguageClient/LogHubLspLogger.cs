@@ -38,6 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _configuration.Dispose();
         }
 
+        public override void LogDebug(string message, params object[] @params)
+        {
+            _traceSource.TraceEvent(TraceEventType.Verbose, id: 0, message);
+        }
+
         public override void LogInformation(string message, params object[] @params)
         {
             // Explicitly call TraceEvent here instead of TraceInformation.
@@ -70,13 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public override void LogEndContext(string message, params object[] @params)
         {
             _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
-        }
-
-        public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
-        {
-            var telemetryLogger = lspServices.GetRequiredService<RequestTelemetryLogger>();
-
-            return new LogHubLspRequestScope(message, this, telemetryLogger);
         }
 
         internal sealed class LogHubLspRequestScope : AbstractLspRequestScope

@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private NoOpLspLogger() { }
 
+        public override void LogDebug(string message, params object[] @params)
+        {
+        }
+
         public override void LogException(Exception exception, string? message = null, params object[] @params)
         {
         }
@@ -35,11 +39,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public override void LogEndContext(string message, params object[] @params)
         {
-        }
-
-        public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
-        {
-            throw new NotImplementedException();
         }
     }
 }

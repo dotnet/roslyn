@@ -16,6 +16,8 @@ public sealed class TestOutputLspLogger : AbstractLspLogger, ILspServiceLogger
         _testOutputHelper = testOutputHelper;
     }
 
+    public override void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
+
     public override void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
 
     public override void LogError(string message, params object[] @params) => Log("Error", message, @params);
@@ -28,11 +30,6 @@ public sealed class TestOutputLspLogger : AbstractLspLogger, ILspServiceLogger
     public override void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
     public override void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
-
-    public override AbstractLspRequestScope TrackLspRequest(string message, ILspServices lspServices)
-    {
-        throw new NotImplementedException();
-    }
 
     private void Log(string level, string message, params object[] @params)
         => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{level}]{message}", @params);
