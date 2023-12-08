@@ -214,90 +214,88 @@ namespace CSharpSyntaxGenerator
 
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine("[Fact]");
-            WriteLine($"public void Test{strippedName}FactoryAndProperties()");
-            OpenBlock();
-
-            WriteLine($"var node = Generate{strippedName}();");
-
-            WriteLine();
-
-            //check properties
+            builder.WriteLine("[Fact]");
+            builder.WriteLine($"public void Test{strippedName}FactoryAndProperties()");
+            using (builder.EnterBlock())
             {
-                string withStat = null;
-                foreach (var field in nodeFields)
+                builder.WriteLine($"var node = Generate{strippedName}();");
+                builder.WriteLine();
+
+                //check properties
                 {
-                    if (IsOptional(field))
+                    string withStat = null;
+                    foreach (var field in nodeFields)
                     {
-                        if (!isGreen && field.Type == "SyntaxToken")
+                        if (IsOptional(field))
                         {
-                            WriteLine($"Assert.Equal(SyntaxKind.None, node.{field.Name}.Kind());");
+                            if (!isGreen && field.Type == "SyntaxToken")
+                            {
+                                builder.WriteLine($"Assert.Equal(SyntaxKind.None, node.{field.Name}.Kind());");
+                            }
+                            else
+                            {
+                                builder.WriteLine($"Assert.Null(node.{field.Name});");
+                            }
+                        }
+                        else if (field.Type == "SyntaxToken")
+                        {
+                            var kind = ChooseValidKind(field, node);
+                            if (!isGreen)
+                            {
+                                builder.WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind());");
+                            }
+                            else
+                            {
+                                builder.WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind);");
+                            }
                         }
                         else
                         {
-                            WriteLine($"Assert.Null(node.{field.Name});");
+                            if (field.Type == "SyntaxToken")
+                            {
+                                builder.WriteLine($"Assert.NotEqual(default, node.{field.Name});");
+                            }
+                            else if (
+                                field.Type == "SyntaxTokenList" ||
+                                field.Type.StartsWith("SyntaxList<") ||
+                                field.Type.StartsWith("SeparatedSyntaxList<"))
+                            {
+                                builder.WriteLine($"Assert.Equal(default, node.{field.Name});");
+                            }
+                            else
+                            {
+                                builder.WriteLine($"Assert.NotNull(node.{field.Name});");
+                            }
                         }
-                    }
-                    else if (field.Type == "SyntaxToken")
-                    {
-                        var kind = ChooseValidKind(field, node);
+
                         if (!isGreen)
                         {
-                            WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind());");
-                        }
-                        else
-                        {
-                            WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind);");
-                        }
-                    }
-                    else
-                    {
-                        if (field.Type == "SyntaxToken")
-                        {
-                            WriteLine($"Assert.NotEqual(default, node.{field.Name});");
-                        }
-                        else if (
-                            field.Type == "SyntaxTokenList" ||
-                            field.Type.StartsWith("SyntaxList<") ||
-                            field.Type.StartsWith("SeparatedSyntaxList<"))
-                        {
-                            WriteLine($"Assert.Equal(default, node.{field.Name});");
-                        }
-                        else
-                        {
-                            WriteLine($"Assert.NotNull(node.{field.Name});");
+                            withStat += $".With{field.Name}(node.{field.Name})";
                         }
                     }
 
-                    if (!isGreen)
+                    foreach (var field in valueFields)
                     {
-                        withStat += $".With{field.Name}(node.{field.Name})";
+                        builder.WriteLine($"Assert.Equal(new {field.Type}(), node.{field.Name});");
+                        if (!isGreen)
+                        {
+                            withStat += $".With{field.Name}(node.{field.Name})";
+                        }
+                    }
+
+                    if (!isGreen && withStat != null)
+                    {
+                        builder.WriteLine($"var newNode = node{withStat};");
+                        builder.WriteLine("Assert.Equal(node, newNode);");
                     }
                 }
 
-                foreach (var field in valueFields)
+                if (isGreen)
                 {
-                    WriteLine($"Assert.Equal(new {field.Type}(), node.{field.Name});");
-                    if (!isGreen)
-                    {
-                        withStat += $".With{field.Name}(node.{field.Name})";
-                    }
-                }
-
-                if (!isGreen && withStat != null)
-                {
-                    WriteLine($"var newNode = node{withStat};");
-                    WriteLine("Assert.Equal(node, newNode);");
+                    builder.EnsureBlankLine();
+                    builder.WriteLine("AttachAndCheckDiagnostics(node);");
                 }
             }
-
-            if (isGreen)
-            {
-                WriteLine();
-                WriteLine("AttachAndCheckDiagnostics(node);");
-            }
-
-            CloseBlock();
         }
 
         private void WriteRewriterTests(IndentingStringBuilder builder)
