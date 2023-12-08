@@ -240,19 +240,27 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 {
                     // Don't have to update if the member is already qualified.
 
-                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax || qualifiedNameSyntax.Right != nameSyntax)
+                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax ||
+                        qualifiedNameSyntax.Right != nameSyntax)
                     {
-                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
+                        // Qualified names occur in things like the `type` portion of the parameter
+
                         // reference to a nested type in an unqualified fashion.  Have to qualify this.
+                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
                         if (symbol is INamedTypeSymbol { ContainingType: { } containingType })
                             return QualifiedName(containingType.GenerateNameSyntax(), currentNameSyntax);
                     }
 
-                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression || memberAccessExpression.Name != nameSyntax)
+                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression ||
+                        memberAccessExpression.Name != nameSyntax)
                     {
+                        // Member access expressions occur in things like the default initializer, or attribute
+                        // arguments of the parameter.
+
                         var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
-                        if (symbol is IFieldSymbol { ContainingType: not null } &&
-                            namedType.Equals(symbol.ContainingType.OriginalDefinition))
+                        if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol &&
+                            symbol is { ContainingType.OriginalDefinition: { } containingType } &&
+                            namedType.Equals(containingType))
                         {
                             // reference to a member field an unqualified fashion.  Have to qualify this.
                             return MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, namedType.GenerateNameSyntax(), currentNameSyntax);
