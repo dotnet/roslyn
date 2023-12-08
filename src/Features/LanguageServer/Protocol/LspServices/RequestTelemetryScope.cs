@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
+namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger telemetryLogger)
  : AbstractLspRequestScope(name)

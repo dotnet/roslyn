@@ -64,7 +64,7 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
 
         var telemetryService = lspServices.GetRequiredServices<AbstractTelemetryService>().FirstOrDefault();
 
-        _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName, LspServices);
+        _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
     public static (IQueueItem<TRequestContext>, Task<TResponse>) Create(

@@ -6,5 +6,5 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 public abstract class AbstractTelemetryService
 {
-    public abstract AbstractLspRequestScope CreateRequestScope(string lspMethodName, ILspServices lspServices);
+    public abstract AbstractLspRequestScope CreateRequestScope(string lspMethodName);
 }
