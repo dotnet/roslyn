@@ -172,6 +172,11 @@
         <target state="translated">Eliminar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="new">Semantic Search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">Mostrar sugerencias para las expresiones "new"</target>

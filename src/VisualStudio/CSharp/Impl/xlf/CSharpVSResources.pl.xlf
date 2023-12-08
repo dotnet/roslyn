@@ -172,6 +172,11 @@
         <target state="translated">Usuń niepotrzebne użycia</target>
         <note />
       </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="new">Semantic Search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">Pokaż wskazówki dla wyrażeń „new”</target>

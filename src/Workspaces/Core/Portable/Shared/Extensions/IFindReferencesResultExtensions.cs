@@ -46,6 +46,11 @@ internal static partial class IFindReferencesResultExtensions
     public static bool ShouldShowWithNoReferenceLocations(
         this ISymbol definition, FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
     {
+        if (options.DisplayAllDefinitions)
+        {
+            return true;
+        }
+
         // If the definition is implicit and we have no references, then we don't want to
         // clutter the UI with it.
         if (definition.IsImplicitlyDeclared)

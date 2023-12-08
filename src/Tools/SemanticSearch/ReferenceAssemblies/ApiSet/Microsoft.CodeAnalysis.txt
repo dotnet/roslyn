@@ -1,0 +1,5 @@
+﻿+T:*
+-M:Microsoft.CodeAnalysis.MetadataReference.CreateFromFile*
+-T:Microsoft.CodeAnalysis.FileSystemExtensions
+-T:Microsoft.CodeAnalysis.CommandLineParser
+-T:Microsoft.CodeAnalysis.DesktopStrongNameProvider
