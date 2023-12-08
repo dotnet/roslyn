@@ -102,7 +102,7 @@ namespace CSharpSyntaxGenerator
 
             if (node.Kinds.Count > 1)
             {
-                Write($"SyntaxKind.{node.Kinds[0].Name}"); //TODO: other kinds?
+                builder.Write($"SyntaxKind.{node.Kinds[0].Name}"); //TODO: other kinds?
                 first = false;
             }
 
@@ -110,7 +110,7 @@ namespace CSharpSyntaxGenerator
             {
                 if (!first)
                 {
-                    Write(", ");
+                    builder.Write(", ");
                 }
                 first = false;
 
@@ -118,11 +118,11 @@ namespace CSharpSyntaxGenerator
                 {
                     if (isGreen)
                     {
-                        Write("null");
+                        builder.Write("null");
                     }
                     else
                     {
-                        Write($"default({field.Type})");
+                        builder.Write($"default({field.Type})");
                     }
                 }
                 else if (IsAnyList(field.Type))
@@ -136,7 +136,7 @@ namespace CSharpSyntaxGenerator
                     {
                         typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
                     }
-                    Write($"new {typeName}()");
+                    builder.Write($"new {typeName}()");
                 }
                 else if (field.Type == "SyntaxToken")
                 {
@@ -145,28 +145,28 @@ namespace CSharpSyntaxGenerator
                     var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
                     {
-                        Write($"{syntaxFactory}.Identifier(\"{field.Name}\")");
+                        builder.Write($"{syntaxFactory}.Identifier(\"{field.Name}\")");
                     }
                     else if (kind == "StringLiteralToken")
                     {
-                        Write($"{syntaxFactory}.Literal({leadingTrivia}\"string\", \"string\"{trailingTrivia})");
+                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"string\", \"string\"{trailingTrivia})");
                     }
                     else if (kind == "CharacterLiteralToken")
                     {
-                        Write($"{syntaxFactory}.Literal({leadingTrivia}\"a\", 'a'{trailingTrivia})");
+                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"a\", 'a'{trailingTrivia})");
                     }
                     else if (kind == "NumericLiteralToken")
                     {
-                        Write($"{syntaxFactory}.Literal({leadingTrivia}\"1\", 1{trailingTrivia})");
+                        builder.Write($"{syntaxFactory}.Literal({leadingTrivia}\"1\", 1{trailingTrivia})");
                     }
                     else
                     {
-                        Write($"{syntaxFactory}.Token(SyntaxKind.{kind})");
+                        builder.Write($"{syntaxFactory}.Token(SyntaxKind.{kind})");
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
                 {
-                    Write($"{syntaxFactory}.IdentifierName({syntaxFactory}.Identifier(\"{field.Name}\"))");
+                    builder.Write($"{syntaxFactory}.IdentifierName({syntaxFactory}.Identifier(\"{field.Name}\"))");
                 }
                 else
                 {
@@ -181,7 +181,7 @@ namespace CSharpSyntaxGenerator
                         }
                         type = subTypes.First();
                     }
-                    Write($"Generate{StripPost(type, "Syntax")}()");
+                    builder.Write($"Generate{StripPost(type, "Syntax")}()");
                 }
             }
 
@@ -189,14 +189,14 @@ namespace CSharpSyntaxGenerator
             {
                 if (!first)
                 {
-                    Write(", ");
+                    builder.Write(", ");
                 }
                 first = false;
 
-                Write($"new {field.Type}()");
+                builder.Write($"new {field.Type}()");
             }
 
-            WriteLine(");");
+            builder.WriteLine(");");
         }
 
         private void WriteFactoryPropertyTests(IndentingStringBuilder builder, bool isGreen)
