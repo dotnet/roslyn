@@ -218,15 +218,18 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.{field.Type} {field.Name} => new(new(this.{CamelCase(field.Name)}));");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}CoreSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.SyntaxList<CSharpSyntaxNode>";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else
                     {
